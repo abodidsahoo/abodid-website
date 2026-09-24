@@ -106,9 +106,12 @@ export const getR2Config = (): R2Config => {
             process.env.R2_SECRET_ACCESS_KEY || (typeof import.meta !== "undefined" && import.meta.env?.R2_SECRET_ACCESS_KEY),
             "R2_SECRET_ACCESS_KEY",
         ),
-        bucket: (
-            process.env.R2_BUCKET_NAME || (typeof import.meta !== "undefined" && import.meta.env?.R2_BUCKET_NAME) || "assets"
-        ).trim(),
+        bucket: (() => {
+            const raw = (
+                process.env.R2_BUCKET_NAME || (typeof import.meta !== "undefined" && import.meta.env?.R2_BUCKET_NAME) || "assets"
+            ).trim();
+            return raw === "photos" ? "assets" : (raw || "assets");
+        })(),
         publicBaseUrl: (
             process.env.R2_PUBLIC_BASE_URL || (typeof import.meta !== "undefined" && import.meta.env?.R2_PUBLIC_BASE_URL) || "https://assets.abodid.com"
         ).trim().replace(/\/+$/, ""),

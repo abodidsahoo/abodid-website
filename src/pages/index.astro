@@ -93,6 +93,29 @@ const featuredTestimonials = testimonialPriority
 const title = "Abodid Sahoo — Creative Director, Artist & Researcher in London";
 const description = content.hero.lede;
 
+const workWithMeCards = [
+  {
+    title: "Exhibitions & Interactive Experiences",
+    description:
+      "I design and build exhibitions and storytelling spaces using film, performance, AI, AR, VR and XR. I’ve built more than 20 interactive experiences (both digital and physical) in London in the last three years.",
+  },
+  {
+    title: "Photography & Visual Documentation",
+    description:
+      "This is a major strength of mine. I love documenting art exhibitions, galleries, renowned immersive spaces and intimate stories, capturing the details that make each experience feel alive.",
+  },
+  {
+    title: "Creative Direction & Production",
+    description:
+      "For over eight years, I’ve led the production of commercials, brand films, music videos, dance videos, short films and photo stories that are experimental, tasteful and made to have an impact.",
+  },
+  {
+    title: "Research & Knowledge Systems",
+    description:
+      "I love being a second brain for ambitious ideas, helping you think them through and articulate them clearly. I also teach Obsidian workshops that help you take better notes and put your knowledge to work.",
+  },
+];
+
 const structuredData = [
   personJsonLd(),
   websiteJsonLd(),
@@ -120,19 +143,23 @@ const structuredData = [
   <main class="story-home">
     <LandingInteractiveHero
       client:load
-      name={content.hero.name}
-      location={content.hero.location}
-      heading={content.hero.heading}
-      statement={content.hero.statement}
-      lede={content.hero.lede}
-      ctaText="Enter the Site"
+      name="Abodid Sahoo"
+      keyline="Creative Technologist, Immersive Experience Designer and Visual Artist working between London and India"
+      ctaText="Explore selected work"
       ctaHref="#selected-work"
-      secondaryCtaText="Read my Manifesto"
-      secondaryCtaHref="/manifesto"
+      secondaryCtaText="Work with me"
+      secondaryCtaHref="#enquiry"
+      vaultLabel="my obsidian vault"
     />
 
-    <section class="story-work" id="selected-work" aria-labelledby="selected-work-heading">
-      <h2 class="story-work__heading" id="selected-work-heading">Selected work</h2>
+    <section
+      class="story-work"
+      id="selected-work"
+      aria-labelledby="selected-work-heading"
+    >
+      <h2 class="story-work__heading" id="selected-work-heading">
+        Selected work
+      </h2>
       <div class="story-work__grid">
         {
           selectedWorkProjects.map((project) => (
@@ -149,7 +176,8 @@ const structuredData = [
                     loading="lazy"
                     decoding="async"
                   />
-                ) : project.video && /\.(mp4|webm)(?:[?#]|$)/i.test(project.video) ? (
+                ) : project.video &&
+                  /\.(mp4|webm)(?:[?#]|$)/i.test(project.video) ? (
                   <video
                     src={project.video}
                     autoplay
@@ -174,8 +202,13 @@ const structuredData = [
                 <h3>{project.title}</h3>
                 <p class="story-project__summary">{project.summary}</p>
                 {project.themes?.length ? (
-                  <ul class="story-project__themes" aria-label={`${project.title} themes`}>
-                    {project.themes.map((theme) => <li>{theme}</li>)}
+                  <ul
+                    class="story-project__themes"
+                    aria-label={`${project.title} themes`}
+                  >
+                    {project.themes.map((theme) => (
+                      <li>{theme}</li>
+                    ))}
                   </ul>
                 ) : null}
                 <dl>
@@ -299,98 +332,46 @@ const structuredData = [
       <header class="story-section-heading story-section-heading--dark-text">
         <p class="story-eyebrow">Ways to work together</p>
         <h2 id="story-services-heading">Work with me</h2>
-        <a href="#enquiry"
-          ><span class="link-label">Discuss an engagement</span>
-          <span class="link-destination-arrow" aria-hidden="true">↗</span></a
-        >
       </header>
-      <div class="story-capabilities">
-        {
-          content.capabilities.map((capability, index) => (
-            <details
-              class="story-capability"
-              name="story-capabilities"
-              open={index === 0}
-            >
-              <summary data-auto-contrast>
-                <span>{capability.number}</span>
-                <h3>{capability.title}</h3>
-                <small>
-                  {String(capability.details.length).padStart(2, "0")} areas
-                </small>
-                <b aria-hidden="true" />
-              </summary>
-              <div class="story-capability__content">
-                <div class="story-capability__main">
-                  <p>{capability.summary}</p>
-                  {capability.projects && capability.projects.length > 0 && (
-                    <p class="story-capability__featured">
-                      <span class="story-capability__featured-label">
-                        Relevant project
-                        {capability.projects.length > 1 ? "s" : ""}:
-                      </span>
-                      <span class="story-capability__project-links">
-                        {capability.projects.map((project, pIdx) => (
-                          <Fragment key={project.name}>
-                            <a
-                              class="story-capability__project-link"
-                              href={project.href}
-                            >
-                              <span>{project.name}</span>
-                              <b
-                                class="link-destination-arrow"
-                                aria-hidden="true"
-                              >
-                                ↗
-                              </b>
-                            </a>
-                            {pIdx < capability.projects.length - 1 && (
-                              <span
-                                class="story-capability__project-sep"
-                                aria-hidden="true"
-                              >
-                                ,
-                              </span>
-                            )}
-                          </Fragment>
-                        ))}
-                      </span>
-                    </p>
-                  )}
-                </div>
-                <div class="story-capability__scope">
-                  <ul>
-                    {capability.details.map((detail) => (
-                      <li>{detail}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </details>
-          ))
-        }
-      </div>
-      <div class="story-services__conversation" data-auto-contrast>
-        <div class="story-services__conversation-copy">
-          <p class="story-eyebrow">Have a project or idea in mind?</p>
-          <h3>Start a conversation</h3>
-          <p class="story-services__conversation-text">
-            Open for creative direction, spatial & interactive prototypes, and
-            strategic advisory.
-          </p>
-          <a class="story-button story-button--primary" href="#enquiry">
-            <span>Discuss an engagement</span>
-            <b aria-hidden="true">→</b>
-          </a>
-        </div>
-        <figure class="story-services__conversation-media">
+      <div class="story-services__intro" data-auto-contrast>
+        <figure class="story-services__portrait">
           <img
-            src="https://assets.abodid.com/photos/variants/uk-2026/1600/162_UK-Trip-2026-280fe68684.webp"
+            src="https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp"
             alt="Abodid Sahoo"
             loading="lazy"
             decoding="async"
           />
         </figure>
+        <div class="story-services__intro-copy">
+          <p class="story-services__intro-lead">
+            I turn ambitious ideas and stories into intuitive, accessible
+            participatory experiences.
+          </p>
+          <p>
+            Over the past eight years, I’ve worked on more than 300 exhibitions,
+            installations, films, photo stories and digital experiences. My
+            research-driven work is designed to spark conversations and help
+            people connect.
+          </p>
+        </div>
+      </div>
+
+      <div class="story-services__cards">
+        {
+          workWithMeCards.map((card) => (
+            <article class="story-services__card" data-auto-contrast>
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="story-services__cta">
+        <a class="story-button story-button--primary" href="#enquiry">
+          <span>Start a conversation</span>
+          <b aria-hidden="true">→</b>
+        </a>
       </div>
     </section>
 
@@ -498,9 +479,13 @@ const structuredData = [
         });
 
       const parseRgb = (value) => {
-        const hex = String(value).trim().match(/^#([0-9a-f]{6})$/i)?.[1];
+        const hex = String(value)
+          .trim()
+          .match(/^#([0-9a-f]{6})$/i)?.[1];
         if (hex) {
-          return [0, 2, 4].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
+          return [0, 2, 4].map((offset) =>
+            parseInt(hex.slice(offset, offset + 2), 16),
+          );
         }
         const channels =
           String(value)
@@ -533,11 +518,19 @@ const structuredData = [
 
       const resolveForegrounds = () => {
         const rootStyles = getComputedStyle(document.documentElement);
-        const inkColour = rootStyles.getPropertyValue("--pop-ink").trim() || "#15130f";
-        const creamColour = rootStyles.getPropertyValue("--pop-cream").trim() || "#fff8e8";
+        const inkColour =
+          rootStyles.getPropertyValue("--pop-ink").trim() || "#15130f";
+        const creamColour =
+          rootStyles.getPropertyValue("--pop-cream").trim() || "#fff8e8";
         return {
-          ink: { colour: inkColour, luminance: luminance(parseRgb(inkColour) || [21, 19, 15]) },
-          cream: { colour: creamColour, luminance: luminance(parseRgb(creamColour) || [255, 248, 232]) },
+          ink: {
+            colour: inkColour,
+            luminance: luminance(parseRgb(inkColour) || [21, 19, 15]),
+          },
+          cream: {
+            colour: creamColour,
+            luminance: luminance(parseRgb(creamColour) || [255, 248, 232]),
+          },
         };
       };
 
@@ -666,8 +659,10 @@ const structuredData = [
       };
 
       const initialisePage = () => {
-      applySurfaceContrast();
-      window.addEventListener("design-tokens:loaded", applySurfaceContrast, { once: true });
+        applySurfaceContrast();
+        window.addEventListener("design-tokens:loaded", applySurfaceContrast, {
+          once: true,
+        });
         initialiseTestimonials();
         ensureVideosPlay();
       };
@@ -726,6 +721,15 @@ const structuredData = [
     padding: 0 !important;
     background: var(--pop-blue) !important;
     color: var(--story-ink);
+  }
+  body.story-home-page .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 50;
   }
   body.story-home-page main.page-content-full {
     overflow: visible;
@@ -964,12 +968,24 @@ const structuredData = [
     outline: 3px solid var(--pop-ink);
     outline-offset: 4px;
   }
-  .story-project[data-accent="lime"] { --card-accent: var(--pop-lime); }
-  .story-project[data-accent="pink"] { --card-accent: var(--pop-pink); }
-  .story-project[data-accent="yellow"] { --card-accent: var(--pop-yellow); }
-  .story-project[data-accent="cyan"] { --card-accent: var(--pop-cyan); }
-  .story-project[data-accent="orange"] { --card-accent: var(--pop-orange); }
-  .story-project[data-accent="purple"] { --card-accent: var(--pop-purple); }
+  .story-project[data-accent="lime"] {
+    --card-accent: var(--pop-lime);
+  }
+  .story-project[data-accent="pink"] {
+    --card-accent: var(--pop-pink);
+  }
+  .story-project[data-accent="yellow"] {
+    --card-accent: var(--pop-yellow);
+  }
+  .story-project[data-accent="cyan"] {
+    --card-accent: var(--pop-cyan);
+  }
+  .story-project[data-accent="orange"] {
+    --card-accent: var(--pop-orange);
+  }
+  .story-project[data-accent="purple"] {
+    --card-accent: var(--pop-purple);
+  }
   .story-project--sequence-room,
   .story-project--punctum,
   .story-project--gesture-control {
@@ -1176,259 +1192,113 @@ const structuredData = [
     background: var(--pop-pink);
   }
   .story-services
-    > :is(header, .story-capabilities, .story-services__conversation) {
+    > :is(
+      header,
+      .story-services__intro,
+      .story-services__cards,
+      .story-services__cta
+    ) {
     max-width: 1480px;
     margin-inline: auto;
     width: 100%;
   }
-  .story-capabilities {
+  .story-services__intro {
+    margin-bottom: var(--home-next-gap);
+    padding: clamp(0.65rem, 1vw, 0.9rem);
     display: grid;
-    gap: var(--home-next-gap);
-  }
-  .story-capability {
-    overflow: hidden;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-card);
-    background: var(--pop-cream);
-  }
-  .story-capability:nth-child(4n + 1) > summary {
-    background: var(--pop-yellow);
-  }
-  .story-capability:nth-child(4n + 2) > summary {
-    background: var(--pop-blue);
-    color: var(--pop-cream);
-  }
-  .story-capability:nth-child(4n + 3) > summary {
-    background: var(--pop-pink);
-  }
-  .story-capability:nth-child(4n + 4) > summary {
-    background: var(--pop-blue);
-    color: var(--pop-cream);
-  }
-  .story-capability > summary {
-    min-height: clamp(86px, 8vw, 112px);
-    padding: 0 clamp(1rem, 2.5vw, 2rem);
-    display: grid;
-    grid-template-columns: 56px minmax(0, 1fr) auto 32px;
+    grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
     align-items: center;
-    gap: 1rem;
-    color: var(--pop-ink);
-    cursor: pointer;
-    list-style: none;
-  }
-  .story-capability > summary::-webkit-details-marker {
-    display: none;
-  }
-  .story-capability > summary > span,
-  .story-capability > summary > small {
-    font: 750 0.68rem/1.2 var(--font-mono, monospace);
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-  }
-  .story-capability > summary > small {
-    opacity: 1;
-  }
-  .story-capability h3 {
-    margin: 0;
-    color: inherit;
-    font: 700 clamp(1.45rem, 3vw, 2.9rem)/1.05 var(--font-display, sans-serif);
-    letter-spacing: -0.045em;
-  }
-  .story-capability > summary b {
-    position: relative;
-    width: 26px;
-    height: 26px;
-    justify-self: center;
-    transition: transform 180ms ease;
-  }
-  .story-capability > summary b::before,
-  .story-capability > summary b::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    border-radius: 1px;
-    background: currentColor;
-    transform: translate(-50%, -50%);
-  }
-  .story-capability > summary b::before {
-    width: 4px;
-    height: 100%;
-  }
-  .story-capability > summary b::after {
-    width: 100%;
-    height: 4px;
-  }
-  .story-capability[open] > summary b {
-    transform: rotate(45deg);
-  }
-  .story-capability > summary:focus-visible {
-    outline: 4px solid var(--pop-purple);
-    outline-offset: -5px;
-  }
-  .story-capability__content {
-    padding: clamp(1.4rem, 3vw, 2.5rem);
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.75fr);
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: start;
-    border-top: 1px solid var(--pop-ink);
-  }
-  .story-capability__main {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .story-capability__main > p {
-    max-width: 48rem;
-    margin: 0;
-    color: #3f3931;
-    font: 450 clamp(1rem, 1.4vw, 1.16rem)/1.6 var(--font-body, sans-serif);
-  }
-  .story-capability__featured,
-  .story-capability__featured-label,
-  .story-capability__project-links,
-  .story-capability__project-link,
-  .story-capability__project-link span,
-  .story-capability__project-link b,
-  .story-capability__project-sep {
-    font-family: var(--font-mono, monospace) !important;
-    font-size: 0.68rem !important;
-    font-weight: 700 !important;
-    line-height: 1.25 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-  }
-  .story-capability__featured {
-    margin: 0;
-    padding: 0;
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.35rem;
-    color: var(--pop-ink);
-  }
-  .story-capability__featured-label {
-    color: #6b6355;
-    margin-right: 0.2rem;
-  }
-  .story-capability__project-links {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.35rem;
-  }
-  .story-capability__project-link {
-    display: inline-flex;
-    align-items: baseline;
-    color: var(--pop-ink);
-    text-decoration: none !important;
-    transition: opacity 160ms ease;
-  }
-  .story-capability__project-link span {
-    text-decoration: underline !important;
-    text-underline-offset: 3px;
-    text-decoration-thickness: 1.2px;
-  }
-  .story-capability__project-link:hover {
-    opacity: 0.65;
-  }
-  .story-capability__project-link b {
-    display: inline-block;
-    margin-left: 0.15rem;
-    text-decoration: none !important;
-  }
-  .story-capability__project-sep {
-    color: rgba(21, 19, 15, 0.5);
-    margin-right: 0.2rem;
-  }
-  .story-capability__scope {
-    display: flex;
-    flex-direction: column;
-  }
-  .story-capability ul {
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.65rem;
-    list-style: none;
-  }
-  .story-capability li {
-    padding-bottom: 0.65rem;
-    border-bottom: 1px solid rgba(21, 19, 15, 0.25);
-    font: 700 0.68rem/1.25 var(--font-mono, monospace);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-  .story-services__conversation {
-    margin-top: clamp(1rem, 2vw, 1.5rem);
-    padding: clamp(2rem, 3.5vw, 3.25rem) clamp(1.4rem, 3vw, 2.5rem);
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.75fr);
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: center;
+    gap: clamp(1.5rem, 4vw, 4.5rem);
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-panel);
     background: var(--pop-yellow);
     color: var(--pop-ink);
   }
-  .story-services__conversation-copy {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
-  }
-  .story-services__conversation-copy .story-eyebrow {
-    margin: 0 0 0.25rem;
-    color: inherit;
-  }
-  .story-services__conversation-copy h3 {
-    margin: 0;
-    color: inherit;
-    font: 680 clamp(1.75rem, 3.2vw, 2.75rem)/0.95
-      var(--font-display, sans-serif);
-    letter-spacing: -0.05em;
-  }
-  .story-services__conversation-text {
-    max-width: 38rem;
-    margin: 0.25rem 0 0.85rem;
-    color: inherit;
-    font: 450 clamp(0.92rem, 1.1vw, 1.02rem)/1.45 var(--font-body, sans-serif);
-  }
-  .story-services__conversation-copy .story-button {
-    background: var(--pop-cream);
-    color: var(--pop-ink);
-    border: 1px solid var(--pop-ink);
-    transition:
-      transform var(--home-next-motion),
-      background 160ms ease;
-  }
-  .story-services__conversation-copy .story-button:hover {
-    background: var(--pop-lime);
-    transform: translateY(-2px);
-  }
-  .story-services__conversation-media {
+  .story-services__portrait {
     margin: 0;
     width: 100%;
-    height: 100%;
-    min-height: clamp(200px, 20vw, 280px);
-    max-height: 340px;
-    flex-shrink: 0;
+    aspect-ratio: 4 / 5;
     overflow: hidden;
     border: 1px solid var(--pop-ink);
     border-radius: var(--home-next-radius-media);
     background: var(--pop-ink);
   }
-  .story-services__conversation-media img {
+  .story-services__portrait img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center 60%;
     display: block;
-    transition: transform 500ms ease;
+    object-fit: cover;
+    object-position: center;
   }
-  .story-services__conversation:hover .story-services__conversation-media img {
-    transform: scale(1.04);
+  .story-services__intro-copy {
+    padding: clamp(1rem, 3.5vw, 3.5rem) clamp(0.45rem, 2.5vw, 2rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1rem, 2vw, 1.75rem);
+  }
+  .story-services__intro-copy p {
+    max-width: 50rem;
+    margin: 0;
+    color: inherit;
+    font: 450 clamp(1rem, 1.35vw, 1.2rem)/1.55 var(--font-body, sans-serif);
+    text-wrap: pretty;
+  }
+  .story-services__intro-copy .story-services__intro-lead {
+    max-width: 24ch;
+    font: 650 clamp(1.8rem, 3.4vw, 3.7rem)/1.02 var(--font-display, sans-serif);
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+  .story-services__cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: var(--home-next-gap);
+  }
+  .story-services__card {
+    min-height: clamp(290px, 28vw, 410px);
+    padding: clamp(1.4rem, 3vw, 2.75rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: clamp(2rem, 5vw, 5rem);
+    border: var(--home-next-border);
+    border-radius: var(--home-next-radius-card);
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    box-shadow: 0 4px 0 var(--pop-ink);
+  }
+  .story-services__card h3 {
+    max-width: 18ch;
+    margin: 0;
+    color: inherit;
+    font: 680 clamp(1.75rem, 3vw, 3rem)/0.98 var(--font-display, sans-serif);
+    letter-spacing: -0.05em;
+    text-wrap: balance;
+  }
+  .story-services__card p {
+    max-width: 48rem;
+    margin: 0;
+    color: inherit;
+    font: 450 clamp(1rem, 1.3vw, 1.15rem)/1.58 var(--font-body, sans-serif);
+    text-wrap: pretty;
+  }
+  .story-services__cta {
+    padding-top: clamp(1.5rem, 3vw, 2.5rem);
+    display: flex;
+    justify-content: flex-end;
+  }
+  .story-services__cta .story-button {
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    transition:
+      transform var(--home-next-motion),
+      background 160ms ease;
+  }
+  .story-services__cta .story-button:hover {
+    background: var(--pop-lime);
+    transform: translateY(-2px);
   }
 
   .story-evidence {
@@ -1490,8 +1360,7 @@ const structuredData = [
       transform var(--home-next-motion),
       box-shadow var(--home-next-motion);
   }
-  .story-quote,
-  .story-capability {
+  .story-quote {
     box-shadow: 0 4px 0 var(--pop-ink);
   }
   .story-brand-pill:hover,
@@ -1642,8 +1511,7 @@ const structuredData = [
   }
   .story-quote__short p {
     margin: 0;
-    font: 540 clamp(1.35rem, 2.1vw, 2.15rem)/1.3
-      var(--font-display, sans-serif);
+    font: 540 clamp(1.35rem, 2.1vw, 2.15rem)/1.3 var(--font-display, sans-serif);
     letter-spacing: -0.035em;
     text-wrap: pretty;
   }
@@ -1954,17 +1822,11 @@ const structuredData = [
     .story-process li {
       min-height: 250px;
     }
-    .story-capability__content {
+    .story-services__intro {
       grid-template-columns: 1fr;
     }
-    .story-services__conversation {
-      grid-template-columns: 1fr;
-    }
-    .story-services__conversation-media {
-      width: 100%;
-      height: auto;
+    .story-services__portrait {
       aspect-ratio: 16 / 10;
-      max-height: 320px;
     }
     .story-writing__inner {
       grid-template-columns: 1fr;
@@ -2049,31 +1911,28 @@ const structuredData = [
       min-height: 220px;
       padding: 1.2rem;
     }
-    .story-capability > summary {
-      grid-template-columns: 40px minmax(0, 1fr) 28px;
-      gap: 0.75rem;
+    .story-services__intro {
+      padding: 0.65rem;
+      gap: 0;
     }
-    .story-capability > summary > small {
-      display: none;
+    .story-services__portrait {
+      aspect-ratio: 4 / 5;
     }
-    .story-services__conversation {
+    .story-services__intro-copy {
+      padding: 1.4rem 0.55rem 1rem;
+    }
+    .story-services__cards {
       grid-template-columns: 1fr;
-      padding: 1.15rem;
-      gap: 1.25rem;
+      grid-auto-rows: auto;
     }
-    .story-services__conversation-media {
-      order: -1;
-      width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 10;
-      min-height: 220px;
-      max-height: 320px;
-      border-radius: clamp(10px, 2.5vw, 14px);
+    .story-services__card {
+      min-height: 0;
+      gap: 2rem;
     }
-    .story-services__conversation-copy {
-      width: 100%;
+    .story-services__cta {
+      justify-content: stretch;
     }
-    .story-services__conversation-copy .story-button {
+    .story-services__cta .story-button {
       width: 100%;
       justify-content: space-between;
     }

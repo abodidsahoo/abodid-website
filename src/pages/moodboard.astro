@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MoodboardGallery from "../components/MoodboardGallery.jsx";
 import { getPublishedMoodboardItems } from "../lib/services/moodboard";
@@ -23,6 +25,16 @@ const interactiveItems = shuffledItems.map((item) => ({
   thumbnailUrl: item.imageUrl,
   paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(item.imageUrl)}`,
 }));
+
+// Moodboard items are managed directly in the admin, so keep the edge cache responsive while preserving zero cold-start delay for visitors.
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
+);
+Astro.response.headers.set(
+  "Vercel-CDN-Cache-Control",
+  "s-maxage=60, stale-while-revalidate=300",
+);
 ---
 
 <BaseLayout

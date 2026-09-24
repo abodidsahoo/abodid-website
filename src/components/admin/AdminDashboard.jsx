@@ -234,6 +234,7 @@ export default function AdminDashboard() {
         loading: true,
         error: '',
     });
+    const [recentVisitorIndex, setRecentVisitorIndex] = useState(0);
     const activeDestination = SECTIONS.find((section) => section.id === activeSection) || SECTIONS[0];
     const activeNavGroup = NAV_GROUPS.find((group) => group.id === activeDestination.groupId) || NAV_GROUPS[0];
 
@@ -464,16 +465,18 @@ export default function AdminDashboard() {
             frameId: null,
             moved: false,
         };
-        strip.setPointerCapture(event.pointerId);
-        strip.classList.add('is-dragging');
     };
 
     const handleOpportunityStripPointerMove = (event) => {
         const drag = opportunityDragRef.current;
         if (!drag.active || drag.pointerId !== event.pointerId) return;
         const distance = event.clientX - drag.startX;
-        if (Math.abs(distance) > 3 && !drag.moved) {
+        if (Math.abs(distance) > 5 && !drag.moved) {
             drag.moved = true;
+            try {
+                event.currentTarget.setPointerCapture(event.pointerId);
+            } catch {}
+            event.currentTarget.classList.add('is-dragging');
         }
         if (drag.moved) {
             event.preventDefault();
@@ -499,12 +502,14 @@ export default function AdminDashboard() {
         }
         event.currentTarget.classList.remove('is-dragging');
         if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId);
+            try {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+            } catch {}
         }
         if (drag.moved) {
             window.setTimeout(() => {
                 opportunityDragRef.current.moved = false;
-            }, 0);
+            }, 80);
         }
     };
 
@@ -811,7 +816,6 @@ export default function AdminDashboard() {
                                                 opportunity={opportunity}
                                                 onOpen={() => {
                                                     if (opportunityDragRef.current.moved) {
-                                                        opportunityDragRef.current.moved = false;
                                                         return;
                                                     }
                                                     setSelectedOpportunity(opportunity);
@@ -837,8 +841,8 @@ export default function AdminDashboard() {
                                     </button>
                                 </article>
 
-                                <article className="studio-frame-card studio-moodboard-card">
-                                    <span className="studio-card-icon" aria-hidden="true"><Images size={22} strokeWidth={1.7} /></span>
+                                <article className="studio-frame-card studio-moodboard-card admin-accent-surface">
+                                    <span className="studio-card-icon is-inverted" aria-hidden="true"><Images size={22} strokeWidth={1.7} /></span>
                                     <div className="studio-card-copy">
                                         <h2>Add to moodboard</h2>
                                         <span>Upload a JPEG/PNG/WebP/GIF to your moodboard.</span>
@@ -860,32 +864,65 @@ export default function AdminDashboard() {
                                                 handleNav('moodboard_items', 'upload');
                                             }}
                                         />
-                                        <button type="button" className="studio-card-button" onClick={() => moodboardFileInputRef.current?.click()}>
+                                        <button type="button" className="studio-card-button is-on-cobalt" onClick={() => moodboardFileInputRef.current?.click()}>
                                             Add images
+                                            <ArrowUpRight size={16} strokeWidth={1.8} aria-hidden="true" />
                                         </button>
                                     </div>
                                 </article>
 
                                 <article className="studio-frame-card studio-analytics-card">
-                                    <div className="studio-analytics-summary">
+                                    <div className="studio-analytics-head">
                                         <span className="studio-card-icon" aria-hidden="true"><ChartNoAxesCombined size={22} strokeWidth={1.7} /></span>
-                                        <div className="studio-card-copy">
-                                            <h2>Analytics</h2>
-                                            <span className="studio-visitor-count" aria-live="polite">
-                                                {analyticsSnapshot.loading
-                                                    ? 'Loading recent visitors…'
-                                                    : `${analyticsSnapshot.visitorCount.toLocaleString('en-GB')} ${analyticsSnapshot.visitorCount === 1 ? 'visitor' : 'visitors'} in the last 7 days`}
-                                            </span>
-                                        </div>
+                                        <span className="studio-analytics-badge" aria-live="polite">
+                                            {analyticsSnapshot.loading
+                                                ? 'Loading…'
+                                                : `${analyticsSnapshot.visitorCount.toLocaleString('en-GB')} in last 7d`}
+                                        </span>
+                                    </div>
+                                    <div className="studio-card-copy">
+                                        <h2>Analytics</h2>
+                                        <p className="studio-analytics-visitor-note">
+                                            {analyticsSnapshot.loading
+                                                ? 'Loading recent activity…'
+                                                : analyticsSnapshot.error
+                                                ? 'Recent visitor details unavailable.'
+                                                : analyticsSnapshot.visitors?.length > 0
+                                                ? describeRecentVisitor(analyticsSnapshot.visitors[Math.min(recentVisitorIndex, analyticsSnapshot.visitors.length - 1)])
+                                                : 'No human visitors in the last 7 days.'}
+                                        </p>
+                                    </div>
+                                    <div className="studio-card-actions">
                                         <button type="button" className="studio-card-button" onClick={() => handleNav('analytics')}>
                                             View Analytics
                                             <ArrowUpRight size={16} strokeWidth={1.8} aria-hidden="true" />
                                         </button>
+                                        {analyticsSnapshot.visitors?.length > 1 && (
+                                            <div className="studio-visitor-mini-pager" aria-label="Cycle recent visitors">
+                                                <button
+                                                    type="button"
+                                                    className="studio-visitor-pager-btn"
+                                                    onClick={() => setRecentVisitorIndex((i) => (i - 1 + analyticsSnapshot.visitors.length) % analyticsSnapshot.visitors.length)}
+                                                    aria-label="Previous visitor"
+                                                    title="Previous visitor"
+                                                >
+                                                    ‹
+                                                </button>
+                                                <span className="studio-visitor-pager-text">
+                                                    {Math.min(recentVisitorIndex, analyticsSnapshot.visitors.length - 1) + 1} / {analyticsSnapshot.visitors.length}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className="studio-visitor-pager-btn"
+                                                    onClick={() => setRecentVisitorIndex((i) => (i + 1) % analyticsSnapshot.visitors.length)}
+                                                    aria-label="Next visitor"
+                                                    title="Next visitor"
+                                                >
+                                                    ›
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
-                                    <RecentVisitorCarousel
-                                        snapshot={analyticsSnapshot}
-                                        onOpenAnalytics={() => handleNav('analytics')}
-                                    />
                                 </article>
 
                                 <article className="studio-frame-card studio-curator-card">
@@ -1054,12 +1091,45 @@ export default function AdminDashboard() {
                     <OpportunityDetailModal
                         opportunity={selectedOpportunity}
                         isOpen={true}
-                        isAuthenticated={false}
+                        isAuthenticated={Boolean(session)}
                         onClose={() => setSelectedOpportunity(null)}
-                        onUpdateStatus={async () => {}}
+                        onUpdateStatus={async (id, status) => {
+                            try {
+                                await fetch(`/api/opportunities/${id}`, {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ status }),
+                                });
+                                setSelectedOpportunity((prev) => (prev ? { ...prev, status } : null));
+                                setOpportunityFocus((prev) => ({
+                                    ...prev,
+                                    items: prev.items.map((item) => (item.id === id ? { ...item, status } : item)),
+                                }));
+                            } catch (e) {
+                                console.error('Failed to update status:', e);
+                            }
+                        }}
                         onEdit={() => {}}
-                        onReExtract={async () => {}}
-                        onDelete={async () => {}}
+                        onReExtract={async (id) => {
+                            try {
+                                await fetch(`/api/opportunities/${id}/reextract`, { method: 'POST' });
+                            } catch (e) {
+                                console.error('Failed to re-extract:', e);
+                            }
+                        }}
+                        onDelete={async (id) => {
+                            try {
+                                await fetch(`/api/opportunities/${id}`, { method: 'DELETE' });
+                                setSelectedOpportunity(null);
+                                setOpportunityFocus((prev) => ({
+                                    ...prev,
+                                    items: prev.items.filter((item) => item.id !== id),
+                                    total: Math.max(0, prev.total - 1),
+                                }));
+                            } catch (e) {
+                                console.error('Failed to delete opportunity:', e);
+                            }
+                        }}
                         onNavigateNext={() => {
                             const currentIndex = opportunityFocus.items.findIndex((item) => item.id === selectedOpportunity.id);
                             const nextIndex = (currentIndex + 1) % opportunityFocus.items.length;
@@ -1694,57 +1764,35 @@ export default function AdminDashboard() {
                 .studio-media-card, .studio-moodboard-card { grid-column: span 4; }
                 .studio-analytics-card, .studio-curator-card { grid-column: span 6; }
                 .studio-analytics-card {
-                    display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(220px, 1.18fr);
-                    align-items: stretch; gap: 1.15rem;
+                    display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;
                 }
-                .studio-analytics-summary { min-width: 0; display: flex; flex-direction: column; gap: 1rem; }
-                .studio-visitor-count { font-variant-numeric: tabular-nums; }
-                .recent-visitor-carousel { min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-                .recent-visitor-track {
-                    display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; overflow-y: hidden;
-                    border-radius: 12px; scroll-snap-type: inline mandatory; scrollbar-width: none; overscroll-behavior-inline: contain;
+                .studio-analytics-head {
+                    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
                 }
-                .recent-visitor-track::-webkit-scrollbar { display: none; }
-                .recent-visitor-card {
-                    min-width: 0; min-height: 132px; display: flex; flex-direction: column; justify-content: space-between;
-                    padding: 1rem; border: 1px solid var(--border-subtle); border-radius: 12px;
-                    background: var(--bg-color); color: var(--text-primary); text-align: left; cursor: pointer;
-                    scroll-snap-align: start; scroll-snap-stop: always;
+                .studio-analytics-badge {
+                    display: inline-flex; align-items: center; padding: 0.26rem 0.65rem;
+                    border-radius: 999px; background: var(--bg-color); border: 1px solid var(--border-subtle);
+                    color: var(--text-secondary); font-size: 0.75rem; font-weight: 560; font-variant-numeric: tabular-nums;
                 }
-                .recent-visitor-card:hover { border-color: var(--border-strong); }
-                .recent-visitor-card:focus-visible, .recent-visitor-dot:focus-visible {
-                    outline: 2px solid var(--border-focus); outline-offset: 3px;
+                .studio-analytics-visitor-note {
+                    margin: 0; color: var(--text-secondary); font-size: var(--admin-card-body-size);
+                    line-height: var(--admin-card-copy-line-height); max-width: 48ch;
                 }
-                .recent-visitor-card p {
-                    margin: 0; font-size: var(--admin-card-body-size); font-weight: var(--admin-card-title-weight);
-                    line-height: var(--admin-card-copy-line-height);
+                .studio-visitor-mini-pager {
+                    display: inline-flex; align-items: center; gap: 0.35rem; margin-left: auto;
+                    color: var(--text-tertiary); font-size: 0.78rem; font-variant-numeric: tabular-nums;
                 }
-                .recent-visitor-card span {
-                    display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.8rem;
-                    color: var(--admin-cobalt); font-size: var(--admin-card-action-size);
-                    font-weight: var(--admin-card-action-weight);
+                .studio-visitor-pager-btn {
+                    width: 26px; height: 26px; display: grid; place-items: center; border-radius: 6px;
+                    border: 1px solid var(--border-subtle); background: var(--bg-color);
+                    color: var(--text-primary); cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0;
+                    transition: border-color 0.15s ease, background 0.15s ease;
                 }
-                .recent-visitor-dots { display: flex; justify-content: center; gap: 0.38rem; min-height: 22px; padding-top: 0.65rem; }
-                .recent-visitor-dot {
-                    width: 22px; height: 22px; display: grid; place-items: center; padding: 0; border: 0;
-                    background: transparent; cursor: pointer;
+                .studio-visitor-pager-btn:hover {
+                    border-color: var(--border-strong); background: var(--bg-surface);
                 }
-                .recent-visitor-dot::before {
-                    content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--border-strong);
-                    transition: width 0.16s ease, background 0.16s ease;
-                }
-                .recent-visitor-dot.is-active::before { width: 16px; background: var(--admin-cobalt); }
-                .recent-visitor-empty {
-                    min-height: 132px; margin: 0; display: flex; align-items: center; padding: 1rem;
-                    border: 1px solid var(--border-subtle); border-radius: 12px; color: var(--text-secondary);
-                    font-size: var(--admin-card-meta-size); line-height: var(--admin-card-copy-line-height);
-                }
-                .recent-visitor-empty.is-loading { color: transparent; }
-                .recent-visitor-empty.is-loading::after {
-                    content: ""; width: 78%; height: 0.8rem; border-radius: 999px;
-                    background: color-mix(in srgb, var(--text-tertiary) 13%, transparent);
-                }
-                .studio-media-card {
+                .opportunity-modal-host { position: relative; z-index: 99999; }
+                .studio-media-card, .studio-moodboard-card {
                     border-color: var(--admin-cobalt); background: var(--admin-cobalt); color: #fff;
                     box-shadow: 0 14px 36px rgba(36, 68, 202, 0.18);
                 }
@@ -1766,8 +1814,10 @@ export default function AdminDashboard() {
                     max-width: 36ch; margin-top: 0; color: var(--text-secondary);
                     font-size: var(--admin-card-body-size); line-height: var(--admin-card-copy-line-height);
                 }
-                .studio-media-card .studio-card-copy > span { color: rgba(255,255,255,0.72); }
-                .studio-media-card .studio-card-copy { margin-top: 0.1rem; }
+                .studio-media-card .studio-card-copy > span,
+                .studio-moodboard-card .studio-card-copy > span { color: rgba(255,255,255,0.72); }
+                .studio-media-card .studio-card-copy,
+                .studio-moodboard-card .studio-card-copy { margin-top: 0.1rem; }
                 .studio-card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem; margin-top: auto; }
                 .studio-card-button, .studio-card-text-button, .studio-card-link {
                     min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -1962,81 +2012,6 @@ function LineIcon({ icon: Icon, size = 18 }) {
     return <Icon size={size} strokeWidth={1.7} />;
 }
 
-function RecentVisitorCarousel({ snapshot, onOpenAnalytics }) {
-    const trackRef = useRef(null);
-    const [activeIndex, setActiveIndex] = useState(0);
-    const visitors = snapshot.visitors || [];
-
-    useEffect(() => {
-        setActiveIndex(0);
-        trackRef.current?.scrollTo({ left: 0 });
-    }, [visitors.length]);
-
-    const handleScroll = (event) => {
-        const track = event.currentTarget;
-        if (!track.clientWidth) return;
-        const nextIndex = Math.max(0, Math.min(visitors.length - 1, Math.round(track.scrollLeft / track.clientWidth)));
-        setActiveIndex(nextIndex);
-    };
-
-    const showVisitor = (index) => {
-        setActiveIndex(index);
-        trackRef.current?.scrollTo({ left: index * trackRef.current.clientWidth, behavior: 'smooth' });
-    };
-
-    if (snapshot.loading) {
-        return <div className="recent-visitor-empty is-loading" aria-hidden="true" />;
-    }
-
-    if (snapshot.error) {
-        return <p className="recent-visitor-empty" role="status">Recent visitor details could not be loaded.</p>;
-    }
-
-    if (visitors.length === 0) {
-        return <p className="recent-visitor-empty">No human visitor sessions are available for the last 7 days.</p>;
-    }
-
-    return (
-        <div className="recent-visitor-carousel">
-            <div
-                ref={trackRef}
-                className="recent-visitor-track"
-                aria-label="Recent human visitors"
-                onScroll={handleScroll}
-            >
-                {visitors.map((visitor, index) => (
-                    <button
-                        key={visitor.visitorId || visitor.sessionId || visitor.id || index}
-                        type="button"
-                        className="recent-visitor-card"
-                        onClick={onOpenAnalytics}
-                        aria-label={`${describeRecentVisitor(visitor)} Open Analytics.`}
-                    >
-                        <p>{describeRecentVisitor(visitor)}</p>
-                        <span>
-                            See visitor details
-                            <ArrowUpRight size={14} strokeWidth={1.8} aria-hidden="true" />
-                        </span>
-                    </button>
-                ))}
-            </div>
-            {visitors.length > 1 && (
-                <div className="recent-visitor-dots" aria-label="Choose a recent visitor">
-                    {visitors.map((visitor, index) => (
-                        <button
-                            key={visitor.visitorId || visitor.sessionId || visitor.id || index}
-                            type="button"
-                            className={`recent-visitor-dot ${index === activeIndex ? 'is-active' : ''}`}
-                            aria-label={`Show recent visitor ${index + 1}`}
-                            aria-current={index === activeIndex ? 'true' : undefined}
-                            onClick={() => showVisitor(index)}
-                        />
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
 
 function OpportunityFocusRow({ opportunity, onOpen }) {
     const actionAt = getOpportunityActionAt(opportunity);
@@ -2049,7 +2024,10 @@ function OpportunityFocusRow({ opportunity, onOpen }) {
             className="opportunity-focus-row"
             role="button"
             tabIndex={0}
-            onClick={onOpen}
+            onClick={(event) => {
+                if (event.target.closest('a')) return;
+                onOpen();
+            }}
             onKeyDown={(event) => {
                 if (event.target !== event.currentTarget) return;
                 if (event.key === 'Enter' || event.key === ' ') {

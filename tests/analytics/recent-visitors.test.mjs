@@ -70,3 +70,28 @@ test('describes direct traffic explicitly', () => {
 
     assert.equal(describeRecentVisitor(visitor, now), '1 visitor from United Kingdom arrived directly 1 hour ago.');
 });
+
+test('describes visitor including primary visited page when available', () => {
+    const now = Date.parse('2026-09-24T12:00:00.000Z');
+    const visitor1 = {
+        country: 'SG',
+        source: 'Direct',
+        startedAt: '2026-09-20T12:00:00.000Z',
+        landingPage: '/photography',
+    };
+    assert.equal(
+        describeRecentVisitor(visitor1, now),
+        '1 visitor from Singapore arrived directly 4 days ago, primarily visiting Photography.'
+    );
+
+    const visitor2 = {
+        country: 'SG',
+        source: 'Direct Visit',
+        startedAt: '2026-09-20T12:00:00.000Z',
+        entryPage: { path: '/', title: 'Home' },
+    };
+    assert.equal(
+        describeRecentVisitor(visitor2, now),
+        '1 visitor from Singapore arrived directly 4 days ago, primarily visiting the Home page.'
+    );
+});

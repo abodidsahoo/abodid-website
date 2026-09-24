@@ -220,11 +220,24 @@ const googleFontsUrl =
     <script src="/scripts/journey-tracker.js" defer></script>
     <script is:inline>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function (err) {
-            console.warn('[PWA] ServiceWorker registration failed:', err);
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            for (let registration of registrations) {
+              registration.unregister();
+            }
           });
-        });
+          if ('caches' in window) {
+            caches.keys().then(function (names) {
+              for (let name of names) caches.delete(name);
+            });
+          }
+        } else {
+          window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function (err) {
+              console.warn('[PWA] ServiceWorker registration failed:', err);
+            });
+          });
+        }
       }
     </script>
     {!hideFooter && <SiteFooter showNavigation={showFooterNavigation} />}

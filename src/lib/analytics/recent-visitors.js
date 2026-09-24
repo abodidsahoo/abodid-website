@@ -57,11 +57,94 @@ export const formatVisitorTimeAgo = (visitor, now = Date.now()) => {
     return `${days} ${days === 1 ? 'day' : 'days'} ago`;
 };
 
+export const formatVisitorPageTitle = (raw) => {
+    if (!raw || typeof raw !== 'string') return '';
+    const clean = raw.trim().replace(/^\/|\/$/g, '').split('?')[0].split('#')[0];
+    if (!clean) return 'Home';
+
+    const map = {
+        'contact': 'Hire Me',
+        'hire-me': 'Hire Me',
+        'contact-me': 'Hire Me',
+        'obsidian-vault': 'Obsidian Vault',
+        'obsidian-tutoring': 'Obsidian Tutoring',
+        'photography': 'Photography',
+        'photo-stories': 'Photo Stories',
+        'photo-album': 'Photo Gallery',
+        'photo-gallery': 'Photo Gallery',
+        'about': 'About',
+        'cv': 'CV',
+        'services': 'Services',
+        'work': 'Work',
+        'lab': 'Lab',
+        'lab/punctum': 'Punctum Lab',
+        'xr-showcase': 'XR Showcase',
+        'films': 'Films',
+        'research': 'Research',
+        'testimonials': 'Testimonials',
+        'brands': 'Brand Direction',
+        'payments': 'Pricing',
+        'resources': 'Curator Hub',
+    };
+
+    if (map[clean]) return map[clean];
+
+    if (raw.includes(' ') && /[A-Z]/.test(raw)) {
+        return raw.trim();
+    }
+
+    return clean
+        .split(/[-_/]+/)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+};
+
+export const getVisitorPrimaryPage = (visitor) => {
+    const mostEngaged = visitor?.mostEngagedPage?.title || visitor?.mostEngagedPage?.path;
+    if (mostEngaged) return formatVisitorPageTitle(mostEngaged);
+
+    const entry = visitor?.entryPage?.title || visitor?.entryPage?.path || visitor?.landingPage || visitor?.landing_page;
+    if (entry) return formatVisitorPageTitle(entry);
+
+    if (Array.isArray(visitor?.pages) && visitor.pages.length > 0) {
+        const top = visitor.pages[0];
+        const pageTitle = top?.title || top?.path || top?.page_title || top?.page_path;
+        if (pageTitle) return formatVisitorPageTitle(pageTitle);
+    }
+
+    if (Array.isArray(visitor?.pageJourney) && visitor.pageJourney.length > 0) {
+        return formatVisitorPageTitle(visitor.pageJourney[0]);
+    }
+
+    if (Array.isArray(visitor?.journey) && visitor.journey.length > 0) {
+        const top = visitor.journey[0];
+        const pageTitle = typeof top === 'string' ? top : (top?.title || top?.path);
+        if (pageTitle) return formatVisitorPageTitle(pageTitle);
+    }
+
+    if (typeof visitor?.page === 'string' && visitor.page) {
+        return formatVisitorPageTitle(visitor.page);
+    }
+
+    if (typeof visitor?.path === 'string' && visitor.path) {
+        return formatVisitorPageTitle(visitor.path);
+    }
+
+    return null;
+};
+
 export const describeRecentVisitor = (visitor, now = Date.now()) => {
     const country = getVisitorCountry(visitor);
     const source = getVisitorSource(visitor);
     const time = formatVisitorTimeAgo(visitor, now);
     const arrival = source === 'Direct' ? 'arrived directly' : `came from ${source}`;
+    const page = getVisitorPrimaryPage(visitor);
+
+    if (page) {
+        const pageLabel = page === 'Home' ? 'the Home page' : page;
+        return `1 visitor from ${country} ${arrival} ${time}, primarily visiting ${pageLabel}.`;
+    }
+
     return `1 visitor from ${country} ${arrival} ${time}.`;
 };
 
