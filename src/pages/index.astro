@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import InlineInquiryForm from "../components/InlineInquiryForm.astro";
 import Newsletter from "../components/Newsletter.astro";
 import LandingInteractiveHero from "../components/LandingInteractiveHero.jsx";
+import { getRecentPosts } from "../lib/api";
 import {
   cloudflareExhibitionFallbacks,
   getHomeStorytellingContent,
@@ -15,6 +16,7 @@ import {
 } from "../lib/seoData";
 
 const content = await getHomeStorytellingContent();
+const journalArticles = (await getRecentPosts()).slice(0, 3);
 // Desktop rows always have two cards; omit a trailing project without a partner.
 const selectedWorkProjects = content.projects.slice(
   0,
@@ -97,22 +99,50 @@ const workWithMeCards = [
   {
     title: "Exhibitions & Interactive Experiences",
     description:
-      "I design and build exhibitions and storytelling spaces using film, performance, AI, AR, VR and XR. I’ve built more than 20 interactive experiences (both digital and physical) in London in the last three years.",
+      "I build exhibitions and immersive storytelling spaces using photographs, film, performance, AI, AR, VR and XR. I’ve built more than 30 exhibition experiences (both digital and physical) in London in the last three years.",
+    examples: [
+      { label: "Into the Flux", href: "/work/into-the-flux" },
+      { label: "Punctum", href: "/work/punctum" },
+      { label: "Sequence Room", href: "/work/sequence-room" },
+    ],
   },
   {
     title: "Photography & Visual Documentation",
     description:
-      "This is a major strength of mine. I love documenting art exhibitions, galleries, renowned immersive spaces and intimate stories, capturing the details that make each experience feel alive.",
+      "With over 8 years of experience in documenting art exhibitions, galleries, and immersive spaces, I absolutely love capturing the details that bring the true essence of the experience to life through the photographs.",
+    examples: [
+      {
+        label: "Outernet London 2025",
+        href: "/photography/outernet-london-2025",
+      },
+      {
+        label: "British Film Institute",
+        href: "/photography/british-film-institute-london",
+      },
+    ],
   },
   {
     title: "Creative Direction & Production",
     description:
       "For over eight years, I’ve led the production of commercials, brand films, music videos, dance videos, short films and photo stories that are experimental, tasteful and made to have an impact.",
+    examples: [
+      {
+        label: "Hermosa Design Studio film",
+        href: "https://www.youtube.com/watch?v=EMsZT9PCFms",
+        external: true,
+      },
+      {
+        label: "Budweiser film",
+        href: "https://www.weareanimal.co/budweiser-streetwear",
+        external: true,
+      },
+    ],
   },
   {
     title: "Research & Knowledge Systems",
     description:
       "I love being a second brain for ambitious ideas, helping you think them through and articulate them clearly. I also teach Obsidian workshops that help you take better notes and put your knowledge to work.",
+    examples: [{ label: "Obsidian Vault", href: "/obsidian-vault" }],
   },
 ];
 
@@ -361,7 +391,32 @@ const structuredData = [
           workWithMeCards.map((card) => (
             <article class="story-services__card" data-auto-contrast>
               <h3>{card.title}</h3>
-              <p>{card.description}</p>
+              <div class="story-services__card-body">
+                <p>{card.description}</p>
+                <div class="story-services__examples">
+                  <p class="story-services__examples-label">Selected work</p>
+                  <ul>
+                    {card.examples.map((example) => (
+                      <li>
+                        <a
+                          class="story-services__example-link"
+                          href={example.href}
+                          target={example.external ? "_blank" : undefined}
+                          rel={example.external ? "noreferrer" : undefined}
+                        >
+                          <span>{example.label}</span>
+                          <span
+                            class="story-services__example-arrow link-destination-arrow"
+                            aria-hidden="true"
+                          >
+                            ↗
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </article>
           ))
         }
@@ -378,8 +433,8 @@ const structuredData = [
     <section class="story-enquiry" aria-label="Project enquiry">
       <InlineInquiryForm
         id="enquiry"
-        heading="Write to me."
-        intro=""
+        heading="Let’s connect."
+        intro="Got an idea you badly want to execute or have a photoshoot in mind and you want to have someone you can trust?"
         sourceName="home-next-storytelling"
         variant="pop"
         interestOptions={[
@@ -397,31 +452,61 @@ const structuredData = [
     <section
       class="story-writing"
       id="writing"
-      aria-labelledby="story-writing-heading"
+      aria-labelledby="morning-digest-heading"
       data-auto-contrast
     >
       <div class="story-writing__inner">
-        <div class="story-writing__copy">
-          <p class="story-eyebrow">Blog & newsletter</p>
-          <h2 id="story-writing-heading">I love writing!</h2>
-          <p class="story-writing__intro">
-            Read my essays and memoirs on visual culture, art, and creative
-            technology.
+        <article
+          class="story-writing__panel story-writing__newsletter"
+          data-auto-contrast
+        >
+          <p class="story-eyebrow">Weekly newsletter</p>
+          <h2 class="story-writing__title" id="morning-digest-heading">
+            Subscribe to my Morning Digest.
+          </h2>
+          <p class="story-writing__description">
+            A curated set of 7 unmissable must-read articles and resources on
+            creative technology, digital media and art exhibitions. Delivered in
+            your mailbox every week.
           </p>
-          <a class="story-button story-button--primary" href="/blog"
-            >Go to the blog <span
-              class="link-destination-arrow"
-              aria-hidden="true">↗</span
-            ></a
-          >
-        </div>
-        <div class="story-writing__newsletter" data-auto-contrast>
-          <p>
-            Receive my writings and hand-picked curated resources to boost your
-            creativity, productivity and research acumen.
-          </p>
-          <Newsletter />
-        </div>
+          <Newsletter
+            showName={true}
+            nameRequired={true}
+            buttonLabel="Subscribe"
+            source="footer-newsletter"
+          />
+        </article>
+
+        <article
+          class="story-writing__panel story-writing__blog"
+          data-auto-contrast
+        >
+          <p class="story-eyebrow">From the journal</p>
+          <h2 class="story-writing__title">
+            Want to read articles written by me?
+          </h2>
+          <ul class="story-writing__articles" aria-label="Recent articles">
+            {
+              journalArticles.map((article, index) => (
+                <li>
+                  <a href={article.href} class="story-writing__article-link">
+                    <span class="story-writing__article-index" aria-hidden="true">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span class="story-writing__article-title">{article.title}</span>
+                    <span class="story-writing__article-arrow" aria-hidden="true">
+                      →
+                    </span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <a class="story-writing__blog-link" href="/blog">
+            <span>Go to my blog page</span>
+            <span class="story-writing__blog-arrow" aria-hidden="true">→</span>
+          </a>
+        </article>
       </div>
     </section>
   </main>
@@ -1261,7 +1346,7 @@ const structuredData = [
     padding: clamp(1.4rem, 3vw, 2.75rem);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: clamp(2rem, 5vw, 5rem);
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-card);
@@ -1283,6 +1368,61 @@ const structuredData = [
     color: inherit;
     font: 450 clamp(1rem, 1.3vw, 1.15rem)/1.58 var(--font-body, sans-serif);
     text-wrap: pretty;
+  }
+  .story-services__card-body {
+    margin-top: auto;
+    display: grid;
+    gap: clamp(1.35rem, 2vw, 1.8rem);
+  }
+  .story-services__examples {
+    display: grid;
+    gap: 0.65rem;
+  }
+  .story-services__card .story-services__examples-label {
+    font: 750 0.68rem/1.2 var(--font-mono, monospace);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .story-services__examples ul {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1.15rem;
+    list-style: none;
+  }
+  body.story-home-page .story-services__example-link,
+  body.story-home-page .story-services__example-link:hover,
+  body.story-home-page .story-services__example-link:focus-visible {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    color: inherit;
+    font: 650 clamp(0.92rem, 1.12vw, 1.05rem)/1.35 var(--font-body, sans-serif);
+    text-decoration: none !important;
+  }
+  body.story-home-page .story-services__example-link > span:first-child {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.24em;
+  }
+  body.story-home-page .story-services__example-link:hover > span:first-child {
+    text-decoration-thickness: 2px;
+  }
+  body.story-home-page .story-services__example-link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 5px;
+    border-radius: 2px;
+  }
+  .story-services__example-arrow {
+    display: inline-block;
+    font-family: var(--font-mono, monospace);
+    text-decoration: none;
+    transition: transform var(--home-next-motion);
+  }
+  .story-services__example-link:hover .story-services__example-arrow,
+  .story-services__example-link:focus-visible .story-services__example-arrow {
+    transform: translate(2px, -2px);
   }
   .story-services__cta {
     padding-top: clamp(1.5rem, 3vw, 2.5rem);
@@ -1672,13 +1812,25 @@ const structuredData = [
     --type-h2-color: #ffffff;
     padding-block: clamp(4rem, 6.5vw, 7rem);
     padding-inline: var(--story-gutter);
-    background: var(--pop-purple);
+    background: var(--pop-pink);
     color: var(--pop-cream);
   }
+  .story-enquiry .inline-enquiry--pop {
+    padding: clamp(2rem, 3.5vw, 3.5rem);
+    border: var(--home-next-border);
+    border-radius: var(--home-next-radius-panel);
+    background: var(--pop-purple);
+    box-shadow: 0 4px 0 var(--pop-ink);
+  }
   body.story-home-page .story-enquiry .inline-enquiry__intro h2 {
-    font: 700 clamp(3rem, 7vw, 7rem)/0.88 var(--font-display, sans-serif) !important;
+    font: 700 clamp(3rem, 6vw, 6rem)/0.9 var(--font-display, sans-serif) !important;
     letter-spacing: -0.065em !important;
     color: #ffffff !important;
+  }
+  .story-enquiry .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow) {
+    margin-top: clamp(1.5rem, 2.5vw, 2.25rem);
+    font: 500 clamp(1rem, 1.25vw, 1.16rem)/1.55 var(--font-body, sans-serif);
+    text-wrap: pretty;
   }
   .story-enquiry .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow),
   .story-enquiry .inline-enquiry__intro > a,
@@ -1699,94 +1851,245 @@ const structuredData = [
     margin-inline: auto;
     width: 100%;
     display: grid;
-    grid-template-columns: minmax(0, 1.28fr) minmax(340px, 1fr);
-    gap: clamp(2.5rem, 5vw, 5rem);
-    align-items: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--home-next-gap);
+    align-items: stretch;
   }
-  .story-writing__copy {
+  .story-writing__panel {
+    min-height: clamp(550px, 43vw, 650px);
+    padding: clamp(1.8rem, 3.4vw, 3.5rem);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
-  }
-  .story-writing__copy h2 {
-    max-width: 14ch;
-    margin: 0;
-    font: 700 clamp(3rem, 7vw, 7rem)/0.88 var(--font-display, sans-serif);
-    letter-spacing: -0.065em;
-    color: inherit;
-  }
-  .story-writing__intro {
-    max-width: 36rem;
-    margin: 0 0 0.8rem;
-    color: inherit;
-    font: 450 1.05rem/1.55 var(--font-body, sans-serif);
-  }
-  .story-writing__newsletter {
-    padding: clamp(1.8rem, 3.2vw, 2.75rem);
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-panel);
-    background: var(--pop-cream);
     color: var(--pop-ink);
     box-shadow: 0 4px 0 var(--pop-ink);
   }
-  .story-writing__newsletter > p {
-    margin: 0 0 1.25rem;
-    font: 600 clamp(1.15rem, 1.7vw, 1.45rem)/1.45
-      var(--font-display, sans-serif);
-    letter-spacing: -0.025em;
+  .story-writing__panel .story-eyebrow {
+    margin-bottom: clamp(2rem, 3.5vw, 3.25rem);
+  }
+  .story-writing__newsletter {
+    background: var(--pop-cream);
+  }
+  .story-writing__title {
+    max-width: 14ch;
+    margin: 0;
+    font: 700 clamp(2.7rem, 4.4vw, 4.75rem)/0.92 var(--font-display, sans-serif);
+    letter-spacing: -0.06em;
     color: inherit;
+    text-wrap: balance;
+  }
+  .story-writing .story-writing__description {
+    max-width: 57ch;
+    margin: clamp(2.1rem, 3.5vw, 3.25rem) 0 clamp(1.75rem, 2.6vw, 2.5rem);
+    font: 500 clamp(1rem, 1.25vw, 1.16rem)/1.55 var(--font-body, sans-serif);
+    color: inherit;
+    text-wrap: pretty;
+  }
+  .story-writing__blog {
+    background: var(--pop-yellow);
+  }
+  .story-writing .story-writing__articles {
+    width: 100%;
+    margin: clamp(2rem, 3.2vw, 3rem) 0 clamp(1.75rem, 2.5vw, 2.25rem);
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--story-line);
+  }
+  .story-writing__articles li {
+    border-bottom: 1px solid var(--story-line);
+  }
+  .story-writing__article-link {
+    min-height: 62px;
+    padding: 0.85rem 0.6rem 0.85rem 0.2rem;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.85rem;
+    color: var(--pop-ink);
+    text-decoration: none !important;
+    border-radius: 8px;
+    transition:
+      background 180ms ease,
+      padding-left 180ms ease;
+  }
+  .story-writing__article-link:hover,
+  .story-writing__article-link:focus-visible {
+    padding-left: 0.85rem;
+    background: rgba(255, 255, 255, 0.65);
+    outline: none;
+    text-decoration: none !important;
+  }
+  .story-writing__article-index {
+    font: 700 0.72rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    color: var(--pop-ink);
+    opacity: 0.55;
+  }
+  .story-writing__article-title {
+    margin: 0;
+    font: 600 clamp(1rem, 1.18vw, 1.14rem)/1.3 var(--font-body, sans-serif);
+    letter-spacing: -0.015em;
+    color: var(--pop-ink);
+    text-decoration: none !important;
+  }
+  .story-writing__article-arrow {
+    font-size: 1.15rem;
+    line-height: 1;
+    color: var(--pop-ink);
+    transition: transform 180ms ease;
+  }
+  .story-writing__article-link:hover .story-writing__article-arrow,
+  .story-writing__article-link:focus-visible .story-writing__article-arrow {
+    transform: translateX(4px);
+  }
+  .story-writing__blog-link {
+    width: 100%;
+    min-height: 54px;
+    margin-top: auto;
+    padding: 0 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    border: 1.5px solid var(--pop-ink);
+    border-radius: var(--home-next-radius-control);
+    box-shadow: 0 3px 0 var(--pop-ink);
+    font: 750 0.74rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition:
+      background 160ms ease,
+      transform 160ms ease,
+      box-shadow 160ms ease;
+  }
+  .story-writing__blog-link:hover,
+  .story-writing__blog-link:focus-visible {
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--pop-ink);
+    text-decoration: none !important;
+  }
+  .story-writing__blog-arrow {
+    font-size: 1.15rem;
+    line-height: 1;
+    transition: transform 160ms ease;
+  }
+  .story-writing__blog-link:hover .story-writing__blog-arrow,
+  .story-writing__blog-link:focus-visible .story-writing__blog-arrow {
+    transform: translateX(4px);
   }
   .story-writing .newsletter-form-wrapper {
     max-width: 100%;
-    margin-top: 0;
+    margin-top: auto;
   }
   .story-writing .newsletter-form {
-    border: 1.5px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-control);
-    background: #ffffff;
-    box-shadow: 0 3px 10px rgba(21, 19, 15, 0.08);
-    transition:
-      border-color 160ms ease,
-      box-shadow 160ms ease;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
   .story-writing .newsletter-form:focus-within {
-    border-color: #000000;
-    box-shadow:
-      0 0 0 3px rgba(102, 87, 216, 0.25),
-      0 4px 12px rgba(21, 19, 15, 0.12);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
   }
   .story-writing .newsletter-form input {
+    width: 100%;
+    min-height: 52px;
+    box-sizing: border-box;
     color: var(--pop-ink) !important;
     -webkit-text-fill-color: var(--pop-ink) !important;
     caret-color: var(--pop-ink) !important;
-    font: 600 0.98rem/1.4 var(--font-body, sans-serif);
-    padding: 0.9rem 1.15rem;
+    font-family: var(--font-body);
+    font-size: var(--type-body);
+    font-weight: var(--type-weight-body);
+    line-height: var(--type-role-body-line);
+    padding: 0 0.9rem;
     background: #ffffff !important;
+    border: 1px solid var(--pop-ink);
+    border-radius: 15px;
+    box-shadow: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .story-writing .newsletter-form input:only-of-type {
+    grid-column: 1 / -1;
+  }
+  .story-writing .newsletter-form .newsletter-name-input {
+    border: 1px solid var(--pop-ink);
+    border-radius: 15px;
+  }
+  .story-writing .newsletter-form input:focus {
+    border-color: var(--pop-ink);
+    outline: 2px solid var(--pop-yellow);
+    outline-offset: 2px;
+    box-shadow: none;
   }
   .story-writing .newsletter-form input::placeholder {
-    color: rgba(21, 19, 15, 0.6) !important;
-    -webkit-text-fill-color: rgba(21, 19, 15, 0.6) !important;
+    color: #5a534a !important;
+    -webkit-text-fill-color: #5a534a !important;
+    opacity: 1;
+    font-family: var(--font-body);
+    font-size: var(--type-body);
+    font-weight: var(--type-weight-body);
   }
+  .story-writing .newsletter-form input:autofill,
   .story-writing .newsletter-form input:-webkit-autofill,
   .story-writing .newsletter-form input:-webkit-autofill:hover,
-  .story-writing .newsletter-form input:-webkit-autofill:focus,
   .story-writing .newsletter-form input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
-    box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-box-shadow: 0 0 0 1000px #e8f0fe inset !important;
+    box-shadow: 0 0 0 1000px #e8f0fe inset !important;
     -webkit-text-fill-color: var(--pop-ink) !important;
     caret-color: var(--pop-ink) !important;
     color: var(--pop-ink) !important;
+    border: 1px solid var(--pop-ink) !important;
+    border-radius: 15px !important;
+    font-family: var(--font-body) !important;
+    font-size: var(--type-body) !important;
+    font-weight: var(--type-weight-body) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+  .story-writing .newsletter-form input:autofill:focus,
+  .story-writing .newsletter-form input:-webkit-autofill:focus,
+  .story-writing .newsletter-form input:autofill:focus-visible,
+  .story-writing .newsletter-form input:-webkit-autofill:focus-visible {
+    -webkit-box-shadow: 0 0 0 1000px #e8f0fe inset !important;
+    box-shadow: 0 0 0 1000px #e8f0fe inset !important;
+    -webkit-text-fill-color: var(--pop-ink) !important;
+    caret-color: var(--pop-ink) !important;
+    color: var(--pop-ink) !important;
+    border: 1px solid var(--pop-ink) !important;
+    border-color: var(--pop-ink) !important;
+    outline: 2px solid var(--pop-yellow) !important;
+    outline-offset: 2px !important;
+    border-radius: 15px !important;
   }
   .story-writing .newsletter-form button {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 52px;
     background: var(--pop-yellow);
     color: var(--pop-ink);
-    border-left: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--pop-ink);
+    border-radius: var(--home-next-radius-control);
+    box-shadow: 0 3px 0 var(--pop-ink);
     padding: 0 1.3rem;
     cursor: pointer;
     transition:
       background 160ms ease,
       transform 160ms ease;
+    font: 750 0.72rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
   .story-writing .newsletter-form button svg {
     stroke: var(--pop-ink) !important;
@@ -1799,6 +2102,11 @@ const structuredData = [
     color: var(--pop-ink);
     font-size: 0.82rem;
     margin-top: 0.6rem;
+  }
+  @media (max-width: 640px) {
+    .story-writing .newsletter-form {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 980px) {
@@ -1831,6 +2139,12 @@ const structuredData = [
     .story-writing__inner {
       grid-template-columns: 1fr;
       gap: 2.25rem;
+    }
+    .story-writing__panel {
+      min-height: auto;
+    }
+    .story-writing__blog-link {
+      margin-top: clamp(2rem, 5vw, 3rem);
     }
   }
 
@@ -1935,6 +2249,15 @@ const structuredData = [
     .story-services__cta .story-button {
       width: 100%;
       justify-content: space-between;
+    }
+    .story-writing__panel {
+      padding: 1.5rem;
+    }
+    .story-writing__panel .story-eyebrow {
+      margin-bottom: 2rem;
+    }
+    .story-writing__title {
+      font-size: clamp(2.65rem, 12vw, 4.2rem);
     }
     .story-evidence > header {
       grid-template-columns: 1fr;

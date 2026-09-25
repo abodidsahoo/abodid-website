@@ -101,7 +101,7 @@ body.vault-note-pop-page .brands-zone {
     max-width: none;
     margin: 0;
     color: var(--pop-ink);
-    font-size: var(--type-role-page-title-size);
+    font-size: var(--step-custom-3);
     font-weight: var(--type-role-page-title-weight);
     line-height: var(--type-role-page-title-line);
     letter-spacing: var(--type-role-page-title-track);
@@ -187,10 +187,7 @@ body.vault-note-pop-page .brands-zone {
 }
 
 .vault-note-topics {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.35rem 0.45rem;
+    display: contents;
 }
 
 .vault-note-topic-item {

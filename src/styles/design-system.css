@@ -130,3 +130,20 @@
   --design-radius-media: calc(var(--ds-radius-media) * 1px);
   --design-card-inset: calc(var(--ds-card-inset) * 1px);
 }
+
+/*
+ * Destination-link contract: the diagonal arrow is an indicator, not part of
+ * an underlined label. Text decoration propagates from a link to its children,
+ * so the link container itself must remain undecorated; components that need
+ * an underline apply it only to their label span.
+ */
+a:has(.link-destination-arrow),
+a:has(.link-destination-arrow):hover,
+a:has(.link-destination-arrow):focus-visible {
+  text-decoration: none !important;
+}
+
+.link-destination-arrow {
+  display: inline-block;
+  text-decoration: none !important;
+}

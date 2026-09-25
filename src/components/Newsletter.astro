@@ -1,9 +1,21 @@
 ---
+interface Props {
+    showName?: boolean;
+    nameRequired?: boolean;
+    buttonLabel?: string;
+    source?: string;
+}
 
+const {
+    showName = false,
+    nameRequired = false,
+    buttonLabel = "",
+    source = "footer-newsletter",
+} = Astro.props;
 ---
 
 <div class="newsletter-form-wrapper" data-newsletter-inline-form>
-    <form class="newsletter-form" id="newsletter-form">
+    <form class="newsletter-form" id="newsletter-form" data-source={source}>
         <div class="newsletter-honeypot" aria-hidden="true">
             <label for="newsletter-company">Company</label>
             <input
@@ -14,29 +26,50 @@
                 autocomplete="off"
             />
         </div>
+        {
+            showName && (
+                <input
+                    class="t-body newsletter-name-input"
+                    type="text"
+                    name="name"
+                    placeholder="Your name"
+                    aria-label="Name"
+                    autocomplete="name"
+                    required={nameRequired}
+                />
+            )
+        }
         <input
             class="t-body"
             type="email"
             name="email"
-            placeholder="Enter your email"
+            placeholder="Your email address"
             aria-label="Email address"
+            autocomplete="email"
             required
         />
         <button type="submit" aria-label="Subscribe">
-            <svg
-                class="arrow-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                ><line x1="5" y1="12" x2="19" y2="12"></line><polyline
-                    points="12 5 19 12 12 19"></polyline></svg
-            >
+            {
+                buttonLabel ? (
+                    <span>{buttonLabel}</span>
+                ) : (
+                    <svg
+                        class="arrow-icon"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                )
+            }
         </button>
     </form>
     <p class="message t-label" id="newsletter-message"></p>
@@ -45,7 +78,6 @@
 <script>
     const form = document.getElementById("newsletter-form");
     const messageEl = document.getElementById("newsletter-message");
-    const defaultSource = "footer-newsletter";
     const formRenderedAt = Date.now();
     const trackGaEvent = (eventName, params = {}) => {
         try {
@@ -76,7 +108,10 @@
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const formData = new FormData(form as HTMLFormElement);
-            formData.append("source", defaultSource);
+            formData.append(
+                "source",
+                (form as HTMLFormElement).dataset.source || "footer-newsletter",
+            );
             formData.append("jsEnabled", "1");
             formData.append("formStartedAt", String(formRenderedAt));
 
@@ -184,11 +219,10 @@
     input:-webkit-autofill:hover,
     input:-webkit-autofill:focus,
     input:-webkit-autofill:active {
-        -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset !important;
-        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset !important;
-        -webkit-text-fill-color: #fff !important;
-        caret-color: #fff !important;
-        border-radius: 0 !important;
+        -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset;
+        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset;
+        -webkit-text-fill-color: inherit;
+        caret-color: inherit;
         transition: background-color 5000s ease-in-out 0s;
     }
 

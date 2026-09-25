@@ -359,14 +359,13 @@ export default function LandingInteractiveHero({
 
   return (
     <section ref={containerRef} className="landing-interactive-hero" aria-labelledby="story-hero-heading">
-      {/* Small pill in the bottom right corner: my obsidian vault */}
+      {/* Pop-editorial vault CTA in the bottom-right corner */}
       <a
         href="/obsidian-vault"
         className="landing-hero__vault-pill"
         title="Explore my Obsidian vault"
       >
-        <span className="landing-hero__vault-pill-dot" aria-hidden="true" />
-        <span>{vaultLabel}</span>
+        <span className="landing-hero__vault-label">{vaultLabel}</span>
         <span className="landing-hero__vault-arrow" aria-hidden="true">↗</span>
       </a>
 
@@ -515,48 +514,65 @@ export default function LandingInteractiveHero({
           z-index: 15;
           display: inline-flex;
           align-items: center;
-          gap: 0.45rem;
-          padding: 0.42rem 0.95rem;
-          border: 1px solid rgba(255, 248, 232, 0.3);
-          border-radius: 999px;
-          background: rgba(23, 21, 15, 0.32);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          color: var(--pop-cream, #fff8e8);
-          font: 600 clamp(0.72rem, 0.85vw, 0.82rem)/1.2 var(--font-mono, monospace);
-          letter-spacing: 0.03em;
+          gap: 0.65rem;
+          min-height: 48px;
+          padding: 0.42rem 0.48rem 0.42rem 0.85rem;
+          border: 1px solid var(--pop-ink, #15130f);
+          border-radius: var(--design-radius-control, 14px);
+          background: var(--pop-yellow, #ffe44f);
+          color: var(--pop-ink, #15130f);
+          font: var(--type-role-label-weight, 750) var(--type-role-label-size, 0.72rem)/var(--type-role-label-line, 1.35) var(--font-mono, monospace);
+          letter-spacing: var(--type-role-label-track, 0.08em);
+          text-transform: uppercase;
           text-decoration: none;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
           transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
           cursor: pointer;
         }
 
-        .landing-hero__vault-pill:hover {
-          background: rgba(255, 248, 232, 0.18);
-          border-color: rgba(255, 248, 232, 0.7);
+        .landing-hero__vault-pill:hover,
+        .landing-hero__vault-pill:focus-visible {
+          background: var(--pop-lime, #caff48);
           transform: translateY(-2px);
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 4px 0 rgba(21, 19, 15, 0.28);
         }
 
-        .landing-hero__vault-pill-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: var(--pop-lime, #caff48);
-          box-shadow: 0 0 6px var(--pop-lime, #caff48);
-          display: inline-block;
-          animation: vaultPulse 2.4s ease-in-out infinite;
+        .landing-hero__vault-pill:focus-visible {
+          outline: 3px solid var(--pop-cream, #fff8e8);
+          outline-offset: 3px;
+        }
+
+        .landing-hero__vault-label {
+          text-decoration: none;
+          text-underline-offset: 4px;
+          text-decoration-thickness: 1.5px;
+        }
+
+        .landing-hero__vault-pill:hover .landing-hero__vault-label,
+        .landing-hero__vault-pill:focus-visible .landing-hero__vault-label {
+          text-decoration: underline;
         }
 
         .landing-hero__vault-arrow {
-          font-size: 0.88em;
-          opacity: 0.75;
-          transition: transform 180ms ease, opacity 180ms ease;
+          width: 32px;
+          height: 32px;
+          flex: 0 0 auto;
+          display: inline-grid;
+          place-items: center;
+          border: 1px solid var(--pop-ink, #15130f);
+          border-radius: 9px;
+          background: var(--pop-pink, #ff7eb5);
+          color: var(--pop-ink, #15130f);
+          font-size: 1rem;
+          font-weight: 750;
+          line-height: 1;
+          text-decoration: none;
+          transition: transform 180ms ease, background-color 180ms ease;
         }
 
-        .landing-hero__vault-pill:hover .landing-hero__vault-arrow {
-          opacity: 1;
-          transform: translate(1px, -1px);
+        .landing-hero__vault-pill:hover .landing-hero__vault-arrow,
+        .landing-hero__vault-pill:focus-visible .landing-hero__vault-arrow {
+          background: var(--pop-cream, #fff8e8);
+          transform: translate(2px, -2px);
         }
 
         .landing-hero__backdrop {
@@ -756,17 +772,6 @@ export default function LandingInteractiveHero({
           50% { transform: translateY(4px); }
         }
 
-        @keyframes vaultPulse {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 0.9;
-          }
-          50% {
-            transform: scale(1.35);
-            opacity: 1;
-          }
-        }
-
         /* Soft, calm, non-bouncy staggered entry on page load */
         @keyframes softPillEntry {
           0% {
@@ -839,8 +844,8 @@ export default function LandingInteractiveHero({
           .landing-hero__vault-pill {
             bottom: 0.9rem;
             right: 0.9rem;
-            padding: 0.35rem 0.75rem;
-            font-size: 0.72rem;
+            min-height: 46px;
+            padding: 0.35rem 0.4rem 0.35rem 0.72rem;
           }
 
           .landing-hero__heading {
@@ -861,6 +866,20 @@ export default function LandingInteractiveHero({
           .landing-hero__secondary-btn {
             width: 100%;
             justify-content: center;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .landing-hero__vault-pill,
+          .landing-hero__vault-arrow {
+            transition-duration: 0.01ms;
+          }
+
+          .landing-hero__vault-pill:hover,
+          .landing-hero__vault-pill:focus-visible,
+          .landing-hero__vault-pill:hover .landing-hero__vault-arrow,
+          .landing-hero__vault-pill:focus-visible .landing-hero__vault-arrow {
+            transform: none;
           }
         }
       `}</style>
