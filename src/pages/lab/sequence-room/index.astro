@@ -12,83 +12,8 @@ Astro.response.headers.set(
 
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import SequenceRoomWorkspace from "../../../components/sequence-room/SequenceRoomWorkspace.jsx";
-import { getAllPhotography } from "../../../lib/api";
-import { featuredPhotography as mockPhotography } from "../../../utils/mockData";
+import { sequenceRoomDemoItems } from "../../../data/sequenceRoomDemo";
 import { labUrl } from "../../../lib/labRoutes.js";
-
-// Safe Fetch Helper
-const safeFetch = async (fn, fallback) => {
-    try {
-        return await fn();
-    } catch (e) {
-        console.error("Data fetch failed:", e);
-        return fallback;
-    }
-};
-
-const rawProjects = await safeFetch(getAllPhotography, mockPhotography);
-const portfolioProjects = (Array.isArray(rawProjects) && rawProjects.length > 0) ? rawProjects : mockPhotography;
-
-function hashString(value) {
-    let hash = 2166136261;
-    for (let i = 0; i < value.length; i += 1) {
-        hash ^= value.charCodeAt(i);
-        hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(36);
-}
-
-function normalizeImageUrl(value) {
-    return typeof value === "string" ? value.trim() : "";
-}
-
-// Flatten into a single list of EVERY image
-let allImages = [];
-
-portfolioProjects.forEach((project) => {
-    const projectKey = project.slug || project.title || 'project';
-    const coverImage = normalizeImageUrl(project.image);
-    // Add cover image
-    if (coverImage) {
-        const stableId = `polaroid-${hashString(`${projectKey}:cover:${coverImage}`)}`;
-        allImages.push({
-            id: stableId,
-            title: project.title,
-            image: coverImage,
-            paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(coverImage)}`,
-            slug: project.slug,
-            link: project.href,
-            isCover: true, // Priority Flag
-        });
-    }
-    // Add gallery images
-    if (project.images && project.images.length > 0) {
-        project.images.forEach((imgUrl) => {
-            const normalizedImage = normalizeImageUrl(imgUrl);
-            if (!normalizedImage) return;
-
-            const stableId = `polaroid-${hashString(`${projectKey}:gallery:${normalizedImage}`)}`;
-            allImages.push({
-                id: stableId,
-                title: project.title,
-                image: normalizedImage,
-                fallbackImage: coverImage || undefined,
-                paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(normalizedImage)}`,
-                slug: project.slug,
-                link: project.href,
-                isCover: false,
-            });
-        });
-    }
-});
-
-allImages = allImages.sort((left, right) =>
-    hashString(`${left.id}:scatter-order`).localeCompare(
-        hashString(`${right.id}:scatter-order`),
-    ),
-);
-
-console.log(">>> Sequence Room SSR images count:", allImages.length);
 
 const pageTitle = "Sequence Room — Interactive Polaroid scatter";
 const pageDescription =
@@ -104,9 +29,7 @@ const pageDescription =
 >
     <main class="polaroid-hub-immersive">
         <h1 class="sr-only">Sequence Room</h1>
-        {/* A representative, cross-project portfolio sample. PolaroidScatter keeps
-            the original seeded story clusters and sine-wave placement. */}
-        <SequenceRoomWorkspace demoItems={allImages.slice(0, 30)} client:only="react" />
+        <SequenceRoomWorkspace demoItems={sequenceRoomDemoItems} client:only="react" />
     </main>
 </BaseLayout>
 

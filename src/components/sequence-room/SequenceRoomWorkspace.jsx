@@ -6,10 +6,12 @@ import SequenceRoomAuthModal from './SequenceRoomAuthModal.jsx';
 import { supabase } from '../../lib/supabaseClient';
 import {
     createBoard,
+    createStarterBoard,
     deleteBoard,
     deleteBoardItems,
     duplicateBoard,
     fetchUserBoards,
+    markBoardOpened,
     saveBoardLayout,
     setBoardSharing,
     uploadWorkingPhoto,
@@ -33,8 +35,6 @@ const BOARD_BACKGROUNDS = [
     { id: 'dark', label: 'Dark', color: '#15130f' },
 ];
 
-const backgroundStorageKey = (boardId) => `sequence-room-background:${boardId || 'portfolio-demo'}`;
-const customBackgroundStorageKey = (boardId) => `sequence-room-custom-background:${boardId || 'portfolio-demo'}`;
 const isHexColor = (value) => /^#[0-9a-f]{6}$/i.test(value || '');
 const isDarkColor = (color) => {
     if (!isHexColor(color)) return false;
@@ -42,20 +42,6 @@ const isDarkColor = (color) => {
     const green = parseInt(color.slice(3, 5), 16);
     const blue = parseInt(color.slice(5, 7), 16);
     return ((red * 299 + green * 587 + blue * 114) / 1000) < 128;
-};
-
-const readStoredBackground = (boardId) => {
-    if (typeof window === 'undefined') return DEFAULT_BACKGROUND;
-    const saved = window.localStorage.getItem(backgroundStorageKey(boardId));
-    return isHexColor(saved) ? saved : DEFAULT_BACKGROUND;
-};
-
-const readStoredCustomBackground = (boardId) => {
-    if (typeof window === 'undefined') return DEFAULT_CUSTOM_BACKGROUND;
-    const saved = window.localStorage.getItem(customBackgroundStorageKey(boardId));
-    if (isHexColor(saved)) return saved;
-    const active = window.localStorage.getItem(backgroundStorageKey(boardId));
-    return isHexColor(active) && !BOARD_BACKGROUNDS.some((choice) => choice.color === active) ? active : DEFAULT_CUSTOM_BACKGROUND;
 };
 
 const colorPointFromHex = (hex) => {
@@ -148,12 +134,15 @@ function InlineBackgroundPicker({ color, onChange }) {
 
 const errorMessage = (error, fallback) => {
     const message = error?.message || '';
-    if (message.includes('FREE_BOARD_LIMIT')) return 'The free plan includes 3 boards. Delete one before creating another.';
-    if (message.includes('FREE_PHOTO_LIMIT')) return 'This board already has the free-plan maximum of 30 photos.';
+    if (message.includes('FREE_BOARD_LIMIT')) return 'You can keep up to 3 personal boards. Delete one before creating another.';
+    if (message.includes('FREE_PHOTO_LIMIT')) return 'Each board can hold 30 photographs, including its Reject Bin.';
     if (message.includes('relation') && message.includes('does not exist')) return 'Sequence Room storage has not been migrated yet.';
     return message || fallback;
 };
 
+/**
+ * @param {{ demoItems?: Array<Record<string, any>>, shareToken?: string }} props
+ */
 export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' }) {
     const [sessionResolved, setSessionResolved] = useState(Boolean(shareToken));
     const [user, setUser] = useState(null);
@@ -165,10 +154,15 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
     const [sharedError, setSharedError] = useState('');
     const [canvasItems, setCanvasItems] = useState([]);
     const canvasItemsRef = useRef([]);
+    const [rejectedItems, setRejectedItems] = useState([]);
+    const rejectedItemsRef = useRef([]);
     const [layoutRevision, setLayoutRevision] = useState(0);
     const [saveState, setSaveState] = useState('saved');
     const [authOpen, setAuthOpen] = useState(false);
     const [boardsOpen, setBoardsOpen] = useState(false);
+    const [photosOpen, setPhotosOpen] = useState(false);
+    const [rejectBinOpen, setRejectBinOpen] = useState(false);
+    const [rejectSelection, setRejectSelection] = useState([]);
     const [captureOpen, setCaptureOpen] = useState(false);
     const [shareOpen, setShareOpen] = useState(false);
     const [moreToolsOpen, setMoreToolsOpen] = useState(false);
@@ -179,33 +173,28 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [busy, setBusy] = useState('');
     const [uploadProgress, setUploadProgress] = useState(null);
+    const [uploadRetry, setUploadRetry] = useState(null);
     const [toast, setToast] = useState('');
-    const [interactionCount, setInteractionCount] = useState(0);
     const [learned, setLearned] = useState({ drag: false, rotate: false, open: false });
     const [isNarrow, setIsNarrow] = useState(false);
     const [selectingArea, setSelectingArea] = useState(false);
     const [selectedAreaFormat, setSelectedAreaFormat] = useState('png');
     const [captureScope, setCaptureScope] = useState('current');
     const [captureFormat, setCaptureFormat] = useState('png');
-    const [activeBackground, setActiveBackground] = useState(() => readStoredBackground('portfolio-demo'));
-    const [customBackground, setCustomBackground] = useState(() => readStoredCustomBackground('portfolio-demo'));
+    const [activeBackground, setActiveBackground] = useState(DEFAULT_BACKGROUND);
+    const [customBackground, setCustomBackground] = useState(DEFAULT_CUSTOM_BACKGROUND);
     const [customPickerOpen, setCustomPickerOpen] = useState(false);
     const fileInputRef = useRef(null);
     const backgroundControlRef = useRef(null);
     const panelDragRef = useRef(null);
     const saveTimerRef = useRef(0);
     const toastTimerRef = useRef(0);
-    const activeBoardIdRef = useRef(null);
     const customBackgroundRef = useRef(customBackground);
 
     const isShared = Boolean(shareToken);
     const hasPersonalBoard = Boolean(user && activeBoard && !isShared);
     const isPersonal = Boolean(hasPersonalBoard && !showingDemo);
     const displayedBoard = isShared ? sharedBoard : showingDemo ? null : activeBoard;
-
-    useEffect(() => {
-        activeBoardIdRef.current = activeBoard?.id || null;
-    }, [activeBoard?.id]);
 
     const notify = useCallback((message) => {
         window.clearTimeout(toastTimerRef.current);
@@ -235,35 +224,47 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
     }, []);
 
     const openBoard = useCallback((board) => {
-        const savedCustomBackground = readStoredCustomBackground(board.id);
+        const boardBackground = isHexColor(board.backgroundColor) ? board.backgroundColor : DEFAULT_BACKGROUND;
         setShowingDemo(false);
-        setActiveBackground(readStoredBackground(board.id));
-        setCustomBackground(savedCustomBackground);
-        customBackgroundRef.current = savedCustomBackground;
+        setActiveBackground(boardBackground);
+        setCustomBackground(boardBackground);
+        customBackgroundRef.current = boardBackground;
         setCustomPickerOpen(false);
         setActiveBoard(board);
-        setCanvasItems(board.items || []);
-        canvasItemsRef.current = board.items || [];
+        const visible = (board.items || []).filter((item) => !item.rejected);
+        const rejected = (board.items || []).filter((item) => item.rejected);
+        setCanvasItems(visible);
+        canvasItemsRef.current = visible;
+        setRejectedItems(rejected);
+        rejectedItemsRef.current = rejected;
         setLayoutRevision((value) => value + 1);
         setBoardsOpen(false);
         setShareOpen(false);
         setDeleteMode(false);
         setDeleteSelection([]);
+        setRejectSelection([]);
+        setRejectBinOpen(false);
         setSaveState('saved');
+        markBoardOpened(board.id).catch(() => undefined);
     }, []);
 
-    const openDemo = useCallback(({ reset = false } = {}) => {
-        const savedCustomBackground = readStoredCustomBackground('portfolio-demo');
-        if (reset) setDemoLayoutOverride(null);
-        setActiveBackground(readStoredBackground('portfolio-demo'));
-        setCustomBackground(savedCustomBackground);
-        customBackgroundRef.current = savedCustomBackground;
+    const openDemo = useCallback(() => {
+        // Entering the demo always starts from the immutable canonical layout.
+        // Guest experimentation remains local to the current visit only.
+        setDemoLayoutOverride(null);
+        setActiveBackground(DEFAULT_BACKGROUND);
+        setCustomBackground(DEFAULT_CUSTOM_BACKGROUND);
+        customBackgroundRef.current = DEFAULT_CUSTOM_BACKGROUND;
         setCustomPickerOpen(false);
         setShowingDemo(true);
         setBoardsOpen(false);
         setShareOpen(false);
         setDeleteMode(false);
         setDeleteSelection([]);
+        setRejectedItems([]);
+        rejectedItemsRef.current = [];
+        setRejectSelection([]);
+        setRejectBinOpen(false);
         setLayoutRevision((value) => value + 1);
     }, []);
 
@@ -279,35 +280,13 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
         return () => window.removeEventListener('pointerdown', handleOutsideClick);
     }, [boardsOpen, shareOpen]);
 
-    useEffect(() => {
-        if (!customPickerOpen) return undefined;
-        const boardKey = isPersonal ? activeBoard?.id : 'portfolio-demo';
-        const saveOnOutsideClick = (event) => {
-            if (backgroundControlRef.current?.contains(event.target)) return;
-            const color = customBackgroundRef.current;
-            window.localStorage.setItem(backgroundStorageKey(boardKey), color);
-            window.localStorage.setItem(customBackgroundStorageKey(boardKey), color);
-            setCustomPickerOpen(false);
-            notify('Custom background saved.');
-        };
-        window.addEventListener('pointerdown', saveOnOutsideClick);
-        return () => window.removeEventListener('pointerdown', saveOnOutsideClick);
-    }, [customPickerOpen, isPersonal, activeBoard?.id, notify]);
-
     const loadPersonalBoards = useCallback(async () => {
         setBusy('Loading your boards');
         try {
             let nextBoards = await fetchUserBoards();
-            if (!nextBoards.length) nextBoards = [await createBoard('Untitled Board')];
+            if (!nextBoards.length) nextBoards = [await createStarterBoard()];
             setBoards(nextBoards);
-            const firstBoardWithPhotos = nextBoards.find((board) => board.items?.length > 0);
-            if (firstBoardWithPhotos) {
-                openBoard(firstBoardWithPhotos);
-            } else {
-                setActiveBoard(nextBoards[0]);
-                setShowingDemo(true);
-                setLayoutRevision((value) => value + 1);
-            }
+            openBoard(nextBoards[0]);
         } catch (error) {
             notify(errorMessage(error, 'Your boards could not be loaded.'));
         } finally {
@@ -323,7 +302,7 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.error || 'Shared board not found.');
                     setSharedBoard(data.board);
-                    setActiveBackground(DEFAULT_BACKGROUND);
+                    setActiveBackground(isHexColor(data.board.backgroundColor) ? data.board.backgroundColor : DEFAULT_BACKGROUND);
                     setCanvasItems(data.board.items || []);
                     canvasItemsRef.current = data.board.items || [];
                     setLayoutRevision((value) => value + 1);
@@ -343,16 +322,17 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
             if (!alive) return;
             setUser(session?.user || null);
             if (!session?.user) {
-                const savedCustomBackground = readStoredCustomBackground('portfolio-demo');
                 setBoards([]);
                 setActiveBoard(null);
                 setShowingDemo(true);
                 setDemoLayoutOverride(null);
-                setActiveBackground(readStoredBackground('portfolio-demo'));
-                setCustomBackground(savedCustomBackground);
-                customBackgroundRef.current = savedCustomBackground;
+                setActiveBackground(DEFAULT_BACKGROUND);
+                setCustomBackground(DEFAULT_CUSTOM_BACKGROUND);
+                customBackgroundRef.current = DEFAULT_CUSTOM_BACKGROUND;
                 setCustomPickerOpen(false);
                 setCanvasItems([]);
+                setRejectedItems([]);
+                rejectedItemsRef.current = [];
                 setLayoutRevision((value) => value + 1);
                 setSessionResolved(true);
             }
@@ -379,16 +359,19 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
         setSaveState('saving');
         window.clearTimeout(saveTimerRef.current);
         saveTimerRef.current = window.setTimeout(async () => {
-            const maxY = Math.max(0, ...canvasItemsRef.current.map((item) => Number(item.y || 0)));
-            const logicalHeight = Math.min(12000, Math.max(activeBoard.logicalHeight, Math.ceil((maxY + 760) / 400) * 400));
+            const logicalHeight = Math.min(12000, Math.max(1000, Number(details.logicalHeight || activeBoard.logicalHeight || 3600)));
+            const persistedItems = [
+                ...canvasItemsRef.current.map((item) => ({ ...item, rejected: false })),
+                ...rejectedItemsRef.current.map((item) => ({ ...item, rejected: true })),
+            ];
             try {
-                await saveBoardLayout(activeBoard.id, canvasItemsRef.current, {
+                await saveBoardLayout(activeBoard.id, persistedItems, {
                     logicalHeight,
                     ...details,
                 });
-                setActiveBoard((board) => board ? { ...board, logicalHeight, items: canvasItemsRef.current, ...details } : board);
+                setActiveBoard((board) => board ? { ...board, logicalHeight, items: persistedItems, ...details } : board);
                 setBoards((current) => current.map((board) => board.id === activeBoard.id
-                    ? { ...board, logicalHeight, items: canvasItemsRef.current, ...details }
+                    ? { ...board, logicalHeight, items: persistedItems, ...details }
                     : board));
                 setSaveState('saved');
             } catch (error) {
@@ -398,7 +381,10 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                     if (!activeBoard?.id) return;
                     setSaveState('saving');
                     try {
-                        await saveBoardLayout(activeBoard.id, canvasItemsRef.current, {
+                        await saveBoardLayout(activeBoard.id, [
+                            ...canvasItemsRef.current.map((item) => ({ ...item, rejected: false })),
+                            ...rejectedItemsRef.current.map((item) => ({ ...item, rejected: true })),
+                        ], {
                             logicalHeight,
                             ...details,
                         });
@@ -412,6 +398,19 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
         }, 650);
     }, [activeBoard, isPersonal]);
 
+    useEffect(() => {
+        if (!customPickerOpen) return undefined;
+        const saveOnOutsideClick = (event) => {
+            if (backgroundControlRef.current?.contains(event.target)) return;
+            const color = customBackgroundRef.current;
+            setCustomPickerOpen(false);
+            if (isPersonal) scheduleSave(canvasItemsRef.current, 'background', { backgroundColor: color });
+            notify('Custom background saved.');
+        };
+        window.addEventListener('pointerdown', saveOnOutsideClick);
+        return () => window.removeEventListener('pointerdown', saveOnOutsideClick);
+    }, [customPickerOpen, isPersonal, notify, scheduleSave]);
+
     const handleItemsChange = useCallback((items) => {
         canvasItemsRef.current = items;
         setCanvasItems(items);
@@ -419,7 +418,6 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
 
     const handleGesture = useCallback((gesture) => {
         setLearned((current) => ({ ...current, [gesture]: true }));
-        setInteractionCount((count) => count + 1);
     }, []);
 
     const handleTitleChange = (name) => {
@@ -464,6 +462,14 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
         }
     };
 
+    const handleRenameBoard = () => {
+        if (!activeBoard || showingDemo) return;
+        const nextName = window.prompt('Rename this board', activeBoard.name || 'Untitled Board');
+        if (nextName === null) return;
+        const normalized = nextName.trim().slice(0, 80) || 'Untitled Board';
+        handleTitleChange(normalized);
+    };
+
     const handleDeleteBoard = async () => {
         if (!activeBoard || !window.confirm(`Delete “${activeBoard.name}”? This cannot be undone.`)) return;
         setBusy('Deleting board');
@@ -486,14 +492,19 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
             return;
         }
         if (!activeBoard) return;
-        const available = MAX_PHOTOS - canvasItemsRef.current.length;
+        const available = MAX_PHOTOS - canvasItemsRef.current.length - rejectedItemsRef.current.length;
         if (available <= 0) {
-            notify('This board already has 30 photos.');
+            notify('This board already holds 30 photographs, including the Reject Bin. Permanently remove one before adding more.');
             return;
         }
-        const selected = Array.from(files || []).slice(0, available);
+        const requested = Array.from(files || []);
+        const selected = requested.slice(0, available);
         if (!selected.length) return;
+        if (requested.length > selected.length) {
+            notify(`Only ${available} more photograph${available === 1 ? '' : 's'} fit. The 30-photo limit includes the Reject Bin.`);
+        }
         setBusy('');
+        setUploadRetry(null);
         setUploadProgress({ current: 0, total: selected.length, stage: 'Preparing photographs' });
         const added = [];
         try {
@@ -501,7 +512,7 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                 setUploadProgress({ current: index + 0.25, total: selected.length, stage: `Preparing ${index + 1} of ${selected.length}` });
                 const working = await createWorkingPhoto(selected[index]);
                 setUploadProgress({ current: index + 0.55, total: selected.length, stage: `Uploading ${index + 1} of ${selected.length}` });
-                const existingCount = canvasItemsRef.current.length + added.length;
+                const existingCount = canvasItemsRef.current.length + rejectedItemsRef.current.length + added.length;
                 const item = await uploadWorkingPhoto(activeBoard.id, working.blob, {
                     filename: working.filename,
                     width: working.width,
@@ -517,13 +528,25 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
             const next = [...canvasItemsRef.current, ...added];
             setCanvasItems(next);
             canvasItemsRef.current = next;
-            setActiveBoard((board) => ({ ...board, items: next }));
-            setBoards((current) => current.map((board) => board.id === activeBoard.id ? { ...board, items: next } : board));
+            const collection = [...next, ...rejectedItemsRef.current];
+            setActiveBoard((board) => ({ ...board, items: collection }));
+            setBoards((current) => current.map((board) => board.id === activeBoard.id ? { ...board, items: collection } : board));
             setLayoutRevision((value) => value + 1);
             setSaveState('saved');
             notify(`${added.length} photo${added.length === 1 ? '' : 's'} added. Originals stayed on this device.`);
         } catch (error) {
-            notify(errorMessage(error, 'The photos could not be added.'));
+            const message = errorMessage(error, 'The photographs could not be added.');
+            if (added.length) {
+                const next = [...canvasItemsRef.current, ...added];
+                const collection = [...next, ...rejectedItemsRef.current];
+                canvasItemsRef.current = next;
+                setCanvasItems(next);
+                setActiveBoard((board) => ({ ...board, items: collection }));
+                setBoards((current) => current.map((board) => board.id === activeBoard.id ? { ...board, items: collection } : board));
+                setLayoutRevision((value) => value + 1);
+            }
+            setUploadRetry({ files: selected.slice(added.length), message });
+            notify(`${message} You can retry without choosing the files again.`);
         } finally {
             setBusy('');
             setUploadProgress(null);
@@ -547,49 +570,92 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
         window.requestAnimationFrame(() => fileInputRef.current?.click());
     };
 
-    const confirmDeleteItems = async () => {
+    const confirmRejectItems = async () => {
         if (!deleteSelection.length) return;
         setDeleteConfirmOpen(false);
 
         if (showingDemo && !isShared) {
+            const moving = canvasItemsRef.current.filter((item) => deleteSelection.includes(item.id));
             const next = canvasItemsRef.current.filter((item) => !deleteSelection.includes(item.id));
             canvasItemsRef.current = next;
             setCanvasItems(next);
+            const nextRejected = [...rejectedItemsRef.current, ...moving.map((item) => ({ ...item, rejected: true }))];
+            rejectedItemsRef.current = nextRejected;
+            setRejectedItems(nextRejected);
             setDemoLayoutOverride(next);
             setDeleteSelection([]);
             setDeleteMode(false);
             setLayoutRevision((value) => value + 1);
-            notify('Photos hidden from this demo. Reload or reset the demo to bring them back.');
+            notify('Moved to the temporary Reject Bin. Reloading restores the original Demo board.');
             return;
         }
 
         if (!activeBoard) return;
         const boardId = activeBoard.id;
-        const selectedIds = [...deleteSelection];
         const previousItems = canvasItemsRef.current;
-        const next = previousItems.filter((item) => !selectedIds.includes(item.id));
+        const moving = previousItems.filter((item) => deleteSelection.includes(item.id));
+        const next = previousItems.filter((item) => !deleteSelection.includes(item.id));
+        const nextRejected = [...rejectedItemsRef.current, ...moving.map((item) => ({ ...item, rejected: true }))];
 
         canvasItemsRef.current = next;
         setCanvasItems(next);
-        setActiveBoard((board) => board?.id === boardId ? { ...board, items: next } : board);
-        setBoards((current) => current.map((board) => board.id === boardId ? { ...board, items: next } : board));
+        rejectedItemsRef.current = nextRejected;
+        setRejectedItems(nextRejected);
         setDeleteSelection([]);
         setDeleteMode(false);
         setLayoutRevision((value) => value + 1);
-        setBusy('Finishing deletion…');
+        scheduleSave(next, 'reject-bin');
+        notify(`${moving.length} photograph${moving.length === 1 ? '' : 's'} moved to the Reject Bin.`);
+    };
 
+    const returnFromRejectBin = () => {
+        const returning = rejectedItemsRef.current.filter((item) => rejectSelection.includes(item.id));
+        if (!returning.length) return;
+        const rows = Math.max(1, Math.ceil(returning.length / 4));
+        const bottom = Math.max(300, logicalHeight - (rows * 340) - 160);
+        const maxZ = Math.max(1, ...canvasItemsRef.current.map((item) => Number(item.zIndex || 1)));
+        const restored = returning.map((item, index) => ({
+            ...item,
+            rejected: false,
+            x: ((index % 4) - 1.5) * 265,
+            y: bottom + Math.floor(index / 4) * 340,
+            rotation: ((index % 5) - 2) * 2,
+            zIndex: maxZ + index + 1,
+        }));
+        const remainingRejected = rejectedItemsRef.current.filter((item) => !rejectSelection.includes(item.id));
+        const next = [...canvasItemsRef.current, ...restored];
+        canvasItemsRef.current = next;
+        setCanvasItems(next);
+        rejectedItemsRef.current = remainingRejected;
+        setRejectedItems(remainingRejected);
+        setRejectSelection([]);
+        setRejectBinOpen(false);
+        setLayoutRevision((value) => value + 1);
+        if (isPersonal) scheduleSave(next, 'restore-from-reject-bin');
+        else setDemoLayoutOverride(next);
+        notify(`${restored.length} photograph${restored.length === 1 ? '' : 's'} returned near the bottom of the board.`);
+    };
+
+    const permanentlyRemoveRejected = async () => {
+        if (!isPersonal || !rejectSelection.length) return;
+        if (!window.confirm(`Permanently remove ${rejectSelection.length} selected photograph${rejectSelection.length === 1 ? '' : 's'} from this board’s collection?`)) return;
+        const selectedIds = [...rejectSelection];
+        const previous = rejectedItemsRef.current;
+        const nextRejected = previous.filter((item) => !selectedIds.includes(item.id));
+        rejectedItemsRef.current = nextRejected;
+        setRejectedItems(nextRejected);
+        setRejectSelection([]);
+        setBusy('Removing photographs');
         try {
-            await deleteBoardItems(boardId, selectedIds);
-            notify('Photos removed from this board.');
+            await deleteBoardItems(activeBoard.id, selectedIds);
+            const collection = [...canvasItemsRef.current, ...nextRejected];
+            setActiveBoard((board) => board ? { ...board, items: collection } : board);
+            setBoards((current) => current.map((board) => board.id === activeBoard.id ? { ...board, items: collection } : board));
+            notify('Permanently removed from this board’s photo collection.');
         } catch (error) {
-            if (activeBoardIdRef.current === boardId) {
-                canvasItemsRef.current = previousItems;
-                setCanvasItems(previousItems);
-                setLayoutRevision((value) => value + 1);
-            }
-            setActiveBoard((board) => board?.id === boardId ? { ...board, items: previousItems } : board);
-            setBoards((current) => current.map((board) => board.id === boardId ? { ...board, items: previousItems } : board));
-            notify(errorMessage(error, 'The selected photos could not be deleted.'));
+            rejectedItemsRef.current = previous;
+            setRejectedItems(previous);
+            notify(errorMessage(error, 'The selected photographs could not be removed.'));
         } finally {
             setBusy('');
         }
@@ -638,10 +704,9 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
     };
 
     const changeBackground = (color) => {
-        const boardKey = isPersonal ? activeBoard?.id : 'portfolio-demo';
         setCustomPickerOpen(false);
         setActiveBackground(color);
-        window.localStorage.setItem(backgroundStorageKey(boardKey), color);
+        if (isPersonal) scheduleSave(canvasItemsRef.current, 'background', { backgroundColor: color });
         notify('Board background updated. Exports will use this exact colour.');
     };
 
@@ -717,14 +782,14 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
         );
     }
 
-    const layoutItems = showingDemo ? demoLayoutOverride : displayedBoard ? displayedBoard.items : null;
-    const boardName = isShared ? sharedBoard?.name : showingDemo ? 'Portfolio demo board' : activeBoard?.name;
+    const layoutItems = showingDemo ? demoLayoutOverride : isShared ? sharedBoard?.items || [] : canvasItems;
+    const boardName = isShared ? sharedBoard?.name : showingDemo ? 'Demo board' : activeBoard?.name;
     const boardSaveState = isPersonal ? saveState : 'saved';
     const boardSaveLabel = isPersonal
-        ? saveState === 'saving' ? 'Autosaving…' : saveState === 'error' ? 'Autosave needs attention' : 'Autosaved'
-        : isShared ? 'Saved shared board' : 'Demo changes stay local';
+        ? saveState === 'saving' ? 'Saving…' : saveState === 'error' ? 'Error — changes not saved' : 'Saved'
+        : isShared ? 'Saved shared board' : 'Temporary demo changes';
     const boardSaveGlyph = boardSaveState === 'saved' ? '✓' : boardSaveState === 'saving' ? '…' : boardSaveState === 'error' ? '!' : '↺';
-    const logicalHeight = showingDemo ? 2200 : displayedBoard?.logicalHeight || 2200;
+    const logicalHeight = showingDemo ? 3600 : displayedBoard?.logicalHeight || 3600;
     const uploadPercent = uploadProgress
         ? Math.max(4, Math.min(100, Math.round((uploadProgress.current / uploadProgress.total) * 100)))
         : 0;
@@ -732,6 +797,9 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
         || user?.user_metadata?.name
         || user?.email?.split('@')[0]
         || 'Sequence Room user';
+    const collectionCount = canvasItems.length + rejectedItems.length;
+    const maxCanvasY = Math.max(0, ...canvasItems.map((item) => Number(item.y || 0)));
+    const boardCrowded = collectionCount >= 20 || maxCanvasY > logicalHeight - 650;
     return (
         <div className={`pb-workspace ${isShared ? 'is-shared' : ''} ${isDarkColor(activeBackground) ? 'is-dark-background' : ''}`}>
             <header className="pb-header">
@@ -767,9 +835,27 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                     </div>
 
                     <div className="pb-panel-primary">
-                        <button className="pb-button pb-button-yellow" onClick={() => { setCaptureOpen((open) => !open); setMoreToolsOpen(false); setBoardsOpen(false); setShareOpen(false); }} aria-expanded={captureOpen}>Take a Screengrab</button>
+                        <button className="pb-button pb-button-pink" onClick={() => { setPhotosOpen((open) => !open); setCaptureOpen(false); setBoardsOpen(false); setMoreToolsOpen(false); }} aria-expanded={photosOpen}>Photos · {collectionCount} / 30</button>
+                        <AnimatePresence>{photosOpen && (
+                            <motion.div className="pb-primary-section" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                                {!isShared && <>
+                                    <input ref={fileInputRef} hidden type="file" multiple accept=".jpg,.jpeg,.png,.heic,.heif,image/jpeg,image/png,image/heic,image/heif" onChange={(event) => handleFiles(event.target.files)} />
+                                    <button className="pb-section-action is-primary" onClick={beginAddPhotos}>＋ Add photographs</button>
+                                    <button className={deleteMode ? 'pb-section-action is-active' : 'pb-section-action'} disabled={!canvasItems.length} onClick={() => { setDeleteMode((value) => !value); setDeleteSelection([]); }}>{deleteMode ? 'Cancel selection' : 'Remove from board'}</button>
+                                    <button className="pb-section-action pb-bin-button" onClick={() => { setRejectBinOpen(true); setRejectSelection([]); }}>
+                                        <span>Reject Bin</span><b>{rejectedItems.length}</b>
+                                    </button>
+                                    <small className="pb-limit-note">30 photographs per board, including the Reject Bin.</small>
+                                    {uploadRetry && <div className="pb-upload-retry"><span>{uploadRetry.message}</span><button onClick={() => handleFiles(uploadRetry.files)}>Retry upload</button></div>}
+                                </>}
+                                {isShared && <small className="pb-limit-note">This shared board is a read-only copy.</small>}
+                            </motion.div>
+                        )}</AnimatePresence>
+
+                        <button className="pb-button pb-button-yellow" onClick={() => { setCaptureOpen((open) => !open); setPhotosOpen(false); setMoreToolsOpen(false); setBoardsOpen(false); setShareOpen(false); }} aria-expanded={captureOpen}>Capture</button>
                         <AnimatePresence>{captureOpen && (
                             <motion.div className="pb-capture-menu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                                <span className="pb-section-heading">Take a Screengrab</span>
                                 <div className="pb-capture-scope" role="group" aria-label="Export view">
                                     <button className={captureScope === 'current' ? 'is-selected' : ''} aria-pressed={captureScope === 'current'} onClick={() => setCaptureScope('current')}>
                                         <strong>Current</strong>
@@ -796,14 +882,29 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                             </motion.div>
                         )}</AnimatePresence>
 
-                    {!isShared && (
-                        <div className="pb-add-photos-row">
-                            <input ref={fileInputRef} hidden type="file" multiple accept=".jpg,.jpeg,.png,.heic,.heif,image/jpeg,image/png,image/heic,image/heif" onChange={(event) => handleFiles(event.target.files)} />
-                            <button className="pb-button pb-button-pink" onClick={() => { setBoardsOpen(false); setShareOpen(false); beginAddPhotos(); }}>＋ Add Photos</button>
-                        </div>
-                    )}
+                        {!isShared && user && <div className="pb-menu-wrap">
+                            <button className="pb-button pb-board-button" onClick={() => { setBoardsOpen((open) => !open); setPhotosOpen(false); setCaptureOpen(false); setMoreToolsOpen(false); setShareOpen(false); }}>Boards · {boards.length} / 3</button>
+                            <AnimatePresence mode="wait">{boardsOpen && (
+                                <motion.div className="pb-popover pb-board-menu" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 6 }}>
+                                    <span className="pb-menu-label">MY BOARDS</span>
+                                    <div className="pb-saved-board-list">
+                                        {boards.map((board) => <button key={board.id} className={!showingDemo && board.id === activeBoard?.id ? 'is-current' : ''} onClick={() => openBoard(board)}><span><strong>{board.name || 'Untitled board'}</strong><small>{board.items.length} photos</small></span>{!showingDemo && board.id === activeBoard?.id && <b>OPEN</b>}</button>)}
+                                    </div>
+                                    <button className="pb-new-board-action" disabled={boards.length >= MAX_BOARDS} onClick={handleNewBoard}>＋ Create board</button>
+                                    <div className="pb-menu-grid">
+                                        <button disabled={showingDemo} onClick={handleRenameBoard}>Rename</button>
+                                        <button disabled={showingDemo} onClick={handleDuplicateBoard}>Duplicate</button>
+                                        <button disabled={showingDemo} className="is-danger" onClick={handleDeleteBoard}>Delete board</button>
+                                    </div>
+                                    <div className="pb-demo-board">
+                                        <span className="pb-menu-label">ALWAYS AVAILABLE</span>
+                                        <button className={showingDemo ? 'is-current' : ''} onClick={() => openDemo()}><span><strong>Explore Demo</strong><small>{demoItems.length} photographs · changes are temporary</small></span><b aria-hidden="true">↗</b></button>
+                                    </div>
+                                </motion.div>
+                            )}</AnimatePresence>
+                        </div>}
 
-                        {!user && !isShared && <button className="pb-button pb-signin-button" onClick={() => { setBoardsOpen(false); setShareOpen(false); setAuthOpen(true); }}>Sign In</button>}
+                        {!user && !isShared && <button className="pb-button pb-signin-button" onClick={() => { setBoardsOpen(false); setShareOpen(false); setAuthOpen(true); }}>Create a board with your photos</button>}
                         {user && !isShared && (
                             <section className="pb-user-card" aria-label="Signed-in account">
                                 <span className="pb-user-avatar" aria-hidden="true">{userName.charAt(0).toUpperCase()}</span>
@@ -840,35 +941,6 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                                             </div>
                                         )}
                                     </div>
-
-                                    <button className={`pb-button ${deleteMode ? 'pb-button-active' : ''}`} onClick={() => { setDeleteMode((value) => !value); setDeleteSelection([]); setBoardsOpen(false); setShareOpen(false); }}>Delete Photos</button>
-
-                                    {user && <div className="pb-menu-wrap">
-                                        <button className="pb-button pb-board-button" onClick={() => { setBoardsOpen((open) => !open); setShareOpen(false); }}>Saved Boards · {Math.max(boards.length, 1)} / 3</button>
-                                        <AnimatePresence mode="wait">{boardsOpen && (
-                                             <motion.div
-                                                className="pb-popover pb-board-menu"
-                                                initial={{ opacity: 0, x: 8 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: 6 }}
-                                                transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                                            >
-                                                <span className="pb-menu-label">YOUR BOARDS</span>
-                                                <div className="pb-saved-board-list">
-                                                    {boards.map((board) => <button key={board.id} className={!showingDemo && board.id === activeBoard.id ? 'is-current' : ''} onClick={() => openBoard(board)}><span><strong>{board.name || 'Untitled board'}</strong><small>{board.items.length} photos</small></span>{!showingDemo && board.id === activeBoard.id && <b>OPEN</b>}</button>)}
-                                                </div>
-                                                <button className="pb-new-board-action" onClick={handleNewBoard}>＋ New board</button>
-                                                <div className="pb-menu-grid">
-                                                    <button onClick={handleDuplicateBoard}>Duplicate</button>
-                                                    <button className="is-danger" onClick={handleDeleteBoard}>Delete board</button>
-                                                </div>
-                                                <div className="pb-demo-board">
-                                                    <span className="pb-menu-label">SHOWCASE</span>
-                                                    <button className={showingDemo ? 'is-current' : ''} onClick={() => openDemo()}><span><strong>Portfolio demo</strong><small>{demoItems.length} photographs · Try the layout</small></span><b aria-hidden="true">↗</b></button>
-                                                </div>
-                                            </motion.div>
-                                        )}</AnimatePresence>
-                                    </div>}
 
                                     {isPersonal && <div className="pb-menu-wrap">
                                         <button className="pb-button pb-share-button" onClick={() => { setShareOpen((open) => !open); setBoardsOpen(false); }}>Share the Board</button>
@@ -913,9 +985,9 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                         exit={{ opacity: 0, y: 14, x: '-50%' }}
                         transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
                     >
-                        <span><strong>Select photographs</strong><small>{deleteSelection.length ? `${deleteSelection.length} selected` : 'Click a photo to mark it'}</small></span>
+                        <span><strong>Choose rejects</strong><small>{deleteSelection.length ? `${deleteSelection.length} selected` : 'Click photographs to mark them'}</small></span>
                         <button onClick={() => { setDeleteConfirmOpen(false); setDeleteMode(false); setDeleteSelection([]); }}>Cancel</button>
-                        <button className="pb-delete-confirm" disabled={!deleteSelection.length} onClick={() => setDeleteConfirmOpen(true)}>Delete {deleteSelection.length || ''} photos</button>
+                        <button className="pb-delete-confirm" disabled={!deleteSelection.length} onClick={() => setDeleteConfirmOpen(true)}>Move {deleteSelection.length || ''} to bin</button>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -941,12 +1013,41 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                             onKeyDown={(event) => { if (event.key === 'Escape') setDeleteConfirmOpen(false); }}
                         >
                             <span className="pb-confirm-label">SEQUENCE ROOM / CONFIRM</span>
-                            <h2 id="pb-delete-confirm-title">Delete {deleteSelection.length} photo{deleteSelection.length === 1 ? '' : 's'} from this board?</h2>
-                            <p>This removes the selected {deleteSelection.length === 1 ? 'photograph' : 'photographs'} from the current board.</p>
+                            <h2 id="pb-delete-confirm-title">Move {deleteSelection.length} photograph{deleteSelection.length === 1 ? '' : 's'} to the Reject Bin?</h2>
+                            <p>This is reversible. The photographs stay in this board’s collection and still count toward its 30-photo limit.</p>
                             <div className="pb-confirm-actions">
-                                <button type="button" autoFocus onClick={() => setDeleteConfirmOpen(false)}>Keep photos</button>
-                                <button type="button" className="pb-confirm-delete" onClick={confirmDeleteItems}>Delete {deleteSelection.length}</button>
+                                <button type="button" autoFocus onClick={() => setDeleteConfirmOpen(false)}>Keep on board</button>
+                                <button type="button" className="pb-confirm-delete" onClick={confirmRejectItems}>Move to bin</button>
                             </div>
+                        </motion.section>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {rejectBinOpen && (
+                    <motion.div className="pb-confirm-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setRejectBinOpen(false)}>
+                        <motion.section className="pb-reject-bin" role="dialog" aria-modal="true" aria-labelledby="pb-reject-bin-title" initial={{ y: 20, scale: .97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: .97 }} onClick={(event) => event.stopPropagation()}>
+                            <header>
+                                <span><small>PHOTOS / REJECT BIN</small><h2 id="pb-reject-bin-title">Set aside, not gone.</h2></span>
+                                <button aria-label="Close Reject Bin" onClick={() => setRejectBinOpen(false)}>×</button>
+                            </header>
+                            <p>Choose one or several photographs. Return puts them near the bottom of the board, ready to sequence again.</p>
+                            {rejectedItems.length ? (
+                                <div className="pb-reject-grid">
+                                    {rejectedItems.map((item) => {
+                                        const selected = rejectSelection.includes(item.id);
+                                        return <button key={item.id} className={selected ? 'is-selected' : ''} aria-pressed={selected} onClick={() => setRejectSelection((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])}>
+                                            <img src={item.image} alt={item.title || 'Rejected photograph'} /><span>{selected ? '✓' : ''}</span>
+                                        </button>;
+                                    })}
+                                </div>
+                            ) : <div className="pb-reject-empty">The Reject Bin is empty.</div>}
+                            <footer>
+                                <span>{rejectSelection.length} selected</span>
+                                {isPersonal && <button className="is-danger" disabled={!rejectSelection.length} onClick={permanentlyRemoveRejected}>Remove permanently</button>}
+                                <button className="is-return" disabled={!rejectSelection.length} onClick={returnFromRejectBin}>Return to Board</button>
+                            </footer>
                         </motion.section>
                     </motion.div>
                 )}
@@ -969,12 +1070,12 @@ export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' 
                     onGesture={handleGesture}
                     readOnly={isShared && isNarrow}
                 />
-                {isPersonal && logicalHeight < 12000 && (
+                {isPersonal && boardCrowded && logicalHeight < 12000 && (
                     <button className="pb-extend-board" onClick={() => {
                         const nextHeight = Math.min(12000, logicalHeight + 800);
                         setActiveBoard((board) => ({ ...board, logicalHeight: nextHeight }));
                         scheduleSave(canvasItemsRef.current, 'resize', { logicalHeight: nextHeight });
-                    }}>＋ Add more board space</button>
+                    }}>＋ Add more space</button>
                 )}
             </main>
 

@@ -9,7 +9,9 @@ create table if not exists public.sequence_room_boards (
     user_id uuid not null references auth.users(id) on delete cascade,
     name text not null default 'Untitled Board' check (char_length(name) between 1 and 80),
     logical_width integer not null default 1440 check (logical_width between 960 and 2400),
-    logical_height integer not null default 1600 check (logical_height between 1000 and 12000),
+    logical_height integer not null default 3600 check (logical_height between 1000 and 12000),
+    background_color text not null default '#fff8e8' check (background_color ~ '^#[0-9A-Fa-f]{6}$'),
+    last_opened_at timestamptz not null default now(),
     sharing_enabled boolean not null default false,
     share_token text unique,
     created_at timestamptz not null default now(),
@@ -30,7 +32,8 @@ create table if not exists public.user_photo_assets (
     height integer not null check (height > 0),
     mime_type text not null check (mime_type in ('image/jpeg', 'image/png', 'image/webp')),
     created_at timestamptz not null default now(),
-    pending_delete boolean not null default false
+    pending_delete boolean not null default false,
+    is_library_asset boolean not null default false
 );
 
 create table if not exists public.sequence_room_items (
@@ -42,6 +45,8 @@ create table if not exists public.sequence_room_items (
     rotation double precision not null default 0,
     scale double precision not null default 1 check (scale between 0.25 and 3),
     z_index integer not null default 1,
+    is_rejected boolean not null default false,
+    annotation jsonb not null default '{}'::jsonb check (jsonb_typeof(annotation) = 'object'),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     unique (board_id, id)
@@ -49,12 +54,16 @@ create table if not exists public.sequence_room_items (
 
 create index if not exists sequence_room_boards_user_updated_idx
     on public.sequence_room_boards (user_id, updated_at desc);
+create index if not exists sequence_room_boards_user_opened_idx
+    on public.sequence_room_boards (user_id, last_opened_at desc);
 create index if not exists user_photo_assets_user_idx
     on public.user_photo_assets (user_id);
 create index if not exists sequence_room_items_board_z_idx
     on public.sequence_room_items (board_id, z_index);
 create index if not exists sequence_room_items_asset_idx
     on public.sequence_room_items (asset_id);
+create index if not exists sequence_room_items_board_rejected_idx
+    on public.sequence_room_items (board_id, is_rejected, z_index);
 
 create or replace function public.touch_sequence_room_updated_at()
 returns trigger language plpgsql security invoker set search_path = public as $$
@@ -193,12 +202,16 @@ begin
      where id = source_board_id and user_id = auth.uid();
     if not found then raise exception 'BOARD_NOT_FOUND' using errcode = 'P0002'; end if;
 
-    insert into public.sequence_room_boards (user_id, name, logical_width, logical_height)
-    values (auth.uid(), left(source_board.name || ' copy', 80), source_board.logical_width, source_board.logical_height)
+    insert into public.sequence_room_boards
+        (user_id, name, logical_width, logical_height, background_color, last_opened_at)
+    values
+        (auth.uid(), left(source_board.name || ' copy', 80), source_board.logical_width,
+         source_board.logical_height, source_board.background_color, now())
     returning * into copied_board;
 
-    insert into public.sequence_room_items (board_id, asset_id, x, y, rotation, scale, z_index)
-    select copied_board.id, asset_id, x, y, rotation, scale, z_index
+    insert into public.sequence_room_items
+        (board_id, asset_id, x, y, rotation, scale, z_index, is_rejected, annotation)
+    select copied_board.id, asset_id, x, y, rotation, scale, z_index, is_rejected, annotation
       from public.sequence_room_items
      where board_id = source_board.id;
 
@@ -208,6 +221,59 @@ $$;
 
 revoke all on function public.duplicate_sequence_room(uuid) from public;
 grant execute on function public.duplicate_sequence_room(uuid) to authenticated;
+
+create or replace function public.create_sequence_room_starter_board()
+returns public.sequence_room_boards
+language plpgsql security invoker set search_path = public as $$
+declare
+    starter_board public.sequence_room_boards;
+    starter_asset_id uuid;
+    starter record;
+begin
+    if auth.uid() is null then
+        raise exception 'SIGN_IN_REQUIRED' using errcode = '42501';
+    end if;
+
+    select * into starter_board
+      from public.sequence_room_boards
+     where user_id = auth.uid()
+     order by last_opened_at desc, updated_at desc
+     limit 1;
+    if found then return starter_board; end if;
+
+    insert into public.sequence_room_boards
+        (user_id, name, logical_width, logical_height, background_color, last_opened_at)
+    values (auth.uid(), 'My first sequence', 1440, 3600, '#fff8e8', now())
+    returning * into starter_board;
+
+    for starter in
+        select * from (values
+            (1, 'breathe-variations-rca-2023-abodid-sahoo-12-d06e2bea64.webp', -320::double precision, 280::double precision, -4.5::double precision),
+            (2, 'breathe-variations-rca-2023-abodid-sahoo-7-e349cb9d57.webp', 0::double precision, 330::double precision, 2.5::double precision),
+            (3, 'hidden-exhibition-rca-abodid-17-72de495288.webp', 320::double precision, 270::double precision, 5::double precision)
+        ) as photographs(ordinal, filename, x, y, rotation)
+    loop
+        insert into public.user_photo_assets
+            (user_id, cloudflare_key, working_url, stored_bytes, width, height, mime_type, is_library_asset)
+        values
+            (auth.uid(), 'sequence-room-starter/' || auth.uid()::text || '/' || starter.ordinal::text,
+             'https://assets.abodid.com/photos/variants/exhibition-photos/800/' || starter.filename,
+             1, 800, 800, 'image/webp', true)
+        returning id into starter_asset_id;
+
+        insert into public.sequence_room_items
+            (board_id, asset_id, x, y, rotation, scale, z_index, is_rejected)
+        values
+            (starter_board.id, starter_asset_id, starter.x, starter.y, starter.rotation,
+             1, starter.ordinal, false);
+    end loop;
+
+    return starter_board;
+end;
+$$;
+
+revoke all on function public.create_sequence_room_starter_board() from public;
+grant execute on function public.create_sequence_room_starter_board() to authenticated;
 
 -- Shared visitors never query these tables directly. The public server route validates
 -- the random token and returns only the read-only fields required for rendering.

@@ -10,6 +10,9 @@ export type SequenceRoomItem = {
     rotation: number;
     scale: number;
     zIndex: number;
+    rejected?: boolean;
+    annotation?: Record<string, unknown>;
+    libraryAsset?: boolean;
 };
 
 export type SequenceRoomRecord = {
@@ -18,6 +21,7 @@ export type SequenceRoomRecord = {
     name: string;
     logicalWidth: number;
     logicalHeight: number;
+    backgroundColor: string;
     sharingEnabled: boolean;
     shareToken?: string | null;
     createdAt?: string;
@@ -30,12 +34,24 @@ const requireClient = () => {
     return supabase;
 };
 
+const fetchOwnedPhotoUrl = async (assetId: string) => {
+    const client = requireClient();
+    const { data: { session }, error } = await client.auth.getSession();
+    if (error || !session?.access_token) throw new Error('Sign in required.');
+    const response = await fetch(`/api/sequence-room/photo/${encodeURIComponent(assetId)}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (!response.ok) throw new Error('A photograph could not be restored.');
+    return URL.createObjectURL(await response.blob());
+};
+
 const mapItem = (row: Record<string, any>): SequenceRoomItem | null => {
     const relation = Array.isArray(row.user_photo_assets)
         ? row.user_photo_assets[0]
         : row.user_photo_assets;
-    const image = relation?.working_url || row.image || '';
-    if (!image) return null;
+    const libraryAsset = Boolean(relation?.is_library_asset);
+    const image = libraryAsset ? relation?.working_url : row.image || '';
+    if (!relation?.id && !image) return null;
     return {
         id: row.id,
         assetId: row.asset_id || relation?.id,
@@ -46,6 +62,9 @@ const mapItem = (row: Record<string, any>): SequenceRoomItem | null => {
         rotation: Number(row.rotation || 0),
         scale: Number(row.scale || 1),
         zIndex: Number(row.z_index ?? row.zIndex ?? 1),
+        rejected: Boolean(row.is_rejected ?? row.rejected),
+        annotation: row.annotation && typeof row.annotation === 'object' ? row.annotation : {},
+        libraryAsset,
     };
 };
 
@@ -55,6 +74,7 @@ const mapBoard = (row: Record<string, any>): SequenceRoomRecord => ({
     name: row.name || 'Untitled Board',
     logicalWidth: Number(row.logical_width || 1440),
     logicalHeight: Number(row.logical_height || 1600),
+    backgroundColor: row.background_color || '#fff8e8',
     sharingEnabled: Boolean(row.sharing_enabled),
     shareToken: row.share_token,
     createdAt: row.created_at,
@@ -69,11 +89,38 @@ export async function fetchUserBoards(): Promise<SequenceRoomRecord[]> {
 
     const { data, error } = await client
         .from('sequence_room_boards')
-        .select('id,user_id,name,logical_width,logical_height,sharing_enabled,share_token,created_at,updated_at,sequence_room_items(id,asset_id,x,y,rotation,scale,z_index,user_photo_assets(id,working_url))')
+        .select('id,user_id,name,logical_width,logical_height,background_color,last_opened_at,sharing_enabled,share_token,created_at,updated_at,sequence_room_items(id,asset_id,x,y,rotation,scale,z_index,is_rejected,annotation,user_photo_assets(id,working_url,is_library_asset))')
         .eq('user_id', user.id)
+        .order('last_opened_at', { ascending: false })
         .order('updated_at', { ascending: false });
     if (error) throw error;
-    return (data || []).map(mapBoard);
+    const boards = (data || []).map(mapBoard);
+    await Promise.all(boards.flatMap((board) => board.items.map(async (item) => {
+        if (item.libraryAsset || !item.assetId) return;
+        item.image = await fetchOwnedPhotoUrl(item.assetId);
+    })));
+    return boards;
+}
+
+export async function createStarterBoard(): Promise<SequenceRoomRecord> {
+    const client = requireClient();
+    const { data, error } = await client.rpc('create_sequence_room_starter_board');
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row?.id) throw new Error('Your starter board could not be created.');
+    const boards = await fetchUserBoards();
+    const board = boards.find((candidate) => candidate.id === row.id);
+    if (!board) throw new Error('Your starter board could not be loaded.');
+    return board;
+}
+
+export async function markBoardOpened(boardId: string): Promise<void> {
+    const client = requireClient();
+    const { error } = await client
+        .from('sequence_room_boards')
+        .update({ last_opened_at: new Date().toISOString() })
+        .eq('id', boardId);
+    if (error) throw error;
 }
 
 export async function createBoard(name = 'Untitled Board'): Promise<SequenceRoomRecord> {
@@ -83,7 +130,7 @@ export async function createBoard(name = 'Untitled Board'): Promise<SequenceRoom
 
     const { data, error } = await client
         .from('sequence_room_boards')
-        .insert({ user_id: user.id, name: name.trim().slice(0, 80) || 'Untitled Board' })
+        .insert({ user_id: user.id, name: name.trim().slice(0, 80) || 'Untitled Board', logical_height: 3600 })
         .select('*')
         .single();
     if (error) throw error;
@@ -112,12 +159,13 @@ export async function deleteBoard(boardId: string): Promise<void> {
 export async function saveBoardLayout(
     boardId: string,
     items: SequenceRoomItem[],
-    details: { name?: string; logicalHeight?: number } = {},
+    details: { name?: string; logicalHeight?: number; backgroundColor?: string } = {},
 ): Promise<void> {
     const client = requireClient();
     const boardUpdates: Record<string, unknown> = {};
     if (details.name !== undefined) boardUpdates.name = details.name.trim().slice(0, 80) || 'Untitled Board';
     if (details.logicalHeight !== undefined) boardUpdates.logical_height = Math.round(details.logicalHeight);
+    if (details.backgroundColor !== undefined) boardUpdates.background_color = details.backgroundColor;
 
     if (Object.keys(boardUpdates).length) {
         const { error } = await client.from('sequence_room_boards').update(boardUpdates).eq('id', boardId);
@@ -136,6 +184,8 @@ export async function saveBoardLayout(
             rotation: item.rotation,
             scale: item.scale || 1,
             z_index: item.zIndex || 1,
+            is_rejected: Boolean(item.rejected),
+            annotation: item.annotation || {},
         })),
         { onConflict: 'id' },
     );
@@ -180,6 +230,8 @@ export async function uploadWorkingPhoto(
         if (key !== 'filename') form.append(key, String(value));
     });
     const data = await apiRequest('/api/sequence-room/upload', { method: 'POST', body: form });
+    data.item.image = await fetchOwnedPhotoUrl(data.item.assetId);
+    data.item.libraryAsset = false;
     return data.item;
 }
 

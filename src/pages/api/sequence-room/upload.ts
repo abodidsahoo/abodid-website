@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
             .eq('board_id', boardId);
         if (countError) throw countError;
         if ((count || 0) >= 30) {
-            return sequenceRoomJson({ error: 'The free plan allows 30 photos per board.', code: 'FREE_PHOTO_LIMIT' }, 409);
+            return sequenceRoomJson({ error: 'Each board can hold 30 photographs, including its Reject Bin.', code: 'FREE_PHOTO_LIMIT' }, 409);
         }
 
         const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
@@ -63,7 +63,7 @@ export const POST: APIRoute = async ({ request }) => {
             .insert({
                 user_id: authorization.user.id,
                 cloudflare_key: uploaded.objectKey,
-                working_url: uploaded.publicUrl,
+                working_url: `r2://${uploaded.objectKey}`,
                 stored_bytes: file.size,
                 width,
                 height,
@@ -95,7 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
             item: {
                 id: item.id,
                 assetId: asset.id,
-                image: asset.working_url,
+                image: '',
                 width: asset.width,
                 height: asset.height,
                 x: item.x,
@@ -113,6 +113,6 @@ export const POST: APIRoute = async ({ request }) => {
         console.error('Sequence Room upload failed:', error);
         const message = error instanceof Error ? error.message : 'Upload failed.';
         const quota = message.includes('FREE_PHOTO_LIMIT');
-        return sequenceRoomJson({ error: quota ? 'The free plan allows 30 photos per board.' : 'The photo could not be uploaded.', code: quota ? 'FREE_PHOTO_LIMIT' : 'UPLOAD_FAILED' }, quota ? 409 : 500);
+        return sequenceRoomJson({ error: quota ? 'Each board can hold 30 photographs, including its Reject Bin.' : 'The photograph could not be uploaded.', code: quota ? 'FREE_PHOTO_LIMIT' : 'UPLOAD_FAILED' }, quota ? 409 : 500);
     }
 };

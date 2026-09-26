@@ -413,21 +413,21 @@ export async function downloadSelectedArea(rect, format = 'png') {
  * Renders the entire continuous scatter canvas with chunked slices and crisp print DPI.
  */
 export async function downloadFullBoardPDF(onProgress) {
+    const board = document.querySelector('[data-sequence-room-canvas]');
     const allCards = Array.from(document.querySelectorAll('.polaroid-card'));
-    if (!allCards.length) {
+    if (!board || !allCards.length) {
         return downloadVisiblePDF();
     }
 
-    const scrollX = window.scrollX || window.pageXOffset || 0;
-    const scrollY = window.scrollY || window.pageYOffset || 0;
-    const viewportWidth = window.innerWidth;
+    const boardRect = board.getBoundingClientRect();
+    const boardWidth = Math.max(1, Math.round(board.scrollWidth || boardRect.width));
 
     // 1. Calculate absolute board bounds from all scattered cards
     let maxCardY = 0;
     const cardData = allCards.map((card) => {
         const rect = card.getBoundingClientRect();
-        const absX = rect.left + scrollX;
-        const absY = rect.top + scrollY;
+        const absX = rect.left - boardRect.left;
+        const absY = rect.top - boardRect.top;
         const w = card.offsetWidth || 300;
         const h = card.offsetHeight || 403;
         if (absY + h > maxCardY) maxCardY = absY + h;
@@ -464,7 +464,7 @@ export async function downloadFullBoardPDF(onProgress) {
     // Sort cards by stacking zIndex
     cardData.sort((a, b) => a.zIndex - b.zIndex);
 
-    const totalBoardHeight = Math.max(Math.round(maxCardY + 280), window.innerHeight);
+    const totalBoardHeight = Math.max(Math.round(maxCardY + 280), Math.round(board.scrollHeight || boardRect.height));
     const activeBgColor =
         getComputedStyle(document.documentElement)
             .getPropertyValue('--polaroid-hub-bg')
@@ -485,17 +485,17 @@ export async function downloadFullBoardPDF(onProgress) {
     const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
-        format: [viewportWidth, totalBoardHeight],
+        format: [boardWidth, totalBoardHeight],
         hotfixes: ['px_scaling'],
     });
 
     // 2. Render at 4x density in memory-safe slices. The slice height adapts
     // so long boards retain maximum detail without exceeding browser canvas limits.
-    const printDpr = Math.max(1, Math.min(ULTRA_EXPORT_SCALE, MAX_CANVAS_SIDE / viewportWidth));
+    const printDpr = Math.max(1, Math.min(ULTRA_EXPORT_SCALE, MAX_CANVAS_SIDE / boardWidth));
     const chunkSize = Math.max(700, Math.floor(Math.min(
         3000,
         MAX_CANVAS_SIDE / printDpr,
-        48_000_000 / (viewportWidth * printDpr * printDpr),
+        48_000_000 / (boardWidth * printDpr * printDpr),
     )));
     const numSlices = Math.ceil(totalBoardHeight / chunkSize);
 
@@ -508,7 +508,7 @@ export async function downloadFullBoardPDF(onProgress) {
         }
 
         const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = Math.round(viewportWidth * printDpr);
+        sliceCanvas.width = Math.round(boardWidth * printDpr);
         sliceCanvas.height = Math.round(sliceHeight * printDpr);
         const ctx = sliceCanvas.getContext('2d');
         if (!ctx) continue;
@@ -517,7 +517,7 @@ export async function downloadFullBoardPDF(onProgress) {
 
         // A. Fill slice background
         ctx.fillStyle = activeBgColor;
-        ctx.fillRect(0, 0, viewportWidth, sliceHeight);
+        ctx.fillRect(0, 0, boardWidth, sliceHeight);
 
         // B. Blueprint Grid
         const gridSize = 50;
@@ -526,7 +526,7 @@ export async function downloadFullBoardPDF(onProgress) {
         ctx.lineWidth = 1;
         ctx.beginPath();
 
-        for (let x = 0; x <= viewportWidth; x += gridSize) {
+        for (let x = 0; x <= boardWidth; x += gridSize) {
             ctx.moveTo(x + 0.5, 0);
             ctx.lineTo(x + 0.5, sliceHeight);
         }
@@ -534,7 +534,7 @@ export async function downloadFullBoardPDF(onProgress) {
         const gridOffsetY = ((-sliceStartY % gridSize) + gridSize) % gridSize;
         for (let y = gridOffsetY; y <= sliceHeight; y += gridSize) {
             ctx.moveTo(0, y + 0.5);
-            ctx.lineTo(viewportWidth, y + 0.5);
+            ctx.lineTo(boardWidth, y + 0.5);
         }
         ctx.stroke();
         ctx.restore();
@@ -612,7 +612,7 @@ export async function downloadFullBoardPDF(onProgress) {
 
         // Add slice into PDF at exact vertical position
         const sliceDataUrl = sliceCanvas.toDataURL('image/jpeg', 0.98);
-        pdf.addImage(sliceDataUrl, 'JPEG', 0, sliceStartY, viewportWidth, sliceHeight, undefined, 'NONE');
+        pdf.addImage(sliceDataUrl, 'JPEG', 0, sliceStartY, boardWidth, sliceHeight, undefined, 'NONE');
     }
 
     const filename = `sequence room full archive ${getExportTimestamp()}.pdf`;

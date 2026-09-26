@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         const { data: items, error: itemError } = await authorization.supabase
             .from('sequence_room_items')
-            .select('id,asset_id,user_photo_assets(id,cloudflare_key)')
+            .select('id,asset_id,user_photo_assets(id,cloudflare_key,is_library_asset)')
             .eq('board_id', boardId)
             .in('id', itemIds);
         if (itemError) throw itemError;
@@ -50,6 +50,14 @@ export const POST: APIRoute = async ({ request }) => {
                 : item.user_photo_assets;
             const key = assetRelation?.cloudflare_key;
             if (!key) continue;
+            if (assetRelation?.is_library_asset) {
+                await authorization.supabase
+                    .from('user_photo_assets')
+                    .delete()
+                    .eq('id', assetId)
+                    .eq('user_id', authorization.user.id);
+                continue;
+            }
             try {
                 const result = await deleteR2Objects([key]);
                 if (result.errors.length) throw new Error('R2_DELETE_FAILED');

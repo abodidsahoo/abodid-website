@@ -225,7 +225,12 @@ const PolaroidScatter = ({
     const activeSourceItems = (items && items.length > 0) ? items : fetchedItems;
 
     useEffect(() => {
-        if (!Array.isArray(layoutItems)) return;
+        if (!Array.isArray(layoutItems)) {
+            setScatteredItems([]);
+            setMaxZIndex(10);
+            setSelectedId(null);
+            return;
+        }
         const exactItems = layoutItems.map((item, index) => ({
             ...item,
             type: 'photo',
@@ -930,6 +935,14 @@ const PolaroidScatter = ({
             const movedScale = moved.scale || 1;
             const movedHalfWidth = 150 * movedScale;
             const movedHalfHeight = 184 * movedScale;
+            moved.x = Math.max(
+                (-logicalWidth / 2) + movedHalfWidth + 24,
+                Math.min((logicalWidth / 2) - movedHalfWidth - 24, moved.x),
+            );
+            moved.y = Math.max(
+                movedHalfHeight + 110,
+                Math.min(logicalHeight - movedHalfHeight - 56, moved.y),
+            );
             const overlapsAnotherPhoto = next.some((other, otherIndex) => {
                 if (otherIndex === idx) return false;
                 const otherScale = other.scale || 1;
@@ -944,14 +957,14 @@ const PolaroidScatter = ({
             next[idx] = moved;
             return next;
         });
-    }, [readOnly, selectionMode, maxZIndex]);
+    }, [readOnly, selectionMode, maxZIndex, logicalWidth, logicalHeight]);
 
     // STRICT ID MATCHING ONLY. No slug fallback.
-    const maxY = scatteredItems.length > 0 ? Math.max(...scatteredItems.map(i => i.y)) : 2000;
     // Note: We don't need padding-top 0 anymore if we aren't managing background here, but keeping basic layout is fine
     const dynamicStyle = immersive ? {
         width: `${logicalWidth}px`,
-        minHeight: `${Math.max(logicalHeight, maxY + 600)}px`,
+        minHeight: `${logicalHeight}px`,
+        height: `${logicalHeight}px`,
         alignItems: 'flex-start',
     } : {};
 

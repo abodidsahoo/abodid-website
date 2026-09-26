@@ -9,11 +9,12 @@ import {
     sequenceRoomJson,
 } from '../../../lib/sequence-room/server';
 
-const serializeBoard = (board: Record<string, any>, items: Array<Record<string, any>>) => ({
+const serializeBoard = (board: Record<string, any>, items: Array<Record<string, any>>, shareToken: string) => ({
     id: board.id,
     name: board.name,
     logicalWidth: board.logical_width,
     logicalHeight: board.logical_height,
+    backgroundColor: board.background_color || '#fff8e8',
     items: items.map((item) => {
         const asset = Array.isArray(item.user_photo_assets)
             ? item.user_photo_assets[0]
@@ -21,7 +22,9 @@ const serializeBoard = (board: Record<string, any>, items: Array<Record<string, 
         return {
             id: item.id,
             assetId: item.asset_id,
-            image: asset?.working_url,
+            image: asset?.is_library_asset
+                ? asset.working_url
+                : `/api/sequence-room/photo/${item.asset_id}?share=${encodeURIComponent(shareToken)}`,
             title: 'Photograph',
             x: item.x,
             y: item.y,
@@ -40,7 +43,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     const { data: board, error } = await supabase
         .from('sequence_room_boards')
-        .select('id,name,logical_width,logical_height')
+        .select('id,name,logical_width,logical_height,background_color')
         .eq('share_token', token)
         .eq('sharing_enabled', true)
         .maybeSingle();
@@ -48,11 +51,12 @@ export const GET: APIRoute = async ({ request }) => {
 
     const { data: items, error: itemError } = await supabase
         .from('sequence_room_items')
-        .select('id,asset_id,x,y,rotation,scale,z_index,user_photo_assets(working_url)')
+        .select('id,asset_id,x,y,rotation,scale,z_index,user_photo_assets(working_url,is_library_asset)')
         .eq('board_id', board.id)
+        .eq('is_rejected', false)
         .order('z_index');
     if (itemError) return sequenceRoomJson({ error: 'Shared board is unavailable.' }, 500);
-    return sequenceRoomJson({ board: serializeBoard(board, items || []) });
+    return sequenceRoomJson({ board: serializeBoard(board, items || [], token) });
 };
 
 export const POST: APIRoute = async ({ request }) => {
