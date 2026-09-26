@@ -989,14 +989,15 @@ function PopEditorialProject({ p, nextProject }) {
                   )
                 ) : isDirectVideoMedia ? (
                   <video
-                    key={coverMediaUrl}
+                    key={directVideoUrl}
                     ref={(el) => {
                       if (el) {
                         el.muted = true;
                         el.play().catch(() => {});
                       }
                     }}
-                    src={coverMediaUrl}
+                    src={directVideoUrl}
+                    poster={rawCoverUrl && rawCoverUrl !== directVideoUrl ? rawCoverUrl : undefined}
                     autoPlay
                     muted
                     loop
