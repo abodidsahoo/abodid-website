@@ -1053,33 +1053,42 @@ export type Database = {
           categories: string[] | null
           created_at: string
           id: string
+          image_alt: string
           image_url: string | null
           publication: string | null
           published: boolean | null
           published_at: string
+          sort_order: number
           title: string
+          updated_at: string
           url: string
         }
         Insert: {
           categories?: string[] | null
           created_at?: string
           id?: string
+          image_alt?: string
           image_url?: string | null
           publication?: string | null
           published?: boolean | null
           published_at?: string
+          sort_order?: number
           title: string
+          updated_at?: string
           url: string
         }
         Update: {
           categories?: string[] | null
           created_at?: string
           id?: string
+          image_alt?: string
           image_url?: string | null
           publication?: string | null
           published?: boolean | null
           published_at?: string
+          sort_order?: number
           title?: string
+          updated_at?: string
           url?: string
         }
         Relationships: []

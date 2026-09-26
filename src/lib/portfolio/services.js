@@ -622,16 +622,18 @@ const mapBrowserAsset = (asset) => ({
   variants: asset.variants || {},
 });
 
-export async function browsePortfolioMediaFolder(folder = "originals") {
+export async function browsePortfolioMediaFolder(folder = "") {
   const session = await requirePortfolioAdmin();
-  const params = new URLSearchParams({ folder });
-  const response = await fetch(`/api/admin/media?${params.toString()}`, {
+  const params = new URLSearchParams();
+  if (folder) params.set("folder", folder);
+  const query = params.toString();
+  const response = await fetch(`/api/admin/media${query ? `?${query}` : ""}`, {
     headers: { Authorization: `Bearer ${session.access_token}` },
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error || "Could not browse the Media Library.");
   return {
-    folderPath: payload.folderPath || folder,
+    folderPath: payload.folderPath ?? folder,
     folders: payload.folders || [],
     files: (payload.files || [])
       .filter((asset) => asset.mimeType?.startsWith("image/"))

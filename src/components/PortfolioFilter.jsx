@@ -33,7 +33,6 @@ const getItemCategories = (item) => {
 };
 
 const PortfolioFilter = ({ items = [] }) => {
-    // Initial state is deterministic across SSR and Client initial render
     const [activeCategory, setActiveCategory] = useState('All');
 
     useEffect(() => {
@@ -60,7 +59,6 @@ const PortfolioFilter = ({ items = [] }) => {
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
-    // 1. Calculate counts for the 5-6 core categories
     const { categoriesWithCounts, itemCategoryMap } = useMemo(() => {
         const itemMap = new Map();
         const counts = { All: items.length };
@@ -103,7 +101,6 @@ const PortfolioFilter = ({ items = [] }) => {
         window.history.pushState({}, '', newUrl);
     };
 
-    // 2. Filter items based on active core category
     const filteredItems = useMemo(() => {
         if (activeCategory === 'All') return items;
         return items.filter((item, idx) => {
@@ -113,15 +110,13 @@ const PortfolioFilter = ({ items = [] }) => {
     }, [items, activeCategory, itemCategoryMap]);
 
     return (
-        <div className="pe-photography-archive" id="archive-grid">
-            {/* Pop Editorial Category Filter Toolbar */}
-            <div className="pe-filter-bar">
-                <div className="pe-filter-bar__top">
-                    <p className="pe-filter-eyebrow">
-                        <span>Filter by Category</span>
-                    </p>
-                </div>
-                <div className="pe-filter-scroll" role="toolbar" aria-label="Filter photography by category">
+        <section className="press-archive" id="photo-archive" aria-label="Browse photography series">
+            {/* Filter by Category */}
+            <div className="press-topics" role="group" aria-labelledby="photo-topics-label">
+                <h2 id="photo-topics-label" className="press-eyebrow">
+                    Filter by category
+                </h2>
+                <div className="press-topics__options">
                     {categoriesWithCounts.map(({ name, count }) => {
                         const isActive = activeCategory.toLowerCase() === name.toLowerCase();
 
@@ -130,88 +125,118 @@ const PortfolioFilter = ({ items = [] }) => {
                                 key={name}
                                 type="button"
                                 onClick={() => handleCategoryClick(name)}
-                                className={`pe-filter-pill ${isActive ? 'is-active' : ''}`}
+                                className="press-topic"
                                 aria-pressed={isActive}
+                                aria-controls="photo-series-list"
+                                aria-label={`${name === 'All' ? 'All series' : name}: ${count} ${count === 1 ? 'series' : 'series'}`}
                             >
-                                <span className="pe-filter-pill__label">{name}</span>
-                                <span className="pe-filter-pill__count">{String(count).padStart(2, '0')}</span>
+                                <span>{name}</span>
                             </button>
                         );
                     })}
                 </div>
             </div>
 
-            {/* Asymmetric Pop Editorial Photography Grid */}
-            {filteredItems.length === 0 ? (
-                <div className="pe-empty-state">
-                    <p className="pe-empty-state__title">No photo essays found</p>
-                    <p className="pe-empty-state__desc">
-                        There are no series tagged under &ldquo;{activeCategory}&rdquo;.
+            {/* Results Heading & Meta */}
+            <div className="press-results-heading">
+                <h2>{activeCategory === 'All' ? 'All Photo Series' : `${activeCategory} Series`}</h2>
+                <div className="press-results-heading__meta">
+                    <p role="status" aria-live="polite" aria-atomic="true">
+                        {filteredItems.length} {filteredItems.length === 1 ? 'series' : 'series'}
                     </p>
+                    {activeCategory !== 'All' && (
+                        <button
+                            type="button"
+                            onClick={() => handleCategoryClick('All')}
+                            className="press-reset"
+                        >
+                            Reset filters <span aria-hidden="true">✕</span>
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Photo Series Grid */}
+            {filteredItems.length === 0 ? (
+                <div className="press-empty">
+                    <h3>No photo series found</h3>
+                    <p>There are no series tagged under &ldquo;{activeCategory}&rdquo;.</p>
                     <button
                         type="button"
                         onClick={() => handleCategoryClick('All')}
-                        className="pe-reset-btn"
+                        className="press-reset"
+                        style={{ marginTop: '12px' }}
                     >
-                        <span>View all series</span>
-                        <b aria-hidden="true">→</b>
+                        View all series <span aria-hidden="true">→</span>
                     </button>
                 </div>
             ) : (
-                <div className="pe-photo-grid">
+                <ul className="press-list-grid" id="photo-series-list">
                     {filteredItems.map((item, index) => {
-                        const paletteIndex = index % 7;
                         const itemCategories = itemCategoryMap.get(item.slug || item.title || index) || ['Art'];
+                        const imageCount = item.imageCount || item.images?.length || 0;
+                        const primaryCategory = itemCategories[0] || 'Photography';
+                        const titleId = `photo-title-${index}`;
 
                         return (
-                            <a
-                                key={item.slug || item.title || index}
-                                href={item.href || `/photography/${item.slug}`}
-                                className={`pe-photo-card pe-photo-card--${(index % 8) + 1}`}
-                                data-palette={paletteIndex}
-                            >
-                                <figure className="pe-photo-card__media">
-                                    <img
-                                        src={getOptimizedImageUrl(item.image, { width: 1400, quality: 84 })}
-                                        srcSet={getOptimizedImageSrcSet(item.image, {
-                                            widths: [600, 960, 1400, 1800],
-                                            quality: 84,
-                                        })}
-                                        sizes="(max-width: 720px) calc(100vw - 72px), (max-width: 980px) 50vw, 840px"
-                                        alt={item.title}
-                                        loading={index < 2 ? 'eager' : 'lazy'}
-                                        decoding={index < 2 ? 'sync' : 'async'}
-                                        width="1400"
-                                        height="900"
-                                    />
-                                </figure>
-
-                                <div className="pe-photo-card__body">
-                                    <div className="pe-photo-card__meta">
-                                        <div className="pe-photo-card__tags">
-                                            {itemCategories.slice(0, 2).map((cat) => (
-                                                <span key={cat} className="pe-meta-tag">
-                                                    {cat}
-                                                </span>
-                                            ))}
+                            <li key={item.slug || item.title || index}>
+                                <article className="press-mention">
+                                    <a
+                                        href={item.href || `/photography/${item.slug}`}
+                                        className="press-mention-card"
+                                        aria-labelledby={titleId}
+                                    >
+                                        <div className="press-card-image">
+                                            <img
+                                                src={getOptimizedImageUrl(item.image, { width: 1200, quality: 84 })}
+                                                srcSet={getOptimizedImageSrcSet(item.image, {
+                                                    widths: [480, 720, 960, 1200],
+                                                    quality: 84,
+                                                })}
+                                                sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1100px) 50vw, 33vw"
+                                                alt={item.title}
+                                                loading={index < 3 ? 'eager' : 'lazy'}
+                                                decoding={index < 3 ? 'sync' : 'async'}
+                                            />
                                         </div>
-                                    </div>
 
-                                    <h3 className="pe-photo-card__title">{item.title}</h3>
+                                        <div className="press-card-copy">
+                                            <p className="press-card-publication">
+                                                {primaryCategory} // Photo Series
+                                            </p>
 
-                                    <div className="pe-photo-card__cta">
-                                        <span className="pe-photo-card__cta-label">Explore series</span>
-                                        <b className="link-destination-arrow" aria-hidden="true">
-                                            ↗
-                                        </b>
-                                    </div>
-                                </div>
-                            </a>
+                                            <div className="press-card-title-row">
+                                                <h3 className="press-card-title" id={titleId}>
+                                                    <span>{item.title}</span>
+                                                </h3>
+                                                <span className="press-card-arrow" aria-hidden="true">
+                                                    ↗
+                                                </span>
+                                            </div>
+
+                                            <div className="press-card-footer">
+                                                <div className="press-card-categories">
+                                                    {itemCategories.slice(0, 2).map((cat) => (
+                                                        <span key={cat} className="press-card-tag">
+                                                            {cat}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                {imageCount > 0 && (
+                                                    <span className="press-card-date">
+                                                        {imageCount} Images
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </a>
+                                </article>
+                            </li>
                         );
                     })}
-                </div>
+                </ul>
             )}
-        </div>
+        </section>
     );
 };
 

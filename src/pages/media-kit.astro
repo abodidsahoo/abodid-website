@@ -1,0 +1,1310 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import InlineInquiryForm from "../components/InlineInquiryForm.astro";
+import { personJsonLd, breadcrumbJsonLd } from "../lib/seoData";
+import { CV_DOWNLOAD_URL } from "../lib/cv";
+import "../styles/press-editorial.css";
+
+export const prerender = false;
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+);
+
+const pageTitle = "Media Kit";
+const pageDescription =
+  "Official electronic press kit, authorized biographies, high-resolution portrait assets, brand guidelines, and speaking topics for Abodid Sahoo.";
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Digital Footprint", path: "/press" },
+    { name: "Media Kit", path: "/media-kit" },
+  ]),
+];
+
+const fastFacts = [
+  {
+    label: "Current Base",
+    value: "London, United Kingdom",
+    meta: "Available worldwide for commissions, talks & jury duties",
+  },
+  {
+    label: "Education & Honors",
+    value: "Royal College of Art (RCA) · Apple Scholar",
+    meta: "MA Digital Direction · NID Ahmedabad · NIT Rourkela",
+  },
+  {
+    label: "Core Disciplines",
+    value: "Filmmaker, Photographer & Exhibition Designer",
+    meta: "Exhibition design, creative direction & documentary cinema",
+  },
+];
+
+const bios = {
+  micro: {
+    title: "Micro Bio",
+    wordCount: "35 words",
+    useCase: "For Twitter/X, Instagram, webinar cards, and podcast intros",
+    text: "Abodid Sahoo is a London-based filmmaker, photographer, and creative director. An alumnus of the Royal College of Art (Apple Scholar), he creates research-driven documentaries, public spatial exhibitions, and cognitive storytelling systems.",
+  },
+  short: {
+    title: "Short Bio",
+    wordCount: "85 words",
+    useCase:
+      "For conference programs, panel moderator introductions, and festival catalogues",
+    text: "Abodid Sahoo is an international filmmaker, photographer, and creative director based in London. An alumnus of the Royal College of Art (Apple Scholar) and the National Institute of Design (NID), his practice spans human-centred documentary cinema, exhibition design, and experimental visual archives. His work has been exhibited at Outernet London (reaching 10,000+ visitors), broadcast on VH1 and Rolling Stone, and featured in institutions across Europe and India. He also teaches visual storytelling and second-brain systems for creative leaders.",
+  },
+  full: {
+    title: "Full Bio",
+    wordCount: "220 words",
+    useCase:
+      "For magazine features, author bios, feature profiles, and institutional exhibition catalogues",
+    text: `Abodid Sahoo is an international filmmaker, photographer, creative director, and academic researcher working at the intersection of cinema, digital humanities, and spatial technology. Holding an MA in Digital Direction from the Royal College of Art in London as an Apple Scholar, alongside degrees from NID Ahmedabad and NIT Rourkela, Abodid serves as an active cross-cultural bridge between London's creative ecosystem and South Asian contemporary culture.
+
+His documentary films and photographic series explore memory, spatial narratives, and community resilience. Notable projects include large-scale public installations at Outernet London and Frameless London, commercial and documentary series for the British Film Institute (BFI), and broadcasts across VH1 and Rolling Stone. In addition to commercial and artistic commissions, Abodid conducts private workshops and bespoke Obsidian tutoring for founders, creative directors, and researchers, helping leaders build high-leverage cognitive archives. He is currently based in London and available worldwide for commissioned projects, festival screenings, speaking engagements, and panel discussions.`,
+  },
+};
+
+const speakingTopics = [
+  {
+    number: "01",
+    title: "Human-Centred Cinema & The Ethics of Documentary Observation",
+    description:
+      "Navigating vulnerable community narratives, balancing raw authenticity with cinematic craft, and resisting extractive visual storytelling.",
+    badge: "Keynote / Masterclass",
+  },
+  {
+    number: "02",
+    title: "Spatial Storytelling: Designing for 10,000+ Public Visitors",
+    description:
+      "Transforming high-traffic public architecture (like Outernet London) into participatory emotional portals using multi-screen spatial media.",
+    badge: "Exhibition & Creative Tech",
+  },
+  {
+    number: "03",
+    title: "The Creative Second Brain: Cognitive Knowledge Architecture",
+    description:
+      "How founders, film directors, and researchers can harness Obsidian to capture references, synthesise research, and produce original work effortlessly.",
+    badge: "Workshop / Productivity",
+  },
+  {
+    number: "04",
+    title:
+      "Bridging Worlds: Translating South Asian Culture for Global Audiences",
+    description:
+      "A nuanced discussion on cross-cultural production, diaspora identity, and moving beyond folkloric clichés to authentic modern representations.",
+    badge: "Cultural Commentary",
+  },
+  {
+    number: "05",
+    title: "AI as a Living Vault: Memory, Archival Systems & Future Cinema",
+    description:
+      "Exploring how synthetic media and intelligent vaults can serve human memory preservation rather than generic content generation.",
+    badge: "AI & Digital Humanities",
+  },
+];
+
+
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  fullWidth
+  navigationVariant="next"
+  showGlobalGrid={false}
+  bodyClass="press-page"
+  structuredData={structuredData}
+>
+  <div class="press-editorial">
+    <div class="press-file">
+      <!-- Top Masthead Header -->
+      <header class="press-masthead">
+        <p class="press-file-tag">
+          mediakit.pdf — official electronic press kit (EPK)
+        </p>
+        <div class="press-masthead__hero">
+          <h1>{pageTitle}</h1>
+          <div class="press-masthead__summary">
+            <p>
+              High-resolution media assets and official biographies for Abodid
+              Sahoo.
+            </p>
+            <div class="press-masthead__actions">
+              <a
+                class="press-topic press-topic--action"
+                href={CV_DOWNLOAD_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>Download CV (PDF)</span>
+                <b aria-hidden="true">↓</b>
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Media Kit Board -->
+      <div class="press-board media-kit-board">
+        <!-- Quick Stats Section -->
+        <section class="mk-section" id="stats" aria-labelledby="stats-heading">
+          <div class="mk-section__header">
+            <span class="mk-section__badge">00 // Fast Facts</span>
+            <h2 id="stats-heading" class="mk-section__title">
+              At-A-Glance Overview
+            </h2>
+          </div>
+          <div class="mk-facts-grid">
+            {
+              fastFacts.map((fact) => (
+                <div class="mk-fact-card">
+                  <p class="mk-fact-card__label">{fact.label}</p>
+                  <p class="mk-fact-card__value">{fact.value}</p>
+                  <p class="mk-fact-card__meta">{fact.meta}</p>
+                </div>
+              ))
+            }
+          </div>
+        </section>
+
+        <!-- Official Biographies Section -->
+        <section class="mk-section" id="bios" aria-labelledby="bios-heading">
+          <div class="mk-section__header">
+            <span class="mk-section__badge">01 // Official Biographies</span>
+            <h2 id="bios-heading" class="mk-section__title">
+              Approved Bios in 3 Lengths
+            </h2>
+            <p class="mk-section__desc">
+              Please use these standardized versions for print, event programs,
+              and digital coverage. Do not modify quotes or credentials without
+              prior authorization.
+            </p>
+          </div>
+
+          <div class="mk-bios-stack">
+            <!-- Micro Bio -->
+            <article class="mk-bio-card">
+              <div class="mk-bio-card__meta">
+                <div class="mk-bio-card__heading-group">
+                  <h3 class="mk-bio-card__title">{bios.micro.title}</h3>
+                  <span class="mk-bio-card__tag">{bios.micro.wordCount}</span>
+                </div>
+                <p class="mk-bio-card__use">{bios.micro.useCase}</p>
+              </div>
+              <div class="mk-bio-card__content">
+                <p id="bio-micro-text">{bios.micro.text}</p>
+              </div>
+              <div class="mk-bio-card__footer">
+                <button
+                  type="button"
+                  class="mk-copy-btn"
+                  data-target="bio-micro-text"
+                >
+                  <span class="mk-copy-btn__label">Copy Micro Bio</span>
+                  <span class="mk-copy-btn__icon" aria-hidden="true">📋</span>
+                </button>
+              </div>
+            </article>
+
+            <!-- Short Bio -->
+            <article class="mk-bio-card mk-bio-card--featured">
+              <div class="mk-bio-card__meta">
+                <div class="mk-bio-card__heading-group">
+                  <h3 class="mk-bio-card__title">{bios.short.title}</h3>
+                  <span class="mk-bio-card__tag">{bios.short.wordCount}</span>
+                  <span class="mk-bio-card__preferred">Most Requested</span>
+                </div>
+                <p class="mk-bio-card__use">{bios.short.useCase}</p>
+              </div>
+              <div class="mk-bio-card__content">
+                <p id="bio-short-text">{bios.short.text}</p>
+              </div>
+              <div class="mk-bio-card__footer">
+                <button
+                  type="button"
+                  class="mk-copy-btn"
+                  data-target="bio-short-text"
+                >
+                  <span class="mk-copy-btn__label">Copy Short Bio</span>
+                  <span class="mk-copy-btn__icon" aria-hidden="true">📋</span>
+                </button>
+              </div>
+            </article>
+
+            <!-- Full Bio -->
+            <article class="mk-bio-card">
+              <div class="mk-bio-card__meta">
+                <div class="mk-bio-card__heading-group">
+                  <h3 class="mk-bio-card__title">{bios.full.title}</h3>
+                  <span class="mk-bio-card__tag">{bios.full.wordCount}</span>
+                </div>
+                <p class="mk-bio-card__use">{bios.full.useCase}</p>
+              </div>
+              <div class="mk-bio-card__content mk-bio-card__content--long">
+                <p id="bio-full-text">{bios.full.text}</p>
+              </div>
+              <div class="mk-bio-card__footer">
+                <button
+                  type="button"
+                  class="mk-copy-btn"
+                  data-target="bio-full-text"
+                >
+                  <span class="mk-copy-btn__label">Copy Full Bio</span>
+                  <span class="mk-copy-btn__icon" aria-hidden="true">📋</span>
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Approved Headshots & Visual Assets -->
+        <section
+          class="mk-section"
+          id="headshots"
+          aria-labelledby="headshots-heading"
+        >
+          <div class="mk-section__header">
+            <span class="mk-section__badge"
+              >02 // Visual Assets & Headshots</span
+            >
+            <h2 id="headshots-heading" class="mk-section__title">
+              Approved Press Photos & Signatures
+            </h2>
+            <p class="mk-section__desc">
+              High-resolution assets cleared for editorial publication, festival
+              booklets, and speaking announcements. Mandatory photo credit:
+              <strong>Photo: Abodid Sahoo Studio</strong>.
+            </p>
+          </div>
+
+          <div class="mk-visuals-grid">
+            <!-- Featured Editorial Portrait -->
+            <article class="mk-portrait-card">
+              <div class="mk-portrait-card__preview">
+                <img
+                  src="https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp"
+                  alt="Abodid Sahoo Editorial Portrait"
+                  loading="lazy"
+                />
+              </div>
+              <div class="mk-portrait-card__details">
+                <span class="mk-asset-card__tag">Recommended for Press &amp; Web</span>
+                <h3 class="mk-portrait-card__title">Primary Editorial Portrait</h3>
+                <p class="mk-portrait-card__spec">Colour · London · 300 DPI High-Resolution</p>
+                <div class="mk-portrait-card__actions">
+                  <a
+                    href="https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp"
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mk-download-link"
+                  >
+                    <span>Download High-Res Portrait</span>
+                    <b aria-hidden="true">↓</b>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Compact Brand Signatures Group -->
+            <div class="mk-signatures-group">
+              <div class="mk-signatures-group__header">
+                <span class="mk-asset-card__tag">Brand Assets</span>
+                <h3 class="mk-signatures-group__title">Official Signatures</h3>
+                <p class="mk-signatures-group__desc">
+                  Transparent PNG signatures for editorial placement, overlays, and print programs.
+                </p>
+              </div>
+
+              <div class="mk-signatures-stack">
+                <!-- Signature Black -->
+                <article class="mk-sig-card">
+                  <div class="mk-sig-card__preview mk-sig-card__preview--light">
+                    <img
+                      src="/images/signature-black.png"
+                      alt="Abodid Sahoo Signature — Black"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="mk-sig-card__body">
+                    <div class="mk-sig-card__meta">
+                      <h4 class="mk-sig-card__name">Signature — Dark</h4>
+                      <p class="mk-sig-card__spec">Transparent PNG · For light surfaces</p>
+                    </div>
+                    <a
+                      href="/images/signature-black.png"
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="mk-download-link mk-download-link--compact"
+                    >
+                      <span>Download PNG</span>
+                      <b aria-hidden="true">↓</b>
+                    </a>
+                  </div>
+                </article>
+
+                <!-- Signature White -->
+                <article class="mk-sig-card">
+                  <div class="mk-sig-card__preview mk-sig-card__preview--dark">
+                    <img
+                      src="/images/signature-white.png"
+                      alt="Abodid Sahoo Signature — White"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="mk-sig-card__body">
+                    <div class="mk-sig-card__meta">
+                      <h4 class="mk-sig-card__name">Signature — Light</h4>
+                      <p class="mk-sig-card__spec">Transparent PNG · For dark overlays</p>
+                    </div>
+                    <a
+                      href="/images/signature-white.png"
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="mk-download-link mk-download-link--compact"
+                    >
+                      <span>Download PNG</span>
+                      <b aria-hidden="true">↓</b>
+                    </a>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Identity, Pronunciation & Approved Titling -->
+        <section class="mk-section" id="brand" aria-labelledby="brand-heading">
+          <div class="mk-section__header">
+            <span class="mk-section__badge">03 // Identity & Guidelines</span>
+            <h2 id="brand-heading" class="mk-section__title">
+              Name, Pronunciation & Titling
+            </h2>
+          </div>
+
+          <div class="mk-brand-grid">
+            <!-- Name Card -->
+            <div class="mk-brand-card">
+              <span class="mk-brand-card__tag">Spelling & Name</span>
+              <h3 class="mk-brand-card__name">Abodid Sahoo</h3>
+              <div class="mk-phonetic-box">
+                <span class="mk-phonetic-box__label"
+                  >Phonetic pronunciation:</span
+                >
+                <span class="mk-phonetic-box__value">uh-boh-did sah-hoo</span>
+              </div>
+              <p class="mk-brand-card__note">
+                Please double-check spelling before publication (avoid Abodhid,
+                Abodeed, or Abodit).
+              </p>
+            </div>
+
+            <!-- Approved Titles -->
+            <div class="mk-brand-card">
+              <span class="mk-brand-card__tag"
+                >Approved Professional Bylines</span
+              >
+              <ul class="mk-titles-list">
+                <li>
+                  <strong>Primary / General:</strong> Filmmaker, Photographer &amp;
+                  Creative Director
+                </li>
+                <li>
+                  <strong>Academic / Cultural:</strong> Artist, Researcher &amp; Royal
+                  College of Art Alumnus
+                </li>
+                <li>
+                  <strong>Conferences / Technology:</strong> Creative Technologist
+                  &amp; Visual Storyteller
+                </li>
+              </ul>
+            </div>
+
+            <!-- Representation & Presence -->
+            <div class="mk-brand-card">
+              <span class="mk-brand-card__tag">Geographic Availability</span>
+              <p class="mk-brand-card__desc">
+                Currently based in <strong>London, UK</strong> with frequent assignments
+                in India and Europe. Available for on-location productions, festival
+                juries, and keynote presentations worldwide.
+              </p>
+              <div class="mk-links-pill-row">
+                <a href="/press" class="mk-pill-link">View Press Archive ↗</a>
+                <a href="/films" class="mk-pill-link">Watch Films ↗</a>
+                <a href="/photography" class="mk-pill-link">Photo Series ↗</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Speaking Topics & Media Commentary -->
+        <section
+          class="mk-section"
+          id="speaking"
+          aria-labelledby="speaking-heading"
+        >
+          <div class="mk-section__header">
+            <span class="mk-section__badge">04 // Speaking & Commentary</span>
+            <h2 id="speaking-heading" class="mk-section__title">
+              Key Topics of Expertise
+            </h2>
+            <p class="mk-section__desc">
+              Available for keynote speeches, podcast guest appearances, panel
+              moderation, and expert broadcast commentary on these core themes.
+            </p>
+          </div>
+
+          <div class="mk-topics-grid">
+            {
+              speakingTopics.map((topic) => (
+                <div class="mk-topic-card">
+                  <div class="mk-topic-card__header">
+                    <span class="mk-topic-card__number">{topic.number}</span>
+                    <span class="mk-topic-card__badge">{topic.badge}</span>
+                  </div>
+                  <h3 class="mk-topic-card__title">{topic.title}</h3>
+                  <p class="mk-topic-card__desc">{topic.description}</p>
+                </div>
+              ))
+            }
+          </div>
+        </section>
+
+        <!-- Interview Logistics & Guidelines -->
+        <section
+          class="mk-section"
+          id="guidelines"
+          aria-labelledby="guidelines-heading"
+        >
+          <div class="mk-section__header">
+            <span class="mk-section__badge">05 // Press Logistics</span>
+            <h2 id="guidelines-heading" class="mk-section__title">
+              Interview Policies & Tech Specs
+            </h2>
+          </div>
+
+          <div class="mk-logistics-grid">
+            <div class="mk-logistic-card">
+              <h3 class="mk-logistic-card__title">⚡ Turnaround & Deadlines</h3>
+              <p>
+                Standard interview requests require 5–7 days advance notice. For
+                breaking news, cultural commentary, or tight editorial
+                deadlines, expedited interviews can often be accommodated within <strong
+                  >24 to 48 hours</strong
+                >.
+              </p>
+            </div>
+
+            <div class="mk-logistic-card">
+              <h3 class="mk-logistic-card__title">
+                🎙️ Remote Broadcast Tech Specs
+              </h3>
+              <p>
+                Fully equipped home studio with 4K camera capture, professional
+                broadcast audio (Shure / Rode), multi-point lighting, and
+                high-speed dedicated gigabit fiber connection compatible with
+                Riverside.fm, Zoom, StreamYard, and Zencastr.
+              </p>
+            </div>
+
+            <div class="mk-logistic-card">
+              <h3 class="mk-logistic-card__title">
+                ✍️ Review & Quotation Policy
+              </h3>
+              <p>
+                Direct quotations and technical attributions may be reviewed
+                prior to publication strictly for factual accuracy. We do not
+                request editorial control over journalistic opinions.
+              </p>
+            </div>
+
+            <div class="mk-logistic-card">
+              <h3 class="mk-logistic-card__title">
+                🌍 Digital Footprint & Press Archive
+              </h3>
+              <p>
+                To explore full archives of existing press features, interviews,
+                magazine profiles, and publications, visit the digital footprint
+                portal.
+              </p>
+              <a href="/press" class="mk-action-btn-inline">
+                <span>Open Digital Footprint Archive</span>
+                <b class="link-destination-arrow" aria-hidden="true">↗</b>
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Press & Media Inquiry Form -->
+      <section
+        class="photography-enquiry"
+        id="enquiry"
+        aria-label="Press and media enquiry"
+      >
+        <InlineInquiryForm
+          id="enquiry-form"
+          heading="Book an interview or request media assets."
+          intro="For press interviews, keynote speaking, panel discussions, podcast appearances, or custom asset requests, submit details below."
+          sourceName="media-kit-page"
+          variant="pop"
+          submitLabel="Submit Press Inquiry"
+          interestOptions={[
+            "Press Interview & Profile",
+            "Keynote / Speaking Invitation",
+            "Podcast / Broadcast Guest",
+            "Panel Discussion / Jury",
+            "High-Res Asset Licensing",
+            "Something else",
+          ]}
+        />
+      </section>
+    </div>
+  </div>
+
+  <script>
+    function setupCopyButtons() {
+      const copyButtons = document.querySelectorAll(".mk-copy-btn");
+      copyButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const targetId = button.getAttribute("data-target");
+          if (!targetId) return;
+          const targetEl = document.getElementById(targetId);
+          if (!targetEl) return;
+
+          const textToCopy = targetEl.innerText.trim();
+          try {
+            await navigator.clipboard.writeText(textToCopy);
+            const label = button.querySelector(".mk-copy-btn__label");
+            const originalText = label ? label.textContent : "Copy Bio";
+            if (label) label.textContent = "Copied to clipboard!";
+            button.classList.add("mk-copy-btn--copied");
+
+            setTimeout(() => {
+              if (label) label.textContent = originalText;
+              button.classList.remove("mk-copy-btn--copied");
+            }, 2400);
+          } catch (err) {
+            console.error("Clipboard copy failed:", err);
+          }
+        });
+      });
+    }
+
+    setupCopyButtons();
+    document.addEventListener("astro:page-load", setupCopyButtons);
+  </script>
+</BaseLayout>
+
+<style is:global>
+  /* Media Kit Board Styling */
+  .press-page .media-kit-board {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.5rem, 5vw, 4.5rem);
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+    background: var(--pop-cream);
+  }
+
+  .press-page .mk-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    scroll-margin-top: 2rem;
+  }
+
+  .press-page .mk-section__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 52rem;
+  }
+
+  .press-page .mk-section__badge {
+    display: inline-block;
+    font: 700 0.72rem/1 var(--press-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pop-ink);
+    opacity: 0.8;
+  }
+
+  .press-page .mk-section__title {
+    margin: 0;
+    font: 720 clamp(1.8rem, 3.5vw, 2.75rem)/1.05 var(--press-font);
+    letter-spacing: -0.04em;
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-section__desc {
+    margin: 0;
+    font: 480 clamp(0.95rem, 1.2vw, 1.1rem)/1.45 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.9;
+  }
+
+  /* 00. Fast Facts Grid */
+  .press-page .mk-facts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .press-page .mk-fact-card {
+    padding: 1.25rem 1.4rem;
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 0 var(--pop-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .press-page .mk-fact-card__label {
+    margin: 0;
+    font: 700 0.7rem/1 var(--press-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pop-ink);
+    opacity: 0.75;
+  }
+
+  .press-page .mk-fact-card__value {
+    margin: 0;
+    font: 720 1.25rem/1.2 var(--press-font);
+    color: var(--pop-ink);
+    letter-spacing: -0.02em;
+  }
+
+  .press-page .mk-fact-card__meta {
+    margin: 0;
+    font: 460 0.85rem/1.35 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.85;
+  }
+
+  /* 01. Bios Stack */
+  .press-page .mk-bios-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .press-page .mk-bio-card {
+    padding: clamp(1.25rem, 2.5vw, 2rem);
+    border: 2px solid var(--pop-ink);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 6px 0 var(--pop-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .press-page .mk-bio-card--featured {
+    background: #fffdf5;
+    border-color: var(--pop-ink);
+    box-shadow: 0 8px 0 var(--pop-ink);
+  }
+
+  .press-page .mk-bio-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border-bottom: 1px solid rgba(21, 19, 15, 0.2);
+    padding-bottom: 1rem;
+  }
+
+  .press-page .mk-bio-card__heading-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .press-page .mk-bio-card__title {
+    margin: 0;
+    font: 720 1.4rem/1.1 var(--press-font);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-bio-card__tag {
+    font: 700 0.68rem/1 var(--press-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--pop-ink);
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-bio-card__preferred {
+    font: 700 0.68rem/1 var(--press-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--pop-ink);
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-bio-card__use {
+    margin: 0;
+    font: 480 0.88rem/1.3 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.75;
+  }
+
+  .press-page .mk-bio-card__content p {
+    margin: 0;
+    font: 480 clamp(1rem, 1.25vw, 1.15rem)/1.6 var(--press-font);
+    color: var(--pop-ink);
+    white-space: pre-line;
+  }
+
+  .press-page .mk-bio-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 0.5rem;
+  }
+
+  .press-page .mk-copy-btn {
+    min-height: 42px;
+    padding: 8px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 12px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    font: 700 0.72rem/1 var(--press-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--pop-ink);
+    transition:
+      transform 160ms ease,
+      background 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .press-page .mk-copy-btn:hover {
+    background: var(--pop-yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--pop-ink);
+  }
+
+  .press-page .mk-copy-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 0 var(--pop-ink);
+  }
+
+  .press-page .mk-copy-btn--copied {
+    background: #68d391 !important;
+    border-color: var(--pop-ink);
+  }
+
+  /* 02. Assets Grid */
+  /* 02. Visual Assets & Signatures Grid */
+  .press-page .mk-visuals-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .press-page .mk-portrait-card {
+    border: 2px solid var(--pop-ink);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 6px 0 var(--pop-ink);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .press-page .mk-portrait-card__preview {
+    width: 100%;
+    aspect-ratio: 4 / 3.8;
+    background: #f4ede0;
+    overflow: hidden;
+    border-bottom: 2px solid var(--pop-ink);
+  }
+
+  .press-page .mk-portrait-card__preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    display: block;
+  }
+
+  .press-page .mk-portrait-card__details {
+    padding: 1.25rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex-grow: 1;
+  }
+
+  .press-page .mk-portrait-card__title {
+    margin: 0;
+    font: 720 1.25rem/1.2 var(--press-font);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-portrait-card__spec {
+    margin: 0;
+    font: 480 0.85rem/1.3 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.85;
+  }
+
+  .press-page .mk-portrait-card__actions {
+    margin-top: auto;
+    padding-top: 0.8rem;
+  }
+
+  /* Signatures Group */
+  .press-page .mk-signatures-group {
+    border: 2px solid var(--pop-ink);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 6px 0 var(--pop-ink);
+    padding: 1.25rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: space-between;
+  }
+
+  .press-page .mk-signatures-group__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .press-page .mk-signatures-group__title {
+    margin: 0;
+    font: 720 1.25rem/1.2 var(--press-font);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-signatures-group__desc {
+    margin: 0;
+    font: 480 0.85rem/1.35 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.85;
+  }
+
+  .press-page .mk-signatures-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .press-page .mk-sig-card {
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 3px 0 var(--pop-ink);
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    align-items: center;
+  }
+
+  .press-page .mk-sig-card__preview {
+    height: 100%;
+    min-height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    box-sizing: border-box;
+    border-right: 1.5px solid var(--pop-ink);
+  }
+
+  .press-page .mk-sig-card__preview--light {
+    background: var(--pop-cream);
+  }
+
+  .press-page .mk-sig-card__preview--dark {
+    background: #15130f;
+  }
+
+  .press-page .mk-sig-card__preview img {
+    max-height: 60px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .press-page .mk-sig-card__body {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .press-page .mk-sig-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .press-page .mk-sig-card__name {
+    margin: 0;
+    font: 720 0.95rem/1.2 var(--press-font);
+    color: var(--pop-ink);
+    letter-spacing: -0.01em;
+  }
+
+  .press-page .mk-sig-card__spec {
+    margin: 0;
+    font: 480 0.76rem/1.3 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.8;
+  }
+
+  .press-page .mk-asset-card__tag {
+    font: 700 0.68rem/1 var(--press-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pop-ink);
+    opacity: 0.75;
+  }
+
+  .press-page .mk-download-link {
+    min-height: 42px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 12px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    font: 700 0.72rem/1 var(--press-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    box-shadow: 0 3px 0 var(--pop-ink);
+    transition:
+      transform 160ms ease,
+      background 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .press-page .mk-download-link:hover {
+    background: var(--pop-yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--pop-ink);
+  }
+
+  .press-page .mk-download-link--compact {
+    width: auto;
+    min-width: 124px;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 0.68rem;
+  }
+
+  /* 03. Brand & Guidelines Grid */
+  .press-page .mk-brand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .press-page .mk-brand-card {
+    padding: clamp(1.25rem, 2.5vw, 1.8rem);
+    border: 2px solid var(--pop-ink);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 5px 0 var(--pop-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .press-page .mk-brand-card__tag {
+    font: 700 0.68rem/1 var(--press-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pop-ink);
+    opacity: 0.75;
+  }
+
+  .press-page .mk-brand-card__name {
+    margin: 0;
+    font: 720 clamp(1.6rem, 2.5vw, 2.2rem)/1 var(--press-font);
+    letter-spacing: -0.04em;
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-phonetic-box {
+    padding: 8px 12px;
+    border: 1px dashed var(--pop-ink);
+    border-radius: 10px;
+    background: var(--pop-cream);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .press-page .mk-phonetic-box__label {
+    font: 700 0.65rem/1 var(--press-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.7;
+  }
+
+  .press-page .mk-phonetic-box__value {
+    font: 600 0.95rem/1.2 var(--press-mono);
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-brand-card__note {
+    margin: 0;
+    font: 480 0.85rem/1.4 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.8;
+  }
+
+  .press-page .mk-titles-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font: 480 0.92rem/1.4 var(--press-font);
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-brand-card__desc {
+    margin: 0;
+    font: 480 0.95rem/1.45 var(--press-font);
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-links-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 0.75rem;
+  }
+
+  .press-page .mk-pill-link {
+    font: 700 0.68rem/1 var(--press-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 10px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    text-decoration: none;
+    transition:
+      background 160ms ease,
+      transform 160ms ease;
+  }
+
+  .press-page .mk-pill-link:hover {
+    background: var(--pop-yellow);
+    transform: translateY(-1px);
+  }
+
+  /* 04. Speaking Topics Grid */
+  .press-page .mk-topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .press-page .mk-topic-card {
+    padding: 1.5rem;
+    border: 2px solid var(--pop-ink);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 5px 0 var(--pop-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .press-page .mk-topic-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .press-page .mk-topic-card__number {
+    font: 720 1.25rem/1 var(--press-mono);
+    color: var(--pop-ink);
+    opacity: 0.35;
+  }
+
+  .press-page .mk-topic-card__badge {
+    font: 700 0.65rem/1 var(--press-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--pop-yellow);
+    border: 1px solid var(--pop-ink);
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-topic-card__title {
+    margin: 0;
+    font: 720 1.2rem/1.2 var(--press-font);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-topic-card__desc {
+    margin: 0;
+    font: 480 0.92rem/1.45 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.88;
+  }
+
+  /* 05. Logistics Grid */
+  .press-page .mk-logistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+  }
+
+  .press-page .mk-logistic-card {
+    padding: 1.4rem;
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 0 var(--pop-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .press-page .mk-logistic-card__title {
+    margin: 0;
+    font: 720 1.15rem/1.2 var(--press-font);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink);
+  }
+
+  .press-page .mk-logistic-card p {
+    margin: 0;
+    font: 480 0.9rem/1.45 var(--press-font);
+    color: var(--pop-ink);
+    opacity: 0.9;
+  }
+
+  .press-page .mk-action-btn-inline {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: 700 0.72rem/1 var(--press-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--pop-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .press-page .mk-action-btn-inline:hover {
+    color: #000;
+  }
+
+  /* Enquiry section wrapping */
+  .press-page .photography-enquiry {
+    margin-top: 8px;
+    padding: clamp(1.25rem, 3.5vw, 3rem);
+    overflow: hidden;
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--pop-purple);
+    color: var(--pop-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  .press-page .photography-enquiry .inline-inquiry-form {
+    border: 0;
+  }
+
+  @media (max-width: 860px) {
+    .press-page .mk-visuals-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .press-page .mk-facts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .press-page .mk-topics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .press-page .mk-brand-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .press-page .mk-sig-card {
+      grid-template-columns: 1fr;
+    }
+
+    .press-page .mk-sig-card__preview {
+      border-right: 0;
+      border-bottom: 1.5px solid var(--pop-ink);
+      min-height: 75px;
+    }
+
+    .press-page .mk-sig-card__body {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .press-page .mk-download-link--compact {
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press-page .mk-copy-btn,
+    .press-page .mk-download-link,
+    .press-page .mk-pill-link {
+      transition-duration: 0.01ms !important;
+      transform: none !important;
+    }
+  }
+</style>

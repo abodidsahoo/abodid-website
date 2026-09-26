@@ -1,5 +1,6 @@
 import {
     DeleteObjectsCommand,
+    GetObjectCommand,
     HeadObjectCommand,
     ListObjectsV2Command,
     PutObjectCommand,
@@ -14,6 +15,7 @@ export const R2_BROWSER_MAX_ITEMS = 2_000;
 export const R2_SEARCH_MAX_OBJECTS = 25_000;
 export const R2_ORIGINALS_PREFIX = "photos/originals";
 export const R2_VARIANTS_PREFIX = "photos/variants";
+export const R2_VARIANT_WIDTHS = [800, 1600] as const;
 
 const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
     avif: "image/avif",
@@ -461,6 +463,17 @@ export const createR2Folder = async (folder: unknown) => {
     return { folderPath };
 };
 
+export const getR2VariantFolderPaths = (folder: unknown) => {
+    const folderPath = normalizeR2FolderPath(folder);
+    const originalPrefixes = [`${R2_ORIGINALS_PREFIX}/`, "originals/"];
+    const originalPrefix = originalPrefixes.find((prefix) => folderPath.startsWith(prefix));
+    if (!originalPrefix) return [];
+
+    const relativePath = folderPath.slice(originalPrefix.length);
+    if (!relativePath) return [];
+    return R2_VARIANT_WIDTHS.map((width) => `${R2_VARIANTS_PREFIX}/${relativePath}/${width}`);
+};
+
 export const createPresignedR2Upload = async ({
     objectKey,
     contentType,
@@ -525,6 +538,17 @@ export const headR2Object = async (objectKey: string) => {
         new HeadObjectCommand({ Bucket: config.bucket, Key: objectKey }),
     );
     return { config, object };
+};
+
+export const getR2ObjectBytes = async (objectKey: string) => {
+    const key = assertSafeR2ObjectKey(objectKey);
+    const config = getR2Config();
+    const client = createR2Client(config);
+    const object = await client.send(
+        new GetObjectCommand({ Bucket: config.bucket, Key: key }),
+    );
+    if (!object.Body) throw new Error("The uploaded image could not be read from R2.");
+    return new Uint8Array(await object.Body.transformToByteArray());
 };
 
 export const deleteR2Objects = async (objectKeys: string[]) => {

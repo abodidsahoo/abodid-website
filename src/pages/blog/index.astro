@@ -9,15 +9,18 @@ export const prerender = false;
 
 Astro.response.headers.set(
   "Cache-Control",
-  "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000"
+  "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000",
 );
 Astro.response.headers.set(
   "Vercel-CDN-Cache-Control",
-  "s-maxage=31536000, stale-while-revalidate=31536000"
+  "s-maxage=31536000, stale-while-revalidate=31536000",
 );
 
 const recentPosts = await getAllPosts();
-const initialTag = Astro.url.searchParams.get("tag") || Astro.url.searchParams.get("category") || "All";
+const initialTag =
+  Astro.url.searchParams.get("tag") ||
+  Astro.url.searchParams.get("category") ||
+  "All";
 const pageTitle = "Blog";
 const description =
   "Writing by Abodid Sahoo on creative technology, photography, filmmaking, research workflows, Obsidian, AI, visual culture, and learning.";
@@ -45,13 +48,24 @@ const structuredData = [
         <p class="blog-file-tag">blog.js — notes & reflections</p>
         <div class="blog-masthead__hero">
           <h1>Blog</h1>
-          <p>
-            Notes on creative technology, photography, filmmaking, research workflows,
-            Obsidian, AI, visual culture, and learning.
-          </p>
+          <div class="blog-masthead__summary">
+            <p>
+              My journal on all things creative technology,<br class="blog-break" />
+              AI, research, and visual culture.
+            </p>
+            <div class="blog-masthead__actions">
+              <a
+                href="/uk2026"
+                class="blog-topic blog-topic--action blog-topic--yellow"
+              >
+                <span>Read my latest memoir</span>
+                <b class="link-destination-arrow" aria-hidden="true">↗</b>
+              </a>
+            </div>
+          </div>
         </div>
       </header>
-      <div class="blog-board">
+      <div class="blog-board" id="articles">
         <BlogFilter posts={recentPosts} initialTag={initialTag} client:load />
       </div>
     </div>

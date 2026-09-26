@@ -27,6 +27,7 @@ import BlogAdminList from './BlogAdminList';
 import HomeCardsManager from './HomeCardsManager';
 import LabExperimentsManager from './LabExperimentsManager';
 import DesignStudio from './DesignStudio';
+import MediaMentionsManager from './MediaMentionsManager';
 import { OpportunityDetailModal } from '../opportunities/OpportunityDetailModal';
 import { getOpportunityActionAt, selectAttentionOpportunities } from '../../lib/opportunities/attention';
 import { formatDaysRemaining, formatOpportunityTitle } from '../../lib/opportunities/ui-helpers';
@@ -61,6 +62,7 @@ import {
     Home,
     Moon,
     Network,
+    Newspaper,
     Sun,
     Sunrise,
     Sunset,
@@ -88,6 +90,7 @@ const NAV_GROUPS = [
             { id: 'blog', label: 'Blog / Writing', icon: PenLine },
             { id: 'research', label: 'Research', icon: FlaskConical },
             { id: 'lab_experiments', label: 'Lab', icon: FlaskConical },
+            { id: 'media_mentions', label: 'Press & Mentions', icon: Newspaper },
         ],
     },
     {
@@ -748,7 +751,7 @@ export default function AdminDashboard() {
             </aside>
 
             {/* Main Content Area */}
-            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
+            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'media_mentions' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
                 <div className="mobile-studio-bar">
                     <button
                         type="button"
@@ -982,6 +985,12 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
+                    {activeSection === 'media_mentions' && (
+                        <SectionErrorBoundary>
+                            <MediaMentionsManager />
+                        </SectionErrorBoundary>
+                    )}
+
                     {activeSection === 'home_cards' && (
                         <SectionErrorBoundary>
                             <HomeCardsManager />
@@ -1074,7 +1083,7 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'media_mentions' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
                         <SectionErrorBoundary key={activeSection}>
                             <ListView
                                 table={activeSection}

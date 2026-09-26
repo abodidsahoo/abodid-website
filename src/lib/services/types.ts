@@ -64,6 +64,8 @@ export interface MediaMention extends BaseEntity {
     published_at?: string;
     categories: string[];
     image: string; // image_url
+    image_alt?: string;
+    sort_order?: number;
     published: boolean;
 }
 

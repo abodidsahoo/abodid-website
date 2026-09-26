@@ -7,6 +7,7 @@ import {
 } from "../../../../lib/admin/serverAuth";
 import {
     createR2Folder,
+    getR2VariantFolderPaths,
     normalizeR2FolderPath,
 } from "../../../../lib/media/r2";
 
@@ -25,9 +26,11 @@ export const POST: APIRoute = async ({ request }) => {
 
         const requestedPath = parentPath ? `${parentPath}/${rawName}` : rawName;
         const folder = await createR2Folder(requestedPath);
+        const variantPaths = getR2VariantFolderPaths(folder.folderPath);
+        await Promise.all(variantPaths.map((path) => createR2Folder(path)));
         const name = folder.folderPath.split("/").pop() || folder.folderPath;
 
-        return jsonResponse({ folder: { name, path: folder.folderPath } }, 201);
+        return jsonResponse({ folder: { name, path: folder.folderPath }, variantPaths }, 201);
     } catch (error) {
         console.error("Could not create an R2 folder:", error);
         const message = error instanceof Error ? error.message : "Could not create the folder.";

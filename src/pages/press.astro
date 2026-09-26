@@ -1,237 +1,57 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getMediaMentions } from "../lib/api";
 import PressFilter from "../components/PressFilter.jsx";
+import { getMediaMentions } from "../lib/api";
+import "../styles/press-editorial.css";
+
+export const prerender = false;
+
+Astro.response.headers.set(
+    "Cache-Control",
+    "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
+);
 
 const mentions = await getMediaMentions();
 const pageTitle = "Digital Footprint";
+const pageDescription = "Press releases, media mentions, films, interviews, and articles featuring Abodid Sahoo's work.";
+const requestedTag = Astro.url.searchParams.get("tag") || Astro.url.searchParams.get("category") || "All";
 ---
 
-<BaseLayout title={pageTitle}>
-    <header class="page-header">
-        <h1>{pageTitle}</h1>
-        <p class="section-intro">
-            A collection of press releases, media mentions, YouTube videos, blog
-            posts, and articles featuring my work.
-        </p>
-    </header>
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    fullWidth
+    navigationVariant="next"
+    showGlobalGrid={false}
+    bodyClass="press-page"
+>
+    <div class="press-editorial">
+        <div class="press-file">
+            <header class="press-masthead">
+                <p class="press-file-tag">press.js — public archive</p>
+                <div class="press-masthead__hero">
+                    <h1>{pageTitle}</h1>
+                    <div class="press-masthead__summary">
+                        <p>
+                            A living archive of press, interviews, films, features,
+                            and collaborations from across the web.
+                        </p>
+                        <div class="press-masthead__actions">
+                            <a
+                                class="press-topic press-topic--action"
+                                href="/media-kit"
+                            >
+                                <span>Download Media Kit</span>
+                                <b class="link-destination-arrow" aria-hidden="true">↗</b>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-    <PressFilter items={mentions} client:load />
+            <div class="press-board">
+                <PressFilter items={mentions} initialTag={requestedTag} client:load />
+            </div>
+        </div>
+    </div>
 </BaseLayout>
-
-<style>
-    .page-header {
-        margin-bottom: 4rem;
-        padding-top: 2rem;
-        padding-top: 2rem;
-        text-align: left;
-    }
-
-    h1 {
-        font-family: var(--font-display);
-        font-size: 3rem;
-        font-weight: 500;
-        margin-bottom: 1rem;
-        color: var(--text-primary);
-    }
-
-    .section-intro {
-        font-family: var(--font-sans);
-        font-size: 1.1rem;
-        color: var(--text-secondary);
-        max-width: 600px;
-        margin: 0;
-        line-height: 1.6;
-    }
-</style>
-
-<style is:global>
-    /* Global styles for the PressFilter React component */
-    .press-filter-container {
-        width: 100%;
-    }
-
-    /* Filter Bar */
-    .filter-bar {
-        margin-bottom: 4rem;
-        padding: 0 2rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    .filter-scroll {
-        display: block;
-        text-align: center;
-        width: 100%;
-        max-width: 800px;
-    }
-
-    .filter-btn {
-        display: inline-block;
-        margin: 0.5rem 0.3rem;
-        background: transparent;
-        border: 1px solid var(--border-subtle);
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        cursor: pointer;
-        padding: 8px 16px;
-        border-radius: 100px;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .filter-btn:hover {
-        border-color: var(--text-primary);
-        color: var(--text-primary);
-    }
-
-    .filter-btn.active {
-        background: var(--text-primary);
-        color: var(--bg-primary);
-        border-color: var(--text-primary);
-    }
-
-    /* List Layout */
-    .mentions-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        border-top: 1px solid var(--border-subtle);
-    }
-
-    .mentions-list li {
-        border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .mention-card {
-        display: grid;
-        grid-template-columns: 280px 1fr 200px;
-        gap: 3rem;
-        padding: 3rem 0;
-        text-decoration: none;
-        color: inherit;
-        align-items: center;
-        transition: background-color 0.2s ease;
-    }
-
-    .mention-card:hover .mention-image {
-        transform: scale(1.03);
-    }
-
-    .mention-card:hover .mention-action {
-        color: var(--text-primary);
-    }
-
-    /* Image Section */
-    .mention-image-wrapper {
-        width: 280px;
-        height: 200px;
-        overflow: hidden;
-        background-color: var(--bg-surface);
-        border-radius: 4px;
-    }
-
-    .mention-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s ease;
-    }
-
-    .mention-image-placeholder {
-        width: 100%;
-        height: 100%;
-        background-color: var(--bg-surface);
-    }
-
-    /* Content Section */
-    .mention-content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .mention-date {
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-tertiary);
-        margin-bottom: 1rem;
-    }
-
-    .mention-title {
-        font-family: var(--font-serif);
-        font-size: 2rem;
-        font-weight: 400;
-        line-height: 1.2;
-        margin: 0 0 1rem 0;
-        color: var(--text-primary);
-    }
-
-    .mention-meta {
-        font-family: var(--font-sans);
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-    }
-
-    .publication {
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    /* Action Section */
-    .mention-action {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-tertiary);
-        transition: color 0.3s ease;
-    }
-
-    /* Responsive */
-    @media (max-width: 968px) {
-        .mention-card {
-            grid-template-columns: 200px 1fr auto;
-            gap: 2rem;
-        }
-        .mention-image-wrapper {
-            width: 200px;
-            height: 150px;
-        }
-        .mention-title {
-            font-size: 1.5rem;
-        }
-        .mention-action {
-            display: none;
-        }
-    }
-
-    @media (max-width: 600px) {
-        .mention-card {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            padding: 2rem 0;
-        }
-        .mention-image-wrapper {
-            width: 100%;
-            height: 200px;
-        }
-        .mention-content {
-            display: block;
-        }
-        .mention-action {
-            display: flex;
-            justify-content: flex-start;
-            margin-top: 1rem;
-        }
-    }
-</style>

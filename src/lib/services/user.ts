@@ -48,6 +48,7 @@ export async function getMediaMentions(): Promise<MediaMention[]> {
         .from('media_mentions')
         .select('*')
         .eq('published', true)
+        .order('sort_order', { ascending: true, nullsFirst: false })
         .order('published_at', { ascending: false });
 
     if (error) {
@@ -56,12 +57,16 @@ export async function getMediaMentions(): Promise<MediaMention[]> {
     }
 
     return data.map((item: any) => ({
+        id: item.id,
         title: item.title,
         publication: item.publication,
         url: item.url,
         date: new Date(item.published_at).toLocaleDateString(),
+        published_at: item.published_at,
         categories: item.categories || [],
         image: item.image_url,
+        image_alt: item.image_alt || item.title,
+        sort_order: item.sort_order,
         published: item.published
     } as MediaMention));
 }

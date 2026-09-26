@@ -1,8 +1,8 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, ChevronRight, FolderOpen, Image as ImageIcon, LoaderCircle, Search, X } from "lucide-react";
 import { browsePortfolioMediaFolder } from "../../../lib/portfolio/services";
 
-const ROOT_FOLDER = "originals";
+const ROOT_FOLDER = "";
 
 const breadcrumbsFor = (folderPath) => {
   const parts = folderPath.split("/").filter(Boolean);
@@ -12,7 +12,7 @@ const breadcrumbsFor = (folderPath) => {
   }));
 };
 
-export default function PortfolioMediaPicker({ open, multiple = false, gifOnly = false, onClose, onSelect }) {
+export default function PortfolioMediaPicker({ open, multiple = false, gifOnly = false, allowUncatalogued = false, onClose, onSelect }) {
   const [assets, setAssets] = useState([]);
   const [folders, setFolders] = useState([]);
   const [currentFolder, setCurrentFolder] = useState(ROOT_FOLDER);
@@ -21,6 +21,16 @@ export default function PortfolioMediaPicker({ open, multiple = false, gifOnly =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [truncated, setTruncated] = useState(false);
+  const wasOpen = useRef(false);
+
+  useEffect(() => {
+    if (open && !wasOpen.current) {
+      setCurrentFolder(ROOT_FOLDER);
+      setQuery("");
+      setSelectedAssets([]);
+    }
+    wasOpen.current = open;
+  }, [open]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -72,7 +82,7 @@ export default function PortfolioMediaPicker({ open, multiple = false, gifOnly =
 
   const selectionIndex = (asset) => selectedAssets.findIndex((selected) => selected.objectKey === asset.objectKey);
   const toggleAsset = (asset) => {
-    if (!asset?.catalogued) return;
+    if (!asset || (!asset.catalogued && !allowUncatalogued)) return;
     if (!multiple) {
       setSelectedAssets([asset]);
       return;
@@ -95,16 +105,17 @@ export default function PortfolioMediaPicker({ open, multiple = false, gifOnly =
     <div className="portfolio-media-picker-backdrop" role="presentation" onMouseDown={onClose}>
       <section className="portfolio-media-picker" role="dialog" aria-modal="true" aria-label="Choose from Media Library" onMouseDown={(event) => event.stopPropagation()}>
         <header>
-          <div><span className="editor-eyebrow">Cloudflare originals</span><h2>{multiple ? "Choose images from Media Library" : "Choose from Media Library"}</h2>{multiple && <p className="portfolio-media-picker-hint">Select as many images as you need. Selection order becomes display order.</p>}</div>
+          <div><span className="editor-eyebrow">Media Library</span><h2>{multiple ? "Choose images from Media Library" : "Choose from Media Library"}</h2>{multiple && <p className="portfolio-media-picker-hint">Select as many images as you need. Selection order becomes display order.</p>}</div>
           <button type="button" className="quiet-button" onClick={onClose} aria-label="Close Media Library"><X size={18} /></button>
         </header>
         <div className="portfolio-media-picker-browserbar">
           <div className="portfolio-media-picker-navigation">
             <button type="button" className="quiet-button" disabled={!canGoBack || loading} onClick={() => setCurrentFolder(parentFolder)} aria-label="Go to parent folder"><ArrowLeft size={17} /></button>
             <nav aria-label="Current media folder">
-              {breadcrumbs.map((crumb, index) => (
+              <button type="button" onClick={() => setCurrentFolder(ROOT_FOLDER)} disabled={!currentFolder}>All media</button>
+              {breadcrumbs.map((crumb) => (
                 <Fragment key={crumb.path}>
-                  {index > 0 && <ChevronRight size={13} />}
+                  <ChevronRight size={13} />
                   <button type="button" onClick={() => setCurrentFolder(crumb.path)} disabled={crumb.path === currentFolder}>{crumb.name}</button>
                 </Fragment>
               ))}
@@ -112,14 +123,14 @@ export default function PortfolioMediaPicker({ open, multiple = false, gifOnly =
           </div>
           <label className="portfolio-media-picker-search">
             <Search size={16} />
-            <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${currentFolder.replace(/^originals\/?/, "") || "originals"}`} />
+            <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${currentFolder || "all media"}`} />
             {query && <button type="button" onClick={() => setQuery("")} aria-label="Clear search"><X size={14} /></button>}
           </label>
         </div>
         {error && <div className="portfolio-media-picker-error">{error}</div>}
         <div className="portfolio-media-picker-grid">
           {loading ? (
-            <div className="portfolio-media-picker-state"><LoaderCircle className="spin" size={22} /> Loading {currentFolder}…</div>
+            <div className="portfolio-media-picker-state"><LoaderCircle className="spin" size={22} /> Loading {currentFolder || "Media Library"}…</div>
           ) : <>
             {visibleFolders.map((folder) => (
               <button type="button" className="is-folder" key={folder.path} onClick={() => { setQuery(""); setCurrentFolder(folder.path); }}>
@@ -133,7 +144,7 @@ export default function PortfolioMediaPicker({ open, multiple = false, gifOnly =
               const isVideo = asset.mimeType?.startsWith("video/") || /\.(mp4|webm|mov)(?:[?#]|$)/i.test(asset.originalFilename || asset.objectKey || asset.publicUrl || "");
               const selectedIndex = selectionIndex(asset);
               return (
-                <button type="button" disabled={!asset.catalogued} className={selectedIndex >= 0 ? "is-selected" : ""} key={asset.objectKey} onClick={() => toggleAsset(asset)} onDoubleClick={() => { if (!multiple) { onSelect(asset); onClose(); } }} aria-pressed={selectedIndex >= 0}>
+                <button type="button" disabled={!asset.catalogued && !allowUncatalogued} className={selectedIndex >= 0 ? "is-selected" : ""} key={asset.objectKey} onClick={() => toggleAsset(asset)} onDoubleClick={() => { if (!multiple && (asset.catalogued || allowUncatalogued)) { onSelect(asset); onClose(); } }} aria-pressed={selectedIndex >= 0}>
                   <span className="portfolio-media-picker-thumb">
                     <ImageIcon size={22} />
                     {isVideo ? (
@@ -155,11 +166,15 @@ export default function PortfolioMediaPicker({ open, multiple = false, gifOnly =
                   </span>
                   <strong title={asset.originalFilename}>{asset.originalFilename}</strong>
                   <small title={asset.objectKey}>{asset.objectKey.replace(`${currentFolder}/`, "")}</small>
-                  <em className={`media-state-${asset.processingStatus}`}>{isVideo ? "Video" : asset.processingStatus === "ready" ? "Optimized" : asset.catalogued ? "Processing" : "Indexing"}</em>
+                  <em className={`media-state-${asset.processingStatus}`}>{isVideo ? "Video" : asset.processingStatus === "ready" ? "Optimized" : asset.catalogued ? "Processing" : allowUncatalogued ? "Stored file" : "Indexing"}</em>
                 </button>
               );
             })}
-            {!visibleFolders.length && !visibleAssets.length && <div className="portfolio-media-picker-state">This folder has no matching originals.</div>}
+            {!visibleFolders.length && !visibleAssets.length && (
+              <div className="portfolio-media-picker-state">
+                {query ? "No images or folders match this search." : "This folder has no images or subfolders."}
+              </div>
+            )}
           </>}
         </div>
         <footer>

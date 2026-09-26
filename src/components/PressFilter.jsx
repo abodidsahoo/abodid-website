@@ -1,320 +1,195 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
-const slugify = (str) =>
-    String(str || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+const slugify = (value) => String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
-const PressFilter = ({ items }) => {
-    const [activeTag, setActiveTag] = useState(() => {
-        if (typeof window === 'undefined') return 'All';
-        const params = new URLSearchParams(window.location.search);
-        const tagParam = params.get('tag') || params.get('category');
-        return tagParam || 'All';
-    });
+const categoriesFor = (item) => (
+    Array.isArray(item.categories) ? item.categories : [item.categories]
+).filter(Boolean);
+
+const displayDate = (item) => {
+    const rawDate = item.published_at || item.date;
+    const date = rawDate ? new Date(rawDate) : null;
+
+    if (date && !Number.isNaN(date.getTime())) {
+        return {
+            label: new Intl.DateTimeFormat('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                timeZone: 'UTC',
+            }).format(date),
+            iso: date.toISOString(),
+        };
+    }
+
+    return { label: item.date || '', iso: undefined };
+};
+
+const PressFilter = ({ items = [], initialTag = 'All' }) => {
+    const [activeTag, setActiveTag] = useState(initialTag);
 
     useEffect(() => {
         const handlePopState = () => {
             const params = new URLSearchParams(window.location.search);
-            const tagParam = params.get('tag') || params.get('category');
-            setActiveTag(tagParam || 'All');
+            setActiveTag(params.get('tag') || params.get('category') || 'All');
         };
+
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
-    // 1. Extract unique categories (e.g. Press, Work, Collaboration)
-    const allCategories = useMemo(() => {
-        const categories = new Set(['All']);
-        items.forEach(item => {
-            if (item.categories) {
-                if (Array.isArray(item.categories)) {
-                    item.categories.forEach(c => categories.add(c));
-                } else {
-                    categories.add(item.categories);
-                }
-            }
+    const categories = useMemo(() => {
+        const counts = new Map();
+
+        items.forEach((item) => {
+            new Set(categoriesFor(item)).forEach((category) => {
+                counts.set(category, (counts.get(category) || 0) + 1);
+            });
         });
-        return Array.from(categories);
+
+        return [
+            { label: 'All', count: items.length },
+            ...Array.from(counts, ([label, count]) => ({ label, count }))
+                .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)),
+        ];
     }, [items]);
 
-    const normalizedActiveTag = useMemo(() => {
-        if (activeTag === 'All') return 'All';
-        const match = allCategories.find(
-            (cat) => cat.toLowerCase() === activeTag.toLowerCase() || slugify(cat) === slugify(activeTag)
-        );
-        return match || activeTag;
-    }, [allCategories, activeTag]);
+    const normalizedActiveTag = categories.find(
+        ({ label }) => slugify(label) === slugify(activeTag)
+    )?.label || activeTag;
 
-    const handleTagClick = (category) => {
-        const nextTag = normalizedActiveTag === category ? 'All' : category;
-        setActiveTag(nextTag);
-        const params = new URLSearchParams();
-        if (nextTag !== 'All') {
-            params.set('tag', slugify(nextTag));
-        }
-        const query = params.toString();
-        window.history.pushState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
-    };
-
-    // 2. Filter items
     const filteredItems = useMemo(() => {
         if (normalizedActiveTag === 'All') return items;
-        const targetSlug = slugify(normalizedActiveTag);
-        return items.filter(item => {
-            const cats = Array.isArray(item.categories) ? item.categories : (item.categories ? [item.categories] : []);
-            return cats.some(c => c === normalizedActiveTag || slugify(c) === targetSlug);
-        });
+
+        const activeSlug = slugify(normalizedActiveTag);
+        return items.filter((item) => categoriesFor(item).some(
+            (category) => slugify(category) === activeSlug
+        ));
     }, [items, normalizedActiveTag]);
 
+    const selectTag = (category) => {
+        const nextTag = normalizedActiveTag === category ? 'All' : category;
+        setActiveTag(nextTag);
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete('category');
+        url.searchParams.delete('tag');
+        if (nextTag !== 'All') url.searchParams.set('tag', slugify(nextTag));
+        window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    };
+
+    const showImageFallback = (event) => {
+        const image = event.currentTarget;
+        image.hidden = true;
+        image.closest('.press-card-image')?.classList.add('has-image-error');
+    };
+
     return (
-        <div className="press-filter-container">
-            {/* Filter Bar */}
-            <div className="filter-bar">
-                <div className="filter-scroll">
-                    {allCategories.map(category => (
+        <section className="press-archive" aria-label="Browse press and media mentions">
+            <div className="press-topics" role="group" aria-labelledby="press-topics-label">
+                <h2 id="press-topics-label" className="press-eyebrow">Filter by type &amp; category</h2>
+                <div className="press-topics__options">
+                    {categories.map(({ label, count }) => (
                         <button
-                            key={category}
-                            onClick={() => handleTagClick(category)}
-                            className={`filter-btn ${normalizedActiveTag === category ? 'contrast-active' : ''}`}
+                            key={label}
+                            type="button"
+                            onClick={() => selectTag(label)}
+                            className="press-topic"
+                            aria-pressed={normalizedActiveTag === label}
+                            aria-controls="press-mentions"
+                            aria-label={`${label === 'All' ? 'All mentions' : label}: ${count} ${count === 1 ? 'mention' : 'mentions'}`}
                         >
-                            {category}
+                            <span>{label}</span>
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* List Layout */}
-            <ul className="mentions-list">
-                {filteredItems.map((item, index) => (
-                    <li key={`${item.title}-${index}`}>
-                        <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mention-card"
-                        >
-                            {/* 1. Image Section */}
-                            <div className="mention-image-wrapper">
-                                {item.image ? (
-                                    <img
-                                        src={item.image}
-                                        alt={item.title}
-                                        className="mention-image"
-                                        loading="lazy"
-                                    />
-                                ) : (
-                                    <div className="mention-image-placeholder"></div>
-                                )}
-                            </div>
+            <div className="press-results-heading">
+                <h2>{normalizedActiveTag === 'All' ? 'All mentions' : normalizedActiveTag}</h2>
+                <div className="press-results-heading__meta">
+                    <p role="status" aria-live="polite" aria-atomic="true">
+                        {filteredItems.length} {filteredItems.length === 1 ? 'entry' : 'entries'}
+                    </p>
+                    {normalizedActiveTag !== 'All' && (
+                        <button type="button" onClick={() => selectTag('All')} className="press-reset">
+                            Reset filters <span aria-hidden="true">✕</span>
+                        </button>
+                    )}
+                </div>
+            </div>
 
-                            {/* 2. Content Section */}
-                            <div className="mention-content">
-                                <span className="mention-date">{item.date}</span>
-                                <h3 className="mention-title">{item.title}</h3>
-                                <div className="mention-meta">
-                                    <span className="publication">{item.publication}</span>
-                                    {item.categories && item.categories.length > 0 && (
-                                        <span className="categories"> • {item.categories.join(', ')}</span>
-                                    )}
-                                </div>
-                            </div>
+            <ul className="press-list-grid" id="press-mentions">
+                {filteredItems.map((item, index) => {
+                    const itemCategories = categoriesFor(item);
+                    const date = displayDate(item);
+                    const titleId = `press-title-${index}`;
 
-                            {/* 3. Action Section */}
-                            <div className="mention-action">
-                                <span>READ ARTICLE</span>
-                                <span className="arrow link-destination-arrow" aria-hidden="true">↗</span>
-                            </div>
-                        </a>
-                    </li>
-                ))}
+                    return (
+                        <li key={item.id || item.url || `${item.title}-${index}`}>
+                            <article className="press-mention">
+                                <a
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="press-mention-card"
+                                    aria-labelledby={titleId}
+                                >
+                                    <div className="press-card-image">
+                                        {item.image ? (
+                                            <img
+                                                src={item.image}
+                                                alt={item.image_alt || ''}
+                                                loading={index < 3 ? 'eager' : 'lazy'}
+                                                decoding="async"
+                                                onError={showImageFallback}
+                                            />
+                                        ) : null}
+                                        <div className="press-card-placeholder" aria-hidden="true">
+                                            <span>Public record</span>
+                                            <span>{String(index + 1).padStart(2, '0')}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="press-card-copy">
+                                        {item.publication && (
+                                            <p className="press-card-publication">{item.publication}</p>
+                                        )}
+                                        <div className="press-card-title-row">
+                                            <h3 id={titleId} className="press-card-title"><span>{item.title}</span></h3>
+                                            <span className="press-card-arrow" aria-hidden="true">↗</span>
+                                        </div>
+                                        <div className="press-card-footer">
+                                            <div className="press-card-categories" aria-label="Mention categories">
+                                                {itemCategories.map((category) => (
+                                                    <span className="press-card-tag" key={category}>{category}</span>
+                                                ))}
+                                            </div>
+                                            {date.label && <time className="press-card-date" dateTime={date.iso}>{date.label}</time>}
+                                        </div>
+                                    </div>
+                                </a>
+                            </article>
+                        </li>
+                    );
+                })}
             </ul>
 
-            <style>{`
-        .press-filter-container { width: 100%; }
-
-        /* Filter Bar */
-        .filter-bar {
-            margin-bottom: 4rem;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        .filter-scroll {
-            display: block;
-            text-align: left;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .filter-btn {
-            display: inline-block;
-            margin: 0.5rem 0.3rem;
-            background: transparent;
-            border: 1px solid var(--border-subtle);
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 100px;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .filter-btn:hover {
-            border-color: var(--text-primary);
-            color: var(--text-primary);
-        }
-
-
-
-        /* List Layout */
-        .mentions-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        .mentions-list li {
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .mention-card {
-            display: grid;
-            grid-template-columns: 280px 1fr 200px; /* Matching Blog Grid */
-            gap: 3rem;
-            padding: 3rem 0;
-            text-decoration: none;
-            color: inherit;
-            align-items: center;
-            transition: background-color 0.2s ease;
-        }
-
-        .mention-card:hover .mention-image {
-            transform: scale(1.03);
-        }
-        
-        .mention-card:hover .mention-action {
-            color: var(--text-primary);
-        }
-
-        /* Image Section */
-        .mention-image-wrapper {
-            width: 280px;
-            height: 200px; 
-            overflow: hidden;
-            background-color: var(--bg-surface);
-            border-radius: 4px;
-        }
-
-        .mention-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .mention-image-placeholder {
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-surface);
-        }
-
-        /* Content Section */
-        .mention-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .mention-date {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-tertiary);
-            margin-bottom: 1rem;
-        }
-
-        .mention-title {
-            font-family: var(--font-serif);
-            font-size: 2rem;
-            font-weight: 400;
-            line-height: 1.2;
-            margin: 0 0 1rem 0;
-            color: var(--text-primary);
-        }
-
-        .mention-meta {
-            font-family: var(--font-sans);
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .publication {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* Action Section */
-        .mention-action {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-tertiary); /* Faded by default */
-            transition: color 0.3s ease;
-        }
-
-        /* Responsive */
-        @media (max-width: 968px) {
-            .mention-card {
-            grid-template-columns: 200px 1fr auto;
-            gap: 2rem;
-            }
-            .mention-image-wrapper {
-                width: 200px;
-                height: 150px;
-            }
-            .mention-title {
-                font-size: 1.5rem;
-            }
-            .mention-action {
-                display: none; /* Hide on tablet, link handles it */
-            }
-        }
-
-        @media (max-width: 600px) {
-            .mention-card {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            padding: 2rem 0;
-            }
-            .mention-image-wrapper {
-            width: 100%;
-            height: 200px;
-            }
-            .mention-content {
-                display: block;
-            }
-            .mention-action {
-                display: flex; /* Show at bottom on mobile if desired, or keep hidden */
-                justify-content: flex-start;
-                margin-top: 1rem;
-            }
-        }
-      `}</style>
-        </div>
+            {filteredItems.length === 0 && (
+                <div className="press-empty">
+                    <h3>{items.length ? 'Nothing is filed under this label yet.' : 'The archive is being assembled.'}</h3>
+                    <p>{items.length ? 'Choose another filter or return to the complete archive.' : 'New mentions will appear here as soon as they are published.'}</p>
+                    {normalizedActiveTag !== 'All' && (
+                        <button type="button" className="press-topic" onClick={() => selectTag('All')}>
+                            Show all mentions <span aria-hidden="true">→</span>
+                        </button>
+                    )}
+                </div>
+            )}
+        </section>
     );
 };
 

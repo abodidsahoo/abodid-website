@@ -335,7 +335,11 @@ export default function MediaLibrary({ accessToken }) {
             const payload = await readJsonResponse(response);
             setNewFolderName('');
             setNewFolderOpen(false);
-            setNotice(`Folder “${payload.folder.name}” created.`);
+            setNotice(
+                payload.variantPaths?.length
+                    ? `Folder “${payload.folder.name}” created with 800px and 1600px variants.`
+                    : `Folder “${payload.folder.name}” created.`,
+            );
             await loadFolder(currentFolder, { silent: true });
             if (!currentFolder) setRootFolders((current) => {
                 const withoutDuplicate = current.filter((folder) => folder.path !== payload.folder.path);

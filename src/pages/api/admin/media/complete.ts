@@ -12,7 +12,12 @@ import {
     isAllowedImageMimeType,
     MAX_IMAGE_SIZE_BYTES,
     MAX_MEDIA_SIZE_BYTES,
+    getR2ObjectBytes,
 } from "../../../../lib/media/r2";
+import {
+    canGenerateR2ImageVariants,
+    catalogueR2ImageVariants,
+} from "../../../../lib/media/imageVariants";
 
 const optionalDimension = (value: unknown) => {
     const parsed = Number(value);
@@ -144,24 +149,41 @@ export const POST: APIRoute = async ({ request }) => {
             );
         }
 
+        if (canGenerateR2ImageVariants(data.object_key, data.mime_type)) {
+            const sourceBytes = await getR2ObjectBytes(data.object_key);
+            await catalogueR2ImageVariants({
+                supabase: authorization.supabase,
+                assetId: data.id,
+                objectKey: data.object_key,
+                sourceBytes,
+                mimeType: data.mime_type,
+            });
+        }
+        const { data: processedData } = await authorization.supabase
+            .from("media_assets")
+            .select("*,media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)")
+            .eq("id", data.id)
+            .single();
+        const asset = processedData || data;
+
         return jsonResponse({
             asset: {
-                id: data.id,
-                storageProvider: data.storage_provider,
-                storageBucket: data.storage_bucket,
-                objectKey: data.object_key,
-                folderPath: data.folder_path,
-                publicUrl: data.public_url,
-                originalFilename: data.original_filename,
-                mimeType: data.mime_type,
-                fileSize: data.file_size,
-                width: data.width,
-                height: data.height,
-                etag: data.etag,
-                processingStatus: data.processing_status,
-                processingError: data.processing_error,
-                variants: mapVariants(data.media_variants, config),
-                createdAt: data.created_at,
+                id: asset.id,
+                storageProvider: asset.storage_provider,
+                storageBucket: asset.storage_bucket,
+                objectKey: asset.object_key,
+                folderPath: asset.folder_path,
+                publicUrl: asset.public_url,
+                originalFilename: asset.original_filename,
+                mimeType: asset.mime_type,
+                fileSize: asset.file_size,
+                width: asset.width,
+                height: asset.height,
+                etag: asset.etag,
+                processingStatus: asset.processing_status,
+                processingError: asset.processing_error,
+                variants: mapVariants(asset.media_variants, config),
+                createdAt: asset.created_at,
             },
         });
     } catch (error) {
