@@ -220,6 +220,18 @@ body.work-project-page .page-content-full { padding: 0; }
   color: var(--surface-fg, var(--pe-cream));
 }
 
+/* Keep copy legible and vivid on the deep-blue Brief and Outcome cards. */
+.rp-case__trio-card--blue :is(
+  .rp-case__card-heading,
+  .rp-case__card-text,
+  .rp-case__outcome-title,
+  .rp-case__outcome-narrative-text,
+  .rp-case__outcome-status,
+  .rp-case__outcome-status span
+) {
+  color: var(--pop-foreground-on-deep, var(--pe-cream));
+}
+
 .rp-case__outcome-title {
   margin: 0;
   font: 700 clamp(1.5rem, 2.2vw, 2.2rem)/1.1 var(--font-display, sans-serif);
@@ -265,6 +277,11 @@ body.work-project-page .page-content-full { padding: 0; }
 .rp-case__outcome-bottom .rp-case__experiment-btn {
   width: 100%;
   justify-content: center;
+  color: var(--pop-foreground-on-light, var(--pe-ink));
+}
+
+.rp-case__outcome-bottom .rp-case__experiment-btn :is(span, strong, b, a, svg) {
+  color: var(--pop-foreground-on-light, var(--pe-ink));
 }
 
 /* Trio Card 2: Yellow Variant */
