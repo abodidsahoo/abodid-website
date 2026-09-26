@@ -775,8 +775,12 @@ function PopEditorialProject({ p, nextProject }) {
 
   const nonImageBlocks = useMemo(() => {
     return (p.blocks || []).filter((b) => {
-      if (["image_grid", "image_gallery", "single_image", "outcome", "external_link"].includes(b.blockType)) {
+      if (["image_grid", "image_gallery", "single_image", "outcome"].includes(b.blockType)) {
         return false;
+      }
+      if (b.blockType === "external_link") {
+        const url = b.content?.url || b.content?.href || "";
+        return !experimentUrl || url !== experimentUrl;
       }
       const text = (b.content?.text || b.content?.quote || "").trim();
       if (text && (
@@ -791,13 +795,11 @@ function PopEditorialProject({ p, nextProject }) {
       }
       return true;
     });
-  }, [p.blocks, p.context, p.oneLineDescription, p.specificContribution, p.premise, p.intro, p.deeper]);
+  }, [p.blocks, p.context, p.oneLineDescription, p.specificContribution, p.premise, p.intro, p.deeper, experimentUrl]);
 
   const outcomeBlock = (p.blocks || []).find((b) => b.blockType === "outcome");
   const briefText = p.context || p.premise || p.oneLineDescription || "An interactive study of the details in photographs that move us, stay with us and shape memory.";
-  const contributionText = p.specificContribution || (p.slug === "punctum"
-    ? "I designed and developed the entire participatory visual experiment, the real-time canvas interaction model, and the computer vision and AI analysis pipeline."
-    : "I designed and developed the interactive system, core user interactions, technical architecture, and visual narrative interface.");
+  const contributionText = p.specificContribution || p.contribution || p.role || "Contribution details are being documented.";
 
   const outcomeNarrative = p.outcomeText || p.outcome || outcomeBlock?.content?.text || (isResearch
     ? "Published research and participatory design inquiry exploring cognitive attention and human perception."
@@ -807,7 +809,6 @@ function PopEditorialProject({ p, nextProject }) {
   const rawStatus = (
     p.outcomeBadge ||
     p.outcomeStatus ||
-    p.status ||
     (p.metaValue && p.metaValue !== "Outcome" && !/^\d{4}$/.test(p.metaValue) ? p.metaValue : null) ||
     (outcomeBlock?.content?.text && outcomeBlock.content.text.trim() !== outcomeNarrative.trim() ? outcomeBlock.content.text : null)
   );

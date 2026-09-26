@@ -617,8 +617,10 @@ function PortfolioEditorContent({ projectId }) {
                 <Field label="Project title" value={draft.title} required onChange={(title) => updateDraft({ title })} />
                 <Field label="One-line proposition" value={draft.oneLineDescription} required onChange={(oneLineDescription) => updateDraft({ oneLineDescription })} />
                 <div className="editor-year-field"><Field label="Year" type="number" value={draft.yearStart} required onChange={(yearStart) => updateDraft({ yearStart, yearEnd: null })} /></div>
-                <Field label="Research Question" value={draft.context} rows={4} required={!draft.workInProgress} onChange={(context) => updateDraft({ context })} />
-                <Field label="Specific contribution" value={draft.specificContribution} rows={5} required={!draft.workInProgress} onChange={(specificContribution) => updateDraft({ specificContribution })} />
+                <Field label="Project brief / research question" value={draft.context} rows={4} required={!draft.workInProgress} onChange={(context) => updateDraft({ context })} />
+                <Field label="My contribution" value={draft.specificContribution} rows={5} required={!draft.workInProgress} onChange={(specificContribution) => updateDraft({ specificContribution })} />
+                <Field label="Outcome heading" value={draft.outcomeHeading} placeholder="Outcome" onChange={(outcomeHeading) => updateDraft({ outcomeHeading })} />
+                <Field label="Outcome" value={draft.outcomeText} rows={4} placeholder="What changed, shipped, reached an audience, or was learned?" onChange={(outcomeText) => updateDraft({ outcomeText })} />
               </div>
               <aside className="editor-spine-media" aria-label="Project cover">
                 <header><div><span className="editor-eyebrow">Cover media</span><h2>Project cover</h2></div><button type="button" className="quiet-button" onClick={() => setMediaPickerTarget({ blockId: null })}>Choose from library</button></header>

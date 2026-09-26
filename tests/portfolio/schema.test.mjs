@@ -127,13 +127,14 @@ test("internal portfolio links stay internal and unsafe protocols are rejected",
 
 test("alt text is optional for image publication", () => {
   assert.deepEqual(validateBlock({ blockType: "single_image", content: { media: { url: "https://example.com/a.jpg", alt: "" } } }), []);
-  assert.deepEqual(validateProjectForPublish({ title: "A", oneLineDescription: "B", yearStart: 2026, coverUrl: "/cover.jpg", coverAlt: "", context: "Question", specificContribution: "Contribution", blocks: [] }), []);
+  assert.deepEqual(validateProjectForPublish({ title: "A", oneLineDescription: "B", yearStart: 2026, coverUrl: "/cover.jpg", coverAlt: "", context: "Question", specificContribution: "Contribution", outcomeText: "Result", blocks: [] }), []);
 });
 
 test("full publication validates the required spine", () => {
   const errors = validateProjectForPublish({ title: "A", oneLineDescription: "B", yearStart: 2026, coverUrl: "/cover.jpg", coverAlt: "Cover", context: "", specificContribution: "", blocks: [] });
-  assert.ok(errors.includes("Research Question is required"));
-  assert.ok(errors.includes("Specific contribution is required"));
+  assert.ok(errors.includes("Project brief / research question is required"));
+  assert.ok(errors.includes("My contribution is required"));
+  assert.ok(errors.includes("Outcome is required"));
 });
 
 test("limited WIP publication protects private body requirements", () => {

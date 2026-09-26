@@ -377,8 +377,11 @@ export function validateProjectForPublish(draft) {
   if (!draft?.yearStart) errors.push("Year is required");
   if (!draft?.coverUrl?.trim()) errors.push("Cover image is required");
   if (!draft?.workInProgress && !draft?.limitedPublic) {
-    if (!draft?.context?.trim()) errors.push("Research Question is required");
-    if (!draft?.specificContribution?.trim()) errors.push("Specific contribution is required");
+    if (!draft?.context?.trim()) errors.push("Project brief / research question is required");
+    if (!draft?.specificContribution?.trim()) errors.push("My contribution is required");
+    if (!draft?.outcomeText?.trim() && !(draft?.blocks || []).some((block) => block.visible !== false && block.blockType === "outcome" && block.content?.text?.trim())) {
+      errors.push("Outcome is required");
+    }
   }
   (draft?.blocks || []).filter((block) => block.visible !== false).forEach((block, index) => {
     validateBlock(block).forEach((error) => errors.push(`Block ${index + 1}: ${error}`));

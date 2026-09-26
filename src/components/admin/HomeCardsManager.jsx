@@ -714,7 +714,10 @@ export default function HomeCardsManager() {
                                 </div>
 
                                 <div className="film-field">
-                                    <label htmlFor="hcm-href">Destination link</label>
+                                    <label htmlFor="hcm-href">
+                                        Destination link
+                                        <span className="film-field-hint"> (/work/… for portfolio, /research/… for research, or a direct tool page)</span>
+                                    </label>
                                     <input
                                         id="hcm-href"
                                         value={draft.href}

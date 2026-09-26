@@ -77,7 +77,7 @@ export const storytellingProjects: StorytellingProject[] = [
     summary: "A touch-free interface for browsing photographs as though they were physical cards.",
     role: "Concept · Interaction Design · Prototyping",
     outcome: "Live Interactive App",
-    href: "/work/gesture-control",
+    href: "/work/image-flick",
     video: GESTURE_CONTROL_VIDEO_URL,
     image: GESTURE_CONTROL_HERO_GIF_URL,
     alt: "Animated preview of hand interacting with a gesture-controlled digital interface",
