@@ -66,6 +66,10 @@ const slugify = (value) => String(value || '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+const normalizeEntryKeyInput = (value) => String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-');
+
 const normalizeEntry = (row = {}) => ({
     ...EMPTY_ENTRY,
     ...row,
@@ -201,7 +205,7 @@ export default function LabExperimentsManager() {
 
     const validate = () => {
         if (!draft?.title.trim()) return 'Add a title.';
-        if (!draft.entry_key.trim()) return 'Add a unique entry key.';
+        if (!slugify(draft.entry_key)) return 'Add a unique entry key using letters, numbers, or hyphens.';
         if (!/^\/[a-z0-9][a-z0-9/_-]*$/i.test(draft.destination_path.trim())) {
             return 'The destination must be a safe internal site path beginning with /.';
         }
@@ -400,7 +404,7 @@ export default function LabExperimentsManager() {
                                 <h3>Card content</h3>
                                 <div className="lab-admin-field-grid">
                                     <Field id="lab-title" label="Title" value={draft.title} onChange={(title) => patchDraft({ title, entry_key: draft.entry_key || slugify(title) })} placeholder="Experiment title" />
-                                    <Field id="lab-key" label="Entry key" hint="unique" value={draft.entry_key} onChange={(entry_key) => patchDraft({ entry_key: slugify(entry_key) })} placeholder="experiment-slug" />
+                                    <Field id="lab-key" label="Entry key" hint="unique internal ID · use hyphens" value={draft.entry_key} onChange={(entry_key) => patchDraft({ entry_key: normalizeEntryKeyInput(entry_key) })} placeholder="experiment-slug" />
                                 </div>
                                 <Field id="lab-description" label="Description" value={draft.description} rows={4} onChange={(description) => patchDraft({ description })} placeholder="A short description for the catalogue card." />
                                 <div className="lab-admin-field-grid">

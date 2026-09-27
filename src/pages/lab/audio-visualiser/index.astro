@@ -1,0 +1,47 @@
+---
+import AudioVisualiserApp from "../../../components/audio-visualiser/AudioVisualiserApp";
+import ExperimentLayout from "../../../layouts/ExperimentLayout.astro";
+import ForceDarkMode from "../../../components/ForceDarkMode.astro";
+import { labUrl } from "../../../lib/labRoutes.js";
+
+const title = "Audio Visualiser — Live sound-to-image instrument";
+const description =
+  "Turn local tracks or Chrome-tab audio into responsive waveforms and magnetic fields, then tune how rhythm, frequency, colour, and motion shape the scene.";
+---
+
+<ExperimentLayout
+  title={title}
+  description={description}
+  canonicalUrl={labUrl("/audio-visualiser")}
+  bodyClass="audio-visualiser-page"
+  hideHeader={true}
+  hideFooter={true}
+  lockViewport={true}
+>
+  <Fragment slot="head">
+    <ForceDarkMode />
+    <meta name="theme-color" content="#1B232D" />
+  </Fragment>
+  <AudioVisualiserApp client:only="react" />
+</ExperimentLayout>
+
+<style is:global>
+  html:has(body.audio-visualiser-page),
+  body.audio-visualiser-page {
+    margin: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: #1b232d !important;
+  }
+
+  body.audio-visualiser-page #main-content,
+  body.audio-visualiser-page .experiment-shell {
+    width: 100%;
+    height: 100dvh;
+  }
+
+  body.audio-visualiser-page .skip-link,
+  body.audio-visualiser-page astro-dev-toolbar {
+    display: none !important;
+  }
+</style>

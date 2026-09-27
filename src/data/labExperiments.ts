@@ -144,6 +144,25 @@ const fallbackLabExperiments: Omit<LabExperiment, "index">[] = [
     previewHeading: "A glimpse into my second brain.",
     previewCta: "Open the interactive explorer ↗",
   },
+  {
+    id: "audio-visualiser",
+    title: "Audio Visualiser",
+    description:
+      "A live sound-to-image instrument that turns local tracks or Chrome-tab audio into responsive waveforms and magnetic fields you can tune in real time.",
+    discipline: "Sound visualisation · Creative coding",
+    status: "Live experiment",
+    year: "2026",
+    href: "/lab/audio-visualiser",
+    destinationLabel: "Launch instrument",
+    thumbnail:
+      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/audio-spectrum-compressed.mp4",
+    video:
+      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/audio-spectrum-compressed.mp4",
+    thumbnailAlt:
+      "Audio Visualiser showing a glowing magnetic waveform responding to sound beside live tuning controls",
+    surface: "blue",
+    cardVariant: "media",
+  },
 ];
 
 const numberExperiments = (
