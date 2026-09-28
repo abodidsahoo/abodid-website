@@ -45,6 +45,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource/inconsolata": "^5.2.8",
+    "@google-analytics/data": "^6.1.0",
     "@google/genai": "^2.14.0",
     "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.10",
