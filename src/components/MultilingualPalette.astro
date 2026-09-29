@@ -1,0 +1,330 @@
+---
+interface Props {
+  variant?: "menu" | "compact";
+}
+
+const { variant = "menu" } = Astro.props;
+
+const languages = [
+  { code: "en", label: "English", native: "English", short: "EN" },
+  { code: "or", label: "Odia", native: "ଓଡ଼ିଆ", short: "OR" },
+  { code: "hi", label: "Hindi", native: "हिन्दी", short: "HI" },
+  { code: "zh-CN", label: "Chinese", native: "中文", short: "ZH" },
+  { code: "fr", label: "French", native: "Français", short: "FR" },
+  { code: "ja", label: "Japanese", native: "日本語", short: "JA" },
+];
+---
+
+<div class={`multilingual-palette multilingual-palette--${variant}`} data-multilingual-palette>
+  <div class="multilingual-palette__header">
+    <div class="multilingual-palette__title">
+      <span class="multilingual-palette__icon" aria-hidden="true">🌐</span>
+      <span class="multilingual-palette__label">Reading Language / ଭାଷା</span>
+    </div>
+    <span class="multilingual-palette__active-badge" data-active-lang-badge>English</span>
+  </div>
+
+  <div class="multilingual-palette__grid" role="group" aria-label="Select website language">
+    {languages.map((lang) => (
+      <button
+        type="button"
+        class={`multilingual-palette__pill ${lang.code === "en" ? "is-active" : ""}`}
+        data-lang-code={lang.code}
+        data-lang-native={lang.native}
+        data-lang-label={lang.label}
+        aria-pressed={lang.code === "en" ? "true" : "false"}
+        title={`Translate site to ${lang.label} (${lang.native})`}
+      >
+        <span class="multilingual-palette__pill-code">{lang.short}</span>
+        <span class="multilingual-palette__pill-native">{lang.native}</span>
+        <span class="multilingual-palette__pill-check" aria-hidden="true">✓</span>
+      </button>
+    ))}
+  </div>
+
+  <!-- Hidden Google Translate Element Anchor -->
+  <div id="google_translate_element" class="sr-only" aria-hidden="true"></div>
+</div>
+
+<style>
+  .multilingual-palette {
+    --palette-border: 1px solid rgba(21, 19, 15, 0.25);
+    --palette-radius: 14px;
+    --palette-radius-pill: 10px;
+    --palette-motion: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    
+    padding: 0.85rem;
+    border: var(--palette-border);
+    border-radius: var(--palette-radius);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 8px rgba(21, 19, 15, 0.04);
+  }
+
+  .multilingual-palette__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .multilingual-palette__title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .multilingual-palette__icon {
+    font-size: 0.85rem;
+    line-height: 1;
+  }
+
+  .multilingual-palette__label {
+    font: 750 0.64rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pop-ink, #15130f);
+  }
+
+  .multilingual-palette__active-badge {
+    padding: 0.2rem 0.45rem;
+    border: 1px solid var(--pop-ink, #15130f);
+    border-radius: 6px;
+    background: var(--pop-yellow, #ffe44f);
+    color: var(--pop-ink, #15130f);
+    font: 750 0.58rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .multilingual-palette__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+
+  @media (max-width: 480px) {
+    .multilingual-palette__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .multilingual-palette__pill {
+    min-height: 32px;
+    padding: 0.35rem 0.55rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+    border: 1px solid rgba(21, 19, 15, 0.4);
+    border-radius: var(--palette-radius-pill);
+    background: #ffffff;
+    color: var(--pop-ink, #15130f);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition: transform var(--palette-motion), background-color var(--palette-motion), border-color var(--palette-motion), box-shadow var(--palette-motion);
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .multilingual-palette__pill:hover {
+    transform: translateY(-2px);
+    background: var(--pop-pink, #ff7eb5);
+    border-color: var(--pop-ink, #15130f);
+    box-shadow: 0 3px 0 var(--pop-ink, #15130f);
+  }
+
+  .multilingual-palette__pill.is-active {
+    background: var(--pop-yellow, #ffe44f);
+    border-color: var(--pop-ink, #15130f);
+    box-shadow: 0 2px 0 var(--pop-ink, #15130f);
+    font-weight: 750;
+  }
+
+  .multilingual-palette__pill-code {
+    font: 750 0.6rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+  }
+
+  .multilingual-palette__pill.is-active .multilingual-palette__pill-code {
+    opacity: 0.9;
+  }
+
+  .multilingual-palette__pill-native {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .multilingual-palette__pill-check {
+    font-size: 0.62rem;
+    font-weight: 900;
+    line-height: 1;
+    opacity: 0;
+    color: var(--pop-ink, #15130f);
+    transform: scale(0.5);
+    transition: opacity var(--palette-motion), transform var(--palette-motion);
+  }
+
+  .multilingual-palette__pill.is-active .multilingual-palette__pill-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+</style>
+
+<script is:inline>
+  (function initMultilingualEngine() {
+    const STORAGE_KEY = "site_multilingual_lang";
+    const COOKIE_KEY = "googtrans";
+
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function setTranslateCookie(lang) {
+      const value = lang === "en" ? "/en/en" : `/en/${lang}`;
+      const domain = window.location.hostname;
+      const expires = new Date(Date.now() + 30 * 864e5).toUTCString();
+      
+      // Set for root and specific domain
+      document.cookie = `${COOKIE_KEY}=${value}; path=/; expires=${expires}`;
+      if (domain && domain !== "localhost") {
+        document.cookie = `${COOKIE_KEY}=${value}; path=/; domain=.${domain}; expires=${expires}`;
+        document.cookie = `${COOKIE_KEY}=${value}; path=/; domain=${domain}; expires=${expires}`;
+      }
+    }
+
+    function clearTranslateCookie() {
+      const domain = window.location.hostname;
+      const past = "Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = `${COOKIE_KEY}=; path=/; expires=${past}`;
+      if (domain && domain !== "localhost") {
+        document.cookie = `${COOKIE_KEY}=; path=/; domain=.${domain}; expires=${past}`;
+        document.cookie = `${COOKIE_KEY}=; path=/; domain=${domain}; expires=${past}`;
+      }
+    }
+
+    let isGoogleTranslateLoaded = false;
+
+    function loadGoogleTranslateScript() {
+      if (isGoogleTranslateLoaded || document.getElementById("google-translate-script")) {
+        return;
+      }
+      window.__googleTranslateElementInit = function() {
+        if (window.google && window.google.translate) {
+          new window.google.translate.TranslateElement({
+            pageLanguage: "en",
+            includedLanguages: "en,or,hi,zh-CN,fr,ja",
+            autoDisplay: false,
+            layout: window.google.translate.TranslateElement.InlineLayout?.SIMPLE
+          }, "google_translate_element");
+        }
+      };
+
+      const script = document.createElement("script");
+      script.id = "google-translate-script";
+      script.src = "//translate.google.com/translate_a/element.js?cb=__googleTranslateElementInit";
+      script.async = true;
+      document.head.appendChild(script);
+      isGoogleTranslateLoaded = true;
+    }
+
+    function applyLanguage(langCode, langNative, langLabel, triggerReload = true) {
+      localStorage.setItem(STORAGE_KEY, langCode);
+
+      // Update UI active state across all instances
+      document.querySelectorAll("[data-multilingual-palette]").forEach((palette) => {
+        const badge = palette.querySelector("[data-active-lang-badge]");
+        if (badge) {
+          badge.textContent = langNative || langLabel || langCode.toUpperCase();
+        }
+        palette.querySelectorAll("[data-lang-code]").forEach((btn) => {
+          const isActive = btn.getAttribute("data-lang-code") === langCode;
+          btn.classList.toggle("is-active", isActive);
+          btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      });
+
+      if (langCode === "en") {
+        clearTranslateCookie();
+        // If we had a translated page, reload cleanly to reset DOM
+        const currentCookie = getCookie(COOKIE_KEY);
+        if (triggerReload && currentCookie && currentCookie !== "/en/en") {
+          window.location.reload();
+        }
+        return;
+      }
+
+      setTranslateCookie(langCode);
+      loadGoogleTranslateScript();
+
+      // Trigger translate element if already in DOM
+      const select = document.querySelector(".goog-te-combo");
+      if (select) {
+        select.value = langCode;
+        select.dispatchEvent(new Event("change"));
+      } else if (triggerReload) {
+        // Reload once to let Google Translate initialize with the cookie
+        window.location.reload();
+      }
+    }
+
+    function setupListeners() {
+      const savedLang = localStorage.getItem(STORAGE_KEY) || "en";
+      const currentCookie = getCookie(COOKIE_KEY);
+      const cookieLang = currentCookie ? currentCookie.split("/").pop() : null;
+      const initialLang = (cookieLang && cookieLang !== "en") ? cookieLang : savedLang;
+
+      // Update UI matching initial state
+      document.querySelectorAll("[data-multilingual-palette]").forEach((palette) => {
+        const activeBtn = palette.querySelector(`[data-lang-code="${initialLang}"]`) || palette.querySelector('[data-lang-code="en"]');
+        if (activeBtn) {
+          const badge = palette.querySelector("[data-active-lang-badge]");
+          if (badge) {
+            badge.textContent = activeBtn.getAttribute("data-lang-native") || activeBtn.getAttribute("data-lang-label") || initialLang.toUpperCase();
+          }
+          palette.querySelectorAll("[data-lang-code]").forEach((btn) => {
+            const isActive = btn === activeBtn;
+            btn.classList.toggle("is-active", isActive);
+            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+          });
+        }
+      });
+
+      // If a non-English language was persisted, ensure Google Translate runs
+      if (initialLang && initialLang !== "en") {
+        loadGoogleTranslateScript();
+      }
+
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-lang-code]");
+        if (!btn) return;
+
+        const langCode = btn.getAttribute("data-lang-code");
+        const langNative = btn.getAttribute("data-lang-native");
+        const langLabel = btn.getAttribute("data-lang-label");
+
+        applyLanguage(langCode, langNative, langLabel, true);
+      });
+    }
+
+    // Run on initial load and Astro View Transitions page changes
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", setupListeners);
+    } else {
+      setupListeners();
+    }
+    document.addEventListener("astro:page-load", setupListeners);
+  })();
+</script>

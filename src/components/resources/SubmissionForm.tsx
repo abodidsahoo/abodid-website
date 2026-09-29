@@ -208,7 +208,7 @@ export default function SubmissionForm() {
                     </p>
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <button
-                            onClick={() => window.location.href = '/'}
+                            onClick={() => window.location.href = '/resources'}
                             className="hub-btn"
                         >
                             View on Hub

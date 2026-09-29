@@ -9,7 +9,7 @@ import {
     resolveEnquiryTitle,
     summarizeVisit,
 } from '../../lib/contact-notification.js';
-import { looksLikeRandomCharacterMessage } from '../../lib/contact-spam.js';
+import { looksLikeRandomCharacterMessage, looksLikeSuspiciousEmail } from '../../lib/contact-spam.js';
 import { createSupabaseServiceClient } from '../../lib/supabaseServer';
 
 export const prerender = false;
@@ -167,6 +167,7 @@ export const POST: APIRoute = async ({ request }) => {
         const payload = await parsePayload(request);
         if (!payload.name) return json({ error: 'Please provide your name.' }, 400);
         if (!EMAIL_REGEX.test(payload.email)) return json({ error: 'Please provide a valid email address.' }, 400);
+        if (looksLikeSuspiciousEmail(payload.email)) return json({ error: 'Please use a regular email address.' }, 422);
         if (!payload.message || payload.message.length > 5000) return json({ error: 'Please provide a message (1–5000 characters).' }, 400);
         if (looksLikeRandomCharacterMessage(payload.message)) {
             return json({ error: 'Please write your message using words and spaces.' }, 422);
@@ -201,6 +202,18 @@ export const POST: APIRoute = async ({ request }) => {
             return json({ error: 'Your visit could not be linked to this enquiry. Please refresh and try again.' }, 409);
         }
         submissionId = submission.id;
+
+        // Only a submission that passed server validation receives the
+        // conversion override. Client-side form events alone are not trusted.
+        await supabase
+            .from('analytics_sessions')
+            .update({
+                converted: true,
+                conversion_type: 'enquiry',
+                human_confidence_score: 100,
+                human_confidence_tier: 'exceptional',
+            })
+            .eq('id', submission.session_id);
 
         const [{ data: session }, { data: pageViews, error: viewsError }] = await Promise.all([
             supabase

@@ -19,6 +19,7 @@ import {
     shouldTrackAnalyticsPath,
 } from '../../../lib/analytics/classification.js';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
+import { calculateHumanConfidence } from '../../../lib/analytics/human-confidence.js';
 
 const MAX_BODY_BYTES = 12_000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -95,7 +96,48 @@ export const POST: APIRoute = async ({ request }) => {
             });
             const country = resolveAnalyticsCountry(request.headers);
             const city = resolveAnalyticsCity(request.headers);
-            const engagedSeconds = Math.max(0, Math.min(86_400, Math.floor(Number(body?.engagedSeconds) || 0)));
+            const submittedPageViews = Array.isArray(body?.pageViews) ? body.pageViews.slice(-30) : [];
+            const pageViews = submittedPageViews.flatMap((page: any, index: number) => {
+                const id = validUuid(page?.id);
+                const path = cleanAnalyticsString(page?.path, 240);
+                if (!id || !shouldTrackAnalyticsPath(path)) return [];
+                return [{
+                    id,
+                    session_id: sessionId,
+                    page_path: path,
+                    page_title: cleanAnalyticsString(page?.title, 240) || null,
+                    sequence_number: Math.max(1, Math.min(1000, Math.round(Number(page?.sequenceNumber) || index + 1))),
+                    viewed_at: typeof page?.enteredAt === 'string' && !Number.isNaN(Date.parse(page.enteredAt))
+                        ? new Date(page.enteredAt).toISOString()
+                        : new Date().toISOString(),
+                    engaged_seconds: Math.max(0, Math.min(86_400, Math.floor(Number(page?.engagedSeconds) || 0))),
+                }];
+            });
+            const pageEngagementSeconds = pageViews.reduce((total, page) => total + page.engaged_seconds, 0);
+            const engagedSeconds = Math.max(
+                pageEngagementSeconds,
+                Math.max(0, Math.min(86_400, Math.floor(Number(body?.engagedSeconds) || 0))),
+            );
+
+            const rawSignals = body?.humanSignals && typeof body.humanSignals === 'object'
+                ? body.humanSignals
+                : {};
+            const humanConfidence = calculateHumanConfidence({
+                activeSeconds: engagedSeconds,
+                pageViews: pageViews.length || 1,
+                scrollCount: rawSignals.scrollCount,
+                maxScrollDepth: rawSignals.maxScrollDepth,
+                genuineClicks: rawSignals.genuineClicks,
+                pointerSamples: rawSignals.pointerSamples,
+                touchInteractions: rawSignals.touchInteractions,
+                keyInteractions: rawSignals.keyInteractions,
+                contentInteractions: rawSignals.contentInteractions,
+                formSubmitted: Boolean(rawSignals.formSubmitted),
+            });
+
+            // Do not spend a database write on passive or bot-like snapshots.
+            // Valid forms are promoted separately by their server endpoints.
+            if (!humanConfidence.qualified) return silentResponse();
 
             const headerDevice = resolveAnalyticsDevice(request.headers.get('user-agent'));
             const clientDeviceType = cleanAnalyticsString(body?.device?.type, 20);
@@ -131,6 +173,9 @@ export const POST: APIRoute = async ({ request }) => {
                 started_at: body?.startedAt || new Date().toISOString(),
                 ended_at: new Date().toISOString(),
                 total_engaged_seconds: engagedSeconds,
+                human_confidence_score: humanConfidence.score,
+                human_confidence_tier: humanConfidence.tier,
+                human_signals: humanConfidence.signals,
                 intent_category: cleanAnalyticsString(body?.intentCategory, 40) || null,
                 intent_score: Math.max(0, Math.min(100, Math.round(Number(body?.intentScore) || 0))),
                 is_returning: Boolean(body?.isReturning),
@@ -140,6 +185,10 @@ export const POST: APIRoute = async ({ request }) => {
                 events,
                 replay_data: Array.isArray(body?.replayData) ? body.replayData.slice(-100) : [],
             }, { onConflict: 'id' });
+
+            if (pageViews.length > 0) {
+                await supabase.from('analytics_page_views').upsert(pageViews, { onConflict: 'id' });
+            }
 
             return silentResponse();
         }
@@ -201,5 +250,3 @@ export const POST: APIRoute = async ({ request }) => {
 
     return silentResponse();
 };
-
-

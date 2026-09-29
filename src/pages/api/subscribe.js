@@ -8,6 +8,7 @@ import {
 } from '../../lib/contact-notification.js';
 import { renderSubscriberNotification } from '../../lib/subscriber-notification.js';
 import { createSupabaseServiceClient } from '../../lib/supabaseServer';
+import { looksLikeSuspiciousEmail } from '../../lib/contact-spam.js';
 
 export const prerender = false;
 
@@ -121,6 +122,17 @@ async function sendOwnerNotification({ email, name, source, status, sessionId, s
             .single();
         if (error) console.warn('[subscribe] Could not save notification context:', error.message);
         newsletterSubmissionId = submission?.id || '';
+        if (submission && session?.id) {
+            await serviceClient
+                .from('analytics_sessions')
+                .update({
+                    converted: true,
+                    conversion_type: 'newsletter',
+                    human_confidence_score: 100,
+                    human_confidence_tier: 'exceptional',
+                })
+                .eq('id', session.id);
+        }
     }
 
     const visit = session ? summarizeVisit({ session, pageViews, submittedAt }) : null;
@@ -179,6 +191,9 @@ export const POST = async ({ request }) => {
 
     if (!email || !EMAIL_REGEX.test(email)) {
         return new Response(JSON.stringify({ message: 'Invalid email address' }), { status: 400 });
+    }
+    if (looksLikeSuspiciousEmail(email)) {
+        return new Response(JSON.stringify({ message: 'Successfully subscribed!' }), { status: 200 });
     }
 
     const blockedReason = shouldSilentlyBlockFooterSubmission({ request, data, source, tracking });

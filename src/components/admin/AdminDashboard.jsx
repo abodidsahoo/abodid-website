@@ -12,7 +12,7 @@ import PhotoStoryManager from './PhotoStoryManager';
 import MoodboardManager from './MoodboardManager';
 import ListView from './ListView';
 import SeoStudio from './SeoStudio';
-import AnalyticsDashboard from './AnalyticsDashboard';
+import AnalyticsDashboard from './AnalyticsDashboardV2';
 import AdminPageHeader from './AdminPageHeader';
 import MediaLibrary from './MediaLibrary';
 import XRShowcaseManager from './XRShowcaseManager';

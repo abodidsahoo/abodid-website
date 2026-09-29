@@ -83,7 +83,7 @@ test('User Resource Submission Flow (Mocked)', async ({ page }) => {
                 contentType: 'application/json',
                 body: JSON.stringify({ id: 'new-resource-999', status: 'pending' }) // Standard return for single()
             });
-        } else if (method === 'GET') {
+        } else if (method === 'GET' || method === 'HEAD') {
             // Rate limit check or Dashboard fetch
             const url = route.request().url();
             if (url.includes('submitted_by=eq.mock-user-123')) {
@@ -94,7 +94,7 @@ test('User Resource Submission Flow (Mocked)', async ({ page }) => {
                         status: 200,
                         contentType: 'application/json',
                         headers: { 'content-range': '0-0/0' }, // Count 0
-                        body: JSON.stringify([])
+                        body: method === 'HEAD' ? '' : JSON.stringify([])
                     });
                 } else {
                     // Dashboard Fetch (Success after submit)
@@ -139,7 +139,7 @@ test('User Resource Submission Flow (Mocked)', async ({ page }) => {
 
     // Note: The labels do not have 'for' attributes, so we use container filtering
     await page.locator('.hub-form-group').filter({ hasText: 'Title' }).locator('input').fill('Amazing Tool');
-    await page.locator('.hub-form-group').filter({ hasText: 'Description' }).locator('textarea').fill('This tool saves time.');
+    await page.getByPlaceholder('Tell us why this resource is worth sharing...').fill('This tool saves time.');
 
     // Tags (TagInput)
     // Assuming generic input or we need to type and enter
@@ -155,19 +155,10 @@ test('User Resource Submission Flow (Mocked)', async ({ page }) => {
 
     // 4. Verify Success Message
     await expect(page.locator('text=Submitted!')).toBeVisible();
-    await expect(page.locator('text=pending review')).toBeVisible();
+    await expect(page.getByText(/personally reviewed/)).toBeVisible();
 
-    // 5. Go to Dashboard to check Pending Status
+    // 5. Return to the public resources hub
     await page.click('button:has-text("View on Hub")');
-    // or navigate directly if the button logic isn't exact
-    // await page.goto('/resources/dashboard');
-
-    // 6. Verify Dashboard Content
-    await expect(page.locator('h1')).toHaveText('My Dashboard');
-
-    // Check for the "Pending" status card/badge
-    const pendingCard = page.locator('.submission-card').first();
-    await expect(pendingCard).toBeVisible();
-    await expect(pendingCard).toContainText('Amazing Tool');
-    await expect(pendingCard).toContainText('pending');
+    await expect(page).toHaveURL(/\/resources\/?$/);
+    await expect(page.locator('h1')).toHaveText('Curation by Abodid');
 });

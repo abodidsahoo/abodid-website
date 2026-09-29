@@ -6,6 +6,7 @@ import {
     GA4_SERVICE_ACCOUNT_EMAIL,
     classifyGa4Error,
     resolveGa4Configuration,
+    runGa4DashboardReport,
     runGa4SessionsReport,
 } from '../../src/lib/analytics/ga4-reporting.js';
 
@@ -66,4 +67,41 @@ test('classifies authentication and authorization failures', () => {
     assert.equal(classifyGa4Error({ code: 16 }), 'authentication');
     assert.equal(classifyGa4Error({ code: 7 }), 'authorization');
     assert.equal(classifyGa4Error({ category: 'configuration' }), 'configuration');
+});
+
+test('builds the dashboard from one batched GA4 request', async () => {
+    let request;
+    const metric = (...values) => ({ metricValues: values.map((value) => ({ value: String(value) })) });
+    const dimensioned = (dimensions, metrics) => ({
+        dimensionValues: dimensions.map((value) => ({ value })),
+        metricValues: metrics.map((value) => ({ value: String(value) })),
+    });
+    const result = await runGa4DashboardReport({
+        range: '30d',
+        env: {
+            GA4_PROPERTY_ID,
+            GA4_CLIENT_EMAIL: GA4_SERVICE_ACCOUNT_EMAIL,
+            GA4_PRIVATE_KEY: PRIVATE_KEY,
+        },
+        clientFactory: () => ({
+            batchRunReports: async (input) => {
+                request = input;
+                return [{ reports: [
+                    { rows: [metric(120, 90, 70, 60, 42, 3)] },
+                    { rows: [dimensioned(['chatgpt.com', 'referral'], [12, 10, 8, 1])] },
+                    { rows: [dimensioned(['India'], [50, 40, 2])] },
+                    { rows: [dimensioned(['/obsidian-tutoring'], [30, 25, 75, 2])] },
+                    { rows: [dimensioned(['/obsidian-vault'], [40, 600])] },
+                ] }];
+            },
+            close: async () => {},
+        }),
+    });
+
+    assert.equal(request.requests.length, 5);
+    assert.deepEqual(request.requests[0].dateRanges, [{ startDate: '30daysAgo', endDate: 'today' }]);
+    assert.equal(result.summary.sessions, 120);
+    assert.equal(result.channels[0].channel, 'LLMs');
+    assert.equal(result.countries[0].country, 'India');
+    assert.equal(result.landingPages[0].path, '/obsidian-tutoring');
 });

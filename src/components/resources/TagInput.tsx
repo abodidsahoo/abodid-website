@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createTag, getAllTags, searchTags } from '../../lib/resources/db';
+import { cleanTagName, rankTagSuggestions } from '../../lib/resources/tagSuggestions';
 import type { HubTag } from '../../lib/resources/types';
 
 interface Props {
@@ -9,8 +10,10 @@ interface Props {
     label?: string;
 }
 
-const cleanTagName = (value: string) =>
-    value.replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+interface PendingTag {
+    key: string;
+    name: string;
+}
 
 export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 'Tags' }: Props) {
     const [inputValue, setInputValue] = useState('');
@@ -18,8 +21,23 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
     const [suggestions, setSuggestions] = useState<HubTag[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [focusedIndex, setFocusedIndex] = useState(-1);
-    const [isCommitting, setIsCommitting] = useState(false);
+    const [pendingTags, setPendingTags] = useState<PendingTag[]>([]);
+    const [commitError, setCommitError] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const selectedTagsRef = useRef(selectedTags);
+    const pendingTagsRef = useRef<PendingTag[]>([]);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        selectedTagsRef.current = selectedTags;
+    }, [selectedTags]);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     useEffect(() => {
         let active = true;
@@ -39,22 +57,24 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
             return;
         }
 
+        const localMatches = rankTagSuggestions(allTags, query, selectedTags);
+        setSuggestions(localMatches);
+        setShowSuggestions(true);
+        setFocusedIndex(localMatches.length > 0 ? 0 : -1);
+
         let active = true;
         const timer = window.setTimeout(async () => {
-            const localMatches = allTags.filter((tag) =>
-                tag.name.toLowerCase().includes(query.toLowerCase())
-            );
             const remoteMatches = query.length > 1 ? await searchTags(query) : [];
             if (!active) return;
 
-            const unique = new Map<string, HubTag>();
-            [...localMatches, ...remoteMatches].forEach((tag) => {
-                if (!selectedTags.includes(tag.id)) unique.set(tag.id, tag);
-            });
-            setSuggestions([...unique.values()].slice(0, 8));
-            setShowSuggestions(true);
-            setFocusedIndex(-1);
-        }, 160);
+            const rankedMatches = rankTagSuggestions(
+                [...localMatches, ...remoteMatches],
+                query,
+                selectedTags
+            );
+            setSuggestions(rankedMatches);
+            setFocusedIndex(rankedMatches.length > 0 ? 0 : -1);
+        }, 100);
 
         return () => {
             active = false;
@@ -79,25 +99,45 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
         [allTags, selectedTags]
     );
 
-    const addTag = (tag: HubTag) => {
-        if (selectedTags.length >= maxTags || selectedTags.includes(tag.id)) return;
-        setAllTags((current) => current.some((item) => item.id === tag.id) ? current : [...current, tag]);
-        onChange([...selectedTags, tag.id]);
+    const resetInput = () => {
         setInputValue('');
         setSuggestions([]);
         setShowSuggestions(false);
         setFocusedIndex(-1);
+        setCommitError(null);
+    };
+
+    const publishSelectedTags = (ids: string[]) => {
+        selectedTagsRef.current = ids;
+        onChange(ids);
+    };
+
+    const addTag = (tag: HubTag, reset = true) => {
+        const currentTags = selectedTagsRef.current;
+        if (
+            currentTags.length + pendingTagsRef.current.length >= maxTags
+            || currentTags.includes(tag.id)
+        ) return;
+        setAllTags((current) => current.some((item) => item.id === tag.id) ? current : [...current, tag]);
+        publishSelectedTags([...currentTags, tag.id]);
+        if (reset) resetInput();
     };
 
     const removeTag = (id: string) => {
-        onChange(selectedTags.filter((tagId) => tagId !== id));
+        publishSelectedTags(selectedTagsRef.current.filter((tagId) => tagId !== id));
     };
 
-    const commitInput = async () => {
-        const name = cleanTagName(inputValue);
-        if (!name || selectedTags.length >= maxTags || isCommitting) return;
+    const removePendingTag = (key: string) => {
+        const nextPending = pendingTagsRef.current.filter((tag) => tag.key !== key);
+        pendingTagsRef.current = nextPending;
+        if (isMountedRef.current) setPendingTags(nextPending);
+    };
 
-        const exactMatch = [...suggestions, ...allTags].find(
+    const createInputTag = () => {
+        const name = cleanTagName(inputValue);
+        if (!name || selectedTagsRef.current.length + pendingTagsRef.current.length >= maxTags) return;
+
+        const exactMatch = allTags.find(
             (tag) => tag.name.toLowerCase() === name.toLowerCase()
         );
         if (exactMatch) {
@@ -105,26 +145,41 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
             return;
         }
 
-        setIsCommitting(true);
-        const newTag = await createTag(name);
-        if (newTag) {
-            setIsCommitting(false);
-            addTag(newTag);
+        if (pendingTagsRef.current.some((tag) => tag.name.toLowerCase() === name.toLowerCase())) {
+            resetInput();
             return;
         }
 
-        const existingTags = await searchTags(name);
-        const existingMatch = existingTags.find(
-            (tag) => tag.name.toLowerCase() === name.toLowerCase()
-        );
-        setIsCommitting(false);
-        if (existingMatch) addTag(existingMatch);
+        const pendingTag = {
+            key: `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            name
+        };
+        const nextPending = [...pendingTagsRef.current, pendingTag];
+        pendingTagsRef.current = nextPending;
+        setPendingTags(nextPending);
+        resetInput();
+
+        void (async () => {
+            const createdTag = await createTag(name);
+            const resolvedTag = createdTag || (await searchTags(name)).find(
+                (tag) => tag.name.toLowerCase() === name.toLowerCase()
+            );
+
+            if (!isMountedRef.current) return;
+            removePendingTag(pendingTag.key);
+            if (resolvedTag) {
+                addTag(resolvedTag, false);
+            } else {
+                setCommitError(`Could not create “${name}”. Try again.`);
+            }
+        })();
     };
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.nativeEvent.isComposing) return;
         if (event.key === 'ArrowDown') {
             event.preventDefault();
-            setFocusedIndex((current) => Math.min(current + 1, suggestions.length - 1));
+            setFocusedIndex((current) => Math.min(current < 0 ? 0 : current + 1, suggestions.length - 1));
             return;
         }
         if (event.key === 'ArrowUp') {
@@ -132,17 +187,20 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
             setFocusedIndex((current) => Math.max(current - 1, -1));
             return;
         }
-        if (event.key === 'Enter' || event.key === ',') {
+        if (event.key === 'Enter') {
             event.preventDefault();
-            if (focusedIndex >= 0 && suggestions[focusedIndex]) {
-                addTag(suggestions[focusedIndex]);
+            if (event.shiftKey) {
+                createInputTag();
+            } else if (suggestions.length > 0) {
+                addTag(suggestions[focusedIndex >= 0 ? focusedIndex : 0]);
             } else {
-                void commitInput();
+                setShowSuggestions(true);
+                setCommitError('No existing match. Press Shift + Enter to create this tag.');
             }
             return;
         }
-        if (event.key === 'Backspace' && !inputValue && selectedTags.length > 0) {
-            removeTag(selectedTags[selectedTags.length - 1]);
+        if (event.key === 'Backspace' && !inputValue && selectedTagsRef.current.length > 0) {
+            removeTag(selectedTagsRef.current[selectedTagsRef.current.length - 1]);
             return;
         }
         if (event.key === 'Escape') setShowSuggestions(false);
@@ -174,15 +232,28 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
                         </button>
                     </span>
                 ))}
+                {pendingTags.map((tag) => (
+                    <span key={tag.key} className="selected-tag-chip pending" aria-label={`Creating ${tag.name}`}>
+                        {tag.name}
+                        <small>saving…</small>
+                    </span>
+                ))}
                 <input
                     type="text"
                     aria-label={label}
-                    placeholder={selectedTags.length >= maxTags ? 'Tag limit reached' : 'Type a tag, then press Enter'}
+                    placeholder={selectedTags.length + pendingTags.length >= maxTags ? 'Tag limit reached' : 'Type to find or create a tag'}
                     value={inputValue}
-                    onChange={(event) => setInputValue(event.target.value)}
-                    disabled={selectedTags.length >= maxTags || isCommitting}
+                    onChange={(event) => {
+                        setInputValue(event.target.value);
+                        setCommitError(null);
+                    }}
+                    disabled={selectedTags.length + pendingTags.length >= maxTags}
                     onKeyDown={handleKeyDown}
-                    onFocus={() => normalizedInput && setShowSuggestions(true)}
+                    onFocus={() => {
+                        if (normalizedInput) setShowSuggestions(true);
+                    }}
+                    aria-activedescendant={focusedIndex >= 0 ? `tag-suggestion-${suggestions[focusedIndex]?.id}` : undefined}
+                    aria-autocomplete="list"
                 />
             </div>
 
@@ -191,6 +262,7 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
                     {suggestions.map((tag, index) => (
                         <button
                             key={tag.id}
+                            id={`tag-suggestion-${tag.id}`}
                             type="button"
                             role="option"
                             aria-selected={index === focusedIndex}
@@ -199,17 +271,19 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
                             onMouseEnter={() => setFocusedIndex(index)}
                         >
                             <span>#{tag.name}</span>
-                            <small>Use tag</small>
+                            <small>{index === 0 ? 'Enter · Best match' : 'Use tag'}</small>
                         </button>
                     ))}
                     {!hasExactMatch && (
-                        <button type="button" className="create-option" onClick={() => void commitInput()}>
+                        <button type="button" className="create-option" onClick={createInputTag}>
                             <span>Create “{normalizedInput}”</span>
-                            <small>Press Enter</small>
+                            <small>Shift + Enter</small>
                         </button>
                     )}
                 </div>
             )}
+            <div className="tag-input-help">Enter uses the best match · Shift + Enter creates exactly what you typed</div>
+            {commitError && <div className="tag-input-error" role="alert">{commitError}</div>}
 
             <style>{`
                 .tag-input-container { position:relative; min-width:0; }
@@ -241,6 +315,8 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
                     font:700 15px/1 var(--resources-font, sans-serif);
                 }
                 .selected-tag-chip button:hover { background:var(--pop-pink, #ff7eb5); color:var(--pop-ink, #15130f); }
+                .selected-tag-chip.pending { opacity:.72; }
+                .selected-tag-chip.pending small { font-size:.62rem; font-weight:800; text-transform:uppercase; }
                 .suggestions-dropdown {
                     position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:80; overflow:auto;
                     max-height:240px; padding:6px; border:1px solid var(--pop-border, rgba(21, 19, 15, 0.78)); border-radius:14px;
@@ -254,6 +330,9 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
                 .suggestions-dropdown button:hover,.suggestions-dropdown button.focused { background:var(--pop-yellow, #ffe44f); }
                 .suggestions-dropdown small { color:rgba(21, 19, 15, 0.7); font-size:.7rem; font-weight:700; text-transform:uppercase; }
                 .suggestions-dropdown .create-option { border-top:1px solid var(--pop-line, rgba(21, 19, 15, 0.24)); border-radius:0 0 8px 8px; color:var(--pop-ink, #15130f); }
+                .tag-input-help,.tag-input-error { margin-top:6px; font:650 .68rem/1.4 var(--resources-mono, monospace); }
+                .tag-input-help { color:rgba(21, 19, 15, 0.64); }
+                .tag-input-error { color:#b42318; }
             `}</style>
         </div>
     );

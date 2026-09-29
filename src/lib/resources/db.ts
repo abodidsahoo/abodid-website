@@ -154,20 +154,39 @@ export async function getApprovedResources(filters: ResourceFilters = {}): Promi
     return resources;
 }
 
+let allTagsCache: HubTag[] | null = null;
+let allTagsRequest: Promise<HubTag[]> | null = null;
+
+const mergeTagsIntoCache = (tags: HubTag[]) => {
+    if (!allTagsCache) return;
+    const unique = new Map(allTagsCache.map((tag) => [tag.id, tag]));
+    tags.forEach((tag) => unique.set(tag.id, tag));
+    allTagsCache = [...unique.values()].sort((left, right) => left.name.localeCompare(right.name));
+};
+
 export async function getAllTags(): Promise<HubTag[]> {
     if (!supabase) return [];
+    if (allTagsCache) return allTagsCache;
+    if (allTagsRequest) return allTagsRequest;
 
-    const { data, error } = await supabase
-        .from('hub_tags')
-        .select('*')
-        .order('name', { ascending: true });
+    allTagsRequest = (async () => {
+        const { data, error } = await supabase
+            .from('hub_tags')
+            .select('*')
+            .order('name', { ascending: true });
 
-    if (error) {
-        console.error('Error fetching tags:', error);
-        return [];
-    }
+        if (error) {
+            console.error('Error fetching tags:', error);
+            return [];
+        }
 
-    return data;
+        allTagsCache = data || [];
+        return allTagsCache;
+    })().finally(() => {
+        allTagsRequest = null;
+    });
+
+    return allTagsRequest;
 }
 
 export async function searchTags(query: string): Promise<HubTag[]> {
@@ -181,7 +200,9 @@ export async function searchTags(query: string): Promise<HubTag[]> {
         console.error('Error searching tags:', error);
         return [];
     }
-    return data;
+    const tags = data || [];
+    mergeTagsIntoCache(tags);
+    return tags;
 }
 
 export async function createTag(name: string): Promise<HubTag | null> {
@@ -197,6 +218,7 @@ export async function createTag(name: string): Promise<HubTag | null> {
         console.error('Error creating tag:', error);
         return null;
     }
+    mergeTagsIntoCache([data]);
     return data;
 }
 

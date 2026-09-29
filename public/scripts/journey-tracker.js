@@ -276,10 +276,10 @@
   var ANALYTICS_ENDPOINT = "/api/analytics/collect";
   var SESSION_TIMEOUT_MS = 30 * 60 * 1000;
   var IDLE_TIMEOUT_MS = 60 * 1000;
-  var HUMAN_ENGAGEMENT_THRESHOLD_SECONDS = 2;
-  var LONG_SESSION_CHECKPOINT_SECONDS = 90;
+  var HUMAN_ENGAGEMENT_THRESHOLD_SECONDS = 5;
+  var HIGH_INTENT_CHECKPOINT_SECONDS = 30;
+  var LONG_SESSION_CHECKPOINT_SECONDS = 60;
   var MAX_BUFFERED_EVENTS = 30;
-  var MAX_REPLAY_POINTS = 60;
 
   function analyticsSafeParse(value) {
     try {
@@ -482,7 +482,8 @@
   var sessionExpired = !storedState.sessionId || !lastActivityAt || now - lastActivityAt > SESSION_TIMEOUT_MS;
   var visitorId = getOrCreatePersistentVisitorId();
   var sessionId = sessionExpired ? createUuid() : storedState.sessionId;
-  var isReturningVisitor = Boolean(storedState.visitorId && (storedState.visitorId === visitorId || sessionExpired));
+  var isReturningVisitor = Boolean(storedState.isReturningVisitor) ||
+    Boolean(sessionExpired && storedState.visitorId && storedState.visitorId === visitorId);
   var landingPage = sessionExpired ? pathname : analyticsCleanString(storedState.landingPage || pathname, 240);
   var utm = sessionExpired ? readUtmParams() : (storedState.utm || readUtmParams());
   var initialReferrer = sessionExpired
@@ -493,10 +494,27 @@
   if (!visitorId || !sessionId) return;
 
   var pageEvents = Array.isArray(storedState.pageEvents) && !sessionExpired ? storedState.pageEvents : [];
-  pageEvents.push({ path: pathname, title: analyticsCleanString(document.title || "", 200), enteredAt: new Date().toISOString() });
+  var currentPageEvent = {
+    id: createUuid(),
+    path: pathname,
+    title: analyticsCleanString(document.title || "", 200),
+    enteredAt: new Date().toISOString(),
+    engagedSeconds: 0,
+  };
+  pageEvents.push(currentPageEvent);
+  if (pageEvents.length > 30) pageEvents = pageEvents.slice(-30);
 
   var bufferedEvents = Array.isArray(storedState.bufferedEvents) && !sessionExpired ? storedState.bufferedEvents : [];
-  var bufferedReplay = Array.isArray(storedState.bufferedReplay) && !sessionExpired ? storedState.bufferedReplay : [];
+  var signalSummary = !sessionExpired && storedState.signalSummary && typeof storedState.signalSummary === "object"
+    ? storedState.signalSummary
+    : {};
+  signalSummary.scrollCount = Number(signalSummary.scrollCount || 0);
+  signalSummary.maxScrollDepth = Number(signalSummary.maxScrollDepth || 0);
+  signalSummary.genuineClicks = Number(signalSummary.genuineClicks || 0);
+  signalSummary.pointerSamples = Number(signalSummary.pointerSamples || 0);
+  signalSummary.touchInteractions = Number(signalSummary.touchInteractions || 0);
+  signalSummary.keyInteractions = Number(signalSummary.keyInteractions || 0);
+  signalSummary.contentInteractions = Number(signalSummary.contentInteractions || 0);
   var hasConverted = Boolean(storedState.hasConverted);
   var conversionType = storedState.conversionType || null;
   var sessionStartTime = Date.now();
@@ -511,7 +529,8 @@
     lastActivityAt: now,
     pageEvents: pageEvents,
     bufferedEvents: bufferedEvents,
-    bufferedReplay: bufferedReplay,
+    signalSummary: signalSummary,
+    isReturningVisitor: isReturningVisitor,
     hasConverted: hasConverted,
     conversionType: conversionType,
   };
@@ -522,7 +541,9 @@
   var lastInteractionAt = performance.now();
   var focused = typeof document.hasFocus === "function" ? document.hasFocus() : true;
   var hasSentInitial = false;
+  var hasSentHighIntentCheckpoint = false;
   var hasSentLongCheckpoint = false;
+  var lastFlushAt = 0;
 
   function isActivelyViewing() {
     return document.visibilityState === "visible" && focused &&
@@ -547,6 +568,38 @@
     return Math.floor((engagedMilliseconds + activeMilliseconds) / 1000);
   }
 
+  function updateCurrentPageEngagement() {
+    currentPageEvent.engagedSeconds = Math.max(
+      Number(currentPageEvent.engagedSeconds || 0),
+      currentEngagedSeconds()
+    );
+    nextState.pageEvents = pageEvents;
+  }
+
+  function totalSessionEngagedSeconds() {
+    updateCurrentPageEngagement();
+    return pageEvents.reduce(function (total, page) {
+      return total + Math.max(0, Number(page.engagedSeconds || 0));
+    }, 0);
+  }
+
+  function persistClientState() {
+    pauseEngagement();
+    updateCurrentPageEngagement();
+    nextState.lastActivityAt = Date.now();
+    nextState.pageEvents = pageEvents;
+    nextState.signalSummary = signalSummary;
+    saveAnalyticsState(nextState);
+  }
+
+  function hasMeaningfulHumanSignals() {
+    var hasDirectInput = signalSummary.pointerSamples >= 2 ||
+      signalSummary.touchInteractions >= 1 || signalSummary.keyInteractions >= 1;
+    return totalSessionEngagedSeconds() >= HUMAN_ENGAGEMENT_THRESHOLD_SECONDS &&
+      signalSummary.scrollCount >= 1 && signalSummary.maxScrollDepth >= 0.12 &&
+      signalSummary.genuineClicks >= 1 && hasDirectInput;
+  }
+
   // Client-Side Intent Inference
   function calculateClientIntent() {
     var paths = pageEvents.map(function (p) { return p.path || ""; });
@@ -559,13 +612,13 @@
     if (isPhoto) return { category: "photography", score: 80 };
     if (isTech) return { category: "creative_tech", score: 80 };
     if (isFilm) return { category: "film_brand", score: 75 };
-    return { category: "general", score: Math.min(60, currentEngagedSeconds() * 2) };
+    return { category: "general", score: Math.min(60, totalSessionEngagedSeconds() * 2) };
   }
 
   // Client-Side Friction Diagnostics
   function calculateClientFriction() {
     var flags = [];
-    var totalSec = currentEngagedSeconds();
+    var totalSec = totalSessionEngagedSeconds();
     var paths = pageEvents.map(function (p) { return p.path || ""; });
     var hasPricing = paths.some(function (p) { return p.indexOf("payments") !== -1 || p.indexOf("pricing") !== -1; });
     var hasContact = paths.some(function (p) { return p.indexOf("contact") !== -1; });
@@ -606,18 +659,22 @@
     return { type: "desktop", label: "Laptop / Desktop" };
   }
 
-  // Send Single Unified Batched Session Snapshot (Only 2-4 calls total per entire visit)
+  // Send one compact snapshot. A normal qualified visit makes only 2-4 calls in total.
   function flushSessionSnapshot(preferBeacon) {
+    if (Date.now() - lastFlushAt < 800) return Promise.resolve();
+    lastFlushAt = Date.now();
+    var wasActive = activeSince !== null;
     pauseEngagement();
+    updateCurrentPageEngagement();
     var intent = calculateClientIntent();
     var friction = calculateClientFriction();
-    var totalSec = currentEngagedSeconds();
+    var totalSec = totalSessionEngagedSeconds();
     var device = getDeviceContext();
 
     nextState.lastActivityAt = Date.now();
     saveAnalyticsState(nextState);
 
-    return sendAnalyticsPayload({
+    var request = sendAnalyticsPayload({
       action: "session_snapshot",
       sessionId: sessionId,
       visitorId: visitorId,
@@ -635,27 +692,59 @@
       converted: hasConverted,
       conversionType: conversionType,
       frictionFlags: friction,
+      humanSignals: {
+        scrollCount: signalSummary.scrollCount,
+        maxScrollDepth: signalSummary.maxScrollDepth,
+        genuineClicks: signalSummary.genuineClicks,
+        pointerSamples: signalSummary.pointerSamples,
+        touchInteractions: signalSummary.touchInteractions,
+        keyInteractions: signalSummary.keyInteractions,
+        contentInteractions: signalSummary.contentInteractions,
+        formSubmitted: hasConverted,
+      },
+      pageViews: pageEvents.slice(-30).map(function (page, index) {
+        return {
+          id: page.id,
+          path: page.path,
+          title: page.title,
+          enteredAt: page.enteredAt,
+          engagedSeconds: Math.max(0, Number(page.engagedSeconds || 0)),
+          sequenceNumber: index + 1,
+        };
+      }),
       events: bufferedEvents.slice(-25),
-      replayData: bufferedReplay.slice(-60),
+      replayData: [],
     }, preferBeacon);
+    if (wasActive) resumeEngagement();
+    return request;
   }
 
   function scheduleInitialFlush() {
     if (hasSentInitial) return;
-    var timer = window.setTimeout(function () {
-      if (currentEngagedSeconds() >= HUMAN_ENGAGEMENT_THRESHOLD_SECONDS && !hasSentInitial) {
+    window.setTimeout(function () {
+      if (hasMeaningfulHumanSignals() && !hasSentInitial) {
         hasSentInitial = true;
         flushSessionSnapshot(false);
       }
-    }, 2500);
+    }, 5500);
   }
 
   function recordInteraction() {
     lastInteractionAt = performance.now();
     resumeEngagement();
 
-    // Check for long-session checkpoint
-    if (!hasSentLongCheckpoint && currentEngagedSeconds() >= LONG_SESSION_CHECKPOINT_SECONDS) {
+    if (!hasSentInitial && hasMeaningfulHumanSignals()) {
+      hasSentInitial = true;
+      flushSessionSnapshot(false);
+    }
+
+    var sessionSeconds = totalSessionEngagedSeconds();
+    if (!hasSentHighIntentCheckpoint && sessionSeconds >= HIGH_INTENT_CHECKPOINT_SECONDS && hasMeaningfulHumanSignals()) {
+      hasSentHighIntentCheckpoint = true;
+      flushSessionSnapshot(false);
+    }
+
+    if (!hasSentLongCheckpoint && sessionSeconds >= LONG_SESSION_CHECKPOINT_SECONDS && hasMeaningfulHumanSignals()) {
       hasSentLongCheckpoint = true;
       flushSessionSnapshot(false);
     }
@@ -672,17 +761,6 @@
     });
     nextState.bufferedEvents = bufferedEvents;
     saveAnalyticsState(nextState);
-  }
-
-  function pushReplayPoint(type, xNorm, yNorm) {
-    if (bufferedReplay.length >= MAX_REPLAY_POINTS) return;
-    var timeOffsetSec = Math.round((Date.now() - sessionStartTime) / 1000);
-    bufferedReplay.push([
-      type === "click" ? 1 : type === "scroll" ? 2 : 0,
-      Math.round(xNorm * 100),
-      Math.round(yNorm * 100),
-      timeOffsetSec,
-    ]);
   }
 
   // Dead / Rage Click detection
@@ -705,13 +783,14 @@
       return Math.abs(c.x - x) < 35 && Math.abs(c.y - y) < 35;
     });
 
-    var xNorm = window.innerWidth > 0 ? x / window.innerWidth : 0;
-    var yNorm = window.innerHeight > 0 ? y / window.innerHeight : 0;
-    pushReplayPoint("click", xNorm, yNorm);
-
     if (clusteredClicks.length >= 3 && !isInteractive) {
       pushEvent("dead_click", "Repeated clicks on non-interactive element");
     } else if (isInteractive) {
+      signalSummary.genuineClicks += 1;
+      if (target.closest("img, picture, video, audio, [data-gallery], [data-lightbox], [data-project-card]")) {
+        signalSummary.contentInteractions += 1;
+      }
+      nextState.signalSummary = signalSummary;
       var ctaText = analyticsCleanString(target.innerText || target.getAttribute("aria-label") || target.title || "CTA Button", 80);
       pushEvent("cta_click", ctaText);
     }
@@ -742,27 +821,46 @@
   // Sample pointer movement (throttled ~250ms for low compute overhead)
   var lastPointerMoveAt = 0;
   window.addEventListener("pointermove", function (e) {
+    if (e.isTrusted === false) return;
     var pNow = performance.now();
     if (pNow - lastPointerMoveAt < 250) return;
     lastPointerMoveAt = pNow;
-    var xNorm = window.innerWidth > 0 ? e.clientX / window.innerWidth : 0;
-    var yNorm = window.innerHeight > 0 ? e.clientY / window.innerHeight : 0;
-    pushReplayPoint("move", xNorm, yNorm);
+    signalSummary.pointerSamples = Math.min(10000, signalSummary.pointerSamples + 1);
+    nextState.signalSummary = signalSummary;
   }, { passive: true });
 
   window.addEventListener("pointerdown", function (e) {
+    if (e.isTrusted === false) return;
     recordInteraction();
     checkDeadOrRageClick(e);
   }, { passive: true });
 
-  window.addEventListener("keydown", recordInteraction, { passive: true });
-  window.addEventListener("touchstart", recordInteraction, { passive: true });
-
-  window.addEventListener("scroll", function () {
+  window.addEventListener("keydown", function (e) {
+    if (e.isTrusted === false) return;
+    signalSummary.keyInteractions = Math.min(1000, signalSummary.keyInteractions + 1);
+    nextState.signalSummary = signalSummary;
     recordInteraction();
+  }, { passive: true });
+  window.addEventListener("touchstart", function (e) {
+    if (e.isTrusted === false) return;
+    signalSummary.touchInteractions = Math.min(1000, signalSummary.touchInteractions + 1);
+    nextState.signalSummary = signalSummary;
+    recordInteraction();
+  }, { passive: true });
+
+  var lastScrollSampleAt = 0;
+  window.addEventListener("scroll", function (e) {
+    if (e.isTrusted === false) return;
+    var scrollNow = performance.now();
+    recordInteraction();
+    if (scrollNow - lastScrollSampleAt < 400) return;
+    lastScrollSampleAt = scrollNow;
     var docHeight = document.documentElement.scrollHeight || 1;
-    var yNorm = (window.scrollY || window.pageYOffset || 0) / docHeight;
-    pushReplayPoint("scroll", 0.5, yNorm);
+    var viewportBottom = (window.scrollY || window.pageYOffset || 0) + (window.innerHeight || 0);
+    var yNorm = Math.max(0, Math.min(1, viewportBottom / docHeight));
+    signalSummary.scrollCount = Math.min(1000, signalSummary.scrollCount + 1);
+    signalSummary.maxScrollDepth = Math.max(signalSummary.maxScrollDepth, yNorm);
+    nextState.signalSummary = signalSummary;
   }, { passive: true });
 
   window.addEventListener("focus", function () {
@@ -777,14 +875,16 @@
   // Final Flushes on Page Hide / Tab Change
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "hidden") {
-      flushSessionSnapshot(true);
+      if (hasSentInitial || hasConverted || hasMeaningfulHumanSignals()) flushSessionSnapshot(true);
+      else persistClientState();
     } else {
       recordInteraction();
     }
   });
 
   window.addEventListener("pagehide", function () {
-    flushSessionSnapshot(true);
+    if (hasSentInitial || hasConverted || hasMeaningfulHumanSignals()) flushSessionSnapshot(true);
+    else persistClientState();
   }, { capture: true });
 
   initFormListeners();
@@ -806,5 +906,3 @@
 
   resumeEngagement();
 })();
-
-

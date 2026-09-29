@@ -539,7 +539,7 @@ export default function AdminResourceManager() {
                                         maxTags={5}
                                         label="Resource tags"
                                     />
-                                    <small>Type a tag and press Enter. Repeat for each tag.</small>
+                                    <small>Enter uses the best match. Shift + Enter creates exactly what you typed.</small>
                                 </label>
                             </fieldset>
 

@@ -102,6 +102,149 @@ const formatGaDate = (value) => {
         : raw;
 };
 
+const numberValue = (row, index) => Number(row?.metricValues?.[index]?.value || 0);
+const dimensionValue = (row, index) => String(row?.dimensionValues?.[index]?.value || '');
+
+const classifyGa4Channel = (source, medium) => {
+    const value = `${source} ${medium}`.toLowerCase();
+    if (/chatgpt|openai|perplexity|claude|anthropic|gemini|bard|copilot|poe/.test(value)) return 'LLMs';
+    if (/google/.test(value)) return 'Google';
+    if (/linkedin|lnkd/.test(value)) return 'LinkedIn';
+    if (/bing|duckduckgo|yahoo|ecosia|baidu/.test(value)) return 'Other search';
+    if (/instagram|facebook|meta|twitter|t\.co|threads|reddit|youtube|pinterest/.test(value)) return 'Social';
+    if (source === '(direct)' || medium === '(none)' || /direct/.test(value)) return 'Direct';
+    return 'Other referrals';
+};
+
+const startDateForRange = (range) => ({
+    today: 'today',
+    '7d': '7daysAgo',
+    '30d': '30daysAgo',
+    '90d': '90daysAgo',
+}[range] || '7daysAgo');
+
+export const runGa4DashboardReport = async ({
+    range = '7d',
+    env = getRuntimeEnv(),
+    clientFactory = (credentials) => new BetaAnalyticsDataClient({ credentials }),
+} = {}) => {
+    const { propertyId, credentials } = resolveGa4Configuration(env);
+    const client = clientFactory(credentials);
+    const dateRanges = [{ startDate: startDateForRange(range), endDate: 'today' }];
+
+    try {
+        const [response] = await client.batchRunReports({
+            property: `properties/${propertyId}`,
+            requests: [
+                {
+                    dateRanges,
+                    metrics: [
+                        { name: 'sessions' },
+                        { name: 'totalUsers' },
+                        { name: 'newUsers' },
+                        { name: 'engagedSessions' },
+                        { name: 'averageSessionDuration' },
+                        { name: 'keyEvents' },
+                    ],
+                },
+                {
+                    dateRanges,
+                    dimensions: [{ name: 'sessionSource' }, { name: 'sessionMedium' }],
+                    metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'engagedSessions' }, { name: 'keyEvents' }],
+                    orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+                    limit: 30,
+                },
+                {
+                    dateRanges,
+                    dimensions: [{ name: 'country' }],
+                    metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'keyEvents' }],
+                    orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+                    limit: 30,
+                },
+                {
+                    dateRanges,
+                    dimensions: [{ name: 'landingPagePlusQueryString' }],
+                    metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'averageSessionDuration' }, { name: 'keyEvents' }],
+                    orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+                    limit: 40,
+                },
+                {
+                    dateRanges,
+                    dimensions: [{ name: 'pagePath' }],
+                    metrics: [{ name: 'screenPageViews' }, { name: 'userEngagementDuration' }],
+                    orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+                    limit: 40,
+                },
+            ],
+        });
+
+        const reports = response.reports || [];
+        const summaryRow = reports[0]?.rows?.[0];
+        const sources = (reports[1]?.rows || []).map((row) => {
+            const source = dimensionValue(row, 0);
+            const medium = dimensionValue(row, 1);
+            return {
+                source,
+                medium,
+                channel: classifyGa4Channel(source, medium),
+                sessions: numberValue(row, 0),
+                users: numberValue(row, 1),
+                engagedSessions: numberValue(row, 2),
+                keyEvents: numberValue(row, 3),
+            };
+        });
+
+        const channelMap = new Map();
+        for (const source of sources) {
+            const current = channelMap.get(source.channel) || { channel: source.channel, sessions: 0, users: 0, engagedSessions: 0, keyEvents: 0 };
+            current.sessions += source.sessions;
+            current.users += source.users;
+            current.engagedSessions += source.engagedSessions;
+            current.keyEvents += source.keyEvents;
+            channelMap.set(source.channel, current);
+        }
+
+        return {
+            available: true,
+            propertyId,
+            range,
+            summary: {
+                sessions: numberValue(summaryRow, 0),
+                users: numberValue(summaryRow, 1),
+                newUsers: numberValue(summaryRow, 2),
+                engagedSessions: numberValue(summaryRow, 3),
+                averageSessionDuration: Math.round(numberValue(summaryRow, 4)),
+                keyEvents: numberValue(summaryRow, 5),
+            },
+            channels: [...channelMap.values()].sort((a, b) => b.sessions - a.sessions),
+            sources,
+            countries: (reports[2]?.rows || []).map((row) => ({
+                country: dimensionValue(row, 0) || 'Unknown',
+                sessions: numberValue(row, 0),
+                users: numberValue(row, 1),
+                keyEvents: numberValue(row, 2),
+            })),
+            landingPages: (reports[3]?.rows || []).map((row) => ({
+                path: dimensionValue(row, 0) || '/',
+                sessions: numberValue(row, 0),
+                users: numberValue(row, 1),
+                averageSessionDuration: Math.round(numberValue(row, 2)),
+                keyEvents: numberValue(row, 3),
+            })),
+            pages: (reports[4]?.rows || []).map((row) => ({
+                path: dimensionValue(row, 0) || '/',
+                views: numberValue(row, 0),
+                engagementSeconds: Math.round(numberValue(row, 1)),
+            })),
+        };
+    } catch (error) {
+        error.category = classifyGa4Error(error);
+        throw error;
+    } finally {
+        await client.close?.();
+    }
+};
+
 export const runGa4SessionsReport = async ({
     env = getRuntimeEnv(),
     clientFactory = (credentials) => new BetaAnalyticsDataClient({ credentials }),
