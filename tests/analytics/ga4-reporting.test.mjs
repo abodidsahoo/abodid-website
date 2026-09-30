@@ -58,6 +58,7 @@ test('runs the required seven-day sessions report and distinguishes an empty suc
     assert.deepEqual(request.dateRanges, [{ startDate: '7daysAgo', endDate: 'yesterday' }]);
     assert.deepEqual(request.dimensions, [{ name: 'date' }]);
     assert.deepEqual(request.metrics, [{ name: 'sessions' }]);
+    assert.equal(request.dimensionFilter.andGroup.expressions[0].filter.fieldName, 'hostName');
     assert.equal(request.property, 'properties/497735650');
     assert.equal(result.empty, true);
     assert.equal(result.totalSessions, 0);
@@ -100,6 +101,8 @@ test('builds the dashboard from one batched GA4 request', async () => {
 
     assert.equal(request.requests.length, 5);
     assert.deepEqual(request.requests[0].dateRanges, [{ startDate: '30daysAgo', endDate: 'today' }]);
+    assert.equal(request.requests[0].dimensionFilter.andGroup.expressions[0].filter.fieldName, 'hostName');
+    assert.equal(request.requests[3].dimensionFilter.andGroup.expressions[1].notExpression.filter.fieldName, 'landingPagePlusQueryString');
     assert.equal(result.summary.sessions, 120);
     assert.equal(result.channels[0].channel, 'LLMs');
     assert.equal(result.countries[0].country, 'India');

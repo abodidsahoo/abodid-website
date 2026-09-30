@@ -8,6 +8,7 @@ import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
 import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
+import GoogleAnalytics from "../components/GoogleAnalytics.astro";
 import { ClientRouter } from "astro:transitions";
 import { getPageMetadata } from "../lib/api";
 import {
@@ -107,13 +108,7 @@ const googleFontsUrl =
 
 <html lang="en">
   <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-V07Z22DSVH"></script>
-    <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-V07Z22DSVH');
-    </script>
+    <GoogleAnalytics />
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/site.webmanifest" />

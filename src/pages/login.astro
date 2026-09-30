@@ -1017,7 +1017,6 @@ const description = "Log in or create an account to curate, submit, and bookmark
                             id: data.user.id,
                             username: safeUsername || buildBaseUsername(email),
                             full_name: fullName || buildBaseUsername(email),
-                            role: "user",
                         },
                         { onConflict: "id" },
                     );

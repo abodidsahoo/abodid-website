@@ -123,6 +123,35 @@ const startDateForRange = (range) => ({
     '90d': '90daysAgo',
 }[range] || '7daysAgo');
 
+const publicTrafficFilter = (pathDimension = 'pagePath') => ({
+    andGroup: {
+        expressions: [
+            {
+                filter: {
+                    fieldName: 'hostName',
+                    stringFilter: {
+                        matchType: 'FULL_REGEXP',
+                        value: '(^|\\.)abodid\\.com',
+                        caseSensitive: false,
+                    },
+                },
+            },
+            {
+                notExpression: {
+                    filter: {
+                        fieldName: pathDimension,
+                        stringFilter: {
+                            matchType: 'FULL_REGEXP',
+                            value: '/(admin|api|preview|test)(/.*)?|/.*([-_/])test(/.*)?|/hand-tracking-test/?|/landing-grid-test/?|/work/layout-preview/?|/research/admin(/.*)?|/resources/admin(/.*)?|/feedback/?|/unauthorized/?',
+                            caseSensitive: false,
+                        },
+                    },
+                },
+            },
+        ],
+    },
+});
+
 export const runGa4DashboardReport = async ({
     range = '7d',
     env = getRuntimeEnv(),
@@ -138,6 +167,7 @@ export const runGa4DashboardReport = async ({
             requests: [
                 {
                     dateRanges,
+                    dimensionFilter: publicTrafficFilter(),
                     metrics: [
                         { name: 'sessions' },
                         { name: 'totalUsers' },
@@ -149,6 +179,7 @@ export const runGa4DashboardReport = async ({
                 },
                 {
                     dateRanges,
+                    dimensionFilter: publicTrafficFilter(),
                     dimensions: [{ name: 'sessionSource' }, { name: 'sessionMedium' }],
                     metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'engagedSessions' }, { name: 'keyEvents' }],
                     orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
@@ -156,6 +187,7 @@ export const runGa4DashboardReport = async ({
                 },
                 {
                     dateRanges,
+                    dimensionFilter: publicTrafficFilter(),
                     dimensions: [{ name: 'country' }],
                     metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'keyEvents' }],
                     orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
@@ -163,6 +195,7 @@ export const runGa4DashboardReport = async ({
                 },
                 {
                     dateRanges,
+                    dimensionFilter: publicTrafficFilter('landingPagePlusQueryString'),
                     dimensions: [{ name: 'landingPagePlusQueryString' }],
                     metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'averageSessionDuration' }, { name: 'keyEvents' }],
                     orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
@@ -170,6 +203,7 @@ export const runGa4DashboardReport = async ({
                 },
                 {
                     dateRanges,
+                    dimensionFilter: publicTrafficFilter(),
                     dimensions: [{ name: 'pagePath' }],
                     metrics: [{ name: 'screenPageViews' }, { name: 'userEngagementDuration' }],
                     orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
@@ -256,6 +290,7 @@ export const runGa4SessionsReport = async ({
         const [response] = await client.runReport({
             property: `properties/${propertyId}`,
             dateRanges: [{ startDate: '7daysAgo', endDate: 'yesterday' }],
+            dimensionFilter: publicTrafficFilter(),
             dimensions: [{ name: 'date' }],
             metrics: [{ name: 'sessions' }],
             orderBys: [{ dimension: { dimensionName: 'date' } }],

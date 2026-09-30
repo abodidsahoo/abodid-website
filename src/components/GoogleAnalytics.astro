@@ -1,0 +1,57 @@
+<script>
+  import {
+    hasOwnerExclusionRequest,
+    shouldLoadGoogleAnalytics,
+  } from "../lib/analytics/google-tag-policy.js";
+
+  const measurementId = "G-V07Z22DSVH";
+
+  const excludeThisDevice = () => {
+    const isAbodidHost = /(^|\.)abodid\.com$/i.test(window.location.hostname);
+    const domain = isAbodidHost ? "; Domain=.abodid.com" : "";
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `abodid_analytics_exclude=1; Path=/; Max-Age=31536000; SameSite=Lax${secure}${domain}`;
+    try {
+      window.localStorage.setItem("abodid_analytics_exclude", "1");
+    } catch (_error) {
+      // Cookie exclusion remains available when storage is blocked.
+    }
+    (window as any)[`ga-disable-${measurementId}`] = true;
+  };
+
+  if (hasOwnerExclusionRequest(window.location.search)) excludeThisDevice();
+
+  let storageExcluded = false;
+  try {
+    storageExcluded = window.localStorage.getItem("abodid_analytics_exclude") === "1";
+  } catch (_error) {
+    // Use the cookie-only result.
+  }
+
+  const shouldLoad = shouldLoadGoogleAnalytics({
+    hostname: window.location.hostname,
+    pathname: window.location.pathname,
+    cookie: document.cookie,
+    storageExcluded,
+  });
+
+  (window as any).__abodidAnalyticsPrivacy = {
+    excluded: !shouldLoad,
+    excludeThisDevice,
+  };
+
+  if (shouldLoad) {
+    (window as any).dataLayer = (window as any).dataLayer || [];
+    (window as any).gtag = function gtag(...args: unknown[]) {
+      (window as any).dataLayer.push(args);
+    };
+    (window as any).gtag("js", new Date());
+    (window as any).gtag("config", measurementId);
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+    document.head.appendChild(script);
+  }
+</script>
+
