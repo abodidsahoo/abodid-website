@@ -15,6 +15,7 @@ import SeoStudio from './SeoStudio';
 import AnalyticsDashboard from './AnalyticsDashboardV2';
 import AdminPageHeader from './AdminPageHeader';
 import MediaLibrary from './MediaLibrary';
+import InstagramPublisher from './InstagramPublisher';
 import XRShowcaseManager from './XRShowcaseManager';
 import AdminResourceManager from './AdminResourceManager';
 import PhotographyManager from './PhotographyManager';
@@ -49,6 +50,7 @@ import {
     FolderOpen,
     FolderKanban,
     Images,
+    Instagram,
     LayoutTemplate,
     Library,
     LogOut,
@@ -110,6 +112,13 @@ const NAV_GROUPS = [
             { id: 'network_intelligence', label: 'Contacts', icon: Network },
             { id: 'newsletter', label: 'Newsletters', icon: Mail },
             { id: 'users', label: 'Members & Access', icon: UsersRound },
+        ],
+    },
+    {
+        id: 'social',
+        label: 'Social',
+        sections: [
+            { id: 'instagram', label: 'Instagram', icon: Instagram },
         ],
     },
     {
@@ -755,7 +764,7 @@ export default function AdminDashboard() {
             </aside>
 
             {/* Main Content Area */}
-            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' ? 'analytics-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'media_mentions' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
+            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' ? 'analytics-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'media_mentions' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'instagram' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
                 <div className="mobile-studio-bar">
                     <button
                         type="button"
@@ -1031,6 +1040,12 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
+                    {activeSection === 'instagram' && (
+                        <SectionErrorBoundary>
+                            <InstagramPublisher accessToken={session?.access_token} />
+                        </SectionErrorBoundary>
+                    )}
+
                     {activeSection === 'brands' && (
                         <SectionErrorBoundary>
                             <BrandManager />
@@ -1087,7 +1102,7 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'media_mentions' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'media_mentions' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'instagram' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
                         <SectionErrorBoundary key={activeSection}>
                             <ListView
                                 table={activeSection}

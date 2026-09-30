@@ -10,3 +10,8 @@ verify_jwt = false
 # GitHub Actions authenticates with the dedicated VAULT_SYNC_SECRET. The
 # service-role key remains inside Supabase and is never shared with GitHub.
 verify_jwt = false
+
+[functions.instagram-publisher]
+# The gateway verifies a Supabase JWT first. The function then requires either
+# an authenticated admin or the private Vault-backed token used by pg_cron.
+verify_jwt = true
