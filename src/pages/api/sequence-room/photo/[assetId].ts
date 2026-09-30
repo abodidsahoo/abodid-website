@@ -47,10 +47,19 @@ export const GET: APIRoute = async ({ params, request }) => {
         .eq('id', assetId)
         .eq('user_id', userId)
         .maybeSingle();
-    if (error || !asset) return sequenceRoomJson({ error: 'Photograph not found.' }, 404);
+    if (error) {
+        console.error('Sequence Room photo lookup failed:', error);
+        return sequenceRoomJson({ error: 'Photograph storage is temporarily unavailable.' }, 500);
+    }
+    if (!asset) return sequenceRoomJson({ error: 'Photograph not found.' }, 404);
 
     if (asset.is_library_asset) {
         return Response.redirect(asset.working_url, 302);
+    }
+
+    if (!asset.cloudflare_key) {
+        console.error('Sequence Room photo is missing its storage key:', asset.id);
+        return sequenceRoomJson({ error: 'Photograph storage is temporarily unavailable.' }, 500);
     }
 
     try {

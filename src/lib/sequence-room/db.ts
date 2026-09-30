@@ -41,7 +41,10 @@ const fetchOwnedPhotoUrl = async (assetId: string) => {
     const response = await fetch(`/api/sequence-room/photo/${encodeURIComponent(assetId)}`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
     });
-    if (!response.ok) throw new Error('A photograph could not be restored.');
+    if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'A photograph could not be restored.');
+    }
     return URL.createObjectURL(await response.blob());
 };
 
@@ -230,7 +233,11 @@ export async function uploadWorkingPhoto(
         if (key !== 'filename') form.append(key, String(value));
     });
     const data = await apiRequest('/api/sequence-room/upload', { method: 'POST', body: form });
-    data.item.image = await fetchOwnedPhotoUrl(data.item.assetId);
+    // The browser already has the exact working copy that was persisted. Use it
+    // immediately instead of making a second authenticated round trip. A failed
+    // restore request after a successful upload used to make the UI offer a retry,
+    // which uploaded the same photograph again and created duplicate records.
+    data.item.image = URL.createObjectURL(file);
     data.item.libraryAsset = false;
     return data.item;
 }
