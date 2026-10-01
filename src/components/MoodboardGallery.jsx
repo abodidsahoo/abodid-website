@@ -243,6 +243,33 @@ const DISCOVERY_PALETTES = [
 
 // Balanced middle-ground similarity cutoff (strict enough to prevent cross-hue bleed, wide enough for rich galleries)
 const MOOD_SIMILARITY_CUTOFF = 21;
+const MIN_DISPLAY_ASPECT_RATIO = 0.35;
+const MAX_DISPLAY_ASPECT_RATIO = 3.5;
+
+function getUsableAspectRatio(value) {
+    const ratio = Number(value);
+    if (!Number.isFinite(ratio)) return null;
+    if (ratio < MIN_DISPLAY_ASPECT_RATIO || ratio > MAX_DISPLAY_ASPECT_RATIO) return null;
+    return ratio;
+}
+
+function getItemAspectRatio(item) {
+    const storedRatio = getUsableAspectRatio(item?.aspectRatio);
+    if (storedRatio) return storedRatio;
+
+    const width = Number(item?.imageWidth);
+    const height = Number(item?.imageHeight);
+    if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+        const dimensionRatio = getUsableAspectRatio(width / height);
+        if (dimensionRatio) return dimensionRatio;
+    }
+
+    // Some imported GIFs have corrupt dimensions in the database (for example,
+    // a ratio of 0.003), which would otherwise create a card hundreds of
+    // thousands of pixels tall. Keep the placeholder stable until the browser
+    // reports the real dimensions in handleImageReady().
+    return 1;
+}
 
 function getPhotoMatchDistance(targetLab, palette) {
     if (!palette) return Infinity;
@@ -306,6 +333,7 @@ export default function MoodboardGallery({
     const [selectedSwatch, setSelectedSwatch] = useState(null); // { hex, name, lab, hsl }
     const [scrubbingColor, setScrubbingColor] = useState(null); // live preview during drag
     const [loadedImages, setLoadedImages] = useState(() => new Set());
+    const [resolvedAspectRatios, setResolvedAspectRatios] = useState(() => ({}));
     const [thumbPos, setThumbPos] = useState(null); // float 0..1
     const [hoverInfo, setHoverInfo] = useState(null); // { pos, hex, name }
     const [isDragging, setIsDragging] = useState(false);
@@ -346,6 +374,18 @@ export default function MoodboardGallery({
             return next;
         });
     }, []);
+
+    const handleImageReady = useCallback((item, image) => {
+        if (!image?.complete || image.naturalWidth <= 0 || image.naturalHeight <= 0) return;
+
+        markImageLoaded(item.id);
+
+        const naturalRatio = getUsableAspectRatio(image.naturalWidth / image.naturalHeight) || 1;
+        setResolvedAspectRatios((prev) => {
+            if (prev[item.id] === naturalRatio) return prev;
+            return { ...prev, [item.id]: naturalRatio };
+        });
+    }, [markImageLoaded]);
 
     const syncUrl = useCallback((id) => {
         if (typeof window === 'undefined' || !deepLinkParam) return;
@@ -698,7 +738,7 @@ export default function MoodboardGallery({
                 {filteredPhotos.map((item, index) => {
                     const palette = getPhotoPalette(item);
                     const dominantBg = palette?.dominantHex || '#eadfce';
-                    const aspectRatio = item.aspectRatio || (item.imageWidth && item.imageHeight ? (item.imageWidth / item.imageHeight) : undefined);
+                    const aspectRatio = resolvedAspectRatios[item.id] || getItemAspectRatio(item);
                     const isLoaded = loadedImages.has(item.id);
 
                     return (
@@ -724,12 +764,15 @@ export default function MoodboardGallery({
                                     aria-label={`Open ${item.title}`}
                                 >
                                     <img
+                                        ref={(image) => {
+                                            handleImageReady(item, image);
+                                        }}
                                         src={item.thumbnailUrl}
                                         alt={item.title}
                                         loading={index < 8 ? 'eager' : 'lazy'}
-                                        fetchPriority={index < 4 ? 'high' : 'low'}
+                                        fetchpriority={index < 4 ? 'high' : 'low'}
                                         decoding="async"
-                                        onLoad={() => markImageLoaded(item.id)}
+                                        onLoad={(event) => handleImageReady(item, event.currentTarget)}
                                         className={`boudoir-photo-img ${isLoaded ? 'is-loaded' : ''}`}
                                         style={aspectRatio ? { aspectRatio: String(aspectRatio) } : undefined}
                                     />
@@ -763,7 +806,7 @@ export default function MoodboardGallery({
                 />
             )}
 
-            <style>{`
+            <style dangerouslySetInnerHTML={{ __html: `
                 .boudoir-moodboard-wrapper {
                     width: 100%;
                 }
@@ -1211,7 +1254,7 @@ export default function MoodboardGallery({
                 @media (max-width: 480px) {
                     .boudoir-static-grid { columns: 1; }
                 }
-            `}</style>
+            ` }} />
         </div>
     );
 }

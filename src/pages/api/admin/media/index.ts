@@ -27,6 +27,7 @@ const MEDIA_COLUMNS = [
     "updated_at",
     "processing_status",
     "processing_error",
+    "metadata",
     "media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)",
 ].join(",");
 
@@ -85,6 +86,7 @@ export const GET: APIRoute = async ({ request }) => {
         const files = browser.files.map((object) => {
             const asset = catalogue.get(object.objectKey);
             const mimeType = asset?.mime_type || inferR2MimeType(object.objectKey);
+            const instagramAsset = asset?.metadata?.instagramAsset || null;
             return {
                 id: asset?.id || object.objectKey,
                 objectKey: object.objectKey,
@@ -103,6 +105,7 @@ export const GET: APIRoute = async ({ request }) => {
                 catalogued: Boolean(asset),
                 processingStatus: asset?.processing_status || (asset ? "uploaded" : "uncatalogued"),
                 processingError: asset?.processing_error || null,
+                instagramAsset,
                 variants: mapVariants(asset?.media_variants, browser.config),
             };
         });
