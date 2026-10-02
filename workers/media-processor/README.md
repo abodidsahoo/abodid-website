@@ -2,11 +2,16 @@
 
 Queue consumer for R2 `object-create` notifications under `photos/originals/`.
 It creates permanent 800/1600 WebP variants, stores them back in the `assets`
-bucket, and updates the Supabase media catalogue.
+bucket, and updates the Supabase media catalogue. GIF uploads stay animated but
+are delivered as compressed animated WebP variants.
 
 Both variant records and files are created for every supported original. Images
 smaller than a target width use `scale-down`, so they are compressed into both
 variant folders without being enlarged.
+
+The main moodboard uses the 800px record in the masonry grid and the 1600px
+record in the opened viewer, falling back to the original only while a variant
+is unavailable.
 
 The Worker requires two encrypted secrets:
 

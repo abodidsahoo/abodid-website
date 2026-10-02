@@ -1,0 +1,446 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { growthPartnershipsRole as role } from "../../data/careers";
+import {
+    breadcrumbJsonLd,
+    personJsonLd,
+    seoIdentity,
+} from "../../lib/seoData";
+import "../../styles/careers.css";
+
+const pagePath = `/careers/${role.slug}`;
+const pageTitle = `${role.title} — Careers with Abodid Sahoo`;
+const description =
+    "A paid, remote Growth & Partnerships internship working directly with Abodid Sahoo on Obsidian tutoring outreach, qualified leads, partnerships, and opportunity intelligence.";
+const applicationSubject = "Application — Growth & Partnerships Fellow 2026";
+const applicationBody = `Hello Abodid,
+
+I would like to apply for the Growth & Partnerships Fellow role.
+
+My introduction:
+
+CV / portfolio / LinkedIn:
+
+An example of something I researched, organised, sold, or initiated independently:
+
+Five suitable prospects for the Obsidian tutoring practice:
+
+One sample outreach email:
+
+Location and time zone:
+
+Availability and preferred start date:
+`;
+const applicationHref = `mailto:${seoIdentity.email}?subject=${encodeURIComponent(applicationSubject)}&body=${encodeURIComponent(applicationBody)}`;
+
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Careers", path: "/careers" },
+        { name: role.title, path: pagePath },
+    ]),
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "@id": `${seoIdentity.siteUrl}${pagePath}#role`,
+        url: `${seoIdentity.siteUrl}${pagePath}`,
+        name: pageTitle,
+        description,
+        about: {
+            "@id": seoIdentity.personId,
+        },
+    },
+];
+
+const metaItems = [
+    ["Location", role.location],
+    ["Format", role.engagement],
+    ["Commitment", role.commitment],
+    ["Stipend", role.stipend],
+    ["Commission", role.commission],
+    ["Duration", role.duration],
+];
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={description}
+    canonicalUrl={`${seoIdentity.siteUrl}${pagePath}`}
+    structuredData={structuredData}
+    fullWidth={true}
+    showGlobalGrid={false}
+    showNewsletterPopup={false}
+    showFooterNavigation={false}
+    bodyClass="career-role-page"
+>
+    <div class="career-shell">
+        <div class="career-frame">
+            <header class="career-hero">
+                <div class="career-hero__primary">
+                    <p class="career-kicker">
+                        Independent creative practice · 2026 internship
+                    </p>
+                    <div>
+                        <h1>{role.title}</h1>
+                        <p class="career-hero__intro">
+                            Work directly with Abodid Sahoo to build the outreach,
+                            partnerships, and opportunity-intelligence function of an
+                            international creative and research practice.
+                        </p>
+                    </div>
+                </div>
+
+                <aside class="career-hero__aside" aria-label="Application summary">
+                    <span class="career-status">Applications open</span>
+                    <p class="career-hero__aside-copy">
+                        A small, high-trust role for a curious researcher, communicator,
+                        and relationship builder.
+                    </p>
+                    <a class="career-apply-link" href={applicationHref}>
+                        <span>Apply by email</span>
+                        <span class="career-arrow" aria-hidden="true">↗</span>
+                    </a>
+                </aside>
+            </header>
+
+            <section class="career-meta-band" aria-label="Role overview">
+                {
+                    metaItems.map(([label, value]) => (
+                        <div class="career-meta-item">
+                            <span class="career-meta-label">{label}</span>
+                            <span class="career-meta-value">{value}</span>
+                        </div>
+                    ))
+                }
+            </section>
+
+            <article class="career-document">
+                <div class="career-document__inner">
+                    <aside class="career-toc" aria-label="On this page">
+                        <p class="career-toc__label">On this page</p>
+                        <nav>
+                            <a href="#about">About the practice</a>
+                            <a href="#opportunity">The opportunity</a>
+                            <a href="#mission">Primary mission</a>
+                            <a href="#responsibilities">What you will do</a>
+                            <a href="#targets">Working targets</a>
+                            <a href="#fit">Who should apply</a>
+                            <a href="#compensation">Compensation</a>
+                            <a href="#receive">What you receive</a>
+                            <a href="#apply">How to apply</a>
+                        </nav>
+                    </aside>
+
+                    <div class="career-prose">
+                        <section id="about" aria-labelledby="about-heading">
+                            <p class="career-section-kicker">01 · Context</p>
+                            <h2 id="about-heading">About the practice</h2>
+                            <p>
+                                Abodid Sahoo is a creative director, artist, researcher,
+                                and educator working across London and Bengaluru.
+                            </p>
+                            <p>
+                                An alumnus of the Royal College of Art and a recipient of
+                                the Apple Scholarship, his work connects research,
+                                filmmaking, photography, cultural institutions, emerging
+                                technology, and participatory experiences. His practice has
+                                included work with organisations and spaces such as the
+                                Royal College of Art, the British Film Institute, Outernet
+                                London, Frameless, Wieden+Kennedy, and Odisha Tourism.
+                            </p>
+                            <p>
+                                Alongside his creative and research work, Abodid offers
+                                specialised one-to-one <a href="/obsidian-tutoring">Obsidian tutoring</a>
+                                and knowledge-system architecture for film directors,
+                                creative directors, researchers, academics, founders,
+                                writers, and other professionals managing complex bodies of
+                                information.
+                            </p>
+                        </section>
+
+                        <section id="opportunity" aria-labelledby="opportunity-heading">
+                            <p class="career-section-kicker">02 · The role</p>
+                            <h2 id="opportunity-heading">The opportunity</h2>
+                            <p>
+                                This is an opportunity to help build the growth and
+                                partnerships function of an independent international
+                                creative practice from an early stage.
+                            </p>
+                            <p>
+                                You will work directly with Abodid to identify the right
+                                audiences for his Obsidian tutoring, develop carefully
+                                researched prospect lists, run thoughtful outreach, manage
+                                a growing commercial pipeline, and turn relevant
+                                conversations into paid tutoring engagements.
+                            </p>
+                            <div class="career-note">
+                                <p>
+                                    <strong>This is not a conventional personal-assistant internship.</strong>
+                                    The role centres on commercial research, relationship
+                                    development, outreach strategy, opportunity intelligence,
+                                    and the creation of repeatable growth systems.
+                                </p>
+                            </div>
+                            <p>
+                                It may particularly suit someone interested in business
+                                development, founder’s-office roles, partnerships, creative
+                                entrepreneurship, research, consulting, or international
+                                education.
+                            </p>
+                        </section>
+
+                        <section id="mission" aria-labelledby="mission-heading">
+                            <p class="career-section-kicker">03 · Priority</p>
+                            <h2 id="mission-heading">Your primary mission</h2>
+                            <p>
+                                Your main objective will be to generate qualified leads for
+                                bespoke Obsidian tutoring and mentorship.
+                            </p>
+                            <p>The priority audiences include:</p>
+                            <ul>
+                                <li>Film directors, producers, screenwriters, and creative directors</li>
+                                <li>PhD researchers, academics, principal investigators, and research teams</li>
+                                <li>Authors, journalists, essayists, and newsletter writers</li>
+                                <li>Startup founders, CEOs, consultants, and independent professionals</li>
+                                <li>Archivists, curators, and people managing complex creative or cultural collections</li>
+                                <li>Universities, creative studios, research organisations, and professional communities that could commission workshops or refer participants</li>
+                            </ul>
+                            <p>
+                                You will help define each audience, understand its problems,
+                                find appropriate people, and communicate why a tailored
+                                Obsidian system could improve that person’s research or
+                                creative workflow.
+                            </p>
+                        </section>
+
+                        <section id="responsibilities" aria-labelledby="responsibilities-heading">
+                            <p class="career-section-kicker">04 · Responsibilities</p>
+                            <h2 id="responsibilities-heading">What you will do</h2>
+
+                            <h3>Lead research and qualification</h3>
+                            <ul>
+                                <li>Build carefully filtered lists of prospective tutoring clients and institutional partners.</li>
+                                <li>Research each prospect’s professional identity, current role, organisation, projects, interests, and likely knowledge-management challenges.</li>
+                                <li>Use public and professionally appropriate sources to verify information.</li>
+                                <li>Record the reason each prospect is a strong fit—not simply their contact details.</li>
+                                <li>Develop distinct customer personas for filmmakers, researchers, founders, writers, and other priority groups.</li>
+                                <li>Identify communities, universities, studios, laboratories, professional associations, and events where suitable clients may be found.</li>
+                            </ul>
+
+                            <h3>Outreach and relationship development</h3>
+                            <ul>
+                                <li>Write concise, personalised cold emails and professional messages.</li>
+                                <li>Adapt outreach according to the recipient’s discipline, work, and likely Obsidian use case.</li>
+                                <li>Manage follow-up sequences without becoming repetitive or intrusive.</li>
+                                <li>Respond to interested prospects using agreed messaging and supporting material.</li>
+                                <li>Schedule qualified discovery calls with Abodid.</li>
+                                <li>Identify referral, workshop, institutional, and community partnerships.</li>
+                                <li>Maintain a professional opt-out and do-not-contact process.</li>
+                            </ul>
+                            <div class="career-note">
+                                <p>
+                                    WhatsApp should primarily be used for warm contacts,
+                                    opted-in prospects, or ongoing conversations. Initial
+                                    cold outreach should generally use suitable professional
+                                    email or LinkedIn channels.
+                                </p>
+                            </div>
+
+                            <h3>Pipeline and sales operations</h3>
+                            <ul>
+                                <li>Maintain an accurate Airtable, CRM, or Google Sheets pipeline.</li>
+                                <li>Track where each lead came from, what was sent, responses, objections, follow-ups, and next actions.</li>
+                                <li>Help develop outreach scripts, follow-up templates, case studies, testimonials, and sales-support material.</li>
+                                <li>Review response and conversion data to improve the target personas and messaging.</li>
+                                <li>Prepare short weekly reports covering activity, responses, discoveries, problems, and next experiments.</li>
+                                <li>Help convert genuinely interested prospects into paid introductory or specialist tutoring sessions.</li>
+                            </ul>
+
+                            <h3>Opportunity intelligence</h3>
+                            <p>A smaller part of the role will involve monitoring and organising:</p>
+                            <ul>
+                                <li>Calls for conference papers and research abstracts</li>
+                                <li>Speaking, panel, podcast, and guest-lecture opportunities</li>
+                                <li>Exhibitions, festivals, residencies, and open calls</li>
+                                <li>Relevant creative-direction, research, academic, and cultural-sector opportunities</li>
+                                <li>Events and communities where Abodid could teach, speak, exhibit, or develop partnerships</li>
+                            </ul>
+                            <p>
+                                You will provide a concise weekly shortlist containing the
+                                opportunity, deadline, eligibility, relevance, required
+                                material, and recommended next step.
+                            </p>
+
+                            <h3>Systems and content support</h3>
+                            <ul>
+                                <li>Use Abodid’s existing content-management system to keep selected information current.</li>
+                                <li>Schedule pre-approved social posts when required.</li>
+                                <li>Turn recurring activities into checklists, templates, and documented workflows.</li>
+                                <li>Use Claude, ChatGPT, or other AI tools thoughtfully for research synthesis, personalisation drafts, classification, and structured tables.</li>
+                                <li>Keep human judgment at the centre of all communication; unreviewed mass-generated outreach is not part of this role.</li>
+                            </ul>
+                        </section>
+
+                        <section id="targets" aria-labelledby="targets-heading">
+                            <p class="career-section-kicker">05 · Measures</p>
+                            <h2 id="targets-heading">Working targets</h2>
+                            <div class="career-target-card">
+                                <ul>
+                                    <li>Research approximately 25–30 qualified prospects per active prospecting day.</li>
+                                    <li>Send 10–15 carefully personalised first-contact messages per day.</li>
+                                    <li>Complete timely follow-ups and maintain accurate pipeline records.</li>
+                                    <li>Work towards at least three positive or sales-qualified conversations per week.</li>
+                                    <li>Produce one useful opportunity-intelligence digest each week.</li>
+                                    <li>Improve messaging and conversion quality based on actual response data.</li>
+                                </ul>
+                            </div>
+                            <p>
+                                These are working benchmarks, not a promise that every
+                                prospect will reply or purchase. Targets will be reviewed
+                                after the first four weeks based on audience quality and
+                                campaign performance.
+                            </p>
+                        </section>
+
+                        <section id="fit" aria-labelledby="fit-heading">
+                            <p class="career-section-kicker">06 · Candidate</p>
+                            <h2 id="fit-heading">Who would be a strong fit</h2>
+                            <p>
+                                You may be a college student, recent graduate, independent
+                                professional, or someone moving into outreach, partnerships,
+                                or sales. Applicants must be aged 18 or above.
+                            </p>
+                            <p>You should have:</p>
+                            <ul>
+                                <li>Excellent written English and the ability to write naturally rather than from generic templates.</li>
+                                <li>Strong online research and verification skills.</li>
+                                <li>Curiosity about people’s work and the ability to identify a genuine reason for contacting them.</li>
+                                <li>Good judgment, tact, and respect for privacy.</li>
+                                <li>Comfort working independently in a remote environment.</li>
+                                <li>The discipline to maintain clean records and follow through on conversations.</li>
+                                <li>An interest in creative practice, filmmaking, research, education, knowledge management, or cultural work.</li>
+                                <li>Confidence communicating through email and, where appropriate, WhatsApp.</li>
+                                <li>An experimental mindset: form a hypothesis, test it, measure the response, and improve it.</li>
+                            </ul>
+
+                            <h3>Particularly useful experience</h3>
+                            <p>Experience with any of the following would be valuable, but is not mandatory:</p>
+                            <ul>
+                                <li>Apollo, Clay, Hunter, LinkedIn Sales Navigator, or similar prospecting tools</li>
+                                <li>Airtable, Notion, Google Sheets, or lightweight CRM systems</li>
+                                <li>Cold email, business development, partnerships, or lead qualification</li>
+                                <li>Claude, ChatGPT, agentic workflows, and structured AI prompting</li>
+                                <li>Content-management systems and social scheduling</li>
+                                <li>Obsidian or other personal knowledge-management tools</li>
+                                <li>Academic research, creative industries, filmmaking, cultural institutions, or international education</li>
+                            </ul>
+                        </section>
+
+                        <section id="compensation" aria-labelledby="compensation-heading">
+                            <p class="career-section-kicker">07 · Terms</p>
+                            <h2 id="compensation-heading">Compensation</h2>
+                            <div class="career-compensation-card">
+                                <p>
+                                    The internship includes a fixed stipend of
+                                    <strong>₹10,000 per month</strong> and a
+                                    <strong>30% commission</strong> on eligible Obsidian
+                                    tutoring sales directly attributable to leads sourced
+                                    and developed by you.
+                                </p>
+                                <div class="career-commission-examples" aria-label="Commission examples">
+                                    <div class="career-commission-example">
+                                        <span>£900 qualifying package</span>
+                                        <strong>£270 commission</strong>
+                                    </div>
+                                    <div class="career-commission-example">
+                                        <span>£60 qualifying session</span>
+                                        <strong>£18 commission</strong>
+                                    </div>
+                                </div>
+                                <p>
+                                    Commission eligibility, attribution, payment timing,
+                                    refunds, cancellations, taxes, and renewal sales will be
+                                    defined clearly in the written internship agreement. The
+                                    fixed stipend is not conditional on making a sale.
+                                </p>
+                            </div>
+                        </section>
+
+                        <section id="receive" aria-labelledby="receive-heading">
+                            <p class="career-section-kicker">08 · Development</p>
+                            <h2 id="receive-heading">What you will receive</h2>
+                            <ul>
+                                <li>Direct weekly mentoring and feedback from Abodid.</li>
+                                <li>Practical experience building an international outreach and sales system from the ground up.</li>
+                                <li>Exposure to the working processes behind creative direction, research, education, exhibitions, and independent consulting.</li>
+                                <li>A formal role title and written internship agreement.</li>
+                                <li>A signed certificate upon satisfactory completion of the internship.</li>
+                                <li>A detailed reference letter based on demonstrated work and performance.</li>
+                                <li>Permission to document suitable non-confidential systems or outcomes in your portfolio.</li>
+                                <li>Relevant introductions, where appropriate, across Abodid’s extended Royal College of Art, NID, NIT, creative-industry, and research networks.</li>
+                            </ul>
+                            <div class="career-note">
+                                <p>
+                                    Introductions and third-party recommendations cannot be
+                                    guaranteed; they will depend on relevance, performance,
+                                    and the strength of the relationship developed during the
+                                    internship.
+                                </p>
+                            </div>
+                        </section>
+
+                        <section id="apply" aria-labelledby="apply-heading">
+                            <p class="career-section-kicker">09 · Application</p>
+                            <h2 id="apply-heading">How to apply</h2>
+                            <p>Please send:</p>
+                            <ol>
+                                <li>A short introduction explaining why this role interests you.</li>
+                                <li>Your CV, portfolio, LinkedIn profile, or another professional profile.</li>
+                                <li>An example of a time you researched, persuaded, organised, sold, or initiated something independently.</li>
+                                <li>A sample list of five people or organisations you believe could be suitable for Abodid’s Obsidian tutoring.</li>
+                                <li>One short example outreach email to one person on your sample list.</li>
+                                <li>Your location, time zone, availability, and preferred start date.</li>
+                            </ol>
+                            <p>
+                                The sample exercise should take no more than 45 minutes. It
+                                is used only to understand your research and communication
+                                process; applicants will not be asked to contact the prospects.
+                            </p>
+                            <p>
+                                Applications are welcomed from people of all ethnicities,
+                                nationalities, genders, disciplines, and career backgrounds.
+                                Selection will be based on judgment, curiosity, communication
+                                quality, reliability, and demonstrated ability—not
+                                institutional pedigree.
+                            </p>
+                        </section>
+                    </div>
+                </div>
+            </article>
+
+            <section class="career-cta" aria-labelledby="career-cta-heading">
+                <div>
+                    <h2 id="career-cta-heading">Build this with me.</h2>
+                    <p>
+                        If you are thoughtful about people, serious about follow-through,
+                        and excited by the overlap between research and growth, I would like
+                        to hear from you.
+                    </p>
+                </div>
+                <a class="career-cta__button" href={applicationHref}>
+                    <span>Start your application</span>
+                    <span class="career-arrow" aria-hidden="true">↗</span>
+                </a>
+            </section>
+
+            <div class="career-back-row">
+                <a class="career-back-link" href="/careers">
+                    <span aria-hidden="true">←</span>
+                    <span>View all careers</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+

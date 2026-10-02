@@ -1,0 +1,76 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { careerRoles } from "../../data/careers";
+import { breadcrumbJsonLd, personJsonLd } from "../../lib/seoData";
+import "../../styles/careers.css";
+
+const pageTitle = "Careers with Abodid Sahoo";
+const description =
+    "Open roles working directly with Abodid Sahoo across creative practice, research, education, growth, partnerships, and independent cultural work.";
+
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Careers", path: "/careers" },
+    ]),
+];
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={description}
+    structuredData={structuredData}
+    fullWidth={true}
+    showGlobalGrid={false}
+    showNewsletterPopup={false}
+    showFooterNavigation={false}
+    bodyClass="careers-page"
+>
+    <div class="careers-shell">
+        <div class="careers-frame">
+            <header class="careers-hero">
+                <p class="career-kicker">Independent practice · Open roles</p>
+                <div>
+                    <h1>Careers</h1>
+                    <p class="careers-hero__copy">
+                        Work directly with Abodid Sahoo across creative practice,
+                        research, education, growth, and cultural work. These are
+                        small, high-trust roles built around ownership and learning.
+                    </p>
+                </div>
+            </header>
+
+            <section class="careers-listing" aria-labelledby="open-roles-title">
+                <div class="careers-listing__header">
+                    <h2 id="open-roles-title">Open roles</h2>
+                    <p>{careerRoles.length} current opening</p>
+                </div>
+
+                {
+                    careerRoles.map((role, index) => (
+                        <article class="careers-card">
+                            <div>
+                                <p class="career-card__number">
+                                    Role {String(index + 1).padStart(2, "0")} · {role.status}
+                                </p>
+                                <h3>{role.title}</h3>
+                                <p class="careers-card__summary">{role.summary}</p>
+                                <div class="careers-card__meta" aria-label="Role details">
+                                    <span>{role.location}</span>
+                                    <span>{role.commitment}</span>
+                                    <span>{role.stipend}</span>
+                                </div>
+                            </div>
+                            <a class="careers-card__link" href={`/careers/${role.slug}`}>
+                                <span>Read the role</span>
+                                <span class="career-arrow" aria-hidden="true">↗</span>
+                            </a>
+                        </article>
+                    ))
+                }
+            </section>
+        </div>
+    </div>
+</BaseLayout>
+

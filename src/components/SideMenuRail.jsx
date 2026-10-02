@@ -4,6 +4,7 @@ import Breadcrumbs from "./Breadcrumbs";
 import ThemeToggle from "./ThemeToggle.jsx";
 import { NAVIGATION_LAYOUTS } from "../config/siteVariants.js";
 import { externalProfiles } from "../lib/seoData";
+import { CV_DOWNLOAD_URL } from "../lib/cv";
 
 const primaryLinks = [
   { href: "/services", label: "Hire Me" },
@@ -61,8 +62,8 @@ const secondaryGroups = [
       { href: "/experience", label: "Experience" },
       { href: "/press", label: "Press" },
       {
-        href: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf",
-        label: "CV",
+        href: CV_DOWNLOAD_URL,
+        label: "CV/Resume",
         target: "_blank",
       },
     ],

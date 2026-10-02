@@ -6,8 +6,8 @@ import {
     setAuthCookie,
     checkRateLimit,
 } from '../../../lib/opportunities/auth';
-import { canonicalizeCaptureUrl, computeContentHash, fetchWebpageContent } from '../../../lib/opportunities/scraper';
-import { extractOpportunityWithLLM, parseDeadline, parseEventDate } from '../../../lib/opportunities/extractor';
+import { canonicalizeCaptureUrl, computeContentHash, fetchWebpageContent, prioritizeOpportunityText } from '../../../lib/opportunities/scraper';
+import { extractOpportunityWithLLM, resolveOpportunityDeadline, parseEventDate } from '../../../lib/opportunities/extractor';
 import { formatOpportunityTitle } from '../../../lib/opportunities/ui-helpers';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
 import type { Opportunity } from '../../../lib/opportunities/types';
@@ -108,12 +108,13 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 
         if (providedText && typeof providedText === 'string' && providedText.trim().length > 100) {
             // Direct text provided from Chrome Extension
-            cleanText = providedText.trim().slice(0, 12000);
+            cleanText = prioritizeOpportunityText(providedText.trim());
         } else {
             // Server-side fetch & clean
             try {
                 const fetched = await fetchWebpageContent(canonicalUrl);
                 cleanText = fetched.text;
+                pageTitle = pageTitle || fetched.title;
             } catch (fetchErr: any) {
                 return new Response(JSON.stringify({
                     error: `Could not fetch opportunity webpage: ${fetchErr?.message || 'Fetch failed'}. You can still create it manually.`,
@@ -160,7 +161,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
         const { data: llmData, model: usedModel } = extractedResult;
 
         // 7. Parse deadlines and dates deterministically
-        const parsedDeadline = parseDeadline(llmData.deadline, llmData.timezone);
+        const parsedDeadline = resolveOpportunityDeadline(llmData.deadline, llmData.timezone, cleanText);
         const parsedEventDate = parseEventDate(
             llmData.event_date,
             typeof capturedAt === 'string' ? capturedAt : undefined,

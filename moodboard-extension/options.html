@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Send to Moodboard settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">ABODID</p>
+      <h1>Send to Moodboard</h1>
+      <p class="intro">Right-click any web image and send its original file straight to your private R2 moodboard folder.</p>
+
+      <form id="settings-form">
+        <label for="api-base">Moodboard API</label>
+        <input id="api-base" name="api-base" type="url" required />
+
+        <label for="token">Private Moodboard token</label>
+        <input id="token" name="token" type="password" autocomplete="off" required />
+        <p class="hint">Stored locally by Chrome for this extension. It is only sent to abodid.com.</p>
+
+        <button type="submit">Save settings</button>
+        <p id="status" role="status"></p>
+      </form>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

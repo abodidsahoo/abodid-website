@@ -82,7 +82,7 @@ export const DEFAULT_NEWSLETTER_HEADING_TEXT = 'Best possible heading';
 export const DEFAULT_NEWSLETTER_SUBHEADING_TEXT = 'an absolutely mindblowing subheading';
 
 export const DEFAULT_NEWSLETTER_LINK_TEXT = 'Download the Obsidian 101 Guide';
-export const DEFAULT_NEWSLETTER_LINK_URL = 'https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid-Sahoo-2026-CV.pdf?download=Abodid%20Sahoo%20-%202026%20CV.pdf';
+export const DEFAULT_NEWSLETTER_LINK_URL = 'https://assets.abodid.com/documents/cv/Abodid-Sahoo-2026-CV.pdf';
 export const DEFAULT_NEWSLETTER_INSTAGRAM_URL = 'https://www.instagram.com/abodid.sahoo/';
 export const DEFAULT_NEWSLETTER_LINKEDIN_URL = 'https://www.linkedin.com/in/abodidsahoo/';
 

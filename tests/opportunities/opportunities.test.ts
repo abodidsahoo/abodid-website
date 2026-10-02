@@ -1,7 +1,20 @@
 import { describe, it, expect } from 'vitest';
 
-import { canonicalizeCaptureUrl, canonicalizeUrl, cleanHtmlToText, computeContentHash } from '../../src/lib/opportunities/scraper';
-import { parseDeadline, parseEventDate } from '../../src/lib/opportunities/extractor';
+import {
+    canonicalizeCaptureUrl,
+    canonicalizeUrl,
+    cleanHtmlToText,
+    computeContentHash,
+    extractHtmlTitle,
+    prioritizeOpportunityText,
+} from '../../src/lib/opportunities/scraper';
+import {
+    EXTRACTION_SYSTEM_PROMPT,
+    extractExplicitDeadline,
+    parseDeadline,
+    parseEventDate,
+    resolveOpportunityDeadline,
+} from '../../src/lib/opportunities/extractor';
 import { LLMExtractionOutputSchema, type Opportunity } from '../../src/lib/opportunities/types';
 import { createSessionToken, verifySessionToken } from '../../src/lib/opportunities/auth';
 import { generateIcsFile, generateGoogleCalendarUrl } from '../../src/lib/opportunities/calendar';
@@ -101,6 +114,50 @@ describe('Opportunity Assistant Core Functionality', () => {
             expect(cleaned).not.toContain('Accept our cookies');
             expect(cleaned).not.toContain('Footer info');
         });
+
+        it('preserves useful JSON-LD fields from script-rendered opportunity pages', () => {
+            const html = `
+                <html><head>
+                    <script type="application/ld+json">
+                        {
+                            "@context": "https://schema.org",
+                            "@graph": [{
+                                "@type": "JobPosting",
+                                "title": "Creative Technologist",
+                                "validThrough": "2027-02-10T23:59:00Z",
+                                "hiringOrganization": { "@type": "Organization", "name": "Example Studio" }
+                            }]
+                        }
+                    </script>
+                </head><body><main><h1>Join our team</h1></main></body></html>
+            `;
+            const cleaned = cleanHtmlToText(html);
+
+            expect(cleaned).toContain('STRUCTURED PAGE DATA');
+            expect(cleaned).toContain('Creative Technologist');
+            expect(cleaned).toContain('2027-02-10T23:59:00Z');
+            expect(cleaned).toContain('Example Studio');
+        });
+
+        it('extracts a clean document title for server-side captures and re-extraction', () => {
+            const title = extractHtmlTitle('<html><head><title>  Creative Grant 2027 | Example  </title></head></html>');
+            expect(title).toBe('Creative Grant 2027 | Example');
+        });
+
+        it('preserves labelled deadline evidence when a long browser capture is truncated', () => {
+            const longCapture = [
+                'CURRENT PAGE: Example Opportunity',
+                'A'.repeat(6500),
+                'The application deadline is noon UK time on 15 January 2027.',
+                'B'.repeat(7000),
+                'LINK TARGETS: Apply: https://example.com/apply',
+            ].join('\n\n');
+            const prioritized = prioritizeOpportunityText(longCapture);
+
+            expect(prioritized.length).toBeLessThanOrEqual(12000);
+            expect(prioritized).toContain('application deadline is noon UK time on 15 January 2027');
+            expect(prioritized).toContain('https://example.com/apply');
+        });
     });
 
     describe('Deterministic Date & Deadline Parsing', () => {
@@ -115,6 +172,15 @@ describe('Opportunity Assistant Core Functionality', () => {
             const result = parseDeadline('2026-10-15', null);
             expect(result.deadline_confidence).toBe('date_only');
             expect(result.deadline_at).toBeTruthy();
+        });
+
+        it('parses unambiguous numeric dates without guessing ambiguous locale order', () => {
+            expect(parseDeadline('31/01/2027', 'Europe/London').deadline_at)
+                .toBe('2027-01-31T00:00:00.000Z');
+
+            const ambiguous = parseDeadline('01/02/2027', null);
+            expect(ambiguous.deadline_at).toBeNull();
+            expect(ambiguous.deadline_confidence).toBe('needs_verification');
         });
 
         it('identifies rolling deadlines without manufacturing dates', () => {
@@ -136,6 +202,42 @@ describe('Opportunity Assistant Core Functionality', () => {
             const result = parseDeadline(null, null);
             expect(result.deadline_confidence).toBe('none');
             expect(result.deadline_at).toBeNull();
+        });
+
+        it('parses a natural-language UK deadline with noon and daylight rules', () => {
+            const winter = parseDeadline('The application deadline is noon (UK time) on 15 January 2027.', null);
+            expect(winter.deadline_at).toBe('2027-01-15T12:00:00.000Z');
+            expect(winter.deadline_timezone).toBe('Europe/London');
+            expect(winter.deadline_confidence).toBe('exact');
+
+            const summer = parseDeadline('Applications close at 5:30 pm UK time on 15 July 2027.', null);
+            expect(summer.deadline_at).toBe('2027-07-15T16:30:00.000Z');
+
+            const preciseDateWithVagueProgrammeSeason = parseDeadline(
+                'Application deadline: 15 January 2027. The programme begins in summer 2027.',
+                'Europe/London',
+            );
+            expect(preciseDateWithVagueProgrammeSeason.deadline_at).toBe('2027-01-15T00:00:00.000Z');
+        });
+
+        it('uses an explicitly labelled page deadline when the model omits or confuses it', () => {
+            const pageText = `
+                PhD Studentships in Transformative Humanities
+                Information and Q&A session: 10 November 2026 at 11am UK time.
+                The application deadline for this scheme is noon (UK time) on 15 January 2027.
+                Successful applicants will be notified in March 2027.
+            `;
+
+            expect(extractExplicitDeadline(pageText)?.text).toContain('15 January 2027');
+
+            const missingModelDeadline = resolveOpportunityDeadline(null, 'UK time', pageText);
+            expect(missingModelDeadline.deadline_at).toBe('2027-01-15T12:00:00.000Z');
+
+            const confusedModelDeadline = resolveOpportunityDeadline('2026-11-10T11:00:00+00:00', 'Europe/London', pageText);
+            expect(confusedModelDeadline.deadline_at).toBe('2027-01-15T12:00:00.000Z');
+
+            const wrongTimeOnCorrectDay = resolveOpportunityDeadline('2027-01-15T09:00:00+00:00', 'Europe/London', pageText);
+            expect(wrongTimeOnCorrectDay.deadline_at).toBe('2027-01-15T12:00:00.000Z');
         });
 
         it('parses event dates into ISO format', () => {
@@ -173,6 +275,12 @@ describe('Opportunity Assistant Core Functionality', () => {
     });
 
     describe('Zod Schema Validation for LLM Output', () => {
+        it('instructs the model to keep secondary information sessions subordinate to the primary opportunity', () => {
+            expect(EXTRACTION_SYSTEM_PROMPT).toContain('MUST NOT replace the primary opportunity');
+            expect(EXTRACTION_SYSTEM_PROMPT).toContain('application deadline');
+            expect(EXTRACTION_SYSTEM_PROMPT).toContain('Never return a link label as a URL');
+        });
+
         it('validates and normalizes categories', () => {
             const rawOutput = {
                 title: 'Senior Creative Technologist',

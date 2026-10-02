@@ -15,6 +15,7 @@ export const R2_BROWSER_MAX_ITEMS = 2_000;
 export const R2_SEARCH_MAX_OBJECTS = 25_000;
 export const R2_ORIGINALS_PREFIX = "photos/originals";
 export const R2_VARIANTS_PREFIX = "photos/variants";
+export const R2_INSTAGRAM_PREFIX = "instagram";
 export const R2_VARIANT_WIDTHS = [800, 1600] as const;
 
 const MIME_TYPES_BY_EXTENSION: Record<string, string> = {

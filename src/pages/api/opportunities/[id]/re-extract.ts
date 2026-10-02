@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { isRequestAuthenticated } from '../../../../lib/opportunities/auth';
 import { createSupabaseServiceClient } from '../../../../lib/supabaseServer';
 import { fetchWebpageContent, computeContentHash } from '../../../../lib/opportunities/scraper';
-import { extractOpportunityWithLLM, parseDeadline, parseEventDate } from '../../../../lib/opportunities/extractor';
+import { extractOpportunityWithLLM, resolveOpportunityDeadline, parseEventDate } from '../../../../lib/opportunities/extractor';
 import { formatOpportunityTitle } from '../../../../lib/opportunities/ui-helpers';
 import type { Opportunity } from '../../../../lib/opportunities/types';
 
@@ -59,9 +59,16 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
         const sourceHash = computeContentHash(fetched.text);
 
         // 3. Make ONE explicit OpenRouter extraction call
-        const { data: llmData, model: usedModel } = await extractOpportunityWithLLM(fetched.text, existing.title);
+        const { data: llmData, model: usedModel } = await extractOpportunityWithLLM(
+            fetched.text,
+            fetched.title || undefined,
+            {
+                sourceUrl: existing.source_url || existing.canonical_url,
+                capturedAt: new Date().toISOString(),
+            },
+        );
 
-        const parsedDeadline = parseDeadline(llmData.deadline, llmData.timezone);
+        const parsedDeadline = resolveOpportunityDeadline(llmData.deadline, llmData.timezone, fetched.text);
         const parsedEventDate = parseEventDate(llmData.event_date, new Date().toISOString(), llmData.timezone);
 
         const currentCount = existing.llm_extraction_count || 1;

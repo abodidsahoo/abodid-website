@@ -34,7 +34,6 @@ import {
     RotateCcw,
     Search,
     Send,
-    Shuffle,
     Trash2,
     Upload,
     X,
@@ -51,6 +50,38 @@ const POST_FORMATS = {
 const defaultCrop = () => ({ zoom: 1, positionX: 0.5, positionY: 0.5, fit: 'cover' });
 const emptyComposer = () => ({ media: [], format: 'portrait', caption: '', hashtags: '', mode: 'schedule', date: '', time: '' });
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+const CORE_HASHTAGS = [
+    'abodid', 'abodidsahoo', 'streetphotography', 'blackandwhitephotography',
+    'documentaryphotography', 'visualstorytelling', 'urbanphotography', 'streetphoto',
+    'bnwphotography', 'candidphotography', 'humanstories', 'everydaylife',
+    'fineartphotography', 'travelphotography', 'photostory', 'streetphotographer',
+    'monochromephotography', 'photographylovers', 'photooftheday', 'instaphoto',
+];
+const postFolderName = (caption = '') => {
+    const title = caption.split('\n')[0]
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 72);
+    if (title) return title;
+    const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'z').toLowerCase();
+    return `untitled-post-${timestamp}`;
+};
+const titleHashtags = (caption = '') => {
+    const title = caption.split('\n')[0].toLowerCase();
+    const contextual = [];
+    if (/love|heart|together|connection|people|human/.test(title)) contextual.push('humanconnection', 'storiesofpeople');
+    if (/london|uk|england|britain/.test(title)) contextual.push('londonphotography', 'londonstreets');
+    if (/india|delhi|mumbai|kolkata|bangalore|bengaluru/.test(title)) contextual.push('streetphotographyindia', 'indiaphotography');
+    if (/travel|journey|trip|road|away|home/.test(title)) contextual.push('travelphotographer', 'travelstories');
+    if (/portrait|face|person|woman|man|friend/.test(title)) contextual.push('portraitphotography', 'streetportrait');
+    if (/night|dark|shadow|light|rain/.test(title)) contextual.push('lightandshadow', 'moodygrams');
+    return [...new Set([...CORE_HASHTAGS.slice(0, 2), ...contextual, ...CORE_HASHTAGS])]
+        .slice(0, 20)
+        .map((tag) => `#${tag}`);
+};
 
 const readJson = async (response) => {
     const payload = await response.json().catch(() => ({}));
@@ -94,12 +125,11 @@ const statusLabel = (status) => ({
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const asPickerItem = (file, rendition = 'auto') => {
+const asPickerItem = (file) => {
     const variants = file.variants || {};
     const instagramAsset = file.instagramAsset || null;
-    const requested = rendition === 'original' ? null : variants[rendition];
     const automatic = variants['1600'] || variants['800'];
-    const display = requested || (rendition === 'auto' ? automatic : null);
+    const display = automatic || null;
     const originalUrl = file.publicUrl || file.originalUrl || file.url;
     const sourceMimeType = String(file.mimeType || '').toLowerCase();
     const isVideo = sourceMimeType.startsWith('video/');
@@ -120,7 +150,7 @@ const asPickerItem = (file, rendition = 'auto') => {
         folder: file.folder ?? file.objectKey?.split('/').slice(0, -1).join('/') ?? '',
         originalUrl,
         url: display?.url || originalUrl,
-        thumbnailUrl: variants['800']?.url || display?.url || file.thumbnailUrl || originalUrl,
+        thumbnailUrl: variants['800']?.url || variants['1600']?.url || null,
         width: display?.width || file.width,
         height: display?.height || file.height,
         altText: file.altText || file.name,
@@ -139,7 +169,10 @@ function MediaVisual({ item, controls = false, ...props }) {
     if (item?.mediaKind === 'video' || String(item?.mimeType || '').startsWith('video/')) {
         return <video src={item.url || item.publicUrl} muted playsInline controls={controls} preload="metadata" {...props} />;
     }
-    return <img src={item?.thumbnailUrl || item?.url} alt={item?.altText || item?.name || ''} loading="lazy" {...props} />;
+    if (!item?.thumbnailUrl) {
+        return <span className="ig-media-placeholder" role="img" aria-label={`${item?.name || 'Media'} preview unavailable`}><Images size={22} /><span>Preview unavailable</span></span>;
+    }
+    return <img src={item.thumbnailUrl} alt={item?.altText || item?.name || ''} loading="lazy" {...props} />;
 }
 
 function SortablePhoto({ item, index, onRemove }) {
@@ -162,18 +195,16 @@ function SortablePhoto({ item, index, onRemove }) {
     );
 }
 
-function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
+function MediaPicker({ accessToken, current, postLabel, onCancel, onConfirm }) {
     const [files, setFiles] = useState([]);
     const [folders, setFolders] = useState([]);
     const [selected, setSelected] = useState(() => new Set(current.map((item) => item.id)));
     const [knownItems, setKnownItems] = useState(() => new Map(current.map((item) => [item.id, item])));
     const [query, setQuery] = useState('');
     const [currentFolder, setCurrentFolder] = useState('');
-    const [source, setSource] = useState('library');
     const [selectionMode, setSelectionMode] = useState('multiple');
     const [viewMode, setViewMode] = useState('grid');
     const [viewPreferenceReady, setViewPreferenceReady] = useState(false);
-    const [rendition, setRendition] = useState('auto');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [preparing, setPreparing] = useState(() => new Set());
@@ -181,14 +212,12 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
     const [uploading, setUploading] = useState(false);
     const uploadInput = useRef(null);
 
-    const load = useCallback(async ({ folder = currentFolder, search = query, nextSource = source } = {}) => {
+    const load = useCallback(async ({ folder = currentFolder, search = query } = {}) => {
         setLoading(true);
         setError('');
         try {
             let endpoint;
-            if (nextSource === 'random') {
-                endpoint = '/api/admin/social/media?random=1';
-            } else if (search.trim()) {
+            if (search.trim()) {
                 const params = new URLSearchParams({ q: search.trim() });
                 if (folder) params.set('folder', folder);
                 endpoint = `/api/admin/media/search?${params}`;
@@ -203,11 +232,11 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
             const payload = await readJson(response);
             const nextFiles = payload.items || payload.files || [];
             setFiles(nextFiles);
-            setFolders(nextSource === 'library' ? (payload.folders || []) : []);
+            setFolders(payload.folders || []);
             setKnownItems((previous) => {
                 const next = new Map(previous);
                 nextFiles.forEach((file) => {
-                    const item = asPickerItem(file, rendition);
+                    const item = asPickerItem(file);
                     if (item.id) next.set(item.id, item);
                 });
                 return next;
@@ -217,16 +246,16 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
         } finally {
             setLoading(false);
         }
-    }, [accessToken, currentFolder, query, rendition, source]);
+    }, [accessToken, currentFolder, query]);
 
     useEffect(() => {
-        const timer = window.setTimeout(() => load(), query && source === 'library' ? 250 : 0);
+        const timer = window.setTimeout(() => load(), query ? 250 : 0);
         return () => window.clearTimeout(timer);
     }, [load]);
 
     const items = useMemo(() => files
         .filter((file) => /^(image|video)\//.test(String(file.mimeType || '')))
-        .map((file) => asPickerItem(file, rendition)), [files, rendition]);
+        .map((file) => asPickerItem(file)), [files]);
 
     const uploadVideos = async (event) => {
         const selectedFiles = [...(event.target.files || [])];
@@ -234,6 +263,7 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
         if (!selectedFiles.length) return;
         setUploading(true);
         setSelectionError('');
+        const uploadFolder = `photos/originals/instagram-uploads/${postFolderName(postLabel)}`;
         try {
             for (const file of selectedFiles) {
                 if (!file.type.startsWith('video/')) throw new Error(`${file.name} is not a video.`);
@@ -244,15 +274,20 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
                         filename: file.name,
                         contentType: file.type,
                         size: file.size,
-                        folder: 'photos/originals/instagram-uploads',
+                        folder: uploadFolder,
                     }),
                 }));
-                const uploaded = await fetch(signed.uploadUrl, {
-                    method: 'PUT',
-                    headers: signed.requiredHeaders,
-                    body: file,
-                });
-                if (!uploaded.ok) throw new Error(`Could not upload ${file.name}.`);
+                let uploaded;
+                try {
+                    uploaded = await fetch(signed.uploadUrl, {
+                        method: 'PUT',
+                        headers: signed.requiredHeaders,
+                        body: file,
+                    });
+                } catch {
+                    throw new Error('Cloudflare blocked the direct upload. Allow this dashboard origin, PUT, Content-Type and Cache-Control in the R2 bucket CORS policy, then try again.');
+                }
+                if (!uploaded.ok) throw new Error(`Cloudflare rejected ${file.name} (${uploaded.status}). Request a fresh upload and try again.`);
                 await readJson(await fetch('/api/admin/media/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
@@ -263,8 +298,7 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
                     }),
                 }));
             }
-            setSource('library');
-            setCurrentFolder('photos/originals/instagram-uploads');
+            setCurrentFolder(uploadFolder);
             setQuery('');
         } catch (uploadError) {
             setSelectionError(uploadError.message || 'Could not upload the video.');
@@ -332,7 +366,7 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
                     }),
                 });
                 const payload = await readJson(response);
-                selectable = asPickerItem({ ...item, ...payload.asset, name: item.name, catalogued: true }, rendition);
+                selectable = asPickerItem({ ...item, ...payload.asset, name: item.name, catalogued: true });
                 setFiles((previous) => previous.map((file) => (
                     file.objectKey === item.objectKey ? { ...file, ...payload.asset, name: item.name, catalogued: true } : file
                 )));
@@ -371,23 +405,7 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
     };
 
     const openFolder = (path) => {
-        setSource('library');
         setCurrentFolder(path);
-        setQuery('');
-    };
-
-    const shuffleVisible = () => setFiles((previous) => {
-        const next = [...previous];
-        for (let index = next.length - 1; index > 0; index -= 1) {
-            const swap = Math.floor(Math.random() * (index + 1));
-            [next[index], next[swap]] = [next[swap], next[index]];
-        }
-        return next;
-    });
-
-    const surpriseMe = () => {
-        setSource('random');
-        setCurrentFolder('');
         setQuery('');
     };
 
@@ -418,41 +436,46 @@ function MediaPicker({ accessToken, current, onCancel, onConfirm }) {
                     <div className="ig-picker-toolbar-main">
                         <label className="ig-search">
                             <Search size={16} aria-hidden="true" />
-                            <input value={query} onChange={(event) => { setQuery(event.target.value); setSource('library'); }} placeholder="Search this folder and subfolders" autoFocus />
+                            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search this folder and subfolders" autoFocus />
                         </label>
                         <strong>{selected.size} / {selectionMode === 'single' ? 1 : 10} selected</strong>
                     </div>
                     <div className="ig-picker-options">
-                        <div className="ig-segmented" aria-label="Library view">
-                            <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')} aria-label="Grid view" title="Grid view"><LayoutGrid size={14} /> Grid</button>
-                            <button type="button" className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')} aria-label="List view" title="List view"><List size={14} /> List</button>
+                        <div className="ig-picker-control is-view">
+                            <span>View</span>
+                            <div className="ig-picker-control-buttons" role="group" aria-label="Library view">
+                                <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')} aria-pressed={viewMode === 'grid'}><LayoutGrid size={15} /> Grid</button>
+                                <button type="button" className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')} aria-pressed={viewMode === 'list'}><List size={15} /> List</button>
+                            </div>
                         </div>
-                        <div className="ig-segmented" aria-label="Selection mode">
-                            <button type="button" className={selectionMode === 'single' ? 'is-active' : ''} onClick={() => changeSelectionMode('single')}>Single</button>
-                            <button type="button" className={selectionMode === 'multiple' ? 'is-active' : ''} onClick={() => changeSelectionMode('multiple')}>Multi-select</button>
+                        <div className="ig-picker-control is-selection">
+                            <span>Selection</span>
+                            <div className="ig-picker-control-buttons" role="group" aria-label="Selection mode">
+                                <button type="button" className={selectionMode === 'single' ? 'is-active' : ''} onClick={() => changeSelectionMode('single')} aria-pressed={selectionMode === 'single'}>Single</button>
+                                <button type="button" className={selectionMode === 'multiple' ? 'is-active' : ''} onClick={() => changeSelectionMode('multiple')} aria-pressed={selectionMode === 'multiple'}>Multi-select</button>
+                            </div>
                         </div>
-                        <label className="ig-rendition-select"><span>Preview</span><select value={rendition} onChange={(event) => setRendition(event.target.value)}><option value="auto">Best available</option><option value="original">Original</option><option value="800">800px variant</option><option value="1600">1600px variant</option></select></label>
-                        <button type="button" className="ig-tool-button" onClick={surpriseMe}><Shuffle size={14} /> Random set</button>
-                        <input ref={uploadInput} type="file" accept="video/*" multiple hidden onChange={uploadVideos} />
-                        <button type="button" className="ig-tool-button" onClick={() => uploadInput.current?.click()} disabled={uploading}>
-                            {uploading ? <LoaderCircle className="is-spinning" size={14} /> : <Upload size={14} />} Upload video
-                        </button>
-                        <button type="button" className="ig-tool-button" onClick={shuffleVisible} disabled={items.length < 2}><Shuffle size={14} /> Shuffle visible</button>
-                        <button type="button" className="ig-tool-button" onClick={() => setSelected(new Set())} disabled={!selected.size}><RotateCcw size={14} /> Reset selection</button>
+                        <div className="ig-picker-actions">
+                            <input ref={uploadInput} type="file" accept="video/*" multiple hidden onChange={uploadVideos} />
+                            <button type="button" className="ig-tool-button is-upload" onClick={() => uploadInput.current?.click()} disabled={uploading}>
+                                {uploading ? <LoaderCircle className="is-spinning" size={15} /> : <Upload size={15} />} Upload video
+                            </button>
+                            <button type="button" className="ig-tool-button" onClick={() => setSelected(new Set())} disabled={!selected.size}><RotateCcw size={15} /> Reset selection</button>
+                        </div>
                     </div>
                     <nav className="ig-picker-path" aria-label="Media folder">
-                        <button type="button" className={!currentFolder && source === 'library' ? 'is-current' : ''} onClick={() => openFolder('')}>All media</button>
-                        {source === 'random' ? <><ChevronRight size={13} /><span>Random catalogue</span></> : breadcrumbs.map((part, index) => <React.Fragment key={`${part}-${index}`}><ChevronRight size={13} /><button type="button" className={index === breadcrumbs.length - 1 ? 'is-current' : ''} onClick={() => openFolder(breadcrumbs.slice(0, index + 1).join('/'))}>{part}</button></React.Fragment>)}
+                        <button type="button" className={!currentFolder ? 'is-current' : ''} onClick={() => openFolder('')}>All media</button>
+                        {breadcrumbs.map((part, index) => <React.Fragment key={`${part}-${index}`}><ChevronRight size={13} /><button type="button" className={index === breadcrumbs.length - 1 ? 'is-current' : ''} onClick={() => openFolder(breadcrumbs.slice(0, index + 1).join('/'))}>{part}</button></React.Fragment>)}
                     </nav>
                 </div>
                 <div className="ig-picker-body">
                     {selectionError && <div className="ig-picker-inline-error" role="alert"><AlertCircle size={16} /> {selectionError}</div>}
                     {loading && <div className="ig-picker-state"><LoaderCircle className="is-spinning" size={20} /> Loading media…</div>}
                     {!loading && error && <div className="ig-picker-state is-error"><AlertCircle size={20} /> {error}</div>}
-                    {!loading && !error && items.length === 0 && (source !== 'library' || query || folders.length === 0) && <div className="ig-picker-state">No media found.</div>}
-                    {!loading && !error && (items.length > 0 || (source === 'library' && !query && folders.length > 0)) && (
+                    {!loading && !error && items.length === 0 && (query || folders.length === 0) && <div className="ig-picker-state">No media found.</div>}
+                    {!loading && !error && (items.length > 0 || (!query && folders.length > 0)) && (
                         <div className={`ig-picker-grid is-${viewMode}`}>
-                            {source === 'library' && !query && folders.map((folder) => (
+                            {!query && folders.map((folder) => (
                                 <button type="button" className="ig-picker-folder" key={folder.path} onClick={() => openFolder(folder.path)}>
                                     <FolderOpen size={30} /><span>{folder.name}</span><ChevronRight size={15} />
                                 </button>
@@ -592,6 +615,7 @@ export default function InstagramPublisher({ accessToken }) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const [message, setMessage] = useState(null);
     const [activeMediaId, setActiveMediaId] = useState('');
+    const [showHashtagSamples, setShowHashtagSamples] = useState(false);
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -641,6 +665,17 @@ export default function InstagramPublisher({ accessToken }) {
         ...current,
         media: current.media.map((item) => item.id === id ? { ...item, crop } : item),
     }));
+
+    const suggestedTags = useMemo(() => titleHashtags(composer.caption), [composer.caption]);
+    const addSuggestedTags = (tags) => {
+        const existing = composer.hashtags
+            .toLowerCase()
+            .split(/\s+/)
+            .map((tag) => tag.trim())
+            .filter(Boolean);
+        const merged = [...new Set([...existing, ...tags.map((tag) => tag.toLowerCase())])];
+        updateComposer({ hashtags: merged.join(' ') });
+    };
 
     const onDragEnd = ({ active, over }) => {
         if (!over || active.id === over.id) return;
@@ -845,11 +880,25 @@ export default function InstagramPublisher({ accessToken }) {
                         <div className="ig-field-label">
                             <span>Hashtags</span>
                             <div className="ig-inline-actions">
+                                <button type="button" onClick={() => setShowHashtagSamples((visible) => !visible)}>{showHashtagSamples ? 'Hide suggested tags' : 'Show suggested 20'}</button>
                                 <button type="button" onClick={() => updateComposer({ hashtags: settings.default_hashtags || '' })} disabled={!settings.default_hashtags}>Use default hashtags</button>
                                 <button type="button" onClick={saveDefault} disabled={saving || !composer.hashtags.trim()}>Save as default</button>
                             </div>
                         </div>
                         <textarea rows={3} value={composer.hashtags} onChange={(event) => updateComposer({ hashtags: event.target.value })} placeholder="#photography #portrait #visualstorytelling" maxLength={2200} />
+                        {showHashtagSamples && (
+                            <div className="ig-hashtag-suggestions">
+                                <div className="ig-hashtag-suggestion-heading">
+                                    <span><strong>Suggested for your style</strong><small>Personal, street, monochrome, documentary and travel photography</small></span>
+                                    <div>
+                                        <button type="button" onClick={() => addSuggestedTags(suggestedTags.slice(0, 5))}>Add focused 5</button>
+                                        <button type="button" className="is-primary" onClick={() => addSuggestedTags(suggestedTags)}>Add all 20</button>
+                                    </div>
+                                </div>
+                                <p>{suggestedTags.join(' ')}</p>
+                                <small>The first line of your caption adjusts relevant tags. Everything is lowercase and duplicates are removed.</small>
+                            </div>
+                        )}
                     </div>
 
                     <fieldset className="ig-publish-choice">
@@ -925,7 +974,7 @@ export default function InstagramPublisher({ accessToken }) {
                 )}
             </section>
 
-            {pickerOpen && <MediaPicker accessToken={accessToken} current={composer.media} onCancel={() => setPickerOpen(false)} onConfirm={(media) => {
+            {pickerOpen && <MediaPicker accessToken={accessToken} current={composer.media} postLabel={composer.caption} onCancel={() => setPickerOpen(false)} onConfirm={(media) => {
                 const normalized = media.map((item) => ({ ...item, crop: item.crop || defaultCrop() }));
                 updateComposer({
                     media: normalized,

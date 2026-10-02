@@ -58,6 +58,23 @@ const obsidianVaultExperiment: Omit<LabExperiment, "index"> = {
   cardVariant: "media",
 };
 
+const moodboardCaptureExperiment: Omit<LabExperiment, "index"> = {
+  id: "moodboard-capture-pipeline",
+  title: "Right-click to Moodboard",
+  description:
+    "A cross-device capture pipeline that turns an image in Chrome or Finder into a responsive, live visual reference without opening an upload dashboard.",
+  discipline: "Creative tooling · Media infrastructure",
+  status: "Live system",
+  year: "2026",
+  href: "/lab/moodboard-capture-pipeline",
+  destinationLabel: "Read the case study",
+  thumbnail: "/images/lab/moodboard-capture-pipeline.svg",
+  thumbnailAlt:
+    "Diagram showing images moving from Chrome and Finder through a secure cloud pipeline into a live moodboard",
+  surface: "pink",
+  cardVariant: "media",
+};
+
 const fallbackLabExperiments: Omit<LabExperiment, "index">[] = [
   {
     id: "punctum",
@@ -163,6 +180,7 @@ const fallbackLabExperiments: Omit<LabExperiment, "index">[] = [
     surface: "blue",
     cardVariant: "media",
   },
+  moodboardCaptureExperiment,
 ];
 
 const numberExperiments = (
@@ -173,18 +191,19 @@ const numberExperiments = (
     index: String(position + 1).padStart(2, "0"),
   }));
 
-const restoreObsidianVault = (
+const restoreRequiredLocalExperiments = (
   experiments: Omit<LabExperiment, "index">[],
 ): Omit<LabExperiment, "index">[] => {
-  if (experiments.some((experiment) => experiment.id === obsidianVaultExperiment.id)) {
-    return experiments;
-  }
-
   const restored = [...experiments];
-  const explorerIndex = restored.findIndex(
-    (experiment) => experiment.id === "obsidian-tags-interactive-explorer",
-  );
-  restored.splice(explorerIndex >= 0 ? explorerIndex : restored.length, 0, obsidianVaultExperiment);
+  if (!restored.some((experiment) => experiment.id === obsidianVaultExperiment.id)) {
+    const explorerIndex = restored.findIndex(
+      (experiment) => experiment.id === "obsidian-tags-interactive-explorer",
+    );
+    restored.splice(explorerIndex >= 0 ? explorerIndex : restored.length, 0, obsidianVaultExperiment);
+  }
+  if (!restored.some((experiment) => experiment.id === moodboardCaptureExperiment.id)) {
+    restored.push(moodboardCaptureExperiment);
+  }
   return restored;
 };
 
@@ -220,7 +239,7 @@ export async function getLabExperiments(): Promise<LabExperiment[]> {
     if (!data?.length) return [];
 
     return numberExperiments(
-      restoreObsidianVault((data as LabCatalogueRow[]).map(mapCatalogueRow)),
+      restoreRequiredLocalExperiments((data as LabCatalogueRow[]).map(mapCatalogueRow)),
     );
   } catch (error) {
     console.warn(

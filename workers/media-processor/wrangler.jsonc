@@ -29,6 +29,6 @@
   "vars": {
     "R2_BUCKET_NAME": "assets",
     "PUBLIC_BASE_URL": "https://assets.abodid.com",
-    "TRANSFORM_VERSION": "1"
+    "TRANSFORM_VERSION": "2"
   }
 }

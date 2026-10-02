@@ -32,6 +32,8 @@ type MediaVariantRow = {
 const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
 const CACHE_CONTROL = "public, max-age=31536000, immutable";
 const QUALITY = 82;
+const ANIMATED_QUALITY = 76;
+const LARGE_ANIMATED_QUALITY = 72;
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -58,6 +60,11 @@ const inferMimeType = (key: string) => {
   if (extension === "webp") return "image/webp";
   if (extension === "gif") return "image/gif";
   return "application/octet-stream";
+};
+
+const outputQualityFor = (contentType: string, sourceSize: number) => {
+  if (contentType !== "image/gif") return QUALITY;
+  return sourceSize >= 6 * 1024 * 1024 ? LARGE_ANIMATED_QUALITY : ANIMATED_QUALITY;
 };
 
 const originalFilenameFor = (objectKey: string) => {
@@ -288,7 +295,13 @@ const processEvent = async (event: R2Event, env: Env) => {
       fit: "scale-down",
       ...(shouldSharpen ? { sharpen: 1 } : {}),
     });
-    const transformed = await transform.output({ format: "image/webp", quality: QUALITY, anim: true });
+    const animated = contentType === "image/gif";
+    const outputQuality = outputQualityFor(contentType, sourceHead.size);
+    const transformed = await transform.output({
+      format: "image/webp",
+      quality: outputQuality,
+      anim: animated,
+    });
     const response = transformed.response();
     if (!response.ok) {
       throw new Error(`Cloudflare transform ${target.key} failed with ${response.status}.`);
@@ -328,11 +341,15 @@ const processEvent = async (event: R2Event, env: Env) => {
       mime_type: "image/webp",
       file_size: output.byteLength,
       etag: stored.etag,
-      quality: QUALITY,
-      animated: contentType === "image/gif",
+      quality: outputQuality,
+      animated,
       source_etag: sourceHead.etag,
       transform_version: transformVersion,
-      metadata: { generatedBy: "personal-site-media-pipeline" },
+      metadata: {
+        generatedBy: "personal-site-media-pipeline",
+        sourceMimeType: contentType,
+        animationPreserved: animated,
+      },
     });
 
     const previous = existingByKey.get(target.key);

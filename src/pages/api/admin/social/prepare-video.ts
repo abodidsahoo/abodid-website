@@ -15,6 +15,7 @@ import {
     getR2ObjectBytes,
     headR2Object,
     putR2Object,
+    R2_INSTAGRAM_PREFIX,
 } from "../../../../lib/media/r2";
 
 const POST_FORMATS = {
@@ -95,7 +96,7 @@ export const POST: APIRoute = async ({ request }) => {
         const directory = slash >= 0 ? relativePath.slice(0, slash) : "";
         const sourceName = slash >= 0 ? relativePath.slice(slash + 1) : relativePath;
         const stem = sourceName.replace(/\.[^.]+$/, "");
-        const instagramObjectKey = `photos/instagram/${directory ? `${directory}/` : ""}${stem}-${fingerprint}.mp4`;
+        const instagramObjectKey = `${R2_INSTAGRAM_PREFIX}/${directory ? `${directory}/` : ""}${stem}-${fingerprint}.mp4`;
 
         const { data: cached } = await authorization.supabase
             .from("media_assets")

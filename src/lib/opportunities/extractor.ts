@@ -3,9 +3,19 @@ import { LLMExtractionOutputSchema, type LLMExtractionOutput, type DeadlineConfi
 const DEFAULT_MODEL = import.meta.env.OPENROUTER_OPPORTUNITIES_MODEL || process.env.OPENROUTER_OPPORTUNITIES_MODEL || 'google/gemini-2.5-flash';
 const FALLBACK_MODEL = 'openai/gpt-4o-mini';
 
-const EXTRACTION_SYSTEM_PROMPT = `You are a precise, intelligent opportunity parser for creative technologists, artists, researchers, designers, and engineers.
+export const EXTRACTION_SYSTEM_PROMPT = `You are a precise, intelligent opportunity parser for creative technologists, artists, researchers, designers, and engineers.
 
 Your task is to analyze the provided webpage text and logically segregate the information into accurate, structured JSON fields for database storage.
+
+TARGET-SELECTION RULES (HIGHEST PRIORITY):
+- The PAGE TITLE, CURRENT PAGE, main heading, SOURCE URL, and URL fragment identify the target opportunity. Extract that target, not a secondary item merely mentioned or linked inside it.
+- Only treat a subsection event as the target when the PAGE TITLE, URL fragment, CURRENT SECTION, or main heading explicitly identifies that event.
+- A webinar, information/Q&A session, open day, interview, ceremony, or Teams/Zoom link inside a page about a studentship, grant, fellowship, residency, job, conference, or open call is secondary context. It MUST NOT replace the primary opportunity.
+- Link labels and LINK TARGETS are supporting evidence, not proof that the linked item is the target.
+- If the primary page explicitly labels an application deadline, submission deadline, closing date, "applications close", "apply by", or "submit by" date, use it as deadline. It outranks programme dates, event/session dates, interview dates, notification dates, publication dates, and dates inside navigation or related links.
+- Only put a date in event_date when it describes when the target opportunity itself takes place. Never put its application deadline in event_date.
+- When a deadline includes a time, return an ISO 8601 timestamp with an explicit numeric UTC offset. Resolve named local time using an IANA timezone. Example: "noon (UK time) on 15 January 2027" becomes deadline "2027-01-15T12:00:00+00:00" and timezone "Europe/London".
+- URLs must be literal absolute URLs present in the supplied text or LINK TARGETS. Never return a link label as a URL.
 
 FIELD EXTRACTION GUIDELINES:
 1. title (string, required):
@@ -23,7 +33,7 @@ FIELD EXTRACTION GUIDELINES:
 4. deadline (string | null):
    - The application / submission deadline timestamp or date (e.g. "2026-10-15T23:59:00Z" or "October 15, 2026").
    - Set to "rolling" if it is open year-round without a fixed cutoff.
-   - Do NOT confuse application deadlines with residency operating dates, exhibition dates, or office hours.
+   - Do NOT confuse application deadlines with programme dates, residency operating dates, exhibition dates, information sessions, interviews, result notifications, publication dates, or office hours.
 
 5. timezone (string | null):
    - Timezone for the deadline (e.g. "SGT", "EST", "CET", "UTC", "Asia/Singapore"). Null if not stated.
@@ -55,7 +65,7 @@ FIELD EXTRACTION GUIDELINES:
 13. summary (string, required):
     - Concise 1-2 sentence overview (max 30 words) summarizing who this is for and what benefits are provided.
 
-When the PAGE TITLE, SOURCE URL, or URL fragment identifies a specific event or information session, extract that event—not the broader course, job, fellowship, or programme it discusses.
+When the PAGE TITLE, CURRENT SECTION, main heading, or URL fragment explicitly identifies a specific event or information session, extract that event—not the broader programme it discusses elsewhere.
 Never guess dates or requirements. If a field is not present or unclear, use null. Output strict JSON only.`;
 
 export interface OpportunityExtractionContext {
@@ -69,6 +79,117 @@ export interface ParsedDeadline {
     deadline_raw: string | null;
     deadline_timezone: string | null;
     deadline_confidence: DeadlineConfidence;
+}
+
+const MONTHS: Record<string, number> = {
+    january: 1,
+    jan: 1,
+    february: 2,
+    feb: 2,
+    march: 3,
+    mar: 3,
+    april: 4,
+    apr: 4,
+    may: 5,
+    june: 6,
+    jun: 6,
+    july: 7,
+    jul: 7,
+    august: 8,
+    aug: 8,
+    september: 9,
+    sept: 9,
+    sep: 9,
+    october: 10,
+    oct: 10,
+    november: 11,
+    nov: 11,
+    december: 12,
+    dec: 12,
+};
+
+const MONTH_PATTERN = Object.keys(MONTHS)
+    .sort((a, b) => b.length - a.length)
+    .join('|');
+
+function normalizeTimezone(timezoneStr?: string | null, raw = ''): string | null {
+    const supplied = timezoneStr?.trim();
+    if (supplied?.includes('/')) return supplied;
+
+    const combined = `${supplied || ''} ${raw}`.toLowerCase();
+    const aliases: Array<[RegExp, string]> = [
+        [/\b(?:uk time|british time|bst)\b/i, 'Europe/London'],
+        [/\b(?:gmt|utc)\b/i, 'UTC'],
+        [/\b(?:eastern time|et|est|edt)\b/i, 'America/New_York'],
+        [/\b(?:central time|ct|cst|cdt)\b/i, 'America/Chicago'],
+        [/\b(?:mountain time|mt|mst|mdt)\b/i, 'America/Denver'],
+        [/\b(?:pacific time|pt|pst|pdt)\b/i, 'America/Los_Angeles'],
+        [/\b(?:central european time|cet|cest)\b/i, 'Europe/Paris'],
+        [/\b(?:australian eastern time|aest|aedt)\b/i, 'Australia/Sydney'],
+        [/\b(?:india standard time|ist)\b/i, 'Asia/Kolkata'],
+    ];
+
+    for (const [pattern, timezone] of aliases) {
+        if (pattern.test(combined)) return timezone;
+    }
+
+    if (supplied) {
+        try {
+            new Intl.DateTimeFormat('en-US', { timeZone: supplied }).format();
+            return supplied;
+        } catch {
+            return supplied;
+        }
+    }
+
+    return null;
+}
+
+function extractNaturalDateParts(raw: string): { year: number; month: number; day: number } | null {
+    const dayFirst = raw.match(new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${MONTH_PATTERN})\\.?[,]?\\s+(20\\d{2})\\b`, 'i'));
+    if (dayFirst) {
+        return {
+            year: Number(dayFirst[3]),
+            month: MONTHS[dayFirst[2].toLowerCase().replace(/\.$/, '')],
+            day: Number(dayFirst[1]),
+        };
+    }
+
+    const monthFirst = raw.match(new RegExp(`\\b(${MONTH_PATTERN})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?[,]?\\s+(20\\d{2})\\b`, 'i'));
+    if (monthFirst) {
+        return {
+            year: Number(monthFirst[3]),
+            month: MONTHS[monthFirst[1].toLowerCase().replace(/\.$/, '')],
+            day: Number(monthFirst[2]),
+        };
+    }
+
+    const isoDate = raw.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
+    if (isoDate) {
+        return { year: Number(isoDate[1]), month: Number(isoDate[2]), day: Number(isoDate[3]) };
+    }
+
+    return null;
+}
+
+function extractNaturalTimeParts(raw: string): { hour: number; minute: number } | null {
+    if (/\bnoon\b/i.test(raw)) return { hour: 12, minute: 0 };
+    if (/\bmidnight\b/i.test(raw)) return { hour: 0, minute: 0 };
+
+    const meridiemTime = raw.match(/\b(\d{1,2})(?:[:.](\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b/i);
+    if (meridiemTime) {
+        let hour = Number(meridiemTime[1]);
+        const minute = Number(meridiemTime[2] || 0);
+        const meridiem = meridiemTime[3].toLowerCase().replace(/\./g, '');
+        if (meridiem === 'pm' && hour < 12) hour += 12;
+        if (meridiem === 'am' && hour === 12) hour = 0;
+        return { hour, minute };
+    }
+
+    const clockTime = raw.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+    if (clockTime) return { hour: Number(clockTime[1]), minute: Number(clockTime[2]) };
+
+    return null;
 }
 
 /**
@@ -97,7 +218,76 @@ export function parseDeadline(deadlineStr: string | null | undefined, timezoneSt
         };
     }
 
-    // Check for vague dates
+    const normalizedTimezone = normalizeTimezone(timezoneStr, raw);
+
+    // Parse explicit ISO timestamps first. They already carry deterministic timezone information.
+    if (/^20\d{2}-\d{2}-\d{2}T/.test(raw)) {
+        const isoDate = new Date(raw);
+        if (!isNaN(isoDate.getTime())) {
+            return {
+                deadline_at: isoDate.toISOString(),
+                deadline_raw: raw,
+                deadline_timezone: normalizedTimezone || timezoneStr || null,
+                deadline_confidence: 'exact',
+            };
+        }
+    }
+
+    // Parse common human-written dates without depending on the server's locale or timezone.
+    const naturalDate = extractNaturalDateParts(raw);
+    if (naturalDate) {
+        const naturalTime = extractNaturalTimeParts(raw);
+        if (naturalTime) {
+            const deadlineAt = zonedDateTimeToIso(
+                { ...naturalDate, ...naturalTime },
+                normalizedTimezone || 'UTC',
+            );
+            if (deadlineAt) {
+                return {
+                    deadline_at: deadlineAt,
+                    deadline_raw: raw,
+                    deadline_timezone: normalizedTimezone || timezoneStr || null,
+                    deadline_confidence: normalizedTimezone ? 'exact' : 'needs_verification',
+                };
+            }
+        }
+
+        return {
+            deadline_at: new Date(Date.UTC(naturalDate.year, naturalDate.month - 1, naturalDate.day)).toISOString(),
+            deadline_raw: raw,
+            deadline_timezone: normalizedTimezone || timezoneStr || 'UTC',
+            deadline_confidence: 'date_only',
+        };
+    }
+
+    // Parse unambiguous numeric dates, but never guess whether 01/02 means January 2 or February 1.
+    const numericDate = raw.match(/\b(\d{1,2})[/.\-](\d{1,2})[/.\-](20\d{2})\b/);
+    if (numericDate) {
+        const first = Number(numericDate[1]);
+        const second = Number(numericDate[2]);
+        const year = Number(numericDate[3]);
+        if (first <= 12 && second <= 12) {
+            return {
+                deadline_at: null,
+                deadline_raw: raw,
+                deadline_timezone: normalizedTimezone || timezoneStr || null,
+                deadline_confidence: 'needs_verification',
+            };
+        }
+
+        const month = first > 12 ? second : first;
+        const day = first > 12 ? first : second;
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            return {
+                deadline_at: new Date(Date.UTC(year, month - 1, day)).toISOString(),
+                deadline_raw: raw,
+                deadline_timezone: normalizedTimezone || timezoneStr || 'UTC',
+                deadline_confidence: 'date_only',
+            };
+        }
+    }
+
+    // Mark genuinely vague dates only after checking whether the text also contains a precise date.
     if (
         lower.includes('early') ||
         lower.includes('late') ||
@@ -119,7 +309,7 @@ export function parseDeadline(deadlineStr: string | null | undefined, timezoneSt
         };
     }
 
-    // Attempt to parse standard date or ISO string
+    // Attempt to parse remaining standard date strings.
     try {
         const parsedDate = new Date(raw);
         if (!isNaN(parsedDate.getTime())) {
@@ -127,7 +317,7 @@ export function parseDeadline(deadlineStr: string | null | undefined, timezoneSt
             return {
                 deadline_at: parsedDate.toISOString(),
                 deadline_raw: raw,
-                deadline_timezone: timezoneStr || (hasTime ? null : 'UTC'),
+                deadline_timezone: normalizedTimezone || timezoneStr || (hasTime ? null : 'UTC'),
                 deadline_confidence: hasTime ? 'exact' : 'date_only',
             };
         }
@@ -141,6 +331,60 @@ export function parseDeadline(deadlineStr: string | null | undefined, timezoneSt
         deadline_timezone: timezoneStr || null,
         deadline_confidence: 'needs_verification',
     };
+}
+
+const DEADLINE_LABEL_PATTERN = /\b(application deadline|submission deadline|proposal deadline|registration deadline|closing date|applications? close(?:s)?|apply by|submit by)\b/gi;
+
+/**
+ * Finds an explicitly labelled deadline sentence in page text. This is a deterministic
+ * safety net for model omissions and for pages that also advertise secondary events.
+ */
+export function extractExplicitDeadline(pageText: string): { text: string; timezone: string | null } | null {
+    if (!pageText || typeof pageText !== 'string') return null;
+
+    const normalized = pageText.replace(/\r/g, '').replace(/[ \t]+/g, ' ');
+    const matches = Array.from(normalized.matchAll(DEADLINE_LABEL_PATTERN));
+
+    for (const match of matches) {
+        const start = match.index!;
+        const after = normalized.slice(match.index!, match.index! + 260);
+        const paragraphEnd = after.search(/\n{2,}/);
+        const end = match.index! + (paragraphEnd >= 0 ? paragraphEnd : Math.min(after.length, 260));
+        const candidate = normalized.slice(start, end).replace(/\n+/g, ' ').trim();
+        const timezone = normalizeTimezone(null, candidate);
+        const parsed = parseDeadline(candidate, timezone);
+        if (parsed.deadline_at || parsed.deadline_confidence === 'rolling') {
+            return { text: candidate, timezone };
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Prefers a clearly labelled page deadline over an absent, vague, or conflicting LLM value.
+ */
+export function resolveOpportunityDeadline(
+    llmDeadline: string | null | undefined,
+    llmTimezone: string | null | undefined,
+    pageText: string,
+): ParsedDeadline {
+    const modelDeadline = parseDeadline(llmDeadline, llmTimezone);
+    const explicit = extractExplicitDeadline(pageText);
+    if (!explicit) return modelDeadline;
+
+    const pageDeadline = parseDeadline(explicit.text, explicit.timezone || llmTimezone);
+    if (!pageDeadline.deadline_at && pageDeadline.deadline_confidence !== 'rolling') return modelDeadline;
+
+    if (!modelDeadline.deadline_at || !pageDeadline.deadline_at) return pageDeadline;
+
+    if (pageDeadline.deadline_confidence === 'exact') {
+        return modelDeadline.deadline_at === pageDeadline.deadline_at ? modelDeadline : pageDeadline;
+    }
+
+    const modelDay = modelDeadline.deadline_at.slice(0, 10);
+    const pageDay = pageDeadline.deadline_at.slice(0, 10);
+    return modelDay === pageDay ? modelDeadline : pageDeadline;
 }
 
 /**

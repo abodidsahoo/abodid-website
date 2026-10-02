@@ -110,6 +110,45 @@ export function cleanHtmlToText(html: string): string {
 
     const $ = cheerio.load(html);
 
+    // Preserve concise schema.org opportunity metadata before removing scripts.
+    // Job boards and event platforms often render the useful fields only in JSON-LD.
+    const structuredDataBlocks: string[] = [];
+    const structuredKeys = [
+        '@type', 'name', 'title', 'description', 'url', 'datePosted', 'validThrough',
+        'startDate', 'endDate', 'applicationDeadline', 'deadline', 'employmentType',
+        'hiringOrganization', 'organizer', 'location', 'jobLocation', 'baseSalary',
+        'currency', 'value',
+    ];
+    const structuredEntries: unknown[] = [];
+    const collectStructuredEntries = (value: unknown) => {
+        if (Array.isArray(value)) {
+            value.forEach(collectStructuredEntries);
+            return;
+        }
+        if (!value || typeof value !== 'object') return;
+
+        const record = value as Record<string, unknown>;
+        if (record['@graph']) collectStructuredEntries(record['@graph']);
+
+        const type = String(record['@type'] || '');
+        const isOpportunityType = /jobposting|event|course|scholarship|grant|fellowship|offer/i.test(type);
+        const hasOpportunityDates = ['validThrough', 'applicationDeadline', 'deadline', 'startDate', 'endDate']
+            .some((key) => record[key] != null);
+        if (isOpportunityType || hasOpportunityDates) structuredEntries.push(record);
+    };
+    $('script[type="application/ld+json"]').slice(0, 10).each((_, element) => {
+        try {
+            const parsed = JSON.parse($(element).text());
+            collectStructuredEntries(parsed);
+        } catch {
+            // Ignore invalid third-party structured data and continue with visible text.
+        }
+    });
+    structuredEntries.slice(0, 10).forEach((entry) => {
+        const compact = JSON.stringify(entry, structuredKeys);
+        if (compact && compact !== '{}' && compact !== '[]') structuredDataBlocks.push(compact);
+    });
+
     // Remove unwanted non-content elements
     $(
         'script, style, noscript, svg, canvas, iframe, audio, video, ' +
@@ -135,50 +174,70 @@ export function cleanHtmlToText(html: string): string {
     if (textBlocks.length === 0) {
         // Fallback to body inner text if standard block selectors returned nothing
         const fallbackText = $('body').text().replace(/\s+/g, ' ').trim();
-        return truncateSmartly(fallbackText);
+        return truncateSmartly([
+            structuredDataBlocks.length ? `STRUCTURED PAGE DATA:\n${structuredDataBlocks.join('\n')}` : '',
+            fallbackText,
+        ].filter(Boolean).join('\n\n'));
     }
 
-    const combinedText = textBlocks.join('\n\n');
+    const combinedText = [
+        structuredDataBlocks.length ? `STRUCTURED PAGE DATA:\n${structuredDataBlocks.join('\n')}` : '',
+        ...textBlocks,
+    ].filter(Boolean).join('\n\n');
     return truncateSmartly(combinedText);
 }
 
 /**
- * Smart truncation: If a page is unusually long (>14,000 chars):
- * 1. Preserves the first 7,500 chars (Title, Org, Overview, Intro)
+ * Smart truncation: If a page exceeds the model-input budget:
+ * 1. Preserves the opening content (Title, Org, Overview, Intro)
  * 2. Scans middle text for high-priority deadline & requirement keywords
- * 3. Preserves the bottom 4,500 chars (Deadlines, Application instructions & Links usually at the end)
- * This guarantees you NEVER lose deadlines or application links on massive pages.
+ * 3. Preserves the closing content (application instructions and links often live there)
+ * The final output never exceeds the configured character budget.
  */
-function truncateSmartly(text: string): string {
-    if (text.length <= MAX_PAGE_TEXT_CHARS) {
-        return text;
-    }
+export function prioritizeOpportunityText(text: string, maxChars = MAX_PAGE_TEXT_CHARS): string {
+    if (!text || typeof text !== 'string') return '';
+    if (text.length <= maxChars) return text;
 
-    const topChunk = text.slice(0, 7500);
-    const bottomChunk = text.slice(-4500);
+    const markerBudget = 180;
+    const topSize = Math.min(5500, Math.floor(maxChars * 0.48));
+    const bottomSize = Math.min(3500, Math.floor(maxChars * 0.3));
+    const middleBudget = Math.max(0, maxChars - topSize - bottomSize - markerBudget);
+    const topChunk = text.slice(0, topSize);
+    const bottomChunk = text.slice(-bottomSize);
 
-    // Extract any middle paragraphs that contain critical deadline/submission keywords
-    const middleText = text.slice(7500, -4500);
-    const middleParagraphs = middleText.split('\n\n');
-    const priorityKeywords = /\b(deadline|closing date|due date|how to apply|eligibility|requirements|submission|stipend|funding|grant amount|timeline|schedule)\b/i;
+    const middleText = text.slice(topSize, -bottomSize);
+    const middleParagraphs = middleText.split(/\n{2,}/);
+    const priorityKeywords = /\b(application deadline|submission deadline|closing date|applications? close|apply by|submit by|deadline|how to apply|eligibility|requirements|submission|stipend|funding|grant amount|timeline|schedule)\b/i;
 
     const criticalMiddleBlocks: string[] = [];
     let middleCharCount = 0;
 
-    for (const p of middleParagraphs) {
-        if (priorityKeywords.test(p)) {
-            if (middleCharCount + p.length < 3000) {
-                criticalMiddleBlocks.push(p);
-                middleCharCount += p.length;
-            }
-        }
+    for (const paragraph of middleParagraphs) {
+        const block = paragraph.trim();
+        if (!block || !priorityKeywords.test(block)) continue;
+        const separatorLength = criticalMiddleBlocks.length ? 2 : 0;
+        const remaining = middleBudget - middleCharCount - separatorLength;
+        if (remaining <= 0) break;
+        const preserved = block.slice(0, remaining);
+        criticalMiddleBlocks.push(preserved);
+        middleCharCount += preserved.length + separatorLength;
     }
 
-    if (criticalMiddleBlocks.length > 0) {
-        return `${topChunk}\n\n[...CRITICAL OPPORTUNITY SECTIONS...]\n\n${criticalMiddleBlocks.join('\n\n')}\n\n[...CLOSING SECTIONS & LINKS...]\n\n${bottomChunk}`;
-    }
+    const middleSection = criticalMiddleBlocks.length
+        ? `[...CRITICAL OPPORTUNITY SECTIONS...]\n\n${criticalMiddleBlocks.join('\n\n')}`
+        : '[...CONTENT CONTINUES...]';
+    const result = `${topChunk}\n\n${middleSection}\n\n[...CLOSING SECTIONS & LINKS...]\n\n${bottomChunk}`;
+    return result.slice(0, maxChars);
+}
 
-    return `${topChunk}\n\n[...CONTENT CONTINUES...]\n\n${bottomChunk}`;
+function truncateSmartly(text: string): string {
+    return prioritizeOpportunityText(text, MAX_PAGE_TEXT_CHARS);
+}
+
+export function extractHtmlTitle(html: string): string {
+    if (!html || typeof html !== 'string') return '';
+    const $ = cheerio.load(html);
+    return $('title').first().text().replace(/\s+/g, ' ').trim();
 }
 
 import { extractText } from 'unpdf';
@@ -189,7 +248,7 @@ const MAX_PDF_PAGES = 30; // 30 pages limit
 /**
  * Fetches the webpage or PDF content server-side with timeout and realistic User-Agent.
  */
-export async function fetchWebpageContent(url: string): Promise<{ html: string; text: string; status: number }> {
+export async function fetchWebpageContent(url: string): Promise<{ html: string; text: string; status: number; title: string }> {
     const canonical = canonicalizeUrl(url);
 
     const controller = new AbortController();
@@ -246,6 +305,7 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
                 html: '',
                 text: cleanText,
                 status: response.status,
+                title: '',
             };
         }
 
@@ -299,6 +359,7 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
             html,
             text,
             status: response.status,
+            title: extractHtmlTitle(html),
         };
     } catch (err: any) {
         clearTimeout(timeoutId);

@@ -22,8 +22,8 @@ for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
 
 const interactiveItems = shuffledItems.map((item) => ({
   ...item,
-  thumbnailUrl: item.imageUrl,
-  paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(item.imageUrl)}`,
+  thumbnailUrl: item.thumbnailUrl || item.imageUrl,
+  paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(item.thumbnailUrl || item.imageUrl)}`,
 }));
 
 // Moodboard items are managed directly in the admin, so keep the edge cache responsive while preserving zero cold-start delay for visitors.

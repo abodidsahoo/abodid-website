@@ -12,8 +12,64 @@ const PROCESSABLE_IMAGE_TYPES = new Set([
     "image/jpeg",
     "image/png",
     "image/webp",
+    "image/gif",
     "image/avif",
 ]);
+
+export const MEDIA_VARIANT_TRANSFORM_VERSION = 2;
+export const STILL_WEBP_QUALITY = 82;
+
+export const animatedWebpQuality = (sourceSize: number, frameCount: number) => {
+    if (sourceSize >= 12 * 1024 * 1024 || frameCount >= 120) return 68;
+    if (sourceSize >= 6 * 1024 * 1024 || frameCount >= 60) return 72;
+    return 76;
+};
+
+export const encodeR2ImageVariant = async ({
+    sourceBytes,
+    width,
+}: {
+    sourceBytes: Uint8Array;
+    width: number;
+}) => {
+    const metadata = await sharp(sourceBytes, { animated: true }).metadata();
+    const frameCount = Math.max(1, Number(metadata.pages || 1));
+    const animated = frameCount > 1;
+    const quality = animated
+        ? animatedWebpQuality(sourceBytes.byteLength, frameCount)
+        : STILL_WEBP_QUALITY;
+    const input = sharp(sourceBytes, animated ? { animated: true } : undefined)
+        .rotate()
+        .resize({ width, withoutEnlargement: true });
+
+    const data = await input
+        .webp(animated
+            ? {
+                quality,
+                alphaQuality: 90,
+                effort: 6,
+                minSize: true,
+                mixed: true,
+                smartSubsample: true,
+              }
+            : { quality, effort: 4, smartSubsample: true })
+        .toBuffer();
+    const outputMetadata = await sharp(data, { animated: true }).metadata();
+    const outputFrameCount = Math.max(1, Number(outputMetadata.pages || 1));
+
+    if (animated && outputFrameCount <= 1) {
+        throw new Error("Animated image variant lost its animation frames.");
+    }
+
+    return {
+        data,
+        width: Number(outputMetadata.width || 0),
+        height: Number(outputMetadata.pageHeight || outputMetadata.height || 0),
+        animated,
+        frameCount: outputFrameCount,
+        quality,
+    };
+};
 
 const originalRelativePath = (objectKey: string) => {
     for (const prefix of ["photos/originals/", "originals/"]) {
@@ -46,11 +102,8 @@ export const generateR2ImageVariants = async ({
 
     const variants = [];
     for (const width of R2_VARIANT_WIDTHS) {
-        const { data, info } = await sharp(sourceBytes)
-            .rotate()
-            .resize({ width, withoutEnlargement: true })
-            .webp({ quality: 82, effort: 4, smartSubsample: true })
-            .toBuffer({ resolveWithObject: true });
+        const encoded = await encodeR2ImageVariant({ sourceBytes, width });
+        const { data } = encoded;
         const objectKeyPrefix = directory ? `${R2_VARIANTS_PREFIX}/${directory}` : R2_VARIANTS_PREFIX;
         const variantObjectKey = `${objectKeyPrefix}/${width}/${stem}-${fingerprint}.webp`;
         const uploaded = await putR2Object({
@@ -62,17 +115,21 @@ export const generateR2ImageVariants = async ({
         variants.push({
             variant_key: String(width),
             target_width: width,
-            actual_width: info.width,
-            actual_height: info.height,
+            actual_width: encoded.width,
+            actual_height: encoded.height,
             object_key: uploaded.objectKey,
             public_url: buildR2PublicUrl(config, uploaded.objectKey),
             mime_type: "image/webp",
             file_size: data.byteLength,
-            quality: 82,
-            animated: false,
+            quality: encoded.quality,
+            animated: encoded.animated,
             source_etag: fingerprint,
-            transform_version: 1,
-            metadata: { generatedAutomatically: true },
+            transform_version: MEDIA_VARIANT_TRANSFORM_VERSION,
+            metadata: {
+                generatedAutomatically: true,
+                frameCount: encoded.frameCount,
+                sourceMimeType: mimeType,
+            },
         });
     }
     return variants;

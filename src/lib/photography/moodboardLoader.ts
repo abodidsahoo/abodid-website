@@ -85,18 +85,15 @@ export async function getMoodboardPhotos(
 
     // 1. Attempt live R2 query
     try {
-        const [res1600, res800] = await Promise.all([
+        const [res1600, res800, resOrig] = await Promise.all([
             listR2Folder(prefix1600, bucket).catch(() => ({ files: [] })),
             listR2Folder(prefix800, bucket).catch(() => ({ files: [] })),
+            listR2Folder(prefixOrig, bucket).catch(() => ({ files: [] })),
         ]);
 
         files1600 = res1600.files || [];
         files800 = res800.files || [];
-
-        if (files1600.length === 0 && files800.length === 0) {
-            const resOrig = await listR2Folder(prefixOrig, bucket).catch(() => ({ files: [] }));
-            filesOrig = resOrig.files || [];
-        }
+        filesOrig = resOrig.files || [];
     } catch {
         // Ignore live fetch errors; will fallback to snapshot below
     }
@@ -113,11 +110,9 @@ export async function getMoodboardPhotos(
             .filter((item) => item.key.startsWith(prefix800))
             .map((item) => ({ objectKey: item.key, etag: item.etag }));
 
-        if (files1600.length === 0 && files800.length === 0) {
-            filesOrig = snapArray
-                .filter((item) => item.key.startsWith(prefixOrig))
-                .map((item) => ({ objectKey: item.key, etag: item.etag }));
-        }
+        filesOrig = snapArray
+            .filter((item) => item.key.startsWith(prefixOrig))
+            .map((item) => ({ objectKey: item.key, etag: item.etag }));
     }
 
     // 3. Normalize & pair 1600, 800, and original keys

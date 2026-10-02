@@ -14,6 +14,7 @@ import {
     getR2ObjectBytes,
     headR2Object,
     putR2Object,
+    R2_INSTAGRAM_PREFIX,
 } from "../../../../lib/media/r2";
 
 const cleanEtag = (value: string | undefined) => value?.replace(/^"|"$/g, "") || null;
@@ -173,7 +174,7 @@ export const POST: APIRoute = async ({ request }) => {
         const directory = relativeSlash >= 0 ? relativePath.slice(0, relativeSlash) : "";
         const sourceName = relativeSlash >= 0 ? relativePath.slice(relativeSlash + 1) : relativePath;
         const stem = sourceName.replace(/\.[^.]+$/, "");
-        const instagramObjectKey = `photos/instagram/${directory ? `${directory}/` : ""}${stem}-${fingerprint}.jpg`;
+        const instagramObjectKey = `${R2_INSTAGRAM_PREFIX}/${directory ? `${directory}/` : ""}${stem}-${fingerprint}.jpg`;
         let output = sharp(sourceBytes).rotate();
         if (layout) {
             const { data: oriented, info: orientedInfo } = await output

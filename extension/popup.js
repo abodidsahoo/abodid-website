@@ -73,23 +73,61 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const [execResult] = await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: () => {
+                        const structuredEntries = [];
+                        const collectStructuredEntries = (value) => {
+                            if (Array.isArray(value)) {
+                                value.forEach(collectStructuredEntries);
+                                return;
+                            }
+                            if (!value || typeof value !== 'object') return;
+                            if (value['@graph']) collectStructuredEntries(value['@graph']);
+                            const type = String(value['@type'] || '');
+                            const isOpportunityType = /jobposting|event|course|scholarship|grant|fellowship|offer/i.test(type);
+                            const hasOpportunityDates = ['validThrough', 'applicationDeadline', 'deadline', 'startDate', 'endDate']
+                                .some((key) => value[key] != null);
+                            if (isOpportunityType || hasOpportunityDates) structuredEntries.push(value);
+                        };
+                        Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
+                            .slice(0, 10)
+                            .forEach((script) => {
+                                try {
+                                    const parsed = JSON.parse(script.textContent || 'null');
+                                    collectStructuredEntries(parsed);
+                                } catch {
+                                    // Ignore invalid third-party structured data.
+                                }
+                            });
+                        const structuredData = structuredEntries
+                            .slice(0, 10)
+                            .map((entry) => JSON.stringify(entry, [
+                                '@type', 'name', 'title', 'description', 'url', 'datePosted',
+                                'validThrough', 'startDate', 'endDate', 'applicationDeadline',
+                                'deadline', 'employmentType', 'hiringOrganization', 'organizer',
+                                'location', 'jobLocation', 'baseSalary', 'currency', 'value',
+                            ]))
+                            .join('\n');
+
                         const clone = document.body.cloneNode(true);
                         const badElements = clone.querySelectorAll('script, style, noscript, svg, nav, footer, header, .cookie-banner');
                         badElements.forEach(el => el.remove());
 
                         const pageText = clone.innerText || '';
                         const links = Array.from(document.querySelectorAll('a[href]'))
-                            .map((link) => {
+                            .map((link, index) => {
                                 const label = (link.textContent || '').replace(/\s+/g, ' ').trim();
                                 if (!label) return null;
                                 try {
-                                    return `${label}: ${new URL(link.getAttribute('href'), document.baseURI).href}`;
+                                    const href = new URL(link.getAttribute('href'), document.baseURI).href;
+                                    const priority = /\b(apply|application|submit|register|registration|portal|form|guidelines?|download|brief|meeting|teams|zoom)\b/i.test(`${label} ${href}`) ? 1 : 0;
+                                    return { text: `${label}: ${href}`, priority, index };
                                 } catch {
                                     return null;
                                 }
                             })
                             .filter(Boolean)
-                            .slice(0, 100);
+                            .sort((a, b) => b.priority - a.priority || a.index - b.index)
+                            .slice(0, 100)
+                            .map((link) => link.text);
 
                         const fragment = decodeURIComponent(window.location.hash.replace(/^#/, ''));
                         let sectionText = '';
@@ -104,6 +142,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             `CURRENT URL: ${window.location.href}`,
                             fragment ? `CURRENT SECTION: ${fragment}` : '',
                             sectionText ? `CURRENT SECTION CONTENT:\n${sectionText.slice(0, 4000)}` : '',
+                            structuredData ? `STRUCTURED PAGE DATA:\n${structuredData.slice(0, 5000)}` : '',
                             `VISIBLE PAGE CONTENT:\n${pageText}`,
                             links.length ? `LINK TARGETS:\n${links.join('\n')}` : '',
                         ].filter(Boolean).join('\n\n');

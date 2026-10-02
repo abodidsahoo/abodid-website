@@ -60,19 +60,60 @@ const workshops = [
         highlight: true,
     },
     {
-        title: "Adobe Premiere Pro for Storytelling",
+        title: "Video Editing",
         description:
-            "A seven-week Premiere Pro masterclass for learning video editing through rhythm, sound, narrative, titles, color, delivery, and polished Adobe workflows.",
-        price: "Enquire",
-        duration: "7 Modules",
-        href: "/premiere-pro-masterclass",
+            "A story-first editing session built around your footage, questions, and current level.",
+        price: "£180",
+        duration: "3 Hours",
+        href: "/video-editing-workshop",
         features: [
-            "Modules 1-3: clean cuts, basic sound, simple export",
-            "Modules 4-7: titles, captions, color, speed, and delivery",
-            "Story-first Premiere Pro workflow",
-            "Practice exports and capstone project options",
+            "Narrative structure and footage selection",
+            "Pacing, cuts, sound, and transitions",
+            "Practical review of your current edit",
         ],
         highlight: true,
+    },
+    {
+        title: "Photography",
+        description:
+            "Make more intentional photographs and shape them into a coherent visual story.",
+        price: "£180",
+        duration: "3 Hours",
+        href: "/photography-workshop",
+        features: [
+            "Visual intention and point of view",
+            "Framing, light, and image-making decisions",
+            "Editing and sequencing a concise series",
+        ],
+        highlight: false,
+    },
+    {
+        title: "Filmmaking",
+        description:
+            "Turn one idea into a concise treatment and a practical film production plan.",
+        price: "£180",
+        duration: "3 Hours",
+        href: "/filmmaking-workshop",
+        features: [
+            "Story, audience, and emotional movement",
+            "Scenes, shots, sound, and structure",
+            "A realistic production approach",
+        ],
+        highlight: false,
+    },
+    {
+        title: "Autoethnography",
+        description:
+            "Use lived experience as material for rigorous creative or research work.",
+        price: "£180",
+        duration: "3 Hours",
+        href: "/autoethnography-workshop",
+        features: [
+            "A precise question grounded in experience",
+            "Memory, field notes, objects, and archives",
+            "Positionality, consent, ethics, and form",
+        ],
+        highlight: false,
     },
 ];
 ---
@@ -130,7 +171,7 @@ const workshops = [
                                 href={workshop.href}
                                 class="book-btn"
                             >
-                                {workshop.href.startsWith("/workshops/") || workshop.href.startsWith("/obsidian") || workshop.href.startsWith("/premiere-pro-masterclass")
+                                {workshop.href.startsWith("/workshops/") || workshop.href.startsWith("/obsidian") || workshop.href.endsWith("-workshop")
                                     ? "View Details"
                                     : "Book a Slot"}
                             </a>

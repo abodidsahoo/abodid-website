@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AMApplicationBuild</key>
+	<string>523</string>
+	<key>AMApplicationVersion</key>
+	<string>2.10</string>
+	<key>AMDocumentVersion</key>
+	<string>2</string>
+	<key>actions</key>
+	<array>
+		<dict>
+			<key>action</key>
+			<dict>
+				<key>AMAccepts</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Optional</key>
+					<false/>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.path</string>
+					</array>
+				</dict>
+				<key>AMActionVersion</key>
+				<string>2.0.3</string>
+				<key>AMApplication</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>AMProvides</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>ActionBundlePath</key>
+				<string>/System/Library/Automator/Run Shell Script.action</string>
+				<key>ActionName</key>
+				<string>Run Shell Script</string>
+				<key>ActionParameters</key>
+				<dict>
+					<key>COMMAND_STRING</key>
+					<string><![CDATA[set -u
+
+readonly keychain_account="${USER}"
+readonly endpoint_service="com.abodid.moodboard.endpoint"
+readonly token_service="com.abodid.moodboard.token"
+
+notify_user() {
+    /usr/bin/osascript - "$1" "$2" <<'APPLESCRIPT'
+on run argv
+    display notification (item 2 of argv) with title (item 1 of argv)
+end run
+APPLESCRIPT
+}
+
+endpoint=$(/usr/bin/security find-generic-password -a "${keychain_account}" -s "${endpoint_service}" -w 2>/dev/null || true)
+token=$(/usr/bin/security find-generic-password -a "${keychain_account}" -s "${token_service}" -w 2>/dev/null || true)
+
+if [[ -z "${endpoint}" || -z "${token}" ]]; then
+    notify_user "Moodboard" "Setup is incomplete. Run the installer again."
+    exit 1
+fi
+
+success_count=0
+failure_count=0
+response_file=$(/usr/bin/mktemp -t moodboard-quick-action)
+trap '/bin/rm -f "${response_file}"' EXIT
+
+for image_path in "$@"; do
+    if [[ ! -f "${image_path}" ]]; then
+        failure_count=$((failure_count + 1))
+        continue
+    fi
+
+    mime_type=$(/usr/bin/file -b --mime-type "${image_path}")
+    filename="${image_path:t}"
+    file_size=$(/usr/bin/stat -f %z "${image_path}")
+
+    prepare_status=$(/usr/bin/curl \
+        --silent \
+        --show-error \
+        --output "${response_file}" \
+        --write-out "%{http_code}" \
+        --connect-timeout 15 \
+        --max-time 120 \
+        --retry 2 \
+        --retry-all-errors \
+        --header "Origin: https://abodid.com" \
+        --header "Authorization: Bearer ${token}" \
+        --form-string "filename=${filename}" \
+        --form-string "contentType=${mime_type}" \
+        --form-string "size=${file_size}" \
+        "${endpoint}/prepare" || true)
+
+    if [[ "${prepare_status}" != 2* ]]; then
+        failure_count=$((failure_count + 1))
+        continue
+    fi
+
+    upload_url=$(/usr/bin/plutil -extract uploadUrl raw -o - "${response_file}" 2>/dev/null || true)
+    object_key=$(/usr/bin/plutil -extract objectKey raw -o - "${response_file}" 2>/dev/null || true)
+    signed_content_type=$(/usr/bin/plutil -extract contentType raw -o - "${response_file}" 2>/dev/null || true)
+    if [[ -z "${upload_url}" || -z "${object_key}" || -z "${signed_content_type}" ]]; then
+        failure_count=$((failure_count + 1))
+        continue
+    fi
+
+    upload_status=$(/usr/bin/curl \
+        --silent \
+        --show-error \
+        --output "${response_file}" \
+        --write-out "%{http_code}" \
+        --connect-timeout 15 \
+        --max-time 180 \
+        --retry 2 \
+        --retry-all-errors \
+        --request PUT \
+        --header "Content-Type: ${signed_content_type}" \
+        --header "Cache-Control: public, max-age=31536000, immutable" \
+        --data-binary "@${image_path}" \
+        "${upload_url}" || true)
+    if [[ "${upload_status}" != 2* ]]; then
+        failure_count=$((failure_count + 1))
+        continue
+    fi
+
+    complete_status=$(/usr/bin/curl \
+        --silent \
+        --show-error \
+        --output "${response_file}" \
+        --write-out "%{http_code}" \
+        --connect-timeout 15 \
+        --max-time 120 \
+        --retry 2 \
+        --retry-all-errors \
+        --header "Origin: https://abodid.com" \
+        --header "Authorization: Bearer ${token}" \
+        --form-string "objectKey=${object_key}" \
+        --form-string "originalFilename=${filename}" \
+        --form-string "expectedSize=${file_size}" \
+        "${endpoint}/complete" || true)
+
+    if [[ "${complete_status}" == 2* ]]; then
+        success_count=$((success_count + 1))
+    else
+        failure_count=$((failure_count + 1))
+    fi
+done
+
+if (( failure_count == 0 )); then
+    notify_user "Moodboard" "Added ${success_count} image(s) to your mood board."
+else
+    notify_user "Moodboard" "Added ${success_count}; ${failure_count} upload(s) failed."
+    exit 1
+fi]]></string>
+					<key>CheckedForUserDefaultShell</key>
+					<true/>
+					<key>inputMethod</key>
+					<integer>1</integer>
+					<key>shell</key>
+					<string>/bin/zsh</string>
+					<key>source</key>
+					<string></string>
+				</dict>
+				<key>BundleIdentifier</key>
+				<string>com.apple.RunShellScript</string>
+				<key>CFBundleVersion</key>
+				<string>2.0.3</string>
+				<key>CanShowSelectedItemsWhenRun</key>
+				<false/>
+				<key>CanShowWhenRun</key>
+				<true/>
+				<key>Category</key>
+				<array>
+					<string>AMCategoryUtilities</string>
+				</array>
+				<key>Class Name</key>
+				<string>RunShellScriptAction</string>
+				<key>InputUUID</key>
+				<string>8D99CB69-AB41-4E0E-9D0F-67E613FDD624</string>
+				<key>OutputUUID</key>
+				<string>01EC13B3-C1DB-4C27-8095-D02E443739A2</string>
+				<key>UUID</key>
+				<string>6437A6A4-885A-4555-95AF-A80D020F694A</string>
+			</dict>
+			<key>isViewVisible</key>
+			<integer>1</integer>
+		</dict>
+	</array>
+	<key>connectors</key>
+	<dict/>
+	<key>workflowMetaData</key>
+	<dict>
+		<key>applicationBundleID</key>
+		<string>com.apple.finder</string>
+		<key>applicationBundleIDs</key>
+		<array>
+			<string>com.apple.finder</string>
+		</array>
+		<key>applicationPath</key>
+		<string>/System/Library/CoreServices/Finder.app</string>
+		<key>inputTypeIdentifier</key>
+		<string>com.apple.Automator.fileSystemObject</string>
+		<key>outputTypeIdentifier</key>
+		<string>com.apple.Automator.nothing</string>
+		<key>presentationMode</key>
+		<integer>15</integer>
+		<key>processesInput</key>
+		<integer>0</integer>
+		<key>serviceApplicationBundleID</key>
+		<string>com.apple.finder</string>
+		<key>serviceApplicationPath</key>
+		<string>/System/Library/CoreServices/Finder.app</string>
+		<key>serviceInputTypeIdentifier</key>
+		<string>com.apple.Automator.fileSystemObject</string>
+		<key>serviceOutputTypeIdentifier</key>
+		<string>com.apple.Automator.nothing</string>
+		<key>serviceProcessesInput</key>
+		<integer>0</integer>
+		<key>systemImageName</key>
+		<string>NSActionTemplate</string>
+		<key>useAutomaticInputType</key>
+		<integer>0</integer>
+		<key>workflowTypeIdentifier</key>
+		<string>com.apple.Automator.servicesMenu</string>
+	</dict>
+</dict>
+</plist>

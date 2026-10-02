@@ -1,0 +1,148 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { breadcrumbJsonLd, personJsonLd, seoIdentity, serviceJsonLd } from "../lib/seoData";
+
+interface Props {
+  title: string;
+  slug: string;
+  introduction: string;
+  audience: string;
+  focus: string[];
+  outcome: string;
+  modulesHref?: string;
+}
+
+const {
+  title,
+  slug,
+  introduction,
+  audience,
+  focus,
+  outcome,
+  modulesHref,
+} = Astro.props;
+
+const path = `/${slug}`;
+const pageTitle = `${title} with Abodid Sahoo`;
+const description = `${introduction} A live three-hour workshop for £180.`;
+const emailSubject = `${title} enquiry`;
+const emailHref = `mailto:${seoIdentity.email}?subject=${encodeURIComponent(emailSubject)}`;
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Workshops", path: "/workshops" },
+    { name: title, path },
+  ]),
+  serviceJsonLd({
+    path,
+    name: title,
+    description,
+    serviceType: title,
+  }),
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={description}
+  canonicalUrl={`${seoIdentity.siteUrl}${path}`}
+  structuredData={structuredData}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="workshop-brief-page"
+>
+  <article class="workshop-brief" aria-labelledby="workshop-title">
+    <p class="workshop-brief__eyebrow">Workshop · 3 hours · £180</p>
+    <h1 id="workshop-title">{title}</h1>
+    <p class="workshop-brief__intro">{introduction}</p>
+
+    <ul>
+      <li><strong>Target group:</strong> {audience}</li>
+      <li><strong>Format:</strong> One live, focused three-hour session for £180.</li>
+      {focus.map((item) => <li>{item}</li>)}
+      <li><strong>Outcome:</strong> {outcome}</li>
+    </ul>
+
+    {modulesHref && (
+      <p>
+        <a href={modulesHref}>View the existing class modules ↗</a>
+      </p>
+    )}
+
+    <p class="workshop-brief__contact">
+      To arrange a session, reach out at <a href={emailHref}>{seoIdentity.email}</a>.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  :global(body.workshop-brief-page) {
+    background: var(--pop-cream, #fff8e8);
+    color: var(--pop-ink, #15130f);
+  }
+
+  .workshop-brief {
+    max-width: 760px;
+    margin: clamp(5rem, 12vw, 10rem) auto;
+    padding: clamp(1.5rem, 5vw, 3.5rem);
+    border: 1px solid currentColor;
+    border-radius: clamp(18px, 3vw, 30px);
+    background: var(--pop-yellow, #f3ff69);
+  }
+
+  .workshop-brief__eyebrow {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    max-width: 12ch;
+    margin: 0;
+    font-size: clamp(2.7rem, 8vw, 6.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.065em;
+  }
+
+  .workshop-brief__intro {
+    max-width: 58ch;
+    margin: 2rem 0;
+    font-size: clamp(1.08rem, 2vw, 1.35rem);
+    line-height: 1.55;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding-left: 1.25rem;
+    line-height: 1.55;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.18em;
+  }
+
+  .workshop-brief__contact {
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid currentColor;
+  }
+
+  @media (max-width: 720px) {
+    .workshop-brief {
+      margin: 4.5rem 0 2rem;
+    }
+  }
+</style>

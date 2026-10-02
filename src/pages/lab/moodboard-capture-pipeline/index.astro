@@ -1,0 +1,317 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const title = "Right-click to Moodboard — Abodid Sahoo";
+const description =
+  "A creative technology case study about turning images from Chrome or Finder into a secure, responsive live moodboard.";
+
+const summaryLines = [
+  ["Idea", "I designed a right-click capture tool that turns a passing visual reference into a live moodboard entry."],
+  ["Stack", "Chrome and macOS meet Astro, Vercel, Cloudflare R2 and Workers, Supabase, Sharp and WebP."],
+  ["Pipeline", "The source uploads directly to R2, becomes 800px and 1600px variants, then appears on the site from a Supabase record."],
+  ["Benefit", "The interface protects the creative impulse: one familiar gesture replaces downloading, renaming and re-uploading."],
+  ["Tension", "Freshness, GIF weight and private device access can fight speed, so I use short page caches, immutable media and scoped authentication."],
+  ["Outcome", "It is a small personal tool that behaves like dependable publishing infrastructure."],
+];
+
+const pipeline = [
+  ["01", "Point", "Right-click an image in Chrome, or select the exact file or files in Finder."],
+  ["02", "Resolve", "The browser extension finds the best real image source under the pointer; Finder keeps the selected local file intact."],
+  ["03", "Authorize", "A private bearer token asks the Vercel API for a five-minute, single-object upload URL."],
+  ["04", "Transfer", "Chrome or macOS sends the image straight to Cloudflare R2. Vercel never carries the heavy image body."],
+  ["05", "Process", "The media processor creates an 800px grid asset and a 1600px viewer asset; animated GIFs become lighter animated WebP."],
+  ["06", "Publish", "Supabase stores the title, dimensions and storage reference; the dynamic moodboard reads the new record without a code deployment."],
+];
+
+const environmentKeys = [
+  ["MOODBOARD_QUICK_ACTION_TOKEN", "Private handshake shared with my Mac Keychain and Chrome extension."],
+  ["R2_ACCOUNT_ID · R2_ACCESS_KEY_ID · R2_SECRET_ACCESS_KEY", "Server-only access used to sign a direct upload, never shipped to the browser."],
+  ["R2_BUCKET_NAME · R2_PUBLIC_BASE_URL", "The assets bucket and its public delivery address."],
+  ["PUBLIC_SUPABASE_URL · PUBLIC_SUPABASE_ANON_KEY", "The safe public connection used to read published moodboard records."],
+  ["SUPABASE_SERVICE_ROLE_KEY", "A server-only key used by the media worker and catalogue maintenance."],
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalUrl="https://abodid.com/lab/moodboard-capture-pipeline"
+  fullWidth={true}
+  showGlobalGrid={false}
+  bodyClass="moodboard-pipeline-page"
+>
+  <article class="pipeline-case">
+    <nav class="pipeline-nav" aria-label="Lab navigation">
+      <a href="/lab">← Back to Lab</a>
+      <a href="/moodboard">Open the live Moodboard ↗</a>
+    </nav>
+
+    <header class="pipeline-hero">
+      <div class="pipeline-hero__meta">
+        <span>Creative tooling</span>
+        <span>Live system · 2026</span>
+      </div>
+      <h1>Right-click.<br />Keep the idea.</h1>
+      <p>
+        I wanted collecting references to feel as immediate as noticing them.
+        So I designed the gesture, interface and cloud pipeline as one continuous
+        creative act—from an image under my pointer to a responsive live archive.
+      </p>
+      <img
+        src="/images/lab/moodboard-capture-pipeline.svg"
+        alt="Chrome and Finder images moving through a secure media pipeline into a live moodboard"
+        width="1600"
+        height="1000"
+      />
+    </header>
+
+    <section class="pipeline-summary" aria-labelledby="summary-heading">
+      <p class="section-kicker">The project in six lines</p>
+      <h2 id="summary-heading">A publishing system built around a tiny human moment.</h2>
+      <ol>
+        {summaryLines.map(([label, copy]) => (
+          <li><strong>{label}</strong><span>{copy}</span></li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="pipeline-story split-section" aria-labelledby="idea-heading">
+      <div>
+        <p class="section-kicker">The idea</p>
+        <h2 id="idea-heading">Remove the admin between seeing and saving.</h2>
+      </div>
+      <div class="prose">
+        <p>
+          Moodboards are usually assembled after the interesting moment has passed:
+          download a file, find it again, rename it, open a dashboard and upload it.
+          I treated that friction as a design problem, not a user-discipline problem.
+        </p>
+        <p>
+          The resulting tool works where the reference already lives. In Chrome it
+          understands modern image galleries—including Instagram-style wrappers,
+          responsive <code>srcset</code> images, CSS backgrounds and hidden high-resolution
+          sources. In Finder it accepts the actual selected JPEG, PNG, WebP, GIF or AVIF,
+          including a group of files, from the native Quick Actions menu.
+        </p>
+      </div>
+    </section>
+
+    <section class="capture-modes" aria-labelledby="capture-heading">
+      <p class="section-kicker">Two capture gestures</p>
+      <h2 id="capture-heading">The same intention, translated for two environments.</h2>
+      <div class="capture-grid">
+        <article>
+          <span class="capture-number">A</span>
+          <h3>Behind Instagram and the browser</h3>
+          <p>
+            The Chrome extension records the exact pointer position when I open the
+            context menu. It walks the DOM around that point, checks image elements,
+            picture sources, <code>currentSrc</code>, data attributes, video posters and
+            CSS backgrounds, then chooses the best available source rather than saving
+            a screenshot of the page.
+          </p>
+        </article>
+        <article>
+          <span class="capture-number">B</span>
+          <h3>From Finder with the exact files</h3>
+          <p>
+            A native macOS Automator workflow receives the files I selected, reads
+            each real MIME type and byte size, and uploads them one at a time. Its
+            endpoint and token live in macOS Keychain, and a system notification tells
+            me how many arrived successfully.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section class="pipeline-flow" aria-labelledby="flow-heading">
+      <p class="section-kicker">Local machine → live site</p>
+      <h2 id="flow-heading">The image takes the shortest path; the system keeps the context.</h2>
+      <ol>
+        {pipeline.map(([number, label, copy]) => (
+          <li>
+            <span class="flow-number">{number}</span>
+            <h3>{label}</h3>
+            <p>{copy}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="cache-story split-section" aria-labelledby="cache-heading">
+      <div>
+        <p class="section-kicker">The CDN problem</p>
+        <h2 id="cache-heading">Fresh catalogue, long-lived images.</h2>
+      </div>
+      <div class="prose">
+        <p>
+          A moodboard changes often, but an individual image variant should not. I split
+          those two needs: the moodboard page is rendered dynamically and cached at the
+          Vercel edge for 60 seconds, with a five-minute stale window, while fingerprinted
+          R2 media is cached for one year as immutable content.
+        </p>
+        <p>
+          That means a new reference can appear without deploying the website, while repeat
+          visits reuse the same 800px thumbnail instead of pulling the original again. Opening
+          a card asks for the 1600px version; the full original remains the archival source.
+          If processing is still underway, the page falls back safely and upgrades on the
+          next edge refresh.
+        </p>
+        <div class="cache-metrics" aria-label="Cache settings">
+          <span><strong>60 sec</strong> live page edge cache</span>
+          <span><strong>5 min</strong> stale-while-revalidate window</span>
+          <span><strong>1 year</strong> immutable media cache</span>
+          <span><strong>800 / 1600</strong> grid and viewer widths</span>
+          <span><strong>517 / 517</strong> current originals optimised</span>
+          <span><strong>57% lighter</strong> current animated delivery set</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="stack-section" aria-labelledby="stack-heading">
+      <p class="section-kicker">Technology with a job to do</p>
+      <h2 id="stack-heading">A small stack, separated by responsibility.</h2>
+      <div class="stack-grid">
+        <article><h3>Interface</h3><p>Manifest V3 Chrome extension, JavaScript DOM inspection, macOS Automator, zsh and Keychain.</p></article>
+        <article><h3>Control</h3><p>Astro API routes on Vercel validate requests and issue short-lived signed R2 upload URLs.</p></article>
+        <article><h3>Media</h3><p>Cloudflare R2 stores originals; its queue worker—or a Vercel background fallback—creates permanent responsive WebP variants.</p></article>
+        <article><h3>Catalogue</h3><p>Supabase holds titles, tags, dimensions, publishing state and the relationship between originals and variants.</p></article>
+        <article><h3>Delivery</h3><p><code>assets.abodid.com</code> serves fingerprinted media at the edge; Vercel serves the changing page shell.</p></article>
+        <article><h3>Repair</h3><p>A Sharp and FFmpeg backfill can catalogue missing assets and rebuild animation-safe 800px and 1600px derivatives.</p></article>
+      </div>
+    </section>
+
+    <section class="keys-section split-section" aria-labelledby="keys-heading">
+      <div>
+        <p class="section-kicker">Settings and trust</p>
+        <h2 id="keys-heading">Configuration is visible. Credentials are not.</h2>
+        <p class="keys-note">
+          These are the environment-variable names that make the system portable;
+          their values remain encrypted in Vercel, Cloudflare, Chrome storage or macOS Keychain.
+        </p>
+      </div>
+      <dl>
+        {environmentKeys.map(([key, explanation]) => (
+          <div><dt><code>{key}</code></dt><dd>{explanation}</dd></div>
+        ))}
+      </dl>
+    </section>
+
+    <section class="security-section" aria-labelledby="security-heading">
+      <p class="section-kicker">Authentication</p>
+      <h2 id="security-heading">The convenience stays personal; the infrastructure stays private.</h2>
+      <div class="security-grid">
+        <p>A constant-time bearer-token check proves that the request came from one of my capture tools.</p>
+        <p>A signed upload URL expires after five minutes and is limited to the prepared object and content type.</p>
+        <p>The completion endpoint verifies path, format, expected byte size and intrinsic dimensions before publishing.</p>
+        <p>Supabase Row Level Security separates public published reading from authenticated admin editing.</p>
+      </div>
+    </section>
+
+    <section class="reflection split-section" aria-labelledby="reflection-heading">
+      <div>
+        <p class="section-kicker">What I am still improving</p>
+        <h2 id="reflection-heading">Fast capture should not become careless infrastructure.</h2>
+      </div>
+      <div class="prose">
+        <p>
+          GIFs can be expensive to decode, a source website can change its markup, and a
+          60-second cache means “live” is intentionally not the same as “instant everywhere.”
+          Chrome local storage is also less protected than macOS Keychain.
+        </p>
+        <p>
+          I am tackling those edges with adaptive animated-WebP quality, queue retries,
+          responsive fallbacks, content fingerprints, upload limits and a repairable backfill.
+          The next security step is per-device, revocable tokens with rate limits. The larger
+          design principle remains the same: make the creative action effortless, then make
+          every technical consequence observable and reversible.
+        </p>
+      </div>
+    </section>
+
+    <footer class="pipeline-outro">
+      <p>Designed and developed as a personal creative-technology system by Abodid Sahoo.</p>
+      <div>
+        <a href="/moodboard">See the living archive ↗</a>
+        <a href="/lab">Explore more Lab projects →</a>
+      </div>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style is:global>
+  body.moodboard-pipeline-page {
+    margin: 0;
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+  }
+  body.moodboard-pipeline-page main.page-content-full { padding: 0 !important; }
+</style>
+
+<style>
+  .pipeline-case { --ink: #15130f; --cream: #fff8e8; --pink: #ff7eb5; --blue: #2444ca; --lime: #caff48; --yellow: #ffe44f; padding: 8px; background: var(--blue); }
+  .pipeline-case :is(h1,h2,h3,p,ol,dl,figure) { margin-top: 0; }
+  .pipeline-case :is(a,code) { color: inherit; }
+  .pipeline-nav { min-height: 58px; padding: 0 clamp(1rem,3vw,3rem); display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 1px solid var(--ink); border-radius: 18px 18px 0 0; background: var(--lime); font: 700 .72rem/1 var(--font-mono,monospace); letter-spacing: .055em; text-transform: uppercase; }
+  .pipeline-nav a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+  .pipeline-nav a:focus-visible,.pipeline-outro a:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+  .pipeline-hero { padding: clamp(2rem,5vw,5rem); border: 1px solid var(--ink); border-top: 0; background: var(--pink); }
+  .pipeline-hero__meta { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: clamp(4rem,10vw,9rem); font: 700 .72rem/1 var(--font-mono,monospace); letter-spacing: .06em; text-transform: uppercase; }
+  .pipeline-hero h1 { max-width: 10ch; margin-bottom: 2rem; font: 760 clamp(4.5rem,13vw,12rem)/.78 var(--font-display,sans-serif); letter-spacing: -.08em; }
+  .pipeline-hero > p { max-width: 48rem; margin-left: auto; font: 520 clamp(1.25rem,2.3vw,2rem)/1.25 var(--font-display,sans-serif); letter-spacing: -.025em; }
+  .pipeline-hero img { width: 100%; height: auto; margin-top: clamp(3rem,7vw,7rem); display: block; border: 1px solid var(--ink); border-radius: 24px; }
+  .pipeline-summary,.capture-modes,.pipeline-flow,.stack-section,.security-section { padding: clamp(3rem,7vw,7rem) clamp(1rem,5vw,5rem); border: 1px solid var(--ink); border-top: 0; background: var(--cream); }
+  .section-kicker { margin-bottom: 1rem; font: 700 .72rem/1.2 var(--font-mono,monospace); letter-spacing: .08em; text-transform: uppercase; }
+  h2 { max-width: 18ch; margin-bottom: clamp(2.5rem,6vw,5rem); font: 730 clamp(2.5rem,6vw,6rem)/.92 var(--font-display,sans-serif); letter-spacing: -.055em; }
+  .pipeline-summary ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+  .pipeline-summary li { padding: 1.15rem 0; display: grid; grid-template-columns: minmax(90px,.28fr) 1fr; gap: 1rem; border-bottom: 1px solid var(--ink); font: 500 clamp(1rem,1.6vw,1.3rem)/1.38 var(--font-display,sans-serif); }
+  .pipeline-summary strong { font: 700 .72rem/1.5 var(--font-mono,monospace); letter-spacing: .06em; text-transform: uppercase; }
+  .split-section { padding: clamp(3rem,7vw,7rem) clamp(1rem,5vw,5rem); display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr); gap: clamp(2rem,7vw,8rem); border: 1px solid var(--ink); border-top: 0; background: var(--yellow); }
+  .split-section h2 { margin-bottom: 0; }
+  .prose { max-width: 54rem; font: 500 clamp(1.08rem,1.8vw,1.45rem)/1.5 var(--font-display,sans-serif); }
+  .prose p { margin-bottom: 1.35em; }
+  code { padding: .08em .28em; border: 1px solid currentColor; border-radius: .3em; font: .78em/1.2 var(--font-mono,monospace); overflow-wrap: anywhere; }
+  .capture-modes { background: var(--blue); color: var(--cream); }
+  .capture-grid,.stack-grid,.security-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .capture-grid article { min-height: 360px; padding: clamp(1.5rem,3vw,3rem); border: 1px solid var(--cream); border-radius: 22px; display: flex; flex-direction: column; }
+  .capture-grid h3 { max-width: 13ch; margin: auto 0 1.5rem; font: 700 clamp(2rem,4vw,4.3rem)/.92 var(--font-display,sans-serif); letter-spacing: -.05em; }
+  .capture-grid p { max-width: 40rem; margin-bottom: 0; font: 500 1.04rem/1.5 var(--font-display,sans-serif); }
+  .capture-number,.flow-number { font: 700 .75rem/1 var(--font-mono,monospace); }
+  .pipeline-flow ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+  .pipeline-flow li { min-height: 240px; padding: 1.5rem; border: 1px solid var(--ink); border-radius: 18px; background: var(--cream); }
+  .pipeline-flow h3 { margin: 3.2rem 0 .7rem; font: 700 1.7rem/1 var(--font-display,sans-serif); letter-spacing: -.035em; }
+  .pipeline-flow li p { margin-bottom: 0; line-height: 1.48; }
+  .cache-story { background: var(--lime); }
+  .cache-metrics { margin-top: 2.4rem; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .cache-metrics span { min-height: 110px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--ink); border-radius: 14px; font: 650 .82rem/1.3 var(--font-mono,monospace); text-transform: uppercase; }
+  .cache-metrics strong { font: 750 clamp(1.6rem,3vw,2.8rem)/1 var(--font-display,sans-serif); letter-spacing: -.05em; text-transform: none; }
+  .stack-section { background: var(--pink); }
+  .stack-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .stack-grid article,.security-grid p { min-height: 180px; margin: 0; padding: 1.4rem; border: 1px solid var(--ink); border-radius: 16px; background: var(--cream); }
+  .stack-grid h3 { margin-bottom: 2rem; font: 720 1.5rem/1 var(--font-display,sans-serif); }
+  .stack-grid p,.security-grid p { line-height: 1.48; }
+  .keys-section { background: var(--cream); }
+  .keys-note { max-width: 35rem; line-height: 1.5; }
+  .keys-section dl { margin: 0; }
+  .keys-section dl div { padding: 1.2rem 0; border-bottom: 1px solid var(--ink); }
+  .keys-section dt { margin-bottom: .55rem; }
+  .keys-section dd { margin: 0; line-height: 1.45; }
+  .security-section { background: var(--blue); color: var(--cream); }
+  .security-grid p { border-color: var(--cream); background: transparent; }
+  .reflection { background: var(--yellow); }
+  .pipeline-outro { min-height: 60vh; padding: clamp(3rem,7vw,7rem); display: flex; flex-direction: column; justify-content: space-between; gap: 5rem; border: 1px solid var(--ink); border-top: 0; border-radius: 0 0 28px 28px; background: var(--pink); }
+  .pipeline-outro > p { max-width: 15ch; font: 740 clamp(3rem,8vw,8rem)/.87 var(--font-display,sans-serif); letter-spacing: -.065em; }
+  .pipeline-outro div { display: flex; flex-wrap: wrap; gap: 1rem 2rem; }
+  .pipeline-outro a { min-height: 44px; display: inline-flex; align-items: center; font: 700 .8rem/1.2 var(--font-mono,monospace); letter-spacing: .05em; text-transform: uppercase; }
+  @media (max-width: 850px) {
+    .split-section,.capture-grid,.stack-grid,.security-grid { grid-template-columns: 1fr; }
+    .pipeline-flow ol { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .pipeline-hero__meta { align-items: flex-start; flex-direction: column; }
+  }
+  @media (max-width: 560px) {
+    .pipeline-nav { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 1rem; }
+    .pipeline-hero h1 { font-size: clamp(4rem,20vw,6.5rem); }
+    .pipeline-summary li,.pipeline-flow ol,.cache-metrics { grid-template-columns: 1fr; }
+    .pipeline-flow li { min-height: 210px; }
+  }
+</style>

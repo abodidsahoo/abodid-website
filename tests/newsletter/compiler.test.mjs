@@ -281,7 +281,7 @@ test('seeds a dedicated link block as simple blue linked text', () => {
     assert.match(html, />Download the Obsidian 101 Guide<\/a>/);
     assert.match(html, /text-decoration:underline/);
     assert.match(html, /color:#2457d6/);
-    assert.match(html, /href="https:\/\/jwipqbjxpmgyevfzpjjx\.supabase\.co\/storage\/v1\/object\/public\/misc\/cv\/Abodid-Sahoo-2026-CV\.pdf\?download=Abodid%20Sahoo%20-%202026%20CV\.pdf"/);
+    assert.ok(html.includes(`href="${DEFAULT_NEWSLETTER_LINK_URL}"`));
 });
 
 test('rejects non-HTTPS destinations in a dedicated link block', () => {

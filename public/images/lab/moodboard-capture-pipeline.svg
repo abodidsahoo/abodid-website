@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Right-click to Moodboard pipeline</title>
+  <desc id="desc">A bright editorial diagram connecting Chrome and Finder to a cloud image pipeline and a live moodboard.</desc>
+  <rect width="1600" height="1000" fill="#ff72b6"/>
+  <path d="M0 780h1600v220H0z" fill="#2442e3"/>
+  <g fill="none" stroke="#15130f" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M286 373h195c72 0 72 188 144 188h222"/>
+    <path d="M286 643h195c72 0 72-82 144-82"/>
+    <path d="M995 561h278"/>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#15130f">
+    <text x="90" y="120" font-size="38" font-weight="700" letter-spacing="4">CREATIVE TOOLING / 2026</text>
+    <text x="84" y="230" font-size="104" font-weight="800" letter-spacing="-6">RIGHT-CLICK</text>
+    <text x="84" y="324" font-size="104" font-weight="800" letter-spacing="-6">TO MOODBOARD</text>
+  </g>
+  <g stroke="#15130f" stroke-width="8">
+    <rect x="84" y="350" width="202" height="128" rx="24" fill="#f7eddf"/>
+    <rect x="84" y="620" width="202" height="128" rx="24" fill="#e8ff55"/>
+    <rect x="625" y="478" width="370" height="168" rx="32" fill="#ffd23f"/>
+    <rect x="1273" y="468" width="230" height="188" rx="28" fill="#f7eddf"/>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#15130f" text-anchor="middle">
+    <text x="185" y="404" font-size="30" font-weight="700">CHROME</text>
+    <text x="185" y="442" font-size="23">image under pointer</text>
+    <text x="185" y="674" font-size="30" font-weight="700">FINDER</text>
+    <text x="185" y="712" font-size="23">selected local file</text>
+    <text x="810" y="540" font-size="30" font-weight="700">SIGNED DIRECT UPLOAD</text>
+    <text x="810" y="582" font-size="24">R2 original → 800 / 1600 WebP</text>
+    <text x="810" y="616" font-size="21">Supabase metadata · edge delivery</text>
+    <text x="1388" y="526" font-size="30" font-weight="700">LIVE</text>
+    <text x="1388" y="566" font-size="30" font-weight="700">MOODBOARD</text>
+    <text x="1388" y="610" font-size="21">no site deploy</text>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#f7eddf">
+    <text x="84" y="872" font-size="56" font-weight="800">CAPTURE THE IMPULSE.</text>
+    <text x="84" y="934" font-size="56" font-weight="800">LET THE PIPELINE DO THE ADMIN.</text>
+  </g>
+</svg>

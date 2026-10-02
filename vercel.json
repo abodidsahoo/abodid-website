@@ -4,6 +4,11 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/Abodid-Sahoo-2026-CV.pdf",
+      "destination": "https://assets.abodid.com/documents/cv/Abodid-Sahoo-2026-CV.pdf",
+      "permanent": true
+    },
+    {
       "source": "/",
       "has": [{ "type": "host", "value": "lab.abodid.com" }],
       "destination": "https://abodid.com/lab",
