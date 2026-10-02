@@ -42,7 +42,7 @@ test('maps Cloudflare exhibition images into newsletter preview media', () => {
         },
     ]);
 
-    assert.equal(NEWSLETTER_EXHIBITION_FOLDER, 'originals/exhibition-photos');
+    assert.equal(NEWSLETTER_EXHIBITION_FOLDER, 'photos/originals/exhibition-photos');
     assert.deepEqual(media, [{
         id: 'exhibition-one',
         publicUrl: 'https://photos.example.com/originals/exhibition-photos/installation.jpg',

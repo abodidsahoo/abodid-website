@@ -321,7 +321,7 @@ export default function XRShowcaseManager({ accessToken }) {
           filename: file.name,
           contentType: file.type,
           size: file.size,
-          folder: "originals/xr-showcase",
+          folder: "photos/originals/xr-showcase",
         }),
       });
       const signed = await readJson(presignResponse);

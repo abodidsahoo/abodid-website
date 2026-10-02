@@ -1,4 +1,4 @@
-export const NEWSLETTER_EXHIBITION_FOLDER = 'originals/exhibition-photos';
+export const NEWSLETTER_EXHIBITION_FOLDER = 'photos/originals/exhibition-photos';
 
 export const isNewsletterGifAsset = (asset) => {
     const taggedAsGif = (Array.isArray(asset?.tags) ? asset.tags : [])

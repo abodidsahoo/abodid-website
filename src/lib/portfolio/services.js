@@ -495,7 +495,7 @@ export async function uploadPortfolioImage(project, file, metadata = {}) {
   const maxLimit = isVideo ? 100 * 1024 * 1024 : 20 * 1024 * 1024;
   if (file.size > maxLimit) throw new Error(`Files must be ${isVideo ? "100 MB" : "20 MB"} or smaller.`);
   const storageFolder = slugify(project.storage_folder || project.slug) || "project";
-  const folder = `originals/${storageFolder}`;
+  const folder = `photos/originals/${storageFolder}`;
   const dimensionsPromise = mediaDimensions(file);
   const headers = {
     "Content-Type": "application/json",

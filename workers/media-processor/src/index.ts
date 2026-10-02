@@ -39,9 +39,22 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/png",
   "image/webp",
   "image/gif",
+  "image/avif",
 ]);
 
 const isOriginalKey = (key: string) => key.startsWith("originals/") || key.startsWith("photos/originals/");
+
+const originalRelativePath = (key: string) => {
+  if (key.startsWith("photos/originals/")) return key.slice("photos/originals/".length);
+  if (key.startsWith("originals/")) return key.slice("originals/".length);
+  return null;
+};
+
+export const variantFolderKeysFor = (originalFolderKey: string) => {
+  const relative = originalRelativePath(originalFolderKey)?.replace(/\/+$/, "") || "";
+  if (!relative) return [];
+  return [800, 1600].map((width) => `photos/variants/${relative}/${width}/`);
+};
 
 const cleanBaseUrl = (value: string) => value.replace(/\/+$/, "");
 
@@ -59,7 +72,20 @@ const inferMimeType = (key: string) => {
   if (extension === "png") return "image/png";
   if (extension === "webp") return "image/webp";
   if (extension === "gif") return "image/gif";
+  if (extension === "avif") return "image/avif";
   return "application/octet-stream";
+};
+
+const ensureVariantFolders = async (env: Env, originalKey: string) => {
+  await Promise.all(variantFolderKeysFor(originalKey).map((folderKey) =>
+    env.MEDIA_BUCKET.put(folderKey, "", {
+      httpMetadata: { contentType: "application/x-directory" },
+      customMetadata: {
+        generatedBy: "personal-site-media-pipeline",
+        sourceFolder: originalKey.replace(/\/+$/, ""),
+      },
+    })
+  ));
 };
 
 const outputQualityFor = (contentType: string, sourceSize: number) => {
@@ -100,10 +126,7 @@ const variantObjectKey = (
   const fingerprint = sourceEtag.replace(/[^a-zA-Z0-9]/g, "").slice(0, 10) || "source";
   const outputName = `${stem}-${fingerprint}.webp`;
 
-  if (isPhotosPrefix) {
-    return ["photos/variants", directory, variantKey, outputName].filter(Boolean).join("/");
-  }
-  return ["variants", directory, variantKey, outputName].filter(Boolean).join("/");
+  return ["photos/variants", directory, variantKey, outputName].filter(Boolean).join("/");
 };
 
 const supabaseHeaders = (env: Env, prefer?: string) => ({
@@ -228,7 +251,13 @@ const markIgnored = async (
 
 const processEvent = async (event: R2Event, env: Env) => {
   const objectKey = event.object?.key || "";
-  if (!isOriginalKey(objectKey) || objectKey.endsWith("/")) return;
+  if (!isOriginalKey(objectKey)) return;
+  if (objectKey.endsWith("/")) {
+    await ensureVariantFolders(env, objectKey);
+    return;
+  }
+
+  await ensureVariantFolders(env, objectKey.slice(0, objectKey.lastIndexOf("/") + 1));
 
   const sourceHead = await env.MEDIA_BUCKET.head(objectKey);
   if (!sourceHead) return;

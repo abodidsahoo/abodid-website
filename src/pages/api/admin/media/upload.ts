@@ -154,13 +154,20 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        await catalogueR2ImageVariants({
+        const variantResult = await catalogueR2ImageVariants({
             supabase: authorization.supabase,
             assetId: data.id,
             objectKey: data.object_key,
             sourceBytes: bytes,
             mimeType: data.mime_type,
         });
+        if (variantResult.attempted && !variantResult.ready) {
+            return jsonResponse({
+                error: variantResult.error || "The original was uploaded, but its required variants could not be created.",
+                code: "MEDIA_VARIANTS_FAILED",
+                objectKey: data.object_key,
+            }, 502);
+        }
         const { data: processedData } = await authorization.supabase
             .from("media_assets")
             .select("*,media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)")

@@ -99,7 +99,7 @@ export const POST: APIRoute = async ({ request }) => {
             if (projectError || !project) {
                 return jsonResponse({ error: "The target portfolio project no longer exists." }, 409);
             }
-            const expectedPrefix = `originals/${project.storage_folder}/`;
+            const expectedPrefix = `photos/originals/${project.storage_folder}/`;
             if (!objectKey.startsWith(expectedPrefix)) {
                 return jsonResponse({ error: "The upload folder does not match this project's permanent storage folder." }, 409);
             }
@@ -151,13 +151,20 @@ export const POST: APIRoute = async ({ request }) => {
 
         if (canGenerateR2ImageVariants(data.object_key, data.mime_type)) {
             const sourceBytes = await getR2ObjectBytes(data.object_key);
-            await catalogueR2ImageVariants({
+            const variantResult = await catalogueR2ImageVariants({
                 supabase: authorization.supabase,
                 assetId: data.id,
                 objectKey: data.object_key,
                 sourceBytes,
                 mimeType: data.mime_type,
             });
+            if (variantResult.attempted && !variantResult.ready) {
+                return jsonResponse({
+                    error: variantResult.error || "The original was uploaded, but its required variants could not be created.",
+                    code: "MEDIA_VARIANTS_FAILED",
+                    objectKey: data.object_key,
+                }, 502);
+            }
         }
         const { data: processedData } = await authorization.supabase
             .from("media_assets")

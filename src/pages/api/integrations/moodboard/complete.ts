@@ -1,7 +1,6 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import { waitUntil } from "@vercel/functions";
 import sharp from "sharp";
 import { jsonResponse } from "../../../../lib/admin/serverAuth";
 import {
@@ -113,28 +112,16 @@ export const POST: APIRoute = async ({ request }) => {
         if (mediaAssetError || !mediaAsset) throw mediaAssetError || new Error("Could not catalogue the image.");
         cataloguedMediaAssetId = mediaAsset.id;
 
-        const scheduleVariants = () => {
-            const variantTask = catalogueR2ImageVariants({
-                supabase,
-                assetId: mediaAsset.id,
-                objectKey: uploadedObjectKey,
-                sourceBytes: bytes,
-                mimeType: contentType,
-            }).then((result) => {
-                if (result.attempted && !result.ready) {
-                    console.error("Moodboard variants could not be generated:", {
-                        objectKey: uploadedObjectKey,
-                        error: result.error,
-                    });
-                }
-            }).catch((error) => {
-                console.error("Moodboard variant task failed before processing:", {
-                    objectKey: uploadedObjectKey,
-                    error,
-                });
-            });
-            waitUntil(variantTask);
-        };
+        const variantResult = await catalogueR2ImageVariants({
+            supabase,
+            assetId: mediaAsset.id,
+            objectKey: uploadedObjectKey,
+            sourceBytes: bytes,
+            mimeType: contentType,
+        });
+        if (!variantResult.attempted || !variantResult.ready) {
+            throw new Error(variantResult.error || "The required 800px and 1600px variants could not be created.");
+        }
 
         const { data: existingItem, error: existingItemError } = await supabase
             .from("moodboard_items")
@@ -143,14 +130,13 @@ export const POST: APIRoute = async ({ request }) => {
             .maybeSingle();
         if (existingItemError) throw existingItemError;
         if (existingItem) {
-            scheduleVariants();
             return jsonResponse({
                 ok: true,
                 objectKey: uploadedObjectKey,
                 publicUrl,
                 item: existingItem,
                 alreadyCompleted: true,
-                variantsScheduled: true,
+                variantsReady: true,
             });
         }
 
@@ -168,14 +154,12 @@ export const POST: APIRoute = async ({ request }) => {
             .select(selection)
             .single();
         if (error) throw error;
-        scheduleVariants();
-
         return jsonResponse({
             ok: true,
             objectKey: uploadedObjectKey,
             publicUrl,
             item,
-            variantsScheduled: true,
+            variantsReady: true,
         }, 201);
     } catch (error) {
         if (cataloguedMediaAssetId) {
