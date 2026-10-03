@@ -1,0 +1,410 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  emailAsText,
+  outreachCategories,
+  outreachEmails,
+  signature,
+} from "../../data/outreach/obsidian";
+import { breadcrumbJsonLd, personJsonLd, seoIdentity } from "../../lib/seoData";
+import "../../styles/outreach.css";
+
+const pagePath = "/outreach/obsidian";
+const categoryLookup = new Map(outreachCategories.map((category) => [category.id, category]));
+const strategySteps = [
+  {
+    number: "01",
+    title: "Salutation",
+    text: 'Hey [First Name], — personal, direct, no “Dear” or full name.',
+  },
+  {
+    number: "02",
+    title: "Credible introduction",
+    text: "I am Abodid, a creative technologist and researcher based in London, globally known for building smart note-taking and retrieval systems using Obsidian for [their role].",
+    note: "Establish who you are, where you are based, and what you are known for—anchored to the recipient’s role.",
+  },
+  {
+    number: "03",
+    title: "Role-specific problem",
+    text: "Name their company and the exact friction their role creates. Then show how Abodid’s tutoring makes that knowledge connected and retrievable.",
+  },
+  {
+    number: "04",
+    title: "Low-friction CTA",
+    text: "Would you be open to a free 15-minute discovery call?",
+    note: "One question. No pressure. Easy to answer.",
+  },
+  {
+    number: "05",
+    title: "Consistent signature",
+    text: signature,
+  },
+];
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Outreach", path: "/outreach" },
+    { name: "Obsidian", path: pagePath },
+  ]),
+];
+---
+
+<BaseLayout
+  title="Obsidian Outreach Playbook — Abodid Sahoo"
+  description="A practical outreach handbook with role-specific Obsidian tutoring email templates, strategy, pain points, and copy-ready messages."
+  canonicalUrl={`${seoIdentity.siteUrl}${pagePath}`}
+  structuredData={structuredData}
+  noindex={true}
+  fullWidth={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  showFooterNavigation={false}
+  bodyClass="outreach-page"
+>
+  <div class="outreach-app" data-outreach-root data-pop-page="true">
+    <section class="outreach-hero" aria-labelledby="page-title">
+      <div class="outreach-hero__copy" data-pop-surface="yellow">
+        <div class="outreach-breadcrumbs" aria-label="Breadcrumb">
+          <a href="/outreach">Outreach library</a>
+          <span aria-hidden="true">/</span>
+          <span>Obsidian</span>
+        </div>
+        <p class="outreach-kicker">Internal playbook · Obsidian tutoring</p>
+        <h1 id="page-title">The right message,<br />for the right mind.</h1>
+        <p class="outreach-hero__lede">
+          A working library for thoughtful, role-specific outreach. Understand the
+          problem, choose the closest example, personalise it, and send it like a human.
+        </p>
+      </div>
+      <aside class="outreach-hero__brief" data-pop-surface="pink" aria-label="Playbook summary">
+        <div class="outreach-hero__stat">
+          <strong>{outreachEmails.length}</strong>
+          <span>ready-to-use emails</span>
+        </div>
+        <div class="outreach-hero__stat">
+          <strong>{outreachCategories.length - 1}</strong>
+          <span>recipient groups</span>
+        </div>
+        <p>Copy a whole email, lift one paragraph, or drag a card into your draft.</p>
+        <a href="#email-library">
+          <span>Open the email library</span>
+          <span aria-hidden="true">↓</span>
+        </a>
+      </aside>
+    </section>
+
+    <section class="outreach-principle" data-pop-surface="blue" aria-labelledby="principle-title">
+      <p class="outreach-section-label">The operating principle</p>
+      <h2 id="principle-title">Specific enough to feel personal. Simple enough to repeat.</h2>
+      <p>
+        Every email names the recipient’s real professional context, connects it to a
+        recognisable knowledge problem, and offers one clear next step. It should never
+        read like a blast.
+      </p>
+    </section>
+
+    <section class="outreach-strategy" data-pop-surface="cream" id="strategy" aria-labelledby="strategy-title">
+      <div class="outreach-section-heading">
+        <div>
+          <p class="outreach-section-label">01 · The formula</p>
+          <h2 id="strategy-title">Build every email in five moves.</h2>
+        </div>
+        <p>Keep the structure. Change the evidence.</p>
+      </div>
+      <ol class="outreach-strategy__grid">
+        {strategySteps.map((step) => (
+          <li
+            class="outreach-strategy-card"
+            data-pop-surface={step.number === "02" ? "pink" : step.number === "04" ? "yellow" : step.number === "05" ? "lime" : "white"}
+          >
+            <div class="outreach-strategy-card__top">
+              <span>{step.number}</span>
+              <button
+                class="outreach-copy outreach-copy--small"
+                type="button"
+                data-copy-text={step.text}
+                aria-label={`Copy ${step.title}`}
+              >Copy</button>
+            </div>
+            <h3>{step.title}</h3>
+            <p class:list={{ "outreach-preline": step.number === "05" }}>{step.text}</p>
+            {step.note && <p class="outreach-strategy-card__note">{step.note}</p>}
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="outreach-pains" data-pop-surface="blue" id="pain-points" aria-labelledby="pain-title">
+      <div class="outreach-section-heading outreach-section-heading--light">
+        <div>
+          <p class="outreach-section-label">02 · Pain-point map</p>
+          <h2 id="pain-title">Lead with the friction they already feel.</h2>
+        </div>
+        <p>The role changes. The promise stays consistent: make knowledge retrievable.</p>
+      </div>
+      <div class="outreach-pains__grid">
+        {outreachCategories.filter((category) => category.painPoint).map((category, index) => (
+          <article
+            class:list={["outreach-pain-card", `outreach-pain-card--${(index % 3) + 1}`]}
+            data-pop-surface={(index % 3) === 0 ? "yellow" : (index % 3) === 1 ? "pink" : "cream"}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <h3>{category.label}</h3>
+            <p>{category.painPoint}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="outreach-library" data-pop-surface="cream" id="email-library" aria-labelledby="library-title">
+      <div class="outreach-library__intro">
+        <p class="outreach-section-label">03 · Working library</p>
+        <h2 id="library-title">Find, copy, tweak, send.</h2>
+        <p>
+          Use the closest role as a starting point. Replace the company-level detail with
+          something true and specific before sending.
+        </p>
+      </div>
+
+      <div class="outreach-filters" data-pop-surface="pink" aria-label="Filter email templates">
+        <label class="outreach-search" data-pop-surface="cream">
+          <span>Search</span>
+          <input
+            type="search"
+            placeholder="Person, role, or company…"
+            autocomplete="off"
+            data-outreach-search
+          />
+        </label>
+        <div class="outreach-filter-list" role="group" aria-label="Recipient group">
+          {outreachCategories.map((category) => (
+            <button
+              type="button"
+              class:list={["outreach-filter", { "is-active": category.id === "all" }]}
+              data-category-filter={category.id}
+              aria-pressed={category.id === "all" ? "true" : "false"}
+            >{category.shortLabel}</button>
+          ))}
+        </div>
+      </div>
+
+      <div class="outreach-workspace">
+        <aside class="outreach-directory" data-pop-surface="yellow" aria-label="Recipient directory">
+          <div class="outreach-directory__header">
+            <p>Recipient directory</p>
+            <span data-result-count>{outreachEmails.length} shown</span>
+          </div>
+          <nav>
+            {outreachEmails.map((email) => (
+              <a
+                href={`#${email.id}`}
+                data-directory-item
+                data-category={email.category}
+                data-search={`${email.name} ${email.role} ${email.company}`.toLowerCase()}
+              >
+                <span class="outreach-directory__genre">
+                  {categoryLookup.get(email.category)?.shortLabel}
+                </span>
+                <strong>{email.name}</strong>
+                <span>{email.company}</span>
+              </a>
+            ))}
+          </nav>
+        </aside>
+
+        <div class="outreach-email-list" aria-live="polite">
+          {outreachEmails.map((email, index) => {
+            const fullEmail = emailAsText(email);
+            return (
+              <article
+                class="outreach-email"
+                data-pop-surface="white"
+                id={email.id}
+                draggable="true"
+                data-email-card
+                data-category={email.category}
+                data-search={`${email.name} ${email.role} ${email.company}`.toLowerCase()}
+                data-email={fullEmail}
+              >
+                <header class="outreach-email__header" data-pop-surface="pink">
+                  <div class="outreach-email__identity">
+                    <div class="outreach-email__meta">
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <span>{categoryLookup.get(email.category)?.label}</span>
+                    </div>
+                    <h3>{email.name}</h3>
+                    <p>{email.role} · {email.company}</p>
+                  </div>
+                  <button
+                    class="outreach-copy outreach-copy--all"
+                    type="button"
+                    data-copy-text={fullEmail}
+                    aria-label={`Copy full email for ${email.name}`}
+                  >
+                    <span>Copy full email</span>
+                    <span aria-hidden="true">⧉</span>
+                  </button>
+                </header>
+
+                <div class="outreach-email__body">
+                  <div class="outreach-copy-block">
+                    <p>Hey {email.firstName},</p>
+                    <button type="button" class="outreach-copy outreach-copy--paragraph" data-copy-text={`Hey ${email.firstName},`} aria-label="Copy salutation">Copy</button>
+                  </div>
+                  <div class="outreach-copy-block">
+                    <p>{email.intro}</p>
+                    <button type="button" class="outreach-copy outreach-copy--paragraph" data-copy-text={email.intro} aria-label="Copy introduction">Copy</button>
+                  </div>
+                  <div class="outreach-copy-block">
+                    <p>{email.body}</p>
+                    <button type="button" class="outreach-copy outreach-copy--paragraph" data-copy-text={email.body} aria-label="Copy role-specific paragraph">Copy</button>
+                  </div>
+                  <div class="outreach-copy-block outreach-copy-block--cta">
+                    <p>{email.cta}</p>
+                    <button type="button" class="outreach-copy outreach-copy--paragraph" data-copy-text={email.cta} aria-label="Copy call to action">Copy</button>
+                  </div>
+                  <div class="outreach-copy-block outreach-copy-block--signature">
+                    <p class="outreach-preline">{signature}</p>
+                    <button type="button" class="outreach-copy outreach-copy--paragraph" data-copy-text={signature} aria-label="Copy signature">Copy</button>
+                  </div>
+                </div>
+                <p class="outreach-email__drag-hint">Drag this card into a draft · or use a copy button</p>
+              </article>
+            );
+          })}
+          <div class="outreach-empty" data-empty-state hidden>
+            <p>No email matches that search.</p>
+            <button type="button" data-clear-filters>Clear filters</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="outreach-send-check" data-pop-surface="purple" aria-labelledby="check-title">
+      <div>
+        <p class="outreach-section-label">Before you send</p>
+        <h2 id="check-title">Three checks. Every time.</h2>
+      </div>
+      <ol>
+        <li><span>01</span><p><strong>Verify the facts.</strong> Correct name, role, company, and current work.</p></li>
+        <li><span>02</span><p><strong>Make one detail real.</strong> Replace generic context with a specific, defensible observation.</p></li>
+        <li><span>03</span><p><strong>Read it aloud.</strong> If it sounds automated, simplify it before it leaves.</p></li>
+      </ol>
+    </section>
+
+    <div class="outreach-toast" role="status" aria-live="polite" data-copy-status></div>
+  </div>
+</BaseLayout>
+
+<script>
+  const initOutreachPage = () => {
+    const root = document.querySelector<HTMLElement>("[data-outreach-root]");
+    if (!root || root.dataset.ready === "true") return;
+    root.dataset.ready = "true";
+
+    const toast = root.querySelector<HTMLElement>("[data-copy-status]");
+    let toastTimer: number | undefined;
+
+    const copyText = async (text: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_error) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+    };
+
+    root.querySelectorAll<HTMLButtonElement>("[data-copy-text]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const text = button.dataset.copyText || "";
+        const original = button.innerHTML;
+        await copyText(text);
+        button.classList.add("is-copied");
+        button.innerHTML = "<span>Copied</span><span aria-hidden=\"true\">✓</span>";
+        if (toast) toast.textContent = "Copied to clipboard";
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => {
+          button.classList.remove("is-copied");
+          button.innerHTML = original;
+          if (toast) toast.textContent = "";
+        }, 1500);
+      });
+    });
+
+    const cards = Array.from(root.querySelectorAll<HTMLElement>("[data-email-card]"));
+    const directoryItems = Array.from(root.querySelectorAll<HTMLElement>("[data-directory-item]"));
+    const search = root.querySelector<HTMLInputElement>("[data-outreach-search]");
+    const filters = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-category-filter]"));
+    const count = root.querySelector<HTMLElement>("[data-result-count]");
+    const empty = root.querySelector<HTMLElement>("[data-empty-state]");
+    let activeCategory = "all";
+
+    const applyFilters = () => {
+      const query = (search?.value || "").trim().toLowerCase();
+      let visible = 0;
+
+      cards.forEach((card) => {
+        const categoryMatches = activeCategory === "all" || card.dataset.category === activeCategory;
+        const searchMatches = !query || (card.dataset.search || "").includes(query);
+        const shouldShow = categoryMatches && searchMatches;
+        card.hidden = !shouldShow;
+        if (shouldShow) visible += 1;
+      });
+
+      directoryItems.forEach((item) => {
+        const categoryMatches = activeCategory === "all" || item.dataset.category === activeCategory;
+        const searchMatches = !query || (item.dataset.search || "").includes(query);
+        item.hidden = !(categoryMatches && searchMatches);
+      });
+
+      if (count) count.textContent = `${visible} shown`;
+      if (empty) empty.hidden = visible !== 0;
+    };
+
+    filters.forEach((filter) => {
+      filter.addEventListener("click", () => {
+        activeCategory = filter.dataset.categoryFilter || "all";
+        filters.forEach((item) => {
+          const selected = item === filter;
+          item.classList.toggle("is-active", selected);
+          item.setAttribute("aria-pressed", selected ? "true" : "false");
+        });
+        applyFilters();
+      });
+    });
+
+    search?.addEventListener("input", applyFilters);
+    root.querySelector<HTMLButtonElement>("[data-clear-filters]")?.addEventListener("click", () => {
+      activeCategory = "all";
+      if (search) search.value = "";
+      filters.forEach((item) => {
+        const selected = item.dataset.categoryFilter === "all";
+        item.classList.toggle("is-active", selected);
+        item.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+      applyFilters();
+      search?.focus();
+    });
+
+    cards.forEach((card) => {
+      card.addEventListener("dragstart", (event) => {
+        const email = card.dataset.email || "";
+        event.dataTransfer?.setData("text/plain", email);
+        if (event.dataTransfer) event.dataTransfer.effectAllowed = "copy";
+        card.classList.add("is-dragging");
+      });
+      card.addEventListener("dragend", () => card.classList.remove("is-dragging"));
+    });
+  };
+
+  document.addEventListener("astro:page-load", initOutreachPage);
+  initOutreachPage();
+</script>

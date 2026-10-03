@@ -9,6 +9,7 @@ import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
 import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
 import GoogleAnalytics from "../components/GoogleAnalytics.astro";
+import ApolloTracker from "../components/ApolloTracker.astro";
 import { ClientRouter } from "astro:transitions";
 import { getPageMetadata } from "../lib/api";
 import {
@@ -187,6 +188,7 @@ const googleFontsUrl =
         document.documentElement.style.colorScheme = nextTheme;
       })();
     </script>
+    <ApolloTracker />
   </head>
   <body
     data-grid-variant={gridVariant}

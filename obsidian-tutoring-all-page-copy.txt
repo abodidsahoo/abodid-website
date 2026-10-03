@@ -1,0 +1,264 @@
+OBSIDIAN TUTORING — CONSOLIDATED PAGE COPY
+
+This document collects the tutoring copy from the main Obsidian tutoring page and its four audience pages. Shared interface copy is grouped once at the end to keep the document clean and easy to reuse.
+
+
+============================================================
+1. MAIN PAGE — OBSIDIAN TUTORING & MENTORSHIP
+URL: /obsidian-tutoring
+============================================================
+
+Page description
+Bespoke 1-on-1 Obsidian tutoring and second-brain workshops with Abodid Sahoo for startup founders, CEOs, creative directors, film directors, and PhD researchers.
+
+Eyebrow
+1:1 Obsidian Tutoring & Mentorship
+
+Headline
+Stop watching Obsidian tutorials.
+Start using it.
+
+Introduction
+I conduct bespoke Obsidian tutoring and systems architecture for startup founders, CEOs, creative directors, film directors, and PhD researchers. I'll show you my real vault, understand how you work, and help you build an effortless system tailored to the way you think.
+
+Emphasis
+Recall everything effortlessly.
+
+Pricing
+Original price: £90/hour
+Current price: £60/hour until 31 December 2026
+
+Calls to action
+Book a free 15-minute discovery call
+Book 1:1 tutoring →
+
+Audience heading
+Workflows designed for
+
+Startup Founders & CEOs
+Build a high-leverage personal CRM, retain critical links & articles, and connect sudden product ideas without cognitive overload.
+
+Creative Directors & Filmmakers
+Worldbuild, connect visual references, moodboards, treatments, locations, and characters into an interconnected creative vault.
+
+PhD Researchers & Academics
+Focus on thinking and thesis writing. Seamlessly bridge Zotero, BibTeX citations, literature synthesis, and Pandoc.
+
+Authors, Journalists & Writers
+Bring bookmarks, research archives, and spontaneous thoughts together into long-form essays, books, and articles.
+
+
+============================================================
+2. OBSIDIAN FOR STARTUP FOUNDERS & CEOS
+URL: /obsidian-for-founders
+============================================================
+
+Page description
+Build a high-leverage Obsidian second brain for startup founders, CEOs, and builders. Connect contacts, visual benchmarks, articles, and product breakthroughs.
+
+Eyebrow
+Obsidian for Founders & CEOs
+
+Headline
+Stop dropping critical ideas.
+Build your founder second brain.
+
+Introduction
+I conduct bespoke Obsidian tutoring and systems architecture for startup founders, CEOs, and executive builders. We will build a unified knowledge engine connecting investor context, visual benchmarks, technical essays, and midnight product epiphanies tailored to the way you lead.
+
+Emphasis
+Never lose a breakthrough idea again.
+
+Pricing
+£150/hour
+Bespoke 1:1 founder second brain coaching
+
+Section heading
+One linked vault. Zero cognitive overload.
+
+01 — People & Network CRM
+Never forget a contact, investor, collaborator, or lead again. Track meeting context, mutual intros, shared history, and exactly when to follow up.
+
+02 — Visual & Aesthetic References
+Capture moodboards, brand identity benchmarks, competitor teardowns, and creative inspirations into lightning-fast searchable visual vaults.
+
+03 — Essential Links & Articles
+Save high-signal articles, market trends, and technical essays with your personal synthesis attached, ending browser tab hoarding forever.
+
+04 — Product Ideation & Strategy
+Capture spontaneous midnight epiphanies and connect raw thoughts into structured product roadmaps, pitch decks, and executive memos.
+
+
+============================================================
+3. OBSIDIAN FOR CREATIVE ARTISTS & FILMMAKERS
+URL: /obsidian-for-filmmakers
+============================================================
+
+Page description
+Build an Obsidian creative vault connecting moodboards, cinematography references, location scouting, character webs, and production logistics.
+
+Eyebrow
+Obsidian for Creatives & Directors
+
+Headline
+Stop hunting for scattered files.
+Worldbuild your creative vault.
+
+Introduction
+I conduct bespoke Obsidian tutoring and systems architecture for film directors, screenwriters, and executive creative directors. We will connect visual moodboards, script revisions, character arcs, location scouts, and production logistics tailored to the way you direct.
+
+Emphasis
+Direct your vision with every reference at your fingertips.
+
+Pricing
+£150/hour
+1 or 2-hour bespoke sessions available
+
+Section heading
+The logistics can be organised. Protect the ideas.
+
+01 — Visual References & Locations
+Attach location scouting photos, lighting setups, moodboards, and cinematography references directly to scene numbers and production days.
+
+02 — Character Webs & Script Development
+Map character relationships, casting options, dialogue fragments, and scene beat graphs across screenplay revisions.
+
+03 — Director Treatments & Pitch Hubs
+Synthesize scattered references, music tracks, and visual tone into cohesive director treatments, mood decks, and production binders.
+
+04 — Production Logistics & Shot Planning
+Connect crew contacts, call sheets, gear checklists, and scene breakdowns directly to your creative notes without friction.
+
+
+============================================================
+4. OBSIDIAN FOR ACADEMIC RESEARCHERS & PHDS
+URL: /obsidian-for-researchers
+============================================================
+
+Page description
+Connect Zotero, citations, notes, and arguments in Obsidian. Focus on deep literature synthesis, thesis writing, and research thinking.
+
+Eyebrow
+Obsidian for Researchers & PhDs
+
+Headline
+Stop drowning in literature.
+Start developing your thesis.
+
+Introduction
+I conduct bespoke Obsidian tutoring and systems architecture for PhD researchers, academics, and research teams. We will seamlessly bridge Zotero, BibTeX, PDF annotations, and Pandoc into a unified knowledge system tailored to the way you research.
+
+Emphasis
+Spend your time thinking, not formatting citations.
+
+Pricing
+£150 / specialist session
+or
+6 sessions · £450 when booked together
+Typically completed over one month.
+
+Section heading
+Write the thought. Keep the source with it.
+
+01 — Zotero & Better BibTeX Sync
+Bring papers, monographs, and PDF annotations directly from Zotero into markdown notes with automated citation keys and metadata.
+
+02 — Atomic Literature Synthesis
+Deconstruct dense academic sources into atomic conceptual notes, arguments, methodology comparisons, and thematic webs.
+
+03 — Pandoc & Thesis Compilation
+Draft dissertation chapters, journal articles, and research proposals in markdown while Pandoc automatically formats citations and bibliographies.
+
+04 — Conceptual Graphs & Argument Maps
+Trace interconnected theories, historiographies, and counterarguments across chapters without losing the bibliographic thread.
+
+
+============================================================
+5. OBSIDIAN FOR AUTHORS & WRITERS
+URL: /obsidian-for-writers
+============================================================
+
+Page description
+Build an emergent Obsidian writing vault. Connect research archives, bookmarks, quotes, and spontaneous thoughts into long-form essays, books, and articles.
+
+Eyebrow
+Obsidian for Writers & Authors
+
+Headline
+Stop staring at blank pages.
+Start connecting the ideas.
+
+Introduction
+I conduct bespoke Obsidian tutoring and systems architecture for authors, essayists, journalists, and newsletter writers. We will organize your research archives, quotes, web bookmarks, and spontaneous notes into an interconnected library tailored to the way you write.
+
+Emphasis
+Draft with your entire archive behind you.
+
+Pricing
+£150/hour
+Bespoke 1:1 writer second brain architecture
+
+Section heading
+Stop writing in blank documents. Let the structure emerge.
+
+01 — Effortless Web & Article Ingestion
+Save high-signal articles, bookmarks, quotes, and research notes directly into markdown with your immediate takeaways attached.
+
+02 — Atomic Concept Interconnection
+Break down long-form research into atomic notes, connecting analogies, conceptual frameworks, and sources across diverse themes.
+
+03 — Emergent Long-Form Writing
+As connections compound, recurring themes organically assemble into long-form essays, books, and newsletter editions.
+
+04 — Manuscript Hubs & Living Outlines
+Restructure chapters, maintain narrative continuity, and draft long-form projects without getting lost in large files.
+
+
+============================================================
+SHARED COPY SHOWN ACROSS THE PAGES
+============================================================
+
+Primary call to action
+Book a free 15-minute discovery call
+
+Vault preview link
+Look into Abodid's Obsidian vault →
+
+Discovery form
+Discovery call
+Book your free discovery call today.
+
+Name
+Email
+
+What are you trying to organise?
+Tell me what is scattered, stuck or difficult to recall.
+
+Yes, I'm Interested
+
+Closing statement
+“Your notes should find their way back to you when you need them the most.”
+— Abodid Sahoo
+
+
+============================================================
+MAIN-PAGE BOOKING WINDOW COPY
+============================================================
+
+1:1 Obsidian Tutoring
+
+Book your tutoring session.
+
+Original price: £90/hour
+Current price: £60/hour until 31 December 2026
+
+Name
+Your Name
+
+Email Address
+you@example.com
+
+Submit Booking Request →
+
+Request Received!
+I will reach out to you within the next 24 hours to take this ahead.

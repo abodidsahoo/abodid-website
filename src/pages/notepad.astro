@@ -31,3 +31,26 @@ const description = "A public notepad for passing thoughts and fragments in moti
         initialLoadError={error ? "The notes could not be loaded just now." : ""}
     />
 </BaseLayout>
+
+<style is:global>
+    html:has(body.notepad-body),
+    body.notepad-body {
+        margin: 0;
+        padding: 0 !important;
+        background: var(--pop-blue) !important;
+        color: var(--pop-ink);
+    }
+
+    body.notepad-body main.page-content-full {
+        padding: 0 !important;
+        overflow: visible;
+    }
+
+    body.notepad-body :is(h1, h2, p) {
+        margin-top: 0;
+    }
+
+    body.notepad-body :is(button, textarea) {
+        -webkit-tap-highlight-color: transparent;
+    }
+</style>
