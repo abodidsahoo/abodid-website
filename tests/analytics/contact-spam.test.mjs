@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { looksLikeRandomCharacterMessage, looksLikeSuspiciousEmail } from '../../src/lib/contact-spam.js';
+import {
+    containsRandomCharacterToken,
+    isHighConfidenceContactSpam,
+    looksLikeRandomCharacterMessage,
+    looksLikeSuspiciousEmail,
+} from '../../src/lib/contact-spam.js';
 
 test('blocks the random-token pattern used by the recent contact spam', () => {
     assert.equal(looksLikeRandomCharacterMessage('knwyZUFRAmhuOqeBocSP'), true);
@@ -28,4 +33,39 @@ test('allows ordinary messages, URLs, Unicode, and plausible single words', () =
     assert.equal(looksLikeRandomCharacterMessage('मुझे आपके साथ एक परियोजना पर बात करनी है।'), false);
     assert.equal(looksLikeRandomCharacterMessage('Congratulations'), false);
     assert.equal(looksLikeRandomCharacterMessage('availabletomorrowafternoon'), false);
+});
+
+test('finds a random marker hidden after plausible enquiry copy', () => {
+    assert.equal(
+        containsRandomCharacterToken('Creative direction and experience design\n\ntInSxalrUMYQFKsAQfJlxSU'),
+        true,
+    );
+    assert.equal(
+        containsRandomCharacterToken('I need help editing an iPhoneProMax video next Tuesday.'),
+        true,
+    );
+    assert.equal(
+        containsRandomCharacterToken('I need help editing a short film next Tuesday.'),
+        false,
+    );
+});
+
+test('blocks the screenshot pattern only when independent spam signals agree', () => {
+    assert.equal(isHighConfidenceContactSpam({
+        name: 'hXghomEyprNKbMJA',
+        email: 'x.e.zus.ut.o.nuk07@gmail.com',
+        message: 'Creative direction and experience design\n\ntInSxalrUMYQFKsAQfJlxSU',
+    }), true);
+
+    assert.equal(isHighConfidenceContactSpam({
+        name: 'Priya Sharma',
+        email: 'priya@example.com',
+        message: 'I need help editing an iPhoneProMax video next Tuesday.',
+    }), false);
+
+    assert.equal(isHighConfidenceContactSpam({
+        name: 'hXghomEyprNKbMJA',
+        email: 'person@example.com',
+        message: 'I would like to discuss a photography commission next month.',
+    }), false);
 });

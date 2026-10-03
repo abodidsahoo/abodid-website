@@ -282,76 +282,78 @@ const structuredData = [
           <span class="link-destination-arrow" aria-hidden="true">↗</span></a
         >
       </header>
-      <ul class="story-brands" aria-label="Clients and collaborators">
+      <div class="story-evidence__columns">
         {
-          featuredBrands.map((brand) => (
-            <li
-              class="story-brand-pill"
-              data-pill-size={brand.pillSize}
-              data-auto-contrast
-            >
-              <span class="story-brand-pill__mask">
-                <span class="story-brand-pill__track">
-                  <strong>{brand.name}</strong>
-                  <span>{brand.role || "Client or collaborator"}</span>
-                </span>
-              </span>
-            </li>
-          ))
+          featuredTestimonials.length > 0 && (
+            <div class="story-quotes" aria-label="Testimonials">
+              {featuredTestimonials.map((testimonial, index) => {
+                const shortQuote =
+                  testimonial.highlightQuote || testimonial.content;
+                const hasMore =
+                  String(shortQuote).trim() !==
+                  String(testimonial.content).trim();
+                return (
+                  <blockquote
+                    class={`story-quote story-quote--${index + 1}`}
+                    data-testimonial-card
+                    data-auto-contrast
+                  >
+                    <div class="story-quote__content">
+                      <div class="story-quote__short">
+                        <p>“{shortQuote}”</p>
+                      </div>
+                      <div
+                        class="story-quote__full"
+                        aria-hidden="true"
+                        data-at-top="true"
+                      >
+                        <p>“{testimonial.content}”</p>
+                      </div>
+                    </div>
+                    <footer>
+                      <strong>{testimonial.name}</strong>
+                      <span>
+                        {[testimonial.role, testimonial.company]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    </footer>
+                    {hasMore && (
+                      <button
+                        type="button"
+                        class="story-quote__toggle"
+                        data-testimonial-toggle
+                        aria-expanded="false"
+                      >
+                        <span data-toggle-label>Read the full testimonial</span>
+                        <b aria-hidden="true">→</b>
+                      </button>
+                    )}
+                  </blockquote>
+                );
+              })}
+            </div>
+          )
         }
-      </ul>
-      {
-        featuredTestimonials.length > 0 && (
-          <div class="story-quotes" aria-label="Testimonials">
-            {featuredTestimonials.map((testimonial, index) => {
-              const shortQuote =
-                testimonial.highlightQuote || testimonial.content;
-              const hasMore =
-                String(shortQuote).trim() !==
-                String(testimonial.content).trim();
-              return (
-                <blockquote
-                  class={`story-quote story-quote--${index + 1}`}
-                  data-testimonial-card
-                  data-auto-contrast
-                >
-                  <div class="story-quote__content">
-                    <div class="story-quote__short">
-                      <p>“{shortQuote}”</p>
-                    </div>
-                    <div
-                      class="story-quote__full"
-                      aria-hidden="true"
-                      data-at-top="true"
-                    >
-                      <p>“{testimonial.content}”</p>
-                    </div>
-                  </div>
-                  <footer>
-                    <strong>{testimonial.name}</strong>
-                    <span>
-                      {[testimonial.role, testimonial.company]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                  </footer>
-                  {hasMore && (
-                    <button
-                      type="button"
-                      class="story-quote__toggle"
-                      data-testimonial-toggle
-                      aria-expanded="false"
-                    >
-                      <span data-toggle-label>Read the full testimonial</span>
-                      <b aria-hidden="true">→</b>
-                    </button>
-                  )}
-                </blockquote>
-              );
-            })}
-          </div>
-        )
-      }
+        <ul class="story-brands" aria-label="Clients and collaborators">
+          {
+            featuredBrands.map((brand) => (
+              <li
+                class="story-brand-pill"
+                data-pill-size={brand.pillSize}
+                data-auto-contrast
+              >
+                <span class="story-brand-pill__mask">
+                  <span class="story-brand-pill__track">
+                    <strong>{brand.name}</strong>
+                    <span>{brand.role || "Client or collaborator"}</span>
+                  </span>
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
     </section>
 
     <section
@@ -1448,10 +1450,14 @@ const structuredData = [
     background: var(--pop-blue);
     color: var(--pop-cream);
   }
-  .story-evidence > :is(header, .story-brands, .story-quotes) {
+  .story-evidence > :is(header, .story-evidence__columns) {
     max-width: 1480px;
     margin-inline: auto;
     width: 100%;
+  }
+  .story-evidence__columns {
+    display: flex;
+    flex-direction: column;
   }
   .story-evidence > header {
     margin-bottom: clamp(3rem, 7vw, 7rem);
@@ -1484,6 +1490,7 @@ const structuredData = [
     flex-wrap: wrap;
     align-items: stretch;
     gap: 0.45rem;
+    order: -1;
     list-style: none;
   }
   .story-brand-pill {
@@ -1807,6 +1814,59 @@ const structuredData = [
   .story-quote__toggle:focus-visible {
     outline: 0;
     background: rgba(255, 248, 232, 0.7);
+  }
+
+  @media (min-width: 981px) {
+    .story-evidence__columns {
+      --story-evidence-panel-height: clamp(430px, 36vw, 520px);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+      gap: clamp(1rem, 2.2vw, 2rem);
+    }
+    .story-quotes,
+    .story-brands {
+      width: 100%;
+      height: var(--story-evidence-panel-height);
+      min-width: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    .story-quotes {
+      padding: 0 0 5px;
+    }
+    .story-quote {
+      height: calc(100% - 5px);
+      min-height: 0;
+      flex-basis: 100%;
+    }
+    .story-brands {
+      padding: 0;
+      align-content: stretch;
+      order: initial;
+      overflow: hidden;
+    }
+    .story-brand-pill {
+      padding: 0.6rem clamp(0.75rem, 1.2vw, 1.15rem);
+    }
+    .story-brand-pill[data-pill-size="small"] {
+      flex-basis: 8.5rem;
+      min-width: 7.5rem;
+    }
+    .story-brand-pill[data-pill-size="medium"] {
+      flex-basis: 11.5rem;
+      min-width: 10rem;
+    }
+    .story-brand-pill[data-pill-size="large"] {
+      flex-basis: 15rem;
+      min-width: 13rem;
+    }
+    .story-brand-pill__track > strong {
+      font-size: clamp(0.82rem, 1.05vw, 1.05rem);
+    }
+    .story-brand-pill__track > span {
+      font-size: clamp(0.68rem, 0.85vw, 0.86rem);
+    }
   }
 
   .story-enquiry {

@@ -9,7 +9,7 @@ import {
     resolveEnquiryTitle,
     summarizeVisit,
 } from '../../lib/contact-notification.js';
-import { looksLikeRandomCharacterMessage, looksLikeSuspiciousEmail } from '../../lib/contact-spam.js';
+import { isHighConfidenceContactSpam, looksLikeSuspiciousEmail } from '../../lib/contact-spam.js';
 import { createSupabaseServiceClient } from '../../lib/supabaseServer';
 
 export const prerender = false;
@@ -167,11 +167,14 @@ export const POST: APIRoute = async ({ request }) => {
         const payload = await parsePayload(request);
         if (!payload.name) return json({ error: 'Please provide your name.' }, 400);
         if (!EMAIL_REGEX.test(payload.email)) return json({ error: 'Please provide a valid email address.' }, 400);
-        if (looksLikeSuspiciousEmail(payload.email)) return json({ error: 'Please use a regular email address.' }, 422);
         if (!payload.message || payload.message.length > 5000) return json({ error: 'Please provide a message (1–5000 characters).' }, 400);
-        if (looksLikeRandomCharacterMessage(payload.message)) {
-            return json({ error: 'Please write your message using words and spaces.' }, 422);
+        if (isHighConfidenceContactSpam(payload)) {
+            // A neutral success response does not teach automated senders how
+            // to alter their payload. Stop before storage, analytics, or email.
+            console.warn('[contact] Silently discarded a high-confidence spam submission.');
+            return json({ success: true });
         }
+        if (looksLikeSuspiciousEmail(payload.email)) return json({ error: 'Please use a regular email address.' }, 422);
         if (!isUuid(payload.sessionId)) {
             payload.sessionId = crypto.randomUUID();
         }

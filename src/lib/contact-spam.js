@@ -38,6 +38,20 @@ export const looksLikeRandomCharacterMessage = (value) => {
     return mixedCaseToken || denseAlphaNumericToken || repeatedToken || highEntropyToken;
 };
 
+/**
+ * Finds random-looking tokens embedded inside an otherwise plausible message.
+ * Contact bots often prepend copied marketing language, then append their
+ * machine-generated marker on a separate line.
+ */
+export const containsRandomCharacterToken = (value) => {
+    if (typeof value !== 'string') return false;
+
+    return value
+        .split(/\s+/)
+        .map((token) => token.replace(/^["'“”‘’([{<]+|["'“”‘’),.;:!?\]}>]+$/g, ''))
+        .some((token) => looksLikeRandomCharacterMessage(token));
+};
+
 const DISPOSABLE_EMAIL_DOMAINS = new Set([
     '10minutemail.com',
     'guerrillamail.com',
@@ -74,4 +88,21 @@ export const looksLikeSuspiciousEmail = (value) => {
         (digits >= 3 || punctuationCount >= 3);
 
     return tinyDotSegments || punctuationCount >= 7 || randomDenseLocal;
+};
+
+/**
+ * Requires multiple independent signals before classifying a normal-looking
+ * enquiry as spam. A message that is only a random token remains an immediate
+ * match, preserving the original protection.
+ */
+export const isHighConfidenceContactSpam = ({ name, email, message } = {}) => {
+    const randomName = looksLikeRandomCharacterMessage(name);
+    const suspiciousEmail = looksLikeSuspiciousEmail(email);
+    const randomWholeMessage = looksLikeRandomCharacterMessage(message);
+    const embeddedRandomToken = !randomWholeMessage && containsRandomCharacterToken(message);
+
+    return randomWholeMessage || (
+        [randomName, suspiciousEmail, embeddedRandomToken].filter(Boolean).length >= 2 &&
+        (randomName || embeddedRandomToken)
+    );
 };

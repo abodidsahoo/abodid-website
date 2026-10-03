@@ -50,7 +50,6 @@ const contactLabel = "Hire me";
       <details class="site-header__menu-toggle" id="site-header-menu">
         <summary class="site-header__menu-trigger" aria-label="Toggle site menu and language palette">
           <span class="site-header__menu-trigger-text">Menu</span>
-          <span class="site-header__menu-trigger-icon" aria-hidden="true">▾</span>
         </summary>
         <nav class="site-header__menu-dropdown" aria-label="Extended navigation and tools">
           <div class="site-header__mobile-primary">
@@ -262,15 +261,6 @@ const contactLabel = "Hire me";
 
   .site-header__menu-trigger::-webkit-details-marker {
     display: none;
-  }
-
-  .site-header__menu-trigger-icon {
-    font-size: 0.65rem;
-    transition: transform var(--home-next-motion);
-  }
-
-  .site-header__menu-toggle[open] .site-header__menu-trigger-icon {
-    transform: rotate(180deg);
   }
 
   .site-header__menu-dropdown {

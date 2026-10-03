@@ -29,92 +29,62 @@ const structuredData = [
   bodyClass="research-portfolio-page"
 >
   <main class="rp-shell">
-    <section class="rp-hero" aria-labelledby="research-heading">
-      <div class="rp-panel rp-hero__copy" data-pop-surface="cream">
-        <div>
-          <h1 id="research-heading">
-            Personal archives, grief, and cultural memory.
-          </h1>
-          <p class="rp-hero__lede">
-            I use autoethnography, photography, writing and participatory
-            methods to turn intimate experiences into questions about how we
-            remember, relate, mourn and make meaning.
-          </p>
-          <div class="rp-hero__actions">
-            <a class="rp-button" data-pop-surface="white" href="#projects">Explore the research ↓</a>
-            <a class="rp-button" data-pop-surface="white" href="#method">Read the method ↓</a>
-          </div>
-        </div>
-      </div>
-
-      <aside
-        class="rp-hero__rail"
-        aria-label="Research proof and featured image"
-      >
-        <figure class="rp-panel rp-hero__image">
-          <img
-            src="/images/research-portfolio/cries-cover.jpg"
-            alt="Cries of an Unmarried Widow research book beside flowers and a cup"
-            loading="eager"
-            fetchpriority="high"
-          />
-        </figure>
-        <section class="rp-panel rp-proof" data-pop-surface="lime">
-          <p class="rp-eyebrow">Institutional proof · 2026</p>
-          <h2>Presented two research projects at BSA 2026</h2>
-          <p>
-            One poster and one roundtable at the British Sociological
-            Association Annual Conference, University of Manchester.
-          </p>
-          <nav class="rp-proof__links" aria-label="BSA 2026 journey links">
-            <a href="/uk2026">Read more about the journey →</a>
-            <a href="/uk-2026">Check out the photo dump! →</a>
-          </nav>
-        </section>
-      </aside>
-    </section>
-
     <section
-      class="rp-panel rp-projects"
-      data-pop-surface="cream"
+      class="rp-projects"
       id="projects"
       aria-labelledby="projects-heading"
     >
-      <h2 class="rp-section-heading" id="projects-heading">
-        Research Projects
-      </h2>
+      <header class="rp-projects__header">
+        <p class="rp-eyebrow">Current collection · 2026</p>
+        <h1 id="projects-heading">
+          <span>Selected</span>
+          <span>Research Projects</span>
+        </h1>
+        <p>
+          Selected projects, papers and ongoing inquiries developed across
+          academic and creative contexts.
+        </p>
+      </header>
+
       <div class="rp-grid">
         {
           researchProjects.map((project, index) => (
-            <a
+            <article
               class="rp-card"
               data-accent={project.accent}
               data-pop-surface={project.accent}
-              href={`/research/${project.slug}`}
             >
-              <div class="rp-card__media">
-                <img
-                  src={project.images[0].src}
-                  alt={project.images[0].alt}
-                  loading={index < 2 ? "eager" : "lazy"}
-                  decoding="async"
-                />
-              </div>
-              <div class="rp-card__copy">
-                <span class="rp-card__role">{project.role}</span>
-                <h3>{project.title}</h3>
-                <p class="rp-card__premise">{project.premise}</p>
-                <ul
-                  class="rp-card__themes"
-                  aria-label={`${project.title} themes`}
-                >
-                  {project.themes.map((theme) => (
-                    <li>{theme}</li>
-                  ))}
-                </ul>
-                <strong class="rp-card__arrow">Open case study →</strong>
-              </div>
-            </a>
+              <a class="rp-card__shell" href={`/research/${project.slug}`}>
+                <figure class="rp-card__media">
+                  <img
+                    src={project.images[0].src}
+                    alt={project.images[0].alt}
+                    loading={index < 2 ? "eager" : "lazy"}
+                    decoding="async"
+                  />
+                </figure>
+                <div class="rp-card__copy">
+                  <div class="rp-card__meta">
+                    <span class="rp-card__index">{String(index + 1).padStart(2, "0")}</span>
+                    <span class="rp-card__role">{project.role}</span>
+                  </div>
+                  <h2>{project.title}</h2>
+                  <p class="rp-card__premise">{project.premise}</p>
+                  <ul
+                    class="rp-card__themes"
+                    aria-label={`${project.title} themes`}
+                  >
+                    {project.themes.map((theme) => (
+                      <li>{theme}</li>
+                    ))}
+                  </ul>
+                  <span class="rp-card__destination">
+                    <span>Open case study</span>
+                    <span aria-hidden="true">↗</span>
+                  </span>
+                </div>
+              </a>
+            </article>
           ))
         }
       </div>
