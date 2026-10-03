@@ -1,0 +1,71 @@
+---
+export const prerender = false;
+
+import NotepadBoard from "../components/NotepadBoard.jsx";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { supabase } from "../lib/supabase";
+
+Astro.response.headers.set("Cache-Control", "no-store");
+
+const { data, error } = await supabase
+    .from("quotes")
+    .select("id, body, created_at")
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+const pageTitle = "Quotes | Abodid Sahoo";
+const description = "A shared collection of words worth keeping.";
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={description}
+    fullWidth={true}
+    hideFooter={true}
+    showNewsletterPopup={false}
+    bodyClass="quotes-body"
+>
+    <NotepadBoard
+        client:load
+        initialNotes={data || []}
+        initialLoadError={error ? "The quotes could not be loaded just now." : ""}
+        endpoint="/api/quotes"
+        maxBodyLength={null}
+        eyebrow="A shared collection"
+        title="Quotes"
+        description="Words worth keeping."
+        formLabel="Add a quote"
+        placeholder="Paste a quote…"
+        submitLabel="Post quote"
+        savingLabel="Posting quote…"
+        archiveEyebrow="Shared archive"
+        archiveTitle="Words worth keeping."
+        itemLabel="Quote"
+        singularLabel="quote"
+        pluralLabel="quotes"
+        emptyMessage="Add the first quote."
+    />
+</BaseLayout>
+
+<style is:global>
+    html:has(body.quotes-body),
+    body.quotes-body {
+        margin: 0;
+        padding: 0 !important;
+        background: var(--pop-blue) !important;
+        color: var(--pop-ink);
+    }
+
+    body.quotes-body main.page-content-full {
+        padding: 0 !important;
+        overflow: visible;
+    }
+
+    body.quotes-body :is(h1, h2, p) {
+        margin-top: 0;
+    }
+
+    body.quotes-body :is(button, textarea) {
+        -webkit-tap-highlight-color: transparent;
+    }
+</style>

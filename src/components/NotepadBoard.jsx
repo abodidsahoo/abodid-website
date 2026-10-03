@@ -40,7 +40,25 @@ const buildNotes = (notes) => notes.map((note, index) => {
     };
 });
 
-export default function NotepadBoard({ initialNotes = [], initialLoadError = '' }) {
+export default function NotepadBoard({
+    initialNotes = [],
+    initialLoadError = '',
+    endpoint = '/api/ideas',
+    maxBodyLength = MAX_BODY_LENGTH,
+    eyebrow = 'Fragments in motion · Public notebook',
+    title = 'Notepad',
+    description = 'Passing thoughts, unfinished ideas and things worth remembering.',
+    formLabel = 'Add a thought',
+    placeholder = 'Write something…',
+    submitLabel = 'Post note',
+    savingLabel = 'Posting note…',
+    archiveEyebrow = 'Live archive',
+    archiveTitle = 'Notes, as they arrive.',
+    itemLabel = 'Note',
+    singularLabel = 'note',
+    pluralLabel = 'notes',
+    emptyMessage = 'The page is blank for now. Leave the first thought.',
+}) {
     const [notes, setNotes] = useState(initialNotes);
     const [body, setBody] = useState('');
     const [website, setWebsite] = useState('');
@@ -59,7 +77,7 @@ export default function NotepadBoard({ initialNotes = [], initialLoadError = '' 
         setErrorMessage('');
 
         try {
-            const response = await fetch('/api/ideas', {
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ body: cleanBody, website }),
@@ -91,20 +109,20 @@ export default function NotepadBoard({ initialNotes = [], initialLoadError = '' 
         <div className="notepad-page">
             <section className="notepad-intro" aria-labelledby="notepad-title">
                 <div className="notepad-intro__copy">
-                    <span className="notepad-eyebrow">Fragments in motion · Public notebook</span>
-                    <h1 id="notepad-title">Notepad</h1>
-                    <p className="notepad-intro__description">Passing thoughts, unfinished ideas and things worth remembering.</p>
+                    <span className="notepad-eyebrow">{eyebrow}</span>
+                    <h1 id="notepad-title">{title}</h1>
+                    <p className="notepad-intro__description">{description}</p>
                 </div>
 
                 <form ref={formRef} className="notepad-form" onSubmit={handleSubmit} aria-busy={saving}>
-                    <label className="notepad-form__label" htmlFor="notepad-entry">Add a thought</label>
+                    <label className="notepad-form__label" htmlFor="notepad-entry">{formLabel}</label>
                     <textarea
                         id="notepad-entry"
                         value={body}
                         onChange={(event) => setBody(event.target.value)}
                         onKeyDown={handleKeyDown}
-                        maxLength={MAX_BODY_LENGTH}
-                        placeholder="Write something…"
+                        maxLength={maxBodyLength || undefined}
+                        placeholder={placeholder}
                         rows={5}
                         required
                     />
@@ -120,10 +138,10 @@ export default function NotepadBoard({ initialNotes = [], initialLoadError = '' 
                     </label>
                     <div className="notepad-form__footer">
                         <p className={`notepad-status ${errorMessage ? 'is-visible' : ''}`} role="status">
-                            {errorMessage || (saving ? 'Posting note…' : 'Enter to post · Shift + Enter for a new line')}
+                            {errorMessage || (saving ? savingLabel : 'Enter to post · Shift + Enter for a new line')}
                         </p>
                         <button type="submit" disabled={!body.trim() || saving}>
-                            <span>{saving ? 'Posting' : 'Post note'}</span>
+                            <span>{saving ? 'Posting' : submitLabel}</span>
                             <span aria-hidden="true">↗</span>
                         </button>
                     </div>
@@ -133,10 +151,10 @@ export default function NotepadBoard({ initialNotes = [], initialLoadError = '' 
             <section className="notepad-archive" aria-labelledby="notes-heading">
                 <header className="notepad-archive__header">
                     <div>
-                        <span className="notepad-eyebrow">Live archive</span>
-                        <h2 id="notes-heading">Notes, as they arrive.</h2>
+                        <span className="notepad-eyebrow">{archiveEyebrow}</span>
+                        <h2 id="notes-heading">{archiveTitle}</h2>
                     </div>
-                    <span className="notepad-count">{notes.length} {notes.length === 1 ? 'note' : 'notes'}</span>
+                    <span className="notepad-count">{notes.length} {notes.length === 1 ? singularLabel : pluralLabel}</span>
                 </header>
 
                 {boardNotes.length > 0 ? (
@@ -144,7 +162,7 @@ export default function NotepadBoard({ initialNotes = [], initialLoadError = '' 
                         {boardNotes.map(({ note, label, sizeClass, style }) => (
                             <article className={`note-card ${sizeClass}`} style={style} key={note.id}>
                                 <div className="note-card__meta" aria-hidden="true">
-                                    <span>Note / {label}</span>
+                                    <span>{itemLabel} / {label}</span>
                                     <span className="note-card__mark"></span>
                                 </div>
                                 <p>{note.body}</p>
@@ -152,7 +170,7 @@ export default function NotepadBoard({ initialNotes = [], initialLoadError = '' 
                         ))}
                     </div>
                 ) : (
-                    <p className="notepad-empty">The page is blank for now. Leave the first thought.</p>
+                    <p className="notepad-empty">{emptyMessage}</p>
                 )}
             </section>
 
