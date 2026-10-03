@@ -226,6 +226,7 @@ export default function NotepadBoard({
                 .notepad-intro h1 {
                     max-width: 8ch;
                     margin: auto 0 0;
+                    color: var(--pop-ink);
                     font: 720 clamp(4rem, 9vw, 9rem)/0.82 var(--font-display, sans-serif);
                     letter-spacing: -0.075em;
                     text-wrap: balance;
@@ -234,6 +235,7 @@ export default function NotepadBoard({
                 .notepad-intro__description {
                     max-width: 32rem;
                     margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
+                    color: var(--pop-ink);
                     font: 480 clamp(1.15rem, 1.75vw, 1.85rem)/1.15 var(--font-display, sans-serif);
                     letter-spacing: -0.025em;
                     text-wrap: pretty;
@@ -358,6 +360,7 @@ export default function NotepadBoard({
                 .notepad-archive h2 {
                     max-width: 13ch;
                     margin: 0.5rem 0 0;
+                    color: var(--pop-ink);
                     font: 620 clamp(2.5rem, 5vw, 5.2rem)/0.9 var(--font-display, sans-serif);
                     letter-spacing: -0.065em;
                     text-wrap: balance;
@@ -449,6 +452,7 @@ export default function NotepadBoard({
                 .notepad-empty {
                     margin: 0;
                     padding: clamp(4rem, 10vw, 9rem) 1rem;
+                    color: var(--pop-ink);
                     text-align: center;
                     font: 600 clamp(1.2rem, 2vw, 1.6rem)/1.4 var(--font-display, sans-serif);
                 }
