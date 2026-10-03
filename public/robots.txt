@@ -1,13 +1,31 @@
-# Universal discovery and security rules for all Search Engines and AI Agents
-# (Googlebot, Bingbot, Applebot, OAI-SearchBot, PerplexityBot, ClaudeBot, etc.)
+# AI-training crawlers should not spend server resources on this site.
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+# Universal discovery and security rules for search engines and user-triggered previews.
 User-agent: *
 Allow: /
 Allow: /api/og
 Disallow: /admin/
 Disallow: /api/
+Disallow: /obsidian-vault/
 Disallow: /resources/admin/
 Disallow: /research/admin/
 
 # Sitemaps
 Sitemap: https://abodid.com/sitemap-index.xml
-

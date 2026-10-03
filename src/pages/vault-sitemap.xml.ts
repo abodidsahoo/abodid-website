@@ -1,27 +1,16 @@
 import type { APIRoute } from "astro";
-import { getAllPublicVaultNotes } from "../lib/vault-note-index.js";
-import { vaultNoteHref } from "../lib/vault-paths.js";
 import {
   buildSitemapXml,
   createXmlResponse,
   formatCanonicalUrl,
-  type SitemapEntry,
 } from "../lib/sitemapHelper";
 
-export const prerender = false;
+export const prerender = true;
 
 export const GET: APIRoute = async ({ site }) => {
   const base = site || new URL("https://abodid.com");
-  const notes = await getAllPublicVaultNotes().catch(() => []);
-
-  const entries: SitemapEntry[] = notes.map((note) => ({
-    url: formatCanonicalUrl(
-      base,
-      vaultNoteHref(note.slug),
-    ),
-    lastmod: note.updated_at,
-  }));
+  const entries = [{ url: formatCanonicalUrl(base, "/obsidian-vault") }];
 
   const xml = buildSitemapXml(entries);
-  return createXmlResponse(xml, 3600);
+  return createXmlResponse(xml, 86400);
 };

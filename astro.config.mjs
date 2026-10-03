@@ -33,14 +33,7 @@ export default defineConfig({
   },
   integrations: [
     react(),
-    sitemap({
-      filter: shouldIncludeInSitemap,
-      customSitemaps: [
-        `${siteUrl}/work-sitemap.xml`,
-        `${siteUrl}/content-sitemap.xml`,
-        `${siteUrl}/vault-sitemap.xml`,
-      ],
-    }),
+    sitemap({ filter: shouldIncludeInSitemap }),
   ],
   site: siteUrl,
   vite: {

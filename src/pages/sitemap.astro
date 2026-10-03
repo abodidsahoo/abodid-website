@@ -1,40 +1,36 @@
 ---
-export const prerender = false;
+export const prerender = true;
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getPublishedPortfolioIndex } from "../lib/portfolio/services";
-import {
-  getAllPosts,
-  getAllPhotography,
-  getResearchProjects,
-  getFilms,
-  getResearchPapers,
-} from "../lib/api";
-import { getAllPublicVaultNotes } from "../lib/vault-note-index.js";
 import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
-const [rawWork, photos, research, films, posts, papers, vaultNotes] =
-  await Promise.all([
-    getPublishedPortfolioIndex().catch(() => []),
-    getAllPhotography().catch(() => []),
-    getResearchProjects().catch(() => []),
-    getFilms().catch(() => []),
-    getAllPosts().catch(() => []),
-    getResearchPapers().catch(() => []),
-    getAllPublicVaultNotes().catch(() => []),
-  ]);
+const workProjects = [
+  { title: "Selected work", href: "/work" },
+  { title: "Services", href: "/services" },
+];
+const publishedResearch = [
+  { title: "Research overview", href: "/research" },
+  { title: "Media Lab", href: "/lab" },
+];
+const publishedPhotos = [
+  { title: "Photography overview", href: "/photography" },
+  { title: "Photography portfolio", href: "/photography-portfolio" },
+];
+const publishedFilms = [{ title: "Films overview", href: "/films" }];
+const publishedPosts = [
+  { title: "Writing", href: "/blog" },
+  { title: "Reading and curation", href: "/reading" },
+];
+const publishedPapers = [
+  { title: "Research papers", href: "/research-papers" },
+];
+const vaultLinks = [
+  { title: "Obsidian Vault overview", href: "/obsidian-vault" },
+  { title: "Vault directory", href: "/obsidian-vault/directory" },
+];
 
-const workProjects = rawWork.filter((p) => p.searchVisible !== false);
-const publishedPhotos = photos.filter((p) => p.published !== false && p.slug);
-const publishedResearch = research.filter(
-  (r) => r.published !== false && (r as any).visible !== false && r.slug,
-);
-const publishedFilms = films.filter((f) => f.published !== false && f.slug);
-const publishedPosts = posts.filter((b) => b.published !== false && b.slug);
-const publishedPapers = papers.filter((rp) => rp.published !== false && rp.slug);
-
-const title = "Sitemap & Complete Directory — Abodid Sahoo";
+const title = "Sitemap & Main Directory — Abodid Sahoo";
 const description =
-  "Complete directory of Abodid Sahoo’s work, research, films, photography, writing, and Obsidian notes.";
+  "A concise directory of the main sections of Abodid Sahoo’s work, research, films, photography, writing, and knowledge systems.";
 
 const structuredData = [
   personJsonLd(),
@@ -62,7 +58,7 @@ const structuredData = [
         <h1 id="sitemap-heading" class="sitemap-hero__title">Sitemap</h1>
 
         <p class="sitemap-hero__lede">
-          A complete index of all projects, research experiments, films, photography series, essays, and public Obsidian notes.
+          A focused map of the site’s main sections. Individual projects, photographs, essays, and notes live inside their respective hubs.
         </p>
       </div>
     </section>
@@ -80,7 +76,7 @@ const structuredData = [
           <ul class="sitemap-links">
             {workProjects.map((item, index) => (
               <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={`/work/${item.slug}`}>
+                <a href={item.href}>
                   <span class="sitemap-link-text">{item.title}</span>
                   <span class="link-destination-arrow" aria-hidden="true">↗</span>
                 </a>
@@ -116,7 +112,7 @@ const structuredData = [
           <ul class="sitemap-links">
             {publishedResearch.map((item, index) => (
               <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={`/research/${item.slug}`}>
+                <a href={item.href}>
                   <span class="sitemap-link-text">{item.title}</span>
                   <span class="link-destination-arrow" aria-hidden="true">↗</span>
                 </a>
@@ -152,7 +148,7 @@ const structuredData = [
           <ul class="sitemap-links">
             {publishedPhotos.map((item, index) => (
               <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={`/photography/${item.slug}`}>
+                <a href={item.href}>
                   <span class="sitemap-link-text">{item.title}</span>
                   <span class="link-destination-arrow" aria-hidden="true">↗</span>
                 </a>
@@ -188,7 +184,7 @@ const structuredData = [
           <ul class="sitemap-links">
             {publishedFilms.map((item, index) => (
               <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={`/films/${item.slug}`}>
+                <a href={item.href}>
                   <span class="sitemap-link-text">{item.title}</span>
                   <span class="link-destination-arrow" aria-hidden="true">↗</span>
                 </a>
@@ -224,7 +220,7 @@ const structuredData = [
           <ul class="sitemap-links">
             {publishedPosts.map((item, index) => (
               <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={`/blog/${item.slug}`}>
+                <a href={item.href}>
                   <span class="sitemap-link-text">{item.title}</span>
                   <span class="link-destination-arrow" aria-hidden="true">↗</span>
                 </a>
@@ -260,7 +256,7 @@ const structuredData = [
           <ul class="sitemap-links">
             {publishedPapers.map((item, index) => (
               <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={`/research-papers/${item.slug}`}>
+                <a href={item.href}>
                   <span class="sitemap-link-text">{item.title}</span>
                   <span class="link-destination-arrow" aria-hidden="true">↗</span>
                 </a>
@@ -295,7 +291,7 @@ const structuredData = [
               <a href="/obsidian-vault">Obsidian Vault Notes</a>
             </h2>
             <p class="sitemap-vault-band__sub">
-              Public second brain notes from <code>6 - Main Notes</code> spanning autoethnography, cognitive maps, and creative technology.
+              Enter the public knowledge system through its overview or directory rather than indexing every note here.
             </p>
           </div>
           <a href="/obsidian-vault/directory" class="sitemap-vault-all-btn">
@@ -305,16 +301,11 @@ const structuredData = [
         </div>
 
         <div class="sitemap-vault-pills-grid">
-          {vaultNotes.slice(0, 48).map((note) => (
+          {vaultLinks.map((note) => (
             <a href={note.href} class="sitemap-vault-pill">
               {note.title}
             </a>
           ))}
-          {vaultNotes.length > 48 && (
-            <a href="/obsidian-vault/directory" class="sitemap-vault-more-pill">
-              +{vaultNotes.length - 48} more notes in full directory →
-            </a>
-          )}
         </div>
       </article>
     </section>

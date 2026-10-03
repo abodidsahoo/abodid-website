@@ -20,7 +20,7 @@ const {
     image,
     type = "website",
     imageAlt,
-    useDynamicOgImage = true,
+    useDynamicOgImage = false,
     noindex = false,
     robots,
     structuredData,
@@ -52,8 +52,7 @@ ogImageUrl.searchParams.set("description", description);
 if (image) {
     ogImageUrl.searchParams.set("image", image);
 }
-const ogImage =
-    !useDynamicOgImage && resolvedImage ? resolvedImage : ogImageUrl.toString();
+const ogImage = useDynamicOgImage ? ogImageUrl.toString() : resolvedImage;
 const socialImageAlt = imageAlt || `${formattedTitle} preview image`;
 const jsonLdItems = Array.isArray(structuredData)
     ? structuredData
@@ -82,16 +81,16 @@ const serializeJsonLd = (item: Record<string, unknown>) =>
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={formattedTitle} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={ogImage} />
-<meta property="og:image:alt" content={socialImageAlt} />
+{ogImage && <meta property="og:image" content={ogImage} />}
+{ogImage && <meta property="og:image:alt" content={socialImageAlt} />}
 
 <!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
 <meta property="twitter:url" content={canonicalURL} />
 <meta property="twitter:title" content={formattedTitle} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={ogImage} />
-<meta property="twitter:image:alt" content={socialImageAlt} />
+{ogImage && <meta property="twitter:image" content={ogImage} />}
+{ogImage && <meta property="twitter:image:alt" content={socialImageAlt} />}
 
 {
     jsonLdItems.map((item) => (

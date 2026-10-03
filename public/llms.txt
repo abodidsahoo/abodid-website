@@ -108,7 +108,7 @@ Abodid conducts private, high-impact Obsidian tutoring and masterclasses tailore
 - [Curated Research Papers](https://abodid.com/research-papers) — Curated academic papers on memory, visual perception, and art theory.
 - [Obsidian Vault](https://abodid.com/obsidian-vault) — Interactive second-brain interface from public research notes.
 - [Obsidian Vault Directory](https://abodid.com/obsidian-vault/directory) — Complete browseable node index of public notes.
-- [HTML Sitemap](https://abodid.com/sitemap) — Full crawlable directory of all public portfolio, research, and writing URLs.
+- [HTML Sitemap](https://abodid.com/sitemap) — Concise directory of the site’s major sections.
 - [RSS Feed](https://abodid.com/rss.xml) — Machine-readable blog feed.
 
 ---
@@ -116,9 +116,6 @@ Abodid conducts private, high-impact Obsidian tutoring and masterclasses tailore
 ## Sitemaps & Machine Discovery
 
 - [Sitemap Index](https://abodid.com/sitemap-index.xml) — Primary XML sitemap index.
-- [Work Sitemap](https://abodid.com/work-sitemap.xml) — Commercial and selected portfolio work.
-- [Content Sitemap](https://abodid.com/content-sitemap.xml) — Dynamic content: essays, photography series, films, and curated papers.
-- [Vault Sitemap](https://abodid.com/vault-sitemap.xml) — Complete public Obsidian notes.
 
 ---
 

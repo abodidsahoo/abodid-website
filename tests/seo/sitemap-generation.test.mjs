@@ -107,6 +107,10 @@ test("searchVisibility: shouldIncludeInSitemap and shouldNoindex consistency", (
   assert.equal(shouldIncludeInSitemap("https://abodid.com/admin"), false);
   assert.equal(shouldIncludeInSitemap("https://abodid.com/api/test"), false);
   assert.equal(shouldIncludeInSitemap("https://abodid.com/work"), true);
+  assert.equal(shouldIncludeInSitemap("https://abodid.com/work/spatial-memory"), false);
+  assert.equal(shouldIncludeInSitemap("https://abodid.com/photography/a-series"), false);
+  assert.equal(shouldIncludeInSitemap("https://abodid.com/obsidian-vault/a-note"), false);
+  assert.equal(shouldIncludeInSitemap("https://abodid.com/research/"), true);
 
   assert.equal(shouldNoindex("/admin"), true);
   assert.equal(shouldNoindex("/work"), false);

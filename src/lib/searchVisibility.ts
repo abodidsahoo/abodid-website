@@ -35,6 +35,32 @@ export const EXCLUDED_PATH_PATTERNS: RegExp[] = [
 ];
 
 /**
+ * Keep XML discovery intentionally small. Detail pages remain reachable from
+ * their section hubs, but are not individually promoted to crawlers.
+ */
+export const SITEMAP_HUB_PATHS = new Set([
+  "/",
+  "/work",
+  "/services",
+  "/research",
+  "/research-papers",
+  "/lab",
+  "/photography",
+  "/photography-portfolio",
+  "/films",
+  "/blog",
+  "/reading",
+  "/workshops",
+  "/resources",
+  "/obsidian-vault",
+  "/about",
+  "/awards",
+  "/press",
+  "/cv",
+  "/contact",
+]);
+
+/**
  * Extracts a normalized pathname from a full URL or relative path.
  */
 export function extractPathname(pageOrPath: string): string {
@@ -58,8 +84,9 @@ export function isPathExcluded(pathname: string): boolean {
  * Filter predicate for @astrojs/sitemap.
  */
 export function shouldIncludeInSitemap(pageOrPath: string): boolean {
-  const pathname = extractPathname(pageOrPath);
-  return !isPathExcluded(pathname);
+  const rawPathname = extractPathname(pageOrPath);
+  const pathname = rawPathname === "/" ? "/" : rawPathname.replace(/\/+$/, "");
+  return !isPathExcluded(pathname) && SITEMAP_HUB_PATHS.has(pathname);
 }
 
 /**
