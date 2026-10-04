@@ -193,9 +193,18 @@ html:has(.portfolio-editor-shell), body:has(.portfolio-editor-shell) { width: 10
 .portfolio-block-drag-overlay > .portfolio-block-palette-plus { grid-column: 3; grid-row: 1 / span 2; }
 .portfolio-block-drag-overlay strong { overflow: hidden; font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
 .portfolio-block-drag-overlay small { color: var(--text-tertiary); font-size: .62rem; }
-.portfolio-editor-block { overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 9px; background: var(--bg-color); transition: border-color .16s ease, box-shadow .16s ease, opacity .16s ease; }
+.portfolio-block-sort-overlay { display: grid; grid-template-columns: 1.75rem 1.75rem minmax(0, 1fr) auto; width: min(460px, calc(100vw - 2rem)); min-height: 58px; align-items: center; gap: .55rem; border: 1px solid color-mix(in srgb, var(--work-accent, #a30021) 64%, var(--border-subtle)); border-radius: 9px; background: var(--bg-color); color: var(--text-primary); padding: .55rem .7rem; box-shadow: 0 14px 36px rgba(0,0,0,.22); pointer-events: none; }
+.portfolio-block-sort-grip { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; color: var(--text-tertiary); font-size: 1rem; }
+.portfolio-block-sort-copy { display: grid; min-width: 0; gap: .08rem; }
+.portfolio-block-sort-copy strong, .portfolio-block-sort-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.portfolio-block-sort-copy strong { font-size: .76rem; }
+.portfolio-block-sort-copy small { color: var(--text-tertiary); font-size: .62rem; }
+.portfolio-block-sort-cue { border-radius: 999px; background: color-mix(in srgb, var(--work-accent, #a30021) 13%, transparent); color: var(--work-accent, #a30021); padding: .32rem .5rem; font-size: .58rem; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; }
+.portfolio-editor-block { overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 9px; background: var(--bg-color); transition: border-color .16s ease, box-shadow .16s ease, opacity .16s ease, transform .16s ease; }
 .portfolio-editor-block.is-expanded { border-color: color-mix(in srgb, var(--work-accent, #a30021) 48%, var(--border-subtle)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--work-accent, #a30021) 10%, transparent); }
 .portfolio-editor-block.is-hidden { opacity: .58; }
+.portfolio-editor-block.is-dragging { border-style: dashed; border-color: color-mix(in srgb, var(--work-accent, #a30021) 62%, var(--border-subtle)); box-shadow: none; opacity: .22; }
+.portfolio-editor-block.is-dragging * { pointer-events: none; }
 .portfolio-editor-block > .portfolio-block-card-header { display: grid; grid-template-columns: 2rem minmax(0,1fr) auto; align-items: center; gap: .35rem; padding: .55rem; border-bottom: 0; }
 .portfolio-editor-block.is-expanded > .portfolio-block-card-header { border-bottom: 1px solid var(--border-subtle); }
 .portfolio-editor-block .drag-handle { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border-radius: 5px; }

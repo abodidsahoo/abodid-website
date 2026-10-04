@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from "react";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { BLOG_BLOCK_LABELS, BLOG_BLOCK_DESCRIPTIONS, getBlogBlockSummary, createBlogBlock } from "../../../lib/blogSchema";
@@ -132,14 +132,23 @@ function BlogBlockFields({ block, onChange, onUpload, onChooseMedia, uploading }
 }
 
 export function BlogBlockCard({ block, index, expanded, onToggle, onChange, onDuplicate, onDelete, onUpload, onChooseMedia, uploading }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
     const type = block.blockType;
+    const summary = getBlogBlockSummary(block);
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: block.id,
+        data: {
+            kind: "block-sort",
+            label: BLOG_BLOCK_LABELS[type],
+            summary,
+            position: index + 1,
+        },
+    });
 
     return (
         <article
             ref={setNodeRef}
-            style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.55 : 1 }}
-            className={`portfolio-editor-block ${expanded ? "is-expanded" : ""}`}
+            style={{ transform: CSS.Translate.toString(transform), transition }}
+            className={`portfolio-editor-block ${expanded ? "is-expanded" : ""} ${isDragging ? "is-dragging" : ""}`}
         >
             <header className="portfolio-block-card-header">
                 <button type="button" className="drag-handle" {...attributes} {...listeners} aria-label={`Reorder ${BLOG_BLOCK_LABELS[type]}`}>
@@ -149,7 +158,7 @@ export function BlogBlockCard({ block, index, expanded, onToggle, onChange, onDu
                     <span className="portfolio-block-order">{index + 1}</span>
                     <span className="portfolio-block-card-title">
                         <strong>{BLOG_BLOCK_LABELS[type]}</strong>
-                        <small>{getBlogBlockSummary(block)}</small>
+                        <small>{summary}</small>
                     </span>
                     <span className="portfolio-block-chevron" aria-hidden="true" />
                 </button>
@@ -232,11 +241,23 @@ export function BlogBlockInsertToolbar({ id, title = "Content elements", types =
 
 export default function BlogStudioBlockEditor({ blocks = [], onBlocksChange, onUpload, onChooseMedia, uploading, designSection }) {
     const [expandedId, setExpandedId] = useState(null);
+    const [draggedBlock, setDraggedBlock] = useState(null);
+
+    const handleDragStart = ({ active }) => {
+        const data = active.data.current;
+        setDraggedBlock(data?.kind === "block-sort" ? {
+            label: data.label,
+            summary: data.summary,
+            position: data.position,
+        } : null);
+    };
 
     const handleDragEnd = ({ active, over }) => {
+        setDraggedBlock(null);
         if (!over || active.id === over.id) return;
         const oldIdx = blocks.findIndex(b => b.id === active.id);
         const newIdx = blocks.findIndex(b => b.id === over.id);
+        if (oldIdx < 0 || newIdx < 0) return;
         onBlocksChange(arrayMove(blocks, oldIdx, newIdx));
     };
 
@@ -295,7 +316,7 @@ export default function BlogStudioBlockEditor({ blocks = [], onBlocksChange, onU
                     </div>
                     <span className="portfolio-sequence-count">{blocks.length} {blocks.length === 1 ? "block" : "blocks"}</span>
                 </header>
-                <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragCancel={() => setDraggedBlock(null)} onDragEnd={handleDragEnd}>
                     <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
                         <div className="editor-block-list">
                             {blocks.length === 0 && (
@@ -321,6 +342,19 @@ export default function BlogStudioBlockEditor({ blocks = [], onBlocksChange, onU
                             ))}
                         </div>
                     </SortableContext>
+                    <DragOverlay adjustScale={false} dropAnimation={null}>
+                        {draggedBlock && (
+                            <div className="portfolio-block-sort-overlay">
+                                <span className="portfolio-block-sort-grip" aria-hidden="true">⠿</span>
+                                <span className="portfolio-block-order" aria-hidden="true">{draggedBlock.position}</span>
+                                <span className="portfolio-block-sort-copy">
+                                    <strong>{draggedBlock.label}</strong>
+                                    <small>{draggedBlock.summary || "Move within the content sequence"}</small>
+                                </span>
+                                <span className="portfolio-block-sort-cue">Moving</span>
+                            </div>
+                        )}
+                    </DragOverlay>
                 </DndContext>
             </section>
         </>

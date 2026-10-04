@@ -57,6 +57,8 @@ const curatedBrandOrder = [
     name: "Grand Hyatt",
     role: "Video Production & Editing",
   },
+  { match: "homegrown", name: "Homegrown", role: "Press Feature" },
+  { match: "educate girls", name: "Educate Girls", role: "Video Editing" },
 ];
 
 const featuredBrands = curatedBrandOrder.map((item, index) => {
@@ -285,19 +287,24 @@ const structuredData = [
       <div class="story-evidence__columns">
         {
           featuredTestimonials.length > 0 && (
-            <div class="story-quotes" aria-label="Testimonials">
-              {featuredTestimonials.map((testimonial, index) => {
-                const shortQuote =
-                  testimonial.highlightQuote || testimonial.content;
-                const hasMore =
-                  String(shortQuote).trim() !==
-                  String(testimonial.content).trim();
-                return (
-                  <blockquote
-                    class={`story-quote story-quote--${index + 1}`}
-                    data-testimonial-card
-                    data-auto-contrast
-                  >
+            <div class="story-testimonials" data-testimonial-carousel>
+              <div
+                class="story-quotes"
+                aria-label="Testimonials"
+                data-testimonial-track
+              >
+                {featuredTestimonials.map((testimonial, index) => {
+                  const shortQuote =
+                    testimonial.highlightQuote || testimonial.content;
+                  const hasMore =
+                    String(shortQuote).trim() !==
+                    String(testimonial.content).trim();
+                  return (
+                    <blockquote
+                      class={`story-quote story-quote--${index + 1}`}
+                      data-testimonial-card
+                      data-auto-contrast
+                    >
                     <div class="story-quote__content">
                       <div class="story-quote__short">
                         <p>“{shortQuote}”</p>
@@ -311,11 +318,25 @@ const structuredData = [
                       </div>
                     </div>
                     <footer>
-                      <strong>{testimonial.name}</strong>
-                      <span>
-                        {[testimonial.role, testimonial.company]
-                          .filter(Boolean)
-                          .join(" · ")}
+                      <strong class="story-quote__person">
+                        {testimonial.name}
+                      </strong>
+                      <span class="story-quote__credit">
+                        {testimonial.role && (
+                          <strong class="story-quote__role">
+                            {testimonial.role}
+                          </strong>
+                        )}
+                        {testimonial.role && testimonial.company && (
+                          <span class="story-quote__credit-separator" aria-hidden="true">
+                            ·
+                          </span>
+                        )}
+                        {testimonial.company && (
+                          <span class="story-quote__company">
+                            {testimonial.company}
+                          </span>
+                        )}
                       </span>
                     </footer>
                     {hasMore && (
@@ -325,13 +346,26 @@ const structuredData = [
                         data-testimonial-toggle
                         aria-expanded="false"
                       >
-                        <span data-toggle-label>Read the full testimonial</span>
+                        <span data-toggle-label>Full testimonial</span>
                         <b aria-hidden="true">→</b>
                       </button>
                     )}
-                  </blockquote>
-                );
-              })}
+                    </blockquote>
+                  );
+                })}
+              </div>
+              <div class="story-quote-dots" aria-label="Choose a testimonial">
+                {featuredTestimonials.map((testimonial, index) => (
+                  <button
+                    type="button"
+                    aria-label={`Show testimonial ${index + 1} from ${testimonial.name}`}
+                    aria-current={index === 0 ? "true" : "false"}
+                    data-testimonial-dot={index}
+                  >
+                    <span aria-hidden="true"></span>
+                  </button>
+                ))}
+              </div>
             </div>
           )
         }
@@ -672,6 +706,123 @@ const structuredData = [
         });
 
         document
+          .querySelectorAll("[data-testimonial-carousel]")
+          .forEach((carousel) => {
+            if (
+              !(carousel instanceof HTMLElement) ||
+              carousel.dataset.carouselReady === "true"
+            )
+              return;
+
+            const track = carousel.querySelector("[data-testimonial-track]");
+            const cards = Array.from(
+              carousel.querySelectorAll("[data-testimonial-card]"),
+            );
+            const dots = Array.from(
+              carousel.querySelectorAll("[data-testimonial-dot]"),
+            );
+            const dotNav = carousel.querySelector(".story-quote-dots");
+            if (
+              !(track instanceof HTMLElement) ||
+              !(dotNav instanceof HTMLElement) ||
+              cards.length === 0
+            )
+              return;
+
+            carousel.dataset.carouselReady = "true";
+            let frame = 0;
+
+            const positionDots = (activeIndex) => {
+              const card = cards[activeIndex];
+              if (!(card instanceof HTMLElement)) return;
+              const carouselRect = carousel.getBoundingClientRect();
+              const cardRect = card.getBoundingClientRect();
+              const inset = Number.parseFloat(
+                getComputedStyle(card).paddingRight,
+              );
+              const narrowLift = window.matchMedia("(max-width: 350px)")
+                .matches
+                ? 57
+                : 0;
+              dotNav.style.top = `${
+                cardRect.bottom -
+                carouselRect.top -
+                inset -
+                dotNav.offsetHeight -
+                narrowLift
+              }px`;
+              dotNav.style.bottom = "auto";
+            };
+
+            const setActiveDot = (activeIndex) => {
+              dots.forEach((dot, index) => {
+                if (!(dot instanceof HTMLButtonElement)) return;
+                dot.setAttribute(
+                  "aria-current",
+                  index === activeIndex ? "true" : "false",
+                );
+              });
+              positionDots(activeIndex);
+            };
+
+            const updateActiveDot = () => {
+              frame = 0;
+              const trackLeft = track.getBoundingClientRect().left;
+              let activeIndex = 0;
+              let closestDistance = Number.POSITIVE_INFINITY;
+
+              cards.forEach((card, index) => {
+                const distance = Math.abs(
+                  card.getBoundingClientRect().left - trackLeft,
+                );
+                if (distance < closestDistance) {
+                  closestDistance = distance;
+                  activeIndex = index;
+                }
+              });
+              setActiveDot(activeIndex);
+            };
+
+            dots.forEach((dot, index) => {
+              if (!(dot instanceof HTMLButtonElement)) return;
+              dot.addEventListener("click", () => {
+                const card = cards[index];
+                if (!(card instanceof HTMLElement)) return;
+                const left =
+                  card.getBoundingClientRect().left -
+                  track.getBoundingClientRect().left +
+                  track.scrollLeft;
+                track.scrollTo({
+                  left,
+                  behavior: window.matchMedia(
+                    "(prefers-reduced-motion: reduce)",
+                  ).matches
+                    ? "auto"
+                    : "smooth",
+                });
+                setActiveDot(index);
+              });
+            });
+
+            track.addEventListener(
+              "scroll",
+              () => {
+                if (frame) cancelAnimationFrame(frame);
+                frame = requestAnimationFrame(updateActiveDot);
+              },
+              { passive: true },
+            );
+            window.addEventListener("resize", updateActiveDot, {
+              passive: true,
+            });
+            carousel.addEventListener(
+              "testimonial:layout",
+              updateActiveDot,
+            );
+            requestAnimationFrame(updateActiveDot);
+          });
+
+        document
           .querySelectorAll("[data-testimonial-toggle]")
           .forEach((button) => {
             if (
@@ -696,10 +847,15 @@ const structuredData = [
               button.setAttribute("aria-expanded", String(willExpand));
               card.classList.toggle("is-expanded", willExpand);
               fullQuote.setAttribute("aria-hidden", String(!willExpand));
+              requestAnimationFrame(() => {
+                card
+                  .closest("[data-testimonial-carousel]")
+                  ?.dispatchEvent(new Event("testimonial:layout"));
+              });
               if (label)
                 label.textContent = willExpand
-                  ? "Show less"
-                  : "Read the full testimonial";
+                  ? "Close testimonial"
+                  : "Full testimonial";
 
               if (willExpand) {
                 fullQuote.scrollTop = 0;
@@ -1496,8 +1652,11 @@ const structuredData = [
   .story-brand-pill {
     width: auto;
     min-width: max-content;
+    min-height: 48px;
     padding: 0.75rem clamp(1.1rem, 1.8vw, 1.6rem);
+    display: flex;
     flex: 1 1 auto;
+    align-items: center;
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-control);
     text-align: center;
@@ -1603,11 +1762,16 @@ const structuredData = [
     opacity: 1;
     transform: translateY(0);
   }
+  .story-testimonials {
+    --story-quote-inset: clamp(1.35rem, 2.2vw, 2rem);
+    min-width: 0;
+    position: relative;
+  }
   .story-quotes {
     margin-top: clamp(2rem, 5vw, 5rem);
-    padding: 0.25rem 0 0.9rem;
+    padding: 0.25rem 0 5px;
     display: flex;
-    align-items: stretch;
+    align-items: flex-start;
     gap: var(--home-next-gap);
     overflow-x: auto;
     overscroll-behavior-inline: contain;
@@ -1617,12 +1781,54 @@ const structuredData = [
   .story-quotes::-webkit-scrollbar {
     display: none;
   }
+  .story-quote-dots {
+    min-height: 44px;
+    position: absolute;
+    right: var(--story-quote-inset);
+    bottom: calc(var(--story-quote-inset) + 5px);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.1rem;
+  }
+  .story-quote-dots button {
+    width: 28px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: var(--pop-ink);
+    cursor: pointer;
+  }
+  .story-quote-dots button span {
+    width: 7px;
+    height: 7px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: transparent;
+    transition:
+      width var(--home-next-motion),
+      background-color var(--home-next-motion);
+  }
+  .story-quote-dots button[aria-current="true"] span {
+    width: 18px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+  .story-quote-dots button:focus-visible {
+    outline: 2px solid var(--pop-ink);
+    outline-offset: -7px;
+    border-radius: 999px;
+  }
   .story-quote {
     height: auto;
-    min-height: clamp(410px, 34vw, 470px);
+    min-height: 0;
     flex: 0 0 clamp(300px, 31vw, 420px);
     margin: 0;
-    padding: clamp(1.35rem, 2.2vw, 2rem);
+    padding: var(--story-quote-inset);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1643,7 +1849,7 @@ const structuredData = [
     min-height: 0;
     margin-bottom: 1rem;
     position: relative;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
   }
   .story-quote__short,
   .story-quote__full {
@@ -1659,7 +1865,7 @@ const structuredData = [
   }
   .story-quote__short p {
     margin: 0;
-    font: 540 clamp(1.35rem, 2.1vw, 2.15rem)/1.3 var(--font-display, sans-serif);
+    font: 540 clamp(1.2rem, 1.65vw, 1.68rem)/1.28 var(--font-display, sans-serif);
     letter-spacing: -0.035em;
     text-wrap: pretty;
   }
@@ -1749,30 +1955,61 @@ const structuredData = [
     pointer-events: auto;
     transform: translateY(0);
   }
+  .story-quote.is-expanded {
+    min-height: clamp(360px, 32vw, 430px);
+  }
+  .story-quote.is-expanded .story-quote__content {
+    flex: 1 1 auto;
+  }
   .story-quote footer {
     min-width: 0;
-    padding-top: 0.65rem;
+    padding-top: 0.9rem;
     display: grid;
-    gap: 0.25rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: baseline;
     flex: 0 0 auto;
     border-top: 1px solid currentColor;
-    font: 700 0.65rem/1.3 var(--font-mono, monospace);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
-  .story-quote footer span {
-    opacity: 1;
+  .story-quote__person {
+    font: 760 clamp(1.08rem, 1.35vw, 1.4rem)/1 var(--font-display, sans-serif);
+    letter-spacing: -0.025em;
+    white-space: nowrap;
+    text-wrap: balance;
+  }
+  .story-quote__credit {
+    min-width: 0;
+    display: grid;
+    gap: 0.12rem;
+    justify-items: end;
+    text-align: right;
+  }
+  .story-quote__role {
+    font: 850 clamp(0.68rem, 0.75vw, 0.78rem)/1.15 var(--font-mono, monospace);
+    letter-spacing: 0.065em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .story-quote__credit-separator {
+    display: none;
+  }
+  .story-quote__company {
+    font: 650 clamp(0.61rem, 0.66vw, 0.68rem)/1.25 var(--font-mono, monospace);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    opacity: 0.68;
+    white-space: nowrap;
   }
   .story-quote__toggle {
-    width: 100%;
-    min-height: 40px;
-    margin: 0.65rem 0 0;
-    padding: 0 0.8rem;
+    width: fit-content;
+    min-height: 44px;
+    margin: 0.8rem 0 0;
+    padding: 0 0.75rem 0 0.9rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    align-self: stretch;
+    align-self: flex-start;
     flex: 0 0 auto;
     border: 1px solid currentColor;
     border-radius: var(--home-next-radius-control);
@@ -1818,54 +2055,57 @@ const structuredData = [
 
   @media (min-width: 981px) {
     .story-evidence__columns {
-      --story-evidence-panel-height: clamp(430px, 36vw, 520px);
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      align-items: stretch;
+      grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
+      align-items: start;
       gap: clamp(1rem, 2.2vw, 2rem);
     }
-    .story-quotes,
+    .story-testimonials,
     .story-brands {
       width: 100%;
-      height: var(--story-evidence-panel-height);
       min-width: 0;
       margin: 0;
       box-sizing: border-box;
     }
     .story-quotes {
+      margin: 0;
       padding: 0 0 5px;
     }
     .story-quote {
-      height: calc(100% - 5px);
+      height: auto;
       min-height: 0;
       flex-basis: 100%;
     }
     .story-brands {
       padding: 0;
-      align-content: stretch;
+      align-content: start;
       order: initial;
-      overflow: hidden;
     }
     .story-brand-pill {
-      padding: 0.6rem clamp(0.75rem, 1.2vw, 1.15rem);
+      height: 50px;
+      min-height: 50px;
+      padding: 0.45rem clamp(0.7rem, 1vw, 1rem);
     }
     .story-brand-pill[data-pill-size="small"] {
       flex-basis: 8.5rem;
       min-width: 7.5rem;
+      max-width: 15rem;
     }
     .story-brand-pill[data-pill-size="medium"] {
       flex-basis: 11.5rem;
       min-width: 10rem;
+      max-width: 18rem;
     }
     .story-brand-pill[data-pill-size="large"] {
       flex-basis: 15rem;
       min-width: 13rem;
+      max-width: 21rem;
     }
     .story-brand-pill__track > strong {
-      font-size: clamp(0.82rem, 1.05vw, 1.05rem);
+      font-size: clamp(0.8rem, 0.92vw, 0.98rem);
     }
     .story-brand-pill__track > span {
-      font-size: clamp(0.68rem, 0.85vw, 0.86rem);
+      font-size: clamp(0.66rem, 0.76vw, 0.8rem);
     }
   }
 
@@ -2364,13 +2604,32 @@ const structuredData = [
       margin-right: calc(-1 * var(--story-gutter));
       padding-right: var(--story-gutter);
     }
+    .story-testimonials {
+      --story-quote-inset: 1.25rem;
+    }
     .story-quote {
+      min-height: 0;
+      flex-basis: min(calc(100vw - 2rem), 380px);
+      padding: var(--story-quote-inset);
+    }
+    .story-quote footer {
+      gap: 0.5rem;
+    }
+    .story-quote__role,
+    .story-quote__company {
+      letter-spacing: 0.035em;
+    }
+    .story-quote.is-expanded {
       min-height: 420px;
-      flex-basis: min(86vw, 360px);
-      padding: 1.5rem;
     }
     :is(.story-evidence, .story-services, .story-enquiry, .story-writing) {
       padding-inline: 1rem;
+    }
+  }
+
+  @media (max-width: 350px) {
+    .story-quote-dots {
+      bottom: calc(var(--story-quote-inset) + 57px);
     }
   }
 

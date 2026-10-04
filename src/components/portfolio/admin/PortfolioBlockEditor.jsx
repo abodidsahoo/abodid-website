@@ -345,10 +345,20 @@ export function PortfolioBlockInsertToolbar({ id, onAddBlock, types = INSERTABLE
 }
 
 export default function PortfolioBlockEditor({ block, index, expanded, onToggle, onChange, onDuplicate, onDelete, onUpload, onChooseMedia, onRemoveMedia, uploading }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
+  const type = block.blockType;
+  const summary = getPortfolioBlockSummary(block);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: block.id,
+    data: {
+      kind: "block-sort",
+      blockType: type,
+      label: BLOCK_LABELS[type],
+      summary,
+      position: index + 1,
+    },
+  });
   const updateContent = (patch) => onChange({ ...block, content: { ...block.content, ...patch } });
   const updateSettings = (patch) => onChange({ ...block, settings: { ...block.settings, ...patch } });
-  const type = block.blockType;
   const isMultiImage = ["image_grid", "image_gallery"].includes(type);
   const content = block.content || {};
   let fields = null;
@@ -382,12 +392,16 @@ export default function PortfolioBlockEditor({ block, index, expanded, onToggle,
   if (type === "divider") fields = <div className="portfolio-divider-editor-preview" aria-label="Divider preview"><span /></div>;
   if (type === "spacer") fields = <div className="portfolio-spacer-editor"><label className="editor-field"><span>Spacer height · {Math.max(0, Number(content.height) || 0)}px</span><input type="range" min="0" max="320" step="4" value={Math.max(0, Number(content.height) || 0)} onChange={(event) => updateContent({ height: Number(event.target.value) })} /></label><label className="editor-field"><span>Exact height</span><input type="number" min="0" max="480" step="4" value={Math.max(0, Number(content.height) || 0)} onChange={(event) => updateContent({ height: Math.min(480, Math.max(0, Number(event.target.value) || 0)) })} /></label></div>;
 
-  return <article ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? .55 : 1 }} className={`portfolio-editor-block ${expanded ? "is-expanded" : ""} ${block.visible === false ? "is-hidden" : ""}`}>
+  return <article
+    ref={setNodeRef}
+    style={{ transform: CSS.Translate.toString(transform), transition }}
+    className={`portfolio-editor-block ${expanded ? "is-expanded" : ""} ${block.visible === false ? "is-hidden" : ""} ${isDragging ? "is-dragging" : ""}`}
+  >
     <header className="portfolio-block-card-header">
       <button type="button" className="drag-handle" {...attributes} {...listeners} aria-label={`Drag ${BLOCK_LABELS[type]} to change its position`}><span aria-hidden="true">⠿</span></button>
       <button type="button" className="portfolio-block-card-toggle" aria-expanded={expanded} onClick={onToggle}>
         <span className="portfolio-block-order">{index + 1}</span>
-        <span className="portfolio-block-card-title"><strong>{BLOCK_LABELS[type]}</strong><small>{getPortfolioBlockSummary(block)}</small></span>
+        <span className="portfolio-block-card-title"><strong>{BLOCK_LABELS[type]}</strong><small>{summary}</small></span>
         <span className="portfolio-block-chevron" aria-hidden="true" />
       </button>
       <div className="portfolio-block-card-actions"><button type="button" className="quiet-button" onClick={() => onChange({ ...block, visible: block.visible === false })}>{block.visible === false ? "Show" : "Hide"}</button><button type="button" className="quiet-button" onClick={onDuplicate}>Duplicate</button><button type="button" className="quiet-button danger" onClick={onDelete}>Remove</button></div>

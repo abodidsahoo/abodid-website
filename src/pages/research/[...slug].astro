@@ -1,8 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PortfolioProjectRenderer from "../../components/portfolio/PortfolioProjectRenderer.jsx";
-import { researchProjects, researchProjectBySlug } from "../../data/researchPortfolio";
-import { getProjectBySlug } from "../../lib/api";
+import { getProjectBySlug, getResearchProjects } from "../../lib/api";
 import {
   breadcrumbJsonLd,
   creativeWorkJsonLd,
@@ -14,16 +13,17 @@ import "../../styles/portfolio-pop-editorial.css";
 
 export const prerender = false;
 
-const { slug } = Astro.params;
-const portfolioProject = slug ? researchProjectBySlug[slug] : undefined;
+Astro.response.headers.set("Cache-Control", "no-store");
 
-let dbProject = null;
-if (!portfolioProject && slug) {
-  dbProject = await getProjectBySlug(slug);
-  if (!dbProject || !dbProject.published || dbProject.visible === false) {
-    Astro.response.status = 404;
-    return Astro.rewrite("/404");
-  }
+const { slug } = Astro.params;
+const [dbProject, researchProjects] = await Promise.all([
+  slug ? getProjectBySlug(slug) : null,
+  getResearchProjects({ featuredOnly: true }),
+]);
+
+if (!dbProject || !dbProject.published || dbProject.visible === false) {
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
 }
 
 // Compute next research project for footer navigation
@@ -33,7 +33,7 @@ const nextResearchProject = currentIndex >= 0
       id: researchProjects[(currentIndex + 1) % researchProjects.length].slug,
       slug: researchProjects[(currentIndex + 1) % researchProjects.length].slug,
       title: researchProjects[(currentIndex + 1) % researchProjects.length].title,
-      category: researchProjects[(currentIndex + 1) % researchProjects.length].metaValue,
+      category: researchProjects[(currentIndex + 1) % researchProjects.length].role,
       href: `/research/${researchProjects[(currentIndex + 1) % researchProjects.length].slug}`,
     }
   : researchProjects.length > 0
@@ -41,67 +41,44 @@ const nextResearchProject = currentIndex >= 0
       id: researchProjects[0].slug,
       slug: researchProjects[0].slug,
       title: researchProjects[0].title,
-      category: researchProjects[0].metaValue,
+      category: researchProjects[0].role,
       href: `/research/${researchProjects[0].slug}`,
     }
   : null;
 
-const project = portfolioProject ? {
-  id: portfolioProject.slug,
-  slug: portfolioProject.slug,
-  title: portfolioProject.title,
-  oneLineDescription: portfolioProject.intro || portfolioProject.premise,
-  context: portfolioProject.deeper || portfolioProject.premise,
-  role: portfolioProject.role,
-  outcomeHeading: portfolioProject.metaValue || portfolioProject.outcomeBadge || "Research Outcome",
-  outcomeStatus: portfolioProject.outcomeBadge || (portfolioProject.metaValue && !/^\d{4}$/.test(portfolioProject.metaValue) ? portfolioProject.metaValue : null),
-  outcomeText: portfolioProject.outcome,
-  coverUrl: portfolioProject.images?.[0]?.src,
-  coverAlt: portfolioProject.images?.[0]?.alt,
-  taxonomies: (portfolioProject.themes || []).map((t: string) => ({ groupType: "theme", label: t })),
-  images: portfolioProject.images,
-  reading: portfolioProject.reading,
-  related: portfolioProject.related,
-  accent: portfolioProject.accent,
-  backHref: "/research",
-  backLabel: "← All Research",
-  isResearch: true,
-  blocks: (portfolioProject.process && portfolioProject.process.length > 0) ? [
-    {
-      id: "process-block",
-      blockType: "text_prose",
-      content: {
-        heading: "Research Process",
-        text: portfolioProject.process.map((step: string, i: number) => `${i + 1}. ${step}`).join("\n\n"),
-      }
-    }
-  ] : [],
-  searchVisible: true,
-} : dbProject ? {
+const sourceBlocks = Array.isArray(dbProject.blocks) ? dbProject.blocks : [];
+const outcomeHeadingIndex = sourceBlocks.findIndex((block: any) =>
+  block?.blockType === "heading" && /^(outcome|status)$/i.test(String(block?.content?.text || "").trim())
+);
+const outcomeBlock = outcomeHeadingIndex >= 0 ? sourceBlocks[outcomeHeadingIndex + 1] : null;
+const rawOutcome = String(outcomeBlock?.content?.text || "").trim();
+const outcomeStatus = rawOutcome.match(/^\*\*([^*]+)\*\*/)?.[1] || null;
+const outcomeText = rawOutcome.replace(/^\*\*[^*]+\*\*\s*/, "").trim();
+const displayBlocks = outcomeHeadingIndex >= 0 && outcomeBlock
+  ? sourceBlocks.filter((_: any, index: number) => index !== outcomeHeadingIndex && index !== outcomeHeadingIndex + 1)
+  : sourceBlocks;
+
+const project = {
   id: dbProject.slug || String(dbProject.id),
   slug: dbProject.slug || String(dbProject.id),
   title: dbProject.title,
   oneLineDescription: dbProject.description,
-  context: dbProject.content || dbProject.description,
+  context: dbProject.description,
   role: dbProject.role || "Lead Researcher",
   outcomeHeading: "Research Outcome",
-  outcomeText: dbProject.outcome || "Published",
-  outcome: dbProject.outcome || "Published",
+  outcomeStatus,
+  outcomeText: outcomeText || "Published research project.",
   coverUrl: dbProject.cover_image || dbProject.image,
-  coverAlt: `${dbProject.title} project cover`,
+  coverAlt: dbProject.gallery_images?.[0]?.alt || `${dbProject.title} project cover`,
   experimentUrl: dbProject.experiment_url,
+  accent: dbProject.accent || "lime",
   taxonomies: (Array.isArray(dbProject.tags) ? dbProject.tags : []).map((t: string) => ({ groupType: "theme", label: t })),
-  blocks: dbProject.blocks || [],
+  blocks: displayBlocks,
   backHref: "/research",
   backLabel: "← All Research",
   isResearch: true,
   searchVisible: true,
-} : null;
-
-if (!project) {
-  Astro.response.status = 404;
-  return Astro.rewrite("/404");
-}
+};
 
 const title = `${project.title} — Abodid Sahoo`;
 const description = project.oneLineDescription || project.context;

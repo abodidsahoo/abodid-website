@@ -208,6 +208,7 @@ function PortfolioEditorContent({ projectId }) {
   const [designSection, setDesignSection] = useState("basics");
   const [expandedBlockId, setExpandedBlockId] = useState(null);
   const [draggedBlockType, setDraggedBlockType] = useState(null);
+  const [draggedSequenceBlock, setDraggedSequenceBlock] = useState(null);
   const [mediaPickerTarget, setMediaPickerTarget] = useState(null);
   const [blockPendingRemovalId, setBlockPendingRemovalId] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -410,16 +411,32 @@ function PortfolioEditorContent({ projectId }) {
   };
 
   const onBlockDragStart = ({ active }) => {
-    if (active.data.current?.kind === "block-palette") setDraggedBlockType(active.data.current.blockType);
+    const dragData = active.data.current;
+    if (dragData?.kind === "block-palette") {
+      setDraggedSequenceBlock(null);
+      setDraggedBlockType(dragData.blockType);
+      return;
+    }
+    if (dragData?.kind === "block-sort") {
+      setDraggedBlockType(null);
+      setDraggedSequenceBlock({
+        label: dragData.label,
+        summary: dragData.summary,
+        position: dragData.position,
+      });
+    }
   };
 
-  const onBlockDragCancel = () => {
-    if (draggedBlockType) suppressTrailingPaletteClick();
+  const onBlockDragCancel = ({ active }) => {
+    if (active?.data.current?.kind === "block-palette") suppressTrailingPaletteClick();
     setDraggedBlockType(null);
+    setDraggedSequenceBlock(null);
   };
 
   const onBlockDragEnd = ({ active, over }) => {
     const dragKind = active.data.current?.kind;
+    setDraggedBlockType(null);
+    setDraggedSequenceBlock(null);
     if (dragKind === "block-palette") {
       const type = active.data.current?.blockType;
       if (type && over) {
@@ -434,11 +451,9 @@ function PortfolioEditorContent({ projectId }) {
         if (insertionIndex >= 0) insertBlockAt(type, insertionIndex);
       }
       suppressTrailingPaletteClick();
-      setDraggedBlockType(null);
       return;
     }
 
-    setDraggedBlockType(null);
     if (!over || active.id === over.id) return;
     updateDraft((current) => {
       const oldIndex = current.blocks.findIndex((item) => item.id === active.id);
@@ -680,7 +695,14 @@ function PortfolioEditorContent({ projectId }) {
             </SortableContext>
           </section>}
         </div>
-        <DragOverlay dropAnimation={null}>{draggedBlockType ? <div className="portfolio-block-drag-overlay"><span className="portfolio-block-palette-grip" aria-hidden="true" /><strong>{MEDIA_BLOCK_LABELS[draggedBlockType] || BLOCK_LABELS[draggedBlockType]}</strong><small>Drop into sequence</small><span className="portfolio-block-palette-plus" aria-hidden="true">+</span></div> : null}</DragOverlay>
+        <DragOverlay adjustScale={false} dropAnimation={null}>
+          {draggedBlockType ? <div className="portfolio-block-drag-overlay"><span className="portfolio-block-palette-grip" aria-hidden="true" /><strong>{MEDIA_BLOCK_LABELS[draggedBlockType] || BLOCK_LABELS[draggedBlockType]}</strong><small>Drop into sequence</small><span className="portfolio-block-palette-plus" aria-hidden="true">+</span></div> : draggedSequenceBlock ? <div className="portfolio-block-sort-overlay">
+            <span className="portfolio-block-sort-grip" aria-hidden="true">⠿</span>
+            <span className="portfolio-block-order" aria-hidden="true">{draggedSequenceBlock.position}</span>
+            <span className="portfolio-block-sort-copy"><strong>{draggedSequenceBlock.label}</strong><small>{draggedSequenceBlock.summary || "Move within the content sequence"}</small></span>
+            <span className="portfolio-block-sort-cue">Moving</span>
+          </div> : null}
+        </DragOverlay>
         </DndContext>
       </div>}
 

@@ -1,8 +1,14 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { researchProjects } from "../data/researchPortfolio";
+import { getResearchProjects } from "../lib/api";
 import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 import "../styles/research-portfolio.css";
+
+export const prerender = false;
+
+Astro.response.headers.set("Cache-Control", "no-store");
+
+const researchProjects = await getResearchProjects({ featuredOnly: true });
 
 const title = "Research — Abodid Sahoo";
 const description =
@@ -56,12 +62,16 @@ const structuredData = [
             >
               <a class="rp-card__shell" href={`/research/${project.slug}`}>
                 <figure class="rp-card__media">
-                  <img
-                    src={project.images[0].src}
-                    alt={project.images[0].alt}
-                    loading={index < 2 ? "eager" : "lazy"}
-                    decoding="async"
-                  />
+                  {project.image ? (
+                    <img
+                      src={project.image}
+                      alt={`${project.title} project cover`}
+                      loading={index < 2 ? "eager" : "lazy"}
+                      decoding="async"
+                    />
+                  ) : (
+                    <span class="rp-card__media-empty" aria-hidden="true">Research project</span>
+                  )}
                 </figure>
                 <div class="rp-card__copy">
                   <div class="rp-card__meta">
@@ -69,12 +79,12 @@ const structuredData = [
                     <span class="rp-card__role">{project.role}</span>
                   </div>
                   <h2>{project.title}</h2>
-                  <p class="rp-card__premise">{project.premise}</p>
+                  <p class="rp-card__premise">{project.description}</p>
                   <ul
                     class="rp-card__themes"
                     aria-label={`${project.title} themes`}
                   >
-                    {project.themes.map((theme) => (
+                    {(project.tags || []).map((theme) => (
                       <li>{theme}</li>
                     ))}
                   </ul>

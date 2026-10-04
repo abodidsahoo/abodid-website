@@ -62,17 +62,22 @@ const getCloudflarePhotographyMedia = (project: any) => {
 };
 
 // --- Research ---
-export async function getResearchProjects(): Promise<Project[]> {
+export async function getResearchProjects({ featuredOnly = false }: { featuredOnly?: boolean } = {}): Promise<Project[]> {
     if (!isSupabaseConfigured() || !supabase) {
         return [];
     }
 
-    const { data, error } = await supabase
+    let query = supabase
         .from('research')
         .select('*')
         .eq('published', true)
-        .eq('visible', true)
-        .order('sort_order', { ascending: true });
+        .eq('visible', true);
+
+    if (featuredOnly) {
+        query = query.eq('featured', true);
+    }
+
+    const { data, error } = await query.order('sort_order', { ascending: true });
 
     if (error || !data) {
         console.error("Research projects could not be loaded from Supabase:", error);

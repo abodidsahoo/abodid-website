@@ -4,15 +4,21 @@ import {
   ArchiveRestore,
   ArrowLeft,
   ArrowUpRight,
+  Check,
+  Eye,
+  EyeOff,
+  GripVertical,
   ImagePlus,
   LoaderCircle,
+  Pencil,
   Plus,
   Save,
+  Star,
   Trash2,
   X,
 } from "lucide-react";
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
-import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "../../lib/supabaseClient";
 import AdminPageHeader from "./AdminPageHeader";
@@ -110,10 +116,6 @@ const getStatus = (project) => {
   return project.published ? "published" : "draft";
 };
 
-const formatDate = (value) => value
-  ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
-  : "Never";
-
 function TagEditor({ values, onChange }) {
   const inputId = useId();
   const [draft, setDraft] = useState("");
@@ -159,35 +161,116 @@ function TagEditor({ values, onChange }) {
   );
 }
 
-function ResearchRow({ project, disabled, onEdit, onArchive }) {
+function ResearchRow({ project, position, disabled, updating, onEdit, onSetExposure }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id, disabled });
   const status = getStatus(project);
+  const isHidden = !project.visible;
+  const isDraft = status === "draft";
+  const isLive = project.published && project.visible;
 
   return (
     <article
       ref={setNodeRef}
-      className={`portfolio-admin-row research-admin-row ${status === "archived" ? "is-archived" : ""}`}
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.55 : 1 }}
+      {...attributes}
+      {...listeners}
+      className={`research-admin-card ${isHidden ? "is-hidden" : ""} ${isDraft ? "is-draft" : ""} ${isDragging ? "is-dragging" : ""}`}
+      data-accent={project.accent || "lime"}
+      style={{
+        transform: CSS.Translate.toString(transform),
+        transition: isDragging ? "none" : transition,
+        opacity: isDragging ? 0.6 : undefined,
+        zIndex: isDragging ? 50 : undefined,
+      }}
+      onClick={() => onEdit(project)}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onEdit(project);
+        }
+      }}
+      role="button"
+      aria-label={`Edit project: ${project.title || "Untitled"}`}
     >
-      <button type="button" className="drag-handle" {...attributes} {...listeners} disabled={disabled} aria-label={`Reorder ${project.title || "untitled project"}`}>⋮⋮</button>
-      <button type="button" className="admin-project-link research-project-link" onClick={() => onEdit(project)}>
-        <span className="admin-project-thumb">
-          {project.cover_image ? <img src={project.cover_image} alt="" /> : <span>No cover</span>}
-        </span>
-        <span className="admin-project-main">
-          <h2>{project.title || "Untitled project"}</h2>
-          <p>{project.description || "No proposition yet"}</p>
-        </span>
-        <span className={`project-status status-${status}`}>{status}</span>
-        <span className="admin-project-dates">
-          <span>Saved {formatDate(project.updated_at || project.created_at)}</span>
-          <span>{project.experiment_url ? "Experiment linked" : "No experiment link"}</span>
-        </span>
-        <span className="admin-project-edit-cue" aria-hidden="true">View / Edit <span>→</span></span>
-      </button>
-      {status !== "archived" && (
-        <button type="button" className="admin-project-archive" onClick={() => onArchive(project)}>Archive</button>
-      )}
+      <div className="research-card-media-wrapper">
+        <div className="research-card-media">
+          {project.cover_image ? <img src={project.cover_image} alt="" loading="lazy" draggable={false} /> : <span>No cover</span>}
+        </div>
+      </div>
+
+      <div className="research-card-copy">
+        <h2>{project.title || "Untitled project"}</h2>
+      </div>
+
+      <footer className="research-card-bottomline">
+        <div className="research-card-left-group">
+          <span className="research-card-num-circle" title={`Sequence #${position + 1}`} aria-label={`Project sequence #${position + 1}`}>
+            {position + 1}
+          </span>
+          <button
+            type="button"
+            className="research-card-edit-action-btn"
+            title={`Edit project: ${project.title || "Untitled"}`}
+            aria-label={`Edit project: ${project.title || "Untitled"}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(project);
+            }}
+          >
+            <Pencil size={11} aria-hidden="true" />
+            <span>Edit Project</span>
+          </button>
+          <div className="research-card-badges-wrapper">
+            {isDraft && <span className="research-card-badge is-draft">Draft</span>}
+            {project.visible && !project.featured && <span className="research-card-badge is-unlisted">Unlisted</span>}
+          </div>
+        </div>
+
+        <div className="research-card-bottom-controls" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+          <div className="research-card-visibility-switch" role="radiogroup" aria-label="Visibility">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={!isHidden}
+              className={`visibility-btn ${!isHidden ? "is-active" : ""}`}
+              disabled={updating}
+              title="Public: Visible on site"
+              onClick={() => onSetExposure(project, "listed")}
+            >
+              <Eye size={12} aria-hidden="true" />
+              <span>Public</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={isHidden}
+              className={`visibility-btn ${isHidden ? "is-active" : ""}`}
+              disabled={updating}
+              title="Hidden: No public access"
+              onClick={() => onSetExposure(project, "hidden")}
+            >
+              <EyeOff size={12} aria-hidden="true" />
+              <span>Hidden</span>
+            </button>
+          </div>
+
+          {isLive && (
+            <a
+              href={`/research/${project.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="research-card-public-link-btn"
+              title="Open public page ↗"
+              aria-label={`Open public live page for ${project.title}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ArrowUpRight size={14} aria-hidden="true" />
+            </a>
+          )}
+        </div>
+      </footer>
     </article>
   );
 }
@@ -202,24 +285,34 @@ export default function ResearchManager() {
   const [dirty, setDirty] = useState(false);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [updatingProjectId, setUpdatingProjectId] = useState(null);
   const [workspaceTab, setWorkspaceTab] = useState("design");
   const [designSection, setDesignSection] = useState("basics");
   const [previewDevice, setPreviewDevice] = useState("laptop");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [orderSaved, setOrderSaved] = useState(false);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const filtered = useMemo(() => projects.filter((project) => {
-    if (status !== "all" && getStatus(project) !== status) return false;
+    if (status === "index" && !(project.featured && project.published && project.visible)) return false;
+    if (status === "draft" && getStatus(project) !== "draft") return false;
+    if (status === "hidden" && project.visible) return false;
     if (!search.trim()) return true;
     const haystack = [project.title, project.description, project.slug, project.experiment_url, ...project.tags].join(" ").toLowerCase();
     return haystack.includes(search.trim().toLowerCase());
   }), [projects, search, status]);
-  const orderingDisabled = Boolean(search.trim()) || status !== "all";
+  const orderingDisabled = Boolean(search.trim());
+  const viewCounts = useMemo(() => ({
+    all: projects.length,
+    index: projects.filter((project) => project.featured && project.published && project.visible).length,
+    draft: projects.filter((project) => getStatus(project) === "draft").length,
+    hidden: projects.filter((project) => !project.visible).length,
+  }), [projects]);
 
   const updateUrl = ({ projectId, action } = {}) => {
     const url = new URL(window.location.href);
@@ -264,6 +357,12 @@ export default function ResearchManager() {
     const timeoutId = window.setTimeout(() => setNotice(""), 3200);
     return () => window.clearTimeout(timeoutId);
   }, [notice]);
+
+  useEffect(() => {
+    if (!orderSaved) return undefined;
+    const timeoutId = window.setTimeout(() => setOrderSaved(false), 2400);
+    return () => window.clearTimeout(timeoutId);
+  }, [orderSaved]);
 
   const setField = (key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -362,14 +461,39 @@ export default function ResearchManager() {
     setWorkspaceTab(nextTab);
   };
 
-  const archiveFromList = async (project) => {
-    if (!window.confirm(`Archive “${project.title}”? It will disappear from the public Research page.`)) return;
-    const { error: archiveError } = await supabase.from("research").update({ visible: false }).eq("id", project.id);
-    if (archiveError) setError(archiveError.message);
-    else {
-      setProjects((current) => current.map((item) => item.id === project.id ? { ...item, visible: false } : item));
-      setNotice("Research project archived.");
+  const setProjectExposure = async (project, exposure) => {
+    setUpdatingProjectId(project.id);
+    setError("");
+    setNotice("");
+    const payload = exposure === "listed"
+      ? { visible: true, featured: true }
+      : exposure === "unlisted"
+        ? { visible: true, featured: false }
+        : { visible: false, featured: false };
+    if (exposure === "listed" && !project.featured) {
+      const featuredOrders = projects.filter((item) => item.featured).map((item) => Number(item.sort_order) || 0);
+      payload.sort_order = featuredOrders.length ? Math.max(...featuredOrders) + 1 : 0;
     }
+    const { data, error: updateError } = await supabase
+      .from("research")
+      .update(payload)
+      .eq("id", project.id)
+      .select("*")
+      .single();
+    if (updateError) {
+      setError(updateError.message);
+    } else {
+      const updated = normalizeProject(data);
+      setProjects((current) => current
+        .map((item) => item.id === project.id ? updated : item)
+        .sort((first, second) => (first.sort_order ?? 0) - (second.sort_order ?? 0)));
+      setNotice(exposure === "listed"
+        ? "Project is public and listed on the Research page."
+        : exposure === "unlisted"
+          ? "Project is public by direct link and removed from the Research listing."
+          : "Project is hidden from all public access.");
+    }
+    setUpdatingProjectId(null);
   };
 
   const toggleArchive = () => {
@@ -398,18 +522,23 @@ export default function ResearchManager() {
 
   const handleProjectDragEnd = async ({ active, over }) => {
     if (!over || active.id === over.id || orderingDisabled) return;
-    const oldIndex = projects.findIndex((project) => project.id === active.id);
-    const newIndex = projects.findIndex((project) => project.id === over.id);
+    const oldIndex = filtered.findIndex((project) => project.id === active.id);
+    const newIndex = filtered.findIndex((project) => project.id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
-    const reordered = arrayMove(projects, oldIndex, newIndex).map((project, index) => ({ ...project, sort_order: index }));
-    setProjects(reordered);
+    const reordered = arrayMove(filtered, oldIndex, newIndex).map((project, index) => ({ ...project, sort_order: index }));
+    const orderById = new Map(reordered.map((project) => [project.id, project.sort_order]));
+    setProjects((current) => current
+      .map((project) => orderById.has(project.id) ? { ...project, sort_order: orderById.get(project.id) } : project)
+      .sort((first, second) => (first.sort_order ?? 0) - (second.sort_order ?? 0)));
     setSavingOrder(true);
     const results = await Promise.all(reordered.map((project, index) => supabase.from("research").update({ sort_order: index }).eq("id", project.id)));
     const failed = results.find((result) => result.error);
     if (failed?.error) {
       setError(`Could not save the project order: ${failed.error.message}`);
       await loadProjects();
-    } else setNotice("Research project order saved.");
+    } else {
+      setOrderSaved(true);
+    }
     setSavingOrder(false);
   };
 
@@ -577,32 +706,81 @@ export default function ResearchManager() {
           <AdminPageHeader headingId="research-projects-title" title="Research Projects" description="Build ideas people can experience." />
         </div>
         <div className="header-actions">
-          <a href="/research" target="_blank" rel="noreferrer">View public Research ↗</a>
-          <button type="button" className="primary-button" onClick={startNew}><Plus size={15} /> Add Project</button>
+          <a href="/research" target="_blank" rel="noreferrer">Public Page <ArrowUpRight size={15} aria-hidden="true" /></a>
+          <button type="button" className="primary-button" onClick={startNew}><Plus size={15} aria-hidden="true" /> Add Project</button>
         </div>
       </header>
 
-      {notice && <div className="research-list-notice is-success" role="status">{notice}</div>}
       {error && <div className="research-list-notice is-error" role="alert">{error}</div>}
 
-      <section className="portfolio-admin-toolbar">
-        <label><span className="sr-only">Search research projects</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, experiment, slug or tag" /></label>
-        <div className="status-tabs" role="group" aria-label="Research project status">
-          {["all", "draft", "published", "archived"].map((item) => <button type="button" key={item} className={status === item ? "active" : ""} onClick={() => setStatus(item)}>{item}</button>)}
-        </div>
-      </section>
-      {savingOrder && <p className="admin-hint">Saving the public Research order…</p>}
-      {orderingDisabled && !savingOrder && <p className="admin-hint">Clear search and status filters to reorder the public grid.</p>}
+      <section className="research-catalogue-layout">
+        <div className="research-catalogue-main">
+          <header className="research-results-heading">
+            <div className="research-results-lead">
+              <h2 className="research-lead-counter">
+                {filtered.length} {filtered.length === 1 ? "project" : "projects"}
+              </h2>
+              <label className="research-search-field">
+                <input
+                  type="search"
+                  aria-label="Find a project by title, slug or tag"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search by title, slug or tag…"
+                />
+              </label>
+            </div>
 
-      <section className="portfolio-admin-results" aria-live="polite">
-        {loading ? <div className="admin-loading"><LoaderCircle size={17} className="research-spin" /> Loading research projects…</div> : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleProjectDragEnd}>
-            <SortableContext items={filtered.map((project) => project.id)} strategy={verticalListSortingStrategy}>
-              <div className="portfolio-admin-rows">{filtered.map((project) => <ResearchRow key={project.id} project={project} disabled={orderingDisabled} onEdit={editProject} onArchive={archiveFromList} />)}</div>
-            </SortableContext>
-          </DndContext>
-        )}
-        {!loading && filtered.length === 0 && <div className="admin-empty">No research projects match this view.</div>}
+            <div className="research-results-actions-right">
+              <div className="research-right-meta-row">
+                {orderSaved ? (
+                  <div className="research-order-saved-inline" role="status">
+                    <Check size={13} aria-hidden="true" />
+                    <span>Order saved</span>
+                  </div>
+                ) : (
+                  <p className="research-search-helper">
+                    {savingOrder
+                      ? "Saving order…"
+                      : status === "index"
+                        ? (orderingDisabled ? "Clear search to reorder live sequence." : "Drag cards to set the public sequence.")
+                        : "Switch to Listed to reorder public sequence."}
+                  </p>
+                )}
+              </div>
+              <div className="research-view-tabs" role="group" aria-label="Research project view">
+                {[
+                  ["all", "All"],
+                  ["index", "Listed"],
+                  ["draft", "Drafts"],
+                  ["hidden", "Hidden"],
+                ].map(([value, label]) => (
+                  <button
+                    type="button"
+                    key={value}
+                    className={status === value ? "active" : ""}
+                    aria-pressed={status === value}
+                    onClick={() => setStatus(value)}
+                  >
+                    <span>{label}</span>
+                    <strong>{viewCounts[value]}</strong>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </header>
+
+          <section className="portfolio-admin-results" aria-live="polite">
+            {loading ? <div className="admin-loading"><LoaderCircle size={17} className="research-spin" /> Loading research projects…</div> : (
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleProjectDragEnd}>
+                <SortableContext items={filtered.map((project) => project.id)} strategy={rectSortingStrategy}>
+                  <div className="research-admin-grid">{filtered.map((project, index) => <ResearchRow key={project.id} project={project} position={index} disabled={orderingDisabled} updating={updatingProjectId === project.id} onEdit={editProject} onSetExposure={setProjectExposure} />)}</div>
+                </SortableContext>
+              </DndContext>
+            )}
+            {!loading && filtered.length === 0 && <div className="admin-empty">No research projects match this view.</div>}
+          </section>
+        </div>
       </section>
     </div>
   );
