@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 const GAP_PX = 10;
 const SPAN_STEPS = [1, 2, 4, 8];
-const DEFAULT_SHOWREEL_VIDEO_URL = '/videos/showreel-2025.mp4';
+const DEFAULT_SHOWREEL_VIDEO_URL = 'https://assets.abodid.com/videos/landing-page/showreel-2025.mp4';
 
 const MODE_CONFIG = {
     desktop: { cols: 8, rows: 7 },

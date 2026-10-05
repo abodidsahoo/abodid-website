@@ -4,14 +4,14 @@ const samples = [
     kind: "video",
     supabase:
       "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/films/videos/Showreel%202025%20compressed.mp4",
-    cloudflare: "https://assets.abodid.com/videos/showreel-2025-compressed.mp4",
+    cloudflare: "https://assets.abodid.com/videos/landing-page/showreel-2025.mp4",
   },
   {
     label: "Obsidian Timelapse",
     kind: "video",
     supabase:
       "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4",
-    cloudflare: "https://assets.abodid.com/videos/obsidian-timelapse.mp4",
+    cloudflare: "https://assets.abodid.com/videos/landing-page/obsidian-timelapse.mp4",
   },
   {
     label: "Siri article thumbnail",

@@ -45,13 +45,13 @@ const files = [
   {
     bucket: "films",
     path: "videos/Showreel 2025 compressed.mp4",
-    key: "videos/showreel-2025-compressed.mp4",
+    key: "videos/landing-page/showreel-2025.mp4",
     contentType: "video/mp4",
   },
   {
     bucket: "misc",
     path: "video-clips/Obsidian_Timelapse.mp4",
-    key: "videos/obsidian-timelapse.mp4",
+    key: "videos/landing-page/obsidian-timelapse.mp4",
     contentType: "video/mp4",
   },
   {

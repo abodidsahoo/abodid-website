@@ -135,9 +135,9 @@ const fallbackLabExperiments: Omit<LabExperiment, "index">[] = [
     href: "/lab/sequence-room",
     destinationLabel: "Open experiment",
     thumbnail:
-      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/sequence-room-comp.mp4",
+      "https://assets.abodid.com/videos/landing-page/sequence-room.mp4",
     video:
-      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/sequence-room-comp.mp4",
+      "https://assets.abodid.com/videos/landing-page/sequence-room.mp4",
     thumbnailAlt: "Interactive Sequence Room photo workspace preview",
     surface: "cream",
     cardVariant: "media",
@@ -172,9 +172,9 @@ const fallbackLabExperiments: Omit<LabExperiment, "index">[] = [
     href: "/lab/audio-visualiser",
     destinationLabel: "Launch instrument",
     thumbnail:
-      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/audio-spectrum-compressed.mp4",
+      "https://assets.abodid.com/videos/landing-page/audio-spectrum.mp4",
     video:
-      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/audio-spectrum-compressed.mp4",
+      "https://assets.abodid.com/videos/landing-page/audio-spectrum.mp4",
     thumbnailAlt:
       "Audio Visualiser showing a glowing magnetic waveform responding to sound beside live tuning controls",
     surface: "blue",

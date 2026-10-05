@@ -116,7 +116,7 @@ const editorProfiles = [
         type: "Showreel",
         accent: "wedding",
         mediaType: "local",
-        mediaUrl: "/videos/showreel-2025.mp4",
+        mediaUrl: "https://assets.abodid.com/videos/landing-page/showreel-2025.mp4",
       },
       {
         title: "Odisha Horizon",
@@ -249,7 +249,7 @@ const editorProfiles = [
         type: "Highlight Reel",
         accent: "fashion",
         mediaType: "local",
-        mediaUrl: "/videos/showreel-2025.mp4",
+        mediaUrl: "https://assets.abodid.com/videos/landing-page/showreel-2025.mp4",
       },
     ],
   },

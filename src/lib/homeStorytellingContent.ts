@@ -38,8 +38,8 @@ export const storytellingProjects: StorytellingProject[] = [
     role: "Concept · Interaction Design · Full-stack Development",
     outcome: "Live interactive app",
     href: "/work/sequence-room",
-    video: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/sequence-room-comp.mp4",
-    image: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/sequence-room-comp.mp4",
+    video: "https://assets.abodid.com/videos/landing-page/sequence-room.mp4",
+    image: "https://assets.abodid.com/videos/landing-page/sequence-room.mp4",
     alt: "Animated preview of the Sequence Room visual storytelling canvas",
   },
   {
@@ -65,7 +65,7 @@ export const storytellingProjects: StorytellingProject[] = [
     role: "Information Architecture · Interface",
     outcome: "A living research ecosystem",
     href: "/obsidian-vault",
-    video: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4",
+    video: "https://assets.abodid.com/videos/landing-page/obsidian-timelapse.mp4",
     alt: "Timelapse video preview of the connected Obsidian knowledge vault",
   },
   {

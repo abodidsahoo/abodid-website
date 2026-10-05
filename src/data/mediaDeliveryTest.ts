@@ -25,7 +25,7 @@ export const mediaDeliveryTestItems: MediaDeliveryTestItem[] = [
       "films",
       "videos/Showreel 2025 compressed.mp4",
     ),
-    cloudflare: `${R2_STORAGE_BASE}/videos/showreel-2025-compressed.mp4`,
+    cloudflare: `${R2_STORAGE_BASE}/videos/landing-page/showreel-2025.mp4`,
   },
   {
     label: "Obsidian Timelapse",
@@ -35,7 +35,7 @@ export const mediaDeliveryTestItems: MediaDeliveryTestItem[] = [
       "misc",
       "video-clips/Obsidian_Timelapse.mp4",
     ),
-    cloudflare: `${R2_STORAGE_BASE}/videos/obsidian-timelapse.mp4`,
+    cloudflare: `${R2_STORAGE_BASE}/videos/landing-page/obsidian-timelapse.mp4`,
   },
   {
     label: "Siri article thumbnail",
