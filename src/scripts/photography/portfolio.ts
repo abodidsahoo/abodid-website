@@ -786,10 +786,9 @@ form.addEventListener('submit', async event => {
   submit.textContent = 'Sending…';
   text('#inquiry-note', 'Sending your inquiry…');
   try {
-    const response = await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const protection = (window as any).__abodidContactProtection;
+    if (!protection) throw new Error('Human verification is unavailable. Please email hello@abodid.com.');
+    const response = await protection.submit(form, {
         name: data.get('name'),
         email: data.get('email'),
         message: `${data.get('type')}\nLocation / dates: ${data.get('location')}\n\n${data.get('brief')}`,
@@ -798,7 +797,6 @@ form.addEventListener('submit', async event => {
           sourceName: 'Photography portfolio',
           cta: String(data.get('type')),
         },
-      }),
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Your inquiry could not be sent.');

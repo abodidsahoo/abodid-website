@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import ContactProtection from "../../components/ContactProtection.astro";
 import LabExperimentCards from "../../components/lab/LabExperimentCards.astro";
 
 export const prerender = false;
@@ -127,6 +128,7 @@ Astro.response.headers.set(
                 ></textarea>
               </div>
 
+              <ContactProtection />
               <div class="media-lab__form-footer">
                 <button type="submit" class="media-lab__submit-btn">
                   <span>Send message</span>
@@ -207,11 +209,11 @@ Astro.response.headers.set(
           tracking: getJourneyTracking(),
         };
 
-        const response = await fetch("/api/contact", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+        const protection = (window as any).__abodidContactProtection;
+        if (!protection) {
+          throw new Error("Human verification is unavailable. Please email hello@abodid.com.");
+        }
+        const response = await protection.submit(form, payload);
 
         const result = await response.json().catch(() => ({}));
         if (!response.ok) {

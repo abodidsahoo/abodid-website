@@ -1,4 +1,6 @@
 ---
+import ContactProtection from "./ContactProtection.astro";
+
 const {
   id = "enquiry",
   heading = "Tell me what you have in mind.",
@@ -131,6 +133,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
       ></textarea>
     </label>
 
+    <ContactProtection />
     <div class="inline-enquiry__submit-row">
       <button class="t-label" type="submit">{submitLabel}</button>
       <p class="t-label" role="status" aria-live="polite" data-inline-enquiry-status></p>
@@ -285,11 +288,10 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
               payload.tracking = getTracking();
             }
 
-            const response = await fetch("/api/contact", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
+            if (!window.__abodidContactProtection) {
+              throw new Error("Human verification is unavailable. Please email hello@abodid.com.");
+            }
+            const response = await window.__abodidContactProtection.submit(form, payload);
             const result = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(result.error || "I could not send this message yet.");
 

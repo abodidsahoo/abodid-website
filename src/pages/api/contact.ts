@@ -10,15 +10,16 @@ import {
     summarizeVisit,
 } from '../../lib/contact-notification.js';
 import { isHighConfidenceContactSpam, looksLikeSuspiciousEmail } from '../../lib/contact-spam.js';
+import { consumeContactRateLimit, verifyContactTurnstile } from '../../lib/contact-protection.js';
 import { createSupabaseServiceClient } from '../../lib/supabaseServer';
 
 export const prerender = false;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+const json = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) => new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...extraHeaders },
 });
 
 const escapeHtml = (value: string) => value
@@ -53,6 +54,8 @@ async function parsePayload(request: Request) {
         enquiryPath: cleanContactString(tracking.enquiryPath || tracking.lastSourcePage || tracking.currentPath, 240),
         sourceName: cleanContactString(tracking.sourceName || tracking.lastSourceName, 120),
         cta: cleanContactString(tracking.cta || tracking.lastCta, 120),
+        website: cleanContactString(body.website, 240),
+        turnstileToken: cleanContactString(body.turnstileToken || body['cf-turnstile-response'], 2048),
     };
 }
 
@@ -161,10 +164,19 @@ async function ensureAnalyticsSession(
     );
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, url }) => {
     let submissionId = '';
     try {
+        const origin = request.headers.get('origin');
+        if (origin && origin !== url.origin) {
+            return json({ error: 'Cross-site submissions are not allowed.' }, 403);
+        }
+
         const payload = await parsePayload(request);
+        if (payload.website) {
+            // Honeypot matches receive a neutral response and no side effects.
+            return json({ success: true });
+        }
         if (!payload.name) return json({ error: 'Please provide your name.' }, 400);
         if (!EMAIL_REGEX.test(payload.email)) return json({ error: 'Please provide a valid email address.' }, 400);
         if (!payload.message || payload.message.length > 5000) return json({ error: 'Please provide a message (1–5000 characters).' }, 400);
@@ -182,6 +194,24 @@ export const POST: APIRoute = async ({ request }) => {
         const resendKey = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
         const supabase = createSupabaseServiceClient();
         if (!resendKey || !supabase) return json({ error: 'The contact service is temporarily unavailable.' }, 503);
+
+        const rateLimit = await consumeContactRateLimit({ supabase, request });
+        if (!rateLimit.allowed) {
+            return json(
+                { error: 'Too many messages were submitted from this connection. Please try again shortly.' },
+                429,
+                { 'Retry-After': String(rateLimit.retryAfter) },
+            );
+        }
+
+        const verification = await verifyContactTurnstile({
+            request,
+            token: payload.turnstileToken,
+        });
+        if (!verification.success) {
+            console.warn(`[contact] Human verification failed: ${verification.reason || 'unknown'}`);
+            return json({ error: 'Human verification failed. Please refresh and try again.' }, 422);
+        }
 
         await ensureAnalyticsSession(supabase, payload.sessionId, payload.enquiryPath, payload.sourceName);
 

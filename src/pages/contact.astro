@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ContactProtection from "../components/ContactProtection.astro";
 import {
     breadcrumbJsonLd,
     externalProfiles,
@@ -100,6 +101,7 @@ const structuredData = [
                         placeholder="Tell me what you want to build, learn, document, edit, or organize."
                     ></textarea>
 
+                    <ContactProtection />
                     <button type="submit" class="send-button">Send</button>
                     <p
                         id="contact-form-status"
@@ -263,13 +265,10 @@ const structuredData = [
                         await window.__abodidAnalytics.prepareSubmission();
                         payload.tracking = getJourneyTracking();
                     }
-                    const response = await fetch("/api/contact", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(payload),
-                    });
+                    if (!window.__abodidContactProtection) {
+                        throw new Error("Human verification is unavailable. Please email hello@abodid.com.");
+                    }
+                    const response = await window.__abodidContactProtection.submit(contactForm, payload);
 
                     const result = await response
                         .json()

@@ -1,3 +1,7 @@
+---
+import ContactProtection from "../ContactProtection.astro";
+---
+
 <dialog class="obsidian-payment-dialog" data-obsidian-payment-dialog aria-labelledby="obsidian-payment-title">
   <div class="obsidian-payment-dialog__surface">
     <button class="obsidian-payment-dialog__close" type="button" data-obsidian-payment-close aria-label="Close booking window">×</button>
@@ -18,6 +22,7 @@
         <input type="email" name="email" placeholder="you@example.com" required />
       </label>
 
+      <ContactProtection />
       <button type="submit" class="obsidian-booking-submit-btn" data-booking-submit-btn>
         Submit Booking Request →
       </button>
@@ -105,15 +110,14 @@
               await window.__abodidAnalytics.prepareSubmission();
             }
 
-            const response = await fetch("/api/contact", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
+            if (!window.__abodidContactProtection) {
+              throw new Error("Human verification is unavailable. Please email hello@abodid.com.");
+            }
+            const response = await window.__abodidContactProtection.submit(form, {
                 name: name,
                 email: email,
                 message: "1:1 Obsidian tutoring booking request (£60/hour)",
                 tracking: getTracking(),
-              }),
             });
 
             const result = await response.json().catch(() => ({}));

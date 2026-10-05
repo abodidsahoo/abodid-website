@@ -1,0 +1,191 @@
+---
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "";
+const isLocalPreview = import.meta.env.DEV;
+---
+
+<div
+  class="contact-protection"
+  data-contact-protection
+  data-site-key={siteKey}
+  data-local-preview={isLocalPreview ? "true" : "false"}
+>
+  <label class="contact-protection__website" aria-hidden="true">
+    <span>Leave this field empty</span>
+    <input name="website" type="text" tabindex="-1" autocomplete="off" />
+  </label>
+  <div data-contact-turnstile></div>
+  {!siteKey && !isLocalPreview && (
+    <p class="contact-protection__error" role="status">
+      Human verification is temporarily unavailable. Please email hello@abodid.com.
+    </p>
+  )}
+</div>
+
+<script is:inline>
+  (() => {
+    const SCRIPT_SELECTOR = 'script[data-contact-turnstile-script]';
+    const SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+
+    const emit = (container, name, detail) => {
+      container.dispatchEvent(new CustomEvent(name, { detail }));
+    };
+
+    const renderWidgets = () => {
+      document.querySelectorAll('[data-contact-protection]').forEach((container) => {
+        if (!(container instanceof HTMLElement) || container.dataset.widgetId) return;
+
+        const sitekey = container.dataset.siteKey || '';
+        const localPreview = container.dataset.localPreview === 'true';
+        if (localPreview) {
+          container.dataset.token = 'local-preview';
+          return;
+        }
+        if (!sitekey || !window.turnstile) return;
+
+        const target = container.querySelector('[data-contact-turnstile]');
+        if (!(target instanceof HTMLElement)) return;
+
+        const widgetId = window.turnstile.render(target, {
+          sitekey,
+          action: 'contact',
+          appearance: 'interaction-only',
+          theme: 'auto',
+          size: 'flexible',
+          callback: (token) => {
+            container.dataset.token = token;
+            emit(container, 'contact-protection:token', token);
+          },
+          'expired-callback': () => {
+            delete container.dataset.token;
+          },
+          'error-callback': () => {
+            delete container.dataset.token;
+            emit(container, 'contact-protection:error');
+          },
+        });
+        container.dataset.widgetId = String(widgetId);
+      });
+    };
+
+    const loadTurnstile = () => {
+      renderWidgets();
+      const needsRemoteWidget = Array.from(document.querySelectorAll('[data-contact-protection]'))
+        .some((container) => container instanceof HTMLElement
+          && container.dataset.localPreview !== 'true'
+          && Boolean(container.dataset.siteKey));
+      if (!needsRemoteWidget) return;
+      if (window.turnstile) {
+        return;
+      }
+      let script = document.querySelector(SCRIPT_SELECTOR);
+      if (!script) {
+        script = document.createElement('script');
+        script.src = SCRIPT_URL;
+        script.async = true;
+        script.defer = true;
+        script.dataset.contactTurnstileScript = 'true';
+        document.head.appendChild(script);
+      }
+      script.addEventListener('load', renderWidgets, { once: true });
+    };
+
+    const waitForToken = (form) => {
+      const container = form.querySelector('[data-contact-protection]');
+      if (!(container instanceof HTMLElement)) {
+        return Promise.reject(new Error('Human verification is unavailable. Please email hello@abodid.com.'));
+      }
+      if (container.dataset.token) return Promise.resolve(container.dataset.token);
+      if (!container.dataset.siteKey && container.dataset.localPreview !== 'true') {
+        return Promise.reject(new Error('Human verification is unavailable. Please email hello@abodid.com.'));
+      }
+
+      return new Promise((resolve, reject) => {
+        const timeout = window.setTimeout(() => {
+          cleanup();
+          reject(new Error('Verification is taking too long. Please try again.'));
+        }, 12000);
+        const onToken = (event) => {
+          cleanup();
+          resolve(event.detail);
+        };
+        const onError = () => {
+          cleanup();
+          reject(new Error('Human verification failed. Please try again.'));
+        };
+        const cleanup = () => {
+          window.clearTimeout(timeout);
+          container.removeEventListener('contact-protection:token', onToken);
+          container.removeEventListener('contact-protection:error', onError);
+        };
+        container.addEventListener('contact-protection:token', onToken, { once: true });
+        container.addEventListener('contact-protection:error', onError, { once: true });
+        loadTurnstile();
+      });
+    };
+
+    const reset = (form) => {
+      const container = form.querySelector('[data-contact-protection]');
+      if (!(container instanceof HTMLElement) || container.dataset.localPreview === 'true') return;
+      delete container.dataset.token;
+      if (window.turnstile && container.dataset.widgetId) {
+        window.turnstile.reset(container.dataset.widgetId);
+      }
+    };
+
+    if (window.__abodidContactProtection) {
+      loadTurnstile();
+      return;
+    }
+
+    window.__abodidContactProtection = {
+      async submit(form, payload) {
+        const website = form.elements.namedItem('website');
+        const token = await waitForToken(form);
+        try {
+          return await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...payload,
+              website: website instanceof HTMLInputElement ? website.value : '',
+              turnstileToken: token,
+            }),
+          });
+        } finally {
+          reset(form);
+        }
+      },
+      reset,
+    };
+
+    loadTurnstile();
+    document.addEventListener('astro:page-load', loadTurnstile);
+  })();
+</script>
+
+<style>
+  .contact-protection {
+    position: relative;
+    width: 100%;
+    min-height: 1px;
+  }
+
+  .contact-protection__website {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+  }
+
+  [data-contact-turnstile] {
+    max-width: 100%;
+  }
+
+  .contact-protection__error {
+    margin: 0;
+    font: inherit;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+</style>
