@@ -77,7 +77,7 @@ html:has(.portfolio-editor-shell), body:has(.portfolio-editor-shell) { width: 10
 .portfolio-workspace-heading { display: flex; width: 100%; align-items: flex-end; justify-content: space-between; gap: 1.5rem; margin: 0; padding: 1.15rem max(var(--editor-gutter), calc((100% - 1280px) / 2)); border-bottom: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-color) 96%, var(--bg-surface)); }
 .portfolio-workspace-heading h1 { max-width: 22ch; margin: .25rem 0 0; overflow: hidden; font-size: clamp(1.8rem, 3vw, 2.4rem); line-height: 1; text-overflow: ellipsis; white-space: nowrap; transform: translateY(0.12em); }
 .portfolio-workspace-heading p { margin: 0; color: var(--text-tertiary); font-size: .72rem; }
-.portfolio-editor-scroll-region { min-width: 0; min-height: 0; height: 100%; overflow: hidden auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; padding: 1.5rem max(var(--editor-gutter), calc((100% - 1280px) / 2)) 2.5rem; }
+.portfolio-editor-scroll-region { min-width: 0; min-height: 0; height: 100%; overflow: hidden auto; overscroll-behavior-y: auto; scrollbar-gutter: stable; padding: 1.5rem max(var(--editor-gutter), calc((100% - 1280px) / 2)) 2.5rem; }
 .portfolio-editor-scroll-region.is-design-basics-mode { overflow: hidden; padding-top: 1.5rem; padding-bottom: 0; scrollbar-gutter: auto; }
 .portfolio-editor-scroll-region.is-design-basics-mode .editor-spine-card { margin-bottom: 0; padding-block: 1.25rem; }
 .portfolio-editor-scroll-region.is-design-elements-mode { overflow: hidden; padding-bottom: 1.5rem; }
@@ -176,7 +176,7 @@ html:has(.portfolio-editor-shell), body:has(.portfolio-editor-shell) { width: 10
 .portfolio-content-sequence > header { padding-bottom: .8rem; border-bottom: 1px solid var(--border-subtle); }
 .portfolio-sequence-count { flex: 0 0 auto; border: 1px solid var(--border-subtle); border-radius: 999px; color: var(--text-tertiary); padding: .32rem .55rem; font-size: .65rem; font-variant-numeric: tabular-nums; }
 .editor-block-list { display: grid; gap: 0; margin-top: 1.15rem; }
-.portfolio-design-workspace.is-elements-mode .editor-block-list { min-height: 0; overflow: hidden auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; padding-right: .35rem; }
+.portfolio-design-workspace.is-elements-mode .editor-block-list { min-height: 0; overflow: hidden auto; overscroll-behavior-y: auto; scrollbar-gutter: stable; padding-right: .35rem; }
 .portfolio-block-drop-zone { position: relative; display: grid; min-height: .7rem; place-items: center; border-radius: 7px; transition: min-height .16s ease, border-color .16s ease, background-color .16s ease; }
 .portfolio-block-drop-zone::before { position: absolute; inset: 50% .75rem auto; height: 2px; border-radius: 999px; background: var(--work-accent, #a30021); content: ""; opacity: 0; transform: translateY(-50%); transition: height .14s ease, opacity .14s ease, box-shadow .14s ease; }
 .portfolio-block-drop-zone > span { position: relative; z-index: 1; padding: .18rem .48rem; border-radius: 999px; background: var(--work-accent, #a30021); color: #fff; font-size: .62rem; font-weight: 750; letter-spacing: .04em; opacity: 0; pointer-events: none; text-transform: uppercase; transition: opacity .14s ease; }
@@ -212,11 +212,32 @@ html:has(.portfolio-editor-shell), body:has(.portfolio-editor-shell) { width: 10
 .portfolio-block-card-toggle { display: flex; min-width: 0; align-items: center; gap: .65rem; border: 0; background: transparent; color: var(--text-primary); padding: .15rem; font: inherit; text-align: left; cursor: pointer; }
 .portfolio-block-order { display: grid; width: 1.75rem; height: 1.75rem; flex: 0 0 auto; place-items: center; border-radius: 6px; background: color-mix(in srgb, var(--work-accent, #a30021) 12%, transparent); color: var(--work-accent, #a30021); font-size: .68rem; font-weight: 750; }
 .portfolio-block-card-title { display: grid; min-width: 0; gap: .08rem; }
+.portfolio-block-thumb-side { display: inline-flex; align-items: center; gap: .35rem; margin-left: auto; margin-right: .5rem; flex-shrink: 0; }
+.portfolio-block-thumb-frame { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 32px; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-color); overflow: hidden; box-shadow: 0 1px 4px rgba(0, 0, 0, .2); flex-shrink: 0; transition: transform .14s ease, border-color .14s ease; }
+.portfolio-block-card-toggle:hover .portfolio-block-thumb-frame { border-color: color-mix(in srgb, var(--work-accent, #a30021) 60%, var(--border-subtle)); transform: scale(1.04); }
+.portfolio-block-thumb-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.portfolio-block-thumb-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 .35rem; border-radius: 999px; background: color-mix(in srgb, var(--work-accent, #a30021) 12%, var(--bg-surface)); border: 1px solid var(--border-subtle); color: var(--text-primary); font-size: .66rem; font-weight: 750; font-family: var(--font-mono, monospace); flex-shrink: 0; }
 .portfolio-block-card-title strong, .portfolio-block-card-title small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .portfolio-block-card-title strong { font-size: .76rem; }
 .portfolio-block-card-title small { color: var(--text-tertiary); font-size: .62rem; }
-.portfolio-block-chevron { width: .52rem; height: .52rem; flex: 0 0 auto; margin-left: auto; margin-right: .25rem; border-right: 2px solid var(--text-tertiary); border-bottom: 2px solid var(--text-tertiary); transform: translateY(-18%) rotate(45deg); transition: transform .14s ease; }
-.portfolio-editor-block.is-expanded .portfolio-block-chevron { transform: translateY(18%) rotate(225deg); }
+.portfolio-block-toggle-indicator { display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; background: transparent; border: none; color: var(--text-tertiary); margin-left: auto; margin-right: .2rem; flex-shrink: 0; transition: transform 220ms cubic-bezier(.2, .8, .2, 1), color 160ms ease; transform-origin: center center; }
+.portfolio-block-toggle-indicator svg { display: block; transition: transform 220ms cubic-bezier(.2, .8, .2, 1); transform-origin: center center; }
+.portfolio-block-card-toggle:hover .portfolio-block-toggle-indicator { color: var(--text-primary); }
+.portfolio-editor-block.is-expanded .portfolio-block-toggle-indicator { color: var(--text-primary); transform: rotate(180deg); }
+.portfolio-block-chevron { display: none; }
+
+/* Heading Block Segmented Level Selector */
+.heading-block-editor { display: flex; flex-direction: column; gap: .85rem; }
+.heading-level-selector-row { display: flex; flex-direction: column; gap: .35rem; }
+.heading-level-label { color: var(--text-tertiary); font-size: .66rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+.heading-level-segmented { display: inline-flex; gap: .45rem; max-width: 380px; }
+.heading-level-pill { flex: 1; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 38px; padding: .45rem .85rem; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; transition: all .16s ease; font: inherit; }
+.heading-level-pill strong { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 20px; border-radius: 4px; background: var(--bg-color); color: var(--text-primary); font-size: .74rem; font-weight: 800; font-family: var(--font-mono, monospace); }
+.heading-level-pill span { font-size: .76rem; font-weight: 600; }
+.heading-level-pill:hover { border-color: var(--border-hover, var(--text-tertiary)); color: var(--text-primary); }
+.heading-level-pill.is-active { border-color: var(--work-accent, #a30021); background: var(--work-accent, #a30021); color: #fff; box-shadow: 0 2px 8px color-mix(in srgb, var(--work-accent, #a30021) 35%, transparent); }
+.heading-level-pill.is-active strong { background: rgba(255, 255, 255, .24); color: #fff; }
+.heading-level-pill.is-active span { color: #fff; }
 .portfolio-block-card-actions { display: flex; gap: .22rem; }
 .portfolio-block-card-actions .quiet-button { min-height: 1.75rem; border-radius: 5px; background: var(--bg-surface); padding: .34rem .5rem; text-decoration: none; font-size: .64rem; }
 .portfolio-block-card-actions .quiet-button:hover, .portfolio-block-card-actions .quiet-button:focus-visible { background: var(--bg-surface-hover); color: var(--text-primary); outline: none; }

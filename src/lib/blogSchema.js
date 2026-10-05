@@ -40,7 +40,7 @@ export function getBlogBlockSummary(block) {
         case 'body_text': return (c.text || '').slice(0, 60) || 'No text yet';
         case 'heading': return c.text || 'No heading yet';
         case 'quotation': return (c.quote || '').slice(0, 60) || 'No quote yet';
-        case 'single_image': return c.media?.url ? 'Image set' : 'No image yet';
+        case 'single_image': return c.media?.caption || c.media?.alt || (c.media?.url ? '1 image attached' : 'No image yet');
         case 'video_embed': return c.url || 'No URL yet';
         case 'two_columns': return 'Two-column layout';
         case 'highlight': return (c.text || '').slice(0, 60) || 'No callout text';

@@ -1255,6 +1255,83 @@ main {
 }
 
 /* ==========================================================================
+   BUTTON, BADGE & PILL CONTRAST GUARANTEES
+   ========================================================================== */
+/* Light surface controls (Yellow, Lime, Cream, Pink, Cyan, Orange, White)
+   must ALWAYS have dark ink text (#15130f) for the button and all child elements,
+   even when nested inside deep blue or purple containers */
+:is(
+  [data-pop-surface="yellow"],
+  [data-pop-surface="lime"],
+  [data-pop-surface="cream"],
+  [data-pop-surface="pink"],
+  [data-pop-surface="orange"],
+  [data-pop-surface="cyan"],
+  [data-pop-surface="white"],
+  .btn-yellow,
+  .badge-yellow,
+  .pill-yellow,
+  .btn-lime,
+  .badge-lime,
+  .pill-lime,
+  .rp-button,
+  .rp-case__experiment-btn,
+  .rp-case__next-button,
+  .rp-case__caption-badge
+):is(a, button, span, div, .btn, .badge, .pill) {
+  color: var(--pop-ink, #15130f) !important;
+}
+
+:is(
+  [data-pop-surface="yellow"],
+  [data-pop-surface="lime"],
+  [data-pop-surface="cream"],
+  [data-pop-surface="pink"],
+  [data-pop-surface="orange"],
+  [data-pop-surface="cyan"],
+  [data-pop-surface="white"],
+  .btn-yellow,
+  .badge-yellow,
+  .pill-yellow,
+  .btn-lime,
+  .badge-lime,
+  .pill-lime,
+  .rp-button,
+  .rp-case__experiment-btn,
+  .rp-case__next-button,
+  .rp-case__caption-badge
+) :is(span, strong, b, a, svg, p, small, code, em) {
+  color: var(--pop-ink, #15130f) !important;
+}
+
+/* Deep surface controls (Blue, Purple) */
+:is(
+  [data-pop-surface="blue"],
+  [data-pop-surface="purple"],
+  .btn-blue,
+  .badge-blue,
+  .pill-blue,
+  .btn-purple,
+  .badge-purple,
+  .pill-purple
+):is(a, button, span, div, .btn, .badge, .pill) {
+  color: var(--pop-cream, #fff8e8) !important;
+}
+
+:is(
+  [data-pop-surface="blue"],
+  [data-pop-surface="purple"],
+  .btn-blue,
+  .badge-blue,
+  .pill-blue,
+  .btn-purple,
+  .badge-purple,
+  .pill-purple
+) :is(span, strong, b, a, svg, p, small, code, em) {
+  color: var(--pop-cream, #fff8e8) !important;
+}
+
+/* ==========================================================================
    PWA & iOS MOBILE STANDALONE SUPPORT
    ========================================================================== */
 :root {

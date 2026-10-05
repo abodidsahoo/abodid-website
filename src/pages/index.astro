@@ -339,32 +339,33 @@ const structuredData = [
                         )}
                       </span>
                     </footer>
-                    {hasMore && (
+                    <div class="story-quote__actions">
+                      {hasMore ? (
+                        <button
+                          type="button"
+                          class="story-quote__toggle"
+                          data-testimonial-toggle
+                          aria-expanded="false"
+                        >
+                          <span data-toggle-label>Full testimonial</span>
+                          <b aria-hidden="true">→</b>
+                        </button>
+                      ) : (
+                        <span class="story-quote__action-spacer" aria-hidden="true" />
+                      )}
                       <button
                         type="button"
-                        class="story-quote__toggle"
-                        data-testimonial-toggle
-                        aria-expanded="false"
+                        class="story-quote__next"
+                        data-testimonial-next
+                        aria-label="Read next testimonial"
                       >
-                        <span data-toggle-label>Full testimonial</span>
+                        <span>Read Next</span>
                         <b aria-hidden="true">→</b>
                       </button>
-                    )}
+                    </div>
                     </blockquote>
                   );
                 })}
-              </div>
-              <div class="story-quote-dots" aria-label="Choose a testimonial">
-                {featuredTestimonials.map((testimonial, index) => (
-                  <button
-                    type="button"
-                    aria-label={`Show testimonial ${index + 1} from ${testimonial.name}`}
-                    aria-current={index === 0 ? "true" : "false"}
-                    data-testimonial-dot={index}
-                  >
-                    <span aria-hidden="true"></span>
-                  </button>
-                ))}
               </div>
             </div>
           )
@@ -718,60 +719,22 @@ const structuredData = [
             const cards = Array.from(
               carousel.querySelectorAll("[data-testimonial-card]"),
             );
-            const dots = Array.from(
-              carousel.querySelectorAll("[data-testimonial-dot]"),
-            );
-            const dotNav = carousel.querySelector(".story-quote-dots");
-            if (
-              !(track instanceof HTMLElement) ||
-              !(dotNav instanceof HTMLElement) ||
-              cards.length === 0
-            )
+            if (!(track instanceof HTMLElement) || cards.length === 0)
               return;
 
             carousel.dataset.carouselReady = "true";
-            let frame = 0;
 
-            const positionDots = (activeIndex) => {
-              const card = cards[activeIndex];
-              if (!(card instanceof HTMLElement)) return;
-              const carouselRect = carousel.getBoundingClientRect();
-              const cardRect = card.getBoundingClientRect();
-              const inset = Number.parseFloat(
-                getComputedStyle(card).paddingRight,
-              );
-              const narrowLift = window.matchMedia("(max-width: 350px)")
-                .matches
-                ? 57
-                : 0;
-              dotNav.style.top = `${
-                cardRect.bottom -
-                carouselRect.top -
-                inset -
-                dotNav.offsetHeight -
-                narrowLift
-              }px`;
-              dotNav.style.bottom = "auto";
-            };
+            const nextButtons = Array.from(
+              carousel.querySelectorAll("[data-testimonial-next]"),
+            );
 
-            const setActiveDot = (activeIndex) => {
-              dots.forEach((dot, index) => {
-                if (!(dot instanceof HTMLButtonElement)) return;
-                dot.setAttribute(
-                  "aria-current",
-                  index === activeIndex ? "true" : "false",
-                );
-              });
-              positionDots(activeIndex);
-            };
-
-            const updateActiveDot = () => {
-              frame = 0;
+            const getActiveIndex = () => {
               const trackLeft = track.getBoundingClientRect().left;
               let activeIndex = 0;
               let closestDistance = Number.POSITIVE_INFINITY;
 
               cards.forEach((card, index) => {
+                if (!(card instanceof HTMLElement)) return;
                 const distance = Math.abs(
                   card.getBoundingClientRect().left - trackLeft,
                 );
@@ -780,46 +743,48 @@ const structuredData = [
                   activeIndex = index;
                 }
               });
-              setActiveDot(activeIndex);
+              return activeIndex;
             };
 
-            dots.forEach((dot, index) => {
-              if (!(dot instanceof HTMLButtonElement)) return;
-              dot.addEventListener("click", () => {
-                const card = cards[index];
-                if (!(card instanceof HTMLElement)) return;
-                const left =
-                  card.getBoundingClientRect().left -
-                  track.getBoundingClientRect().left +
-                  track.scrollLeft;
-                track.scrollTo({
-                  left,
-                  behavior: window.matchMedia(
-                    "(prefers-reduced-motion: reduce)",
-                  ).matches
-                    ? "auto"
-                    : "smooth",
-                });
-                setActiveDot(index);
+            const scrollToCard = (targetIndex) => {
+              const targetCard = cards[targetIndex];
+              if (!(targetCard instanceof HTMLElement)) return;
+
+              // Collapse any currently expanded card so next card is viewed cleanly
+              cards.forEach((card) => {
+                if (card !== targetCard && card.classList.contains("is-expanded")) {
+                  card.classList.remove("is-expanded");
+                  const toggleBtn = card.querySelector("[data-testimonial-toggle]");
+                  const fullQuote = card.querySelector(".story-quote__full");
+                  const label = card.querySelector("[data-toggle-label]");
+                  if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
+                  if (fullQuote) fullQuote.setAttribute("aria-hidden", "true");
+                  if (label) label.textContent = "Full testimonial";
+                }
+              });
+
+              const left =
+                targetCard.getBoundingClientRect().left -
+                track.getBoundingClientRect().left +
+                track.scrollLeft;
+              track.scrollTo({
+                left,
+                behavior: window.matchMedia(
+                  "(prefers-reduced-motion: reduce)",
+                ).matches
+                  ? "auto"
+                  : "smooth",
+              });
+            };
+
+            nextButtons.forEach((btn) => {
+              if (!(btn instanceof HTMLButtonElement)) return;
+              btn.addEventListener("click", () => {
+                const currentIndex = getActiveIndex();
+                const nextIndex = (currentIndex + 1) % cards.length;
+                scrollToCard(nextIndex);
               });
             });
-
-            track.addEventListener(
-              "scroll",
-              () => {
-                if (frame) cancelAnimationFrame(frame);
-                frame = requestAnimationFrame(updateActiveDot);
-              },
-              { passive: true },
-            );
-            window.addEventListener("resize", updateActiveDot, {
-              passive: true,
-            });
-            carousel.addEventListener(
-              "testimonial:layout",
-              updateActiveDot,
-            );
-            requestAnimationFrame(updateActiveDot);
           });
 
         document
@@ -1781,56 +1746,15 @@ const structuredData = [
   .story-quotes::-webkit-scrollbar {
     display: none;
   }
-  .story-quote-dots {
-    min-height: 44px;
-    position: absolute;
-    right: var(--story-quote-inset);
-    bottom: calc(var(--story-quote-inset) + 5px);
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.1rem;
-  }
-  .story-quote-dots button {
-    width: 28px;
-    height: 44px;
-    padding: 0;
-    display: grid;
-    place-items: center;
-    border: 0;
-    background: transparent;
-    color: var(--pop-ink);
-    cursor: pointer;
-  }
-  .story-quote-dots button span {
-    width: 7px;
-    height: 7px;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-    background: transparent;
-    transition:
-      width var(--home-next-motion),
-      background-color var(--home-next-motion);
-  }
-  .story-quote-dots button[aria-current="true"] span {
-    width: 18px;
-    border-radius: 999px;
-    background: currentColor;
-  }
-  .story-quote-dots button:focus-visible {
-    outline: 2px solid var(--pop-ink);
-    outline-offset: -7px;
-    border-radius: 999px;
-  }
   .story-quote {
-    height: auto;
-    min-height: 0;
+    height: 100%;
+    min-height: clamp(340px, 30vw, 390px);
     flex: 0 0 clamp(300px, 31vw, 420px);
     margin: 0;
     padding: var(--story-quote-inset);
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     overflow: hidden;
     scroll-snap-align: start;
     border: var(--home-next-border);
@@ -1849,7 +1773,10 @@ const structuredData = [
     min-height: 0;
     margin-bottom: 1rem;
     position: relative;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
   }
   .story-quote__short,
   .story-quote__full {
@@ -1956,7 +1883,7 @@ const structuredData = [
     transform: translateY(0);
   }
   .story-quote.is-expanded {
-    min-height: clamp(360px, 32vw, 430px);
+    min-height: clamp(380px, 34vw, 450px);
   }
   .story-quote.is-expanded .story-quote__content {
     flex: 1 1 auto;
@@ -2000,56 +1927,84 @@ const structuredData = [
     opacity: 0.68;
     white-space: nowrap;
   }
-  .story-quote__toggle {
-    width: fit-content;
-    min-height: 44px;
-    margin: 0.8rem 0 0;
-    padding: 0 0.75rem 0 0.9rem;
+  .story-quote__actions {
+    min-width: 0;
+    margin-top: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
-    align-self: flex-start;
+    gap: 0.65rem;
+    flex: 0 0 auto;
+    width: 100%;
+  }
+  .story-quote__action-spacer {
+    display: block;
+    flex: 1 1 auto;
+  }
+  .story-quote__toggle,
+  .story-quote__next {
+    width: fit-content;
+    min-height: 42px;
+    padding: 0 0.85rem 0 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
     flex: 0 0 auto;
     border: 1px solid currentColor;
     border-radius: var(--home-next-radius-control);
     background: rgba(255, 248, 232, 0.28);
+    color: inherit;
     cursor: pointer;
     font: 750 0.64rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     transition:
       background-color var(--home-next-motion),
-      transform var(--home-next-motion);
+      transform var(--home-next-motion),
+      box-shadow var(--home-next-motion);
+    white-space: nowrap;
+    text-decoration: none;
   }
-  .story-quote__toggle [data-toggle-label] {
+  .story-quote__next {
+    margin-left: auto;
+  }
+  .story-quote__toggle [data-toggle-label],
+  .story-quote__next span {
     min-width: 0;
     display: flex;
     align-items: center;
     line-height: 1.15;
     text-align: left;
   }
-  .story-quote__toggle b {
-    width: 1.25rem;
-    height: 1.25rem;
+  .story-quote__toggle b,
+  .story-quote__next b {
+    width: 1.15rem;
+    height: 1.15rem;
     display: grid;
     place-items: center;
-    flex: 0 0 1.25rem;
-    font-size: 0.9rem;
+    flex: 0 0 1.15rem;
+    font-size: 0.88rem;
     line-height: 1;
     transition: transform var(--home-next-motion);
   }
-  .story-quote__toggle:hover {
-    background: rgba(255, 248, 232, 0.48);
+  .story-quote__toggle:hover,
+  .story-quote__next:hover {
+    background: rgba(255, 248, 232, 0.52);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(21, 19, 15, 0.08);
   }
-  .story-quote__toggle:hover b {
+  .story-quote__toggle:hover b,
+  .story-quote__next:hover b {
     transform: translateX(3px);
   }
   .story-quote__toggle[aria-expanded="true"] b {
     transform: rotate(-90deg);
   }
-  .story-quote__toggle:focus-visible {
-    outline: 0;
+  .story-quote__toggle:focus-visible,
+  .story-quote__next:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
     background: rgba(255, 248, 232, 0.7);
   }
 
@@ -2072,8 +2027,8 @@ const structuredData = [
       padding: 0 0 5px;
     }
     .story-quote {
-      height: auto;
-      min-height: 0;
+      height: 100%;
+      min-height: clamp(340px, 25vw, 385px);
       flex-basis: 100%;
     }
     .story-brands {
@@ -2627,11 +2582,7 @@ const structuredData = [
     }
   }
 
-  @media (max-width: 350px) {
-    .story-quote-dots {
-      bottom: calc(var(--story-quote-inset) + 57px);
-    }
-  }
+
 
   @media (prefers-reduced-motion: reduce) {
     .story-home * {

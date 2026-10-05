@@ -344,9 +344,51 @@ export function PortfolioBlockInsertToolbar({ id, onAddBlock, types = INSERTABLE
   </section>;
 }
 
+function extractBlockImages(block) {
+  if (!block) return [];
+  const content = block.content || {};
+  const images = [];
+
+  if (content.media) {
+    if (Array.isArray(content.media)) {
+      content.media.forEach((m) => {
+        if (typeof m === "string" && m.trim()) images.push({ url: m.trim() });
+        else if (m?.url) images.push(m);
+      });
+    } else if (typeof content.media === "string" && content.media.trim()) {
+      images.push({ url: content.media.trim() });
+    } else if (content.media?.url) {
+      images.push(content.media);
+    }
+  }
+
+  if (content.url && typeof content.url === "string" && !images.length) {
+    const isImg = /\.(jpeg|jpg|gif|png|webp|avif|svg)(\?.*)?$/i.test(content.url) || content.url.includes("/images/") || content.url.includes("/covers/");
+    if (isImg && block.blockType !== "video_embed") {
+      images.push({ url: content.url, caption: content.caption, alt: content.alt });
+    }
+  }
+
+  if (Array.isArray(content.columns)) {
+    content.columns.forEach((col) => {
+      if (Array.isArray(col?.items)) {
+        col.items.forEach((item) => {
+          if (item?.type === "image" && item.url) {
+            images.push({ url: item.url, alt: item.alt, caption: item.caption });
+          }
+        });
+      }
+    });
+  }
+
+  return images;
+}
+
 export default function PortfolioBlockEditor({ block, index, expanded, onToggle, onChange, onDuplicate, onDelete, onUpload, onChooseMedia, onRemoveMedia, uploading }) {
   const type = block.blockType;
   const summary = getPortfolioBlockSummary(block);
+  const images = extractBlockImages(block);
+  const hasImages = images.length > 0;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.id,
     data: {
@@ -363,7 +405,40 @@ export default function PortfolioBlockEditor({ block, index, expanded, onToggle,
   const content = block.content || {};
   let fields = null;
   if (type === "body_text") fields = <Text label="Text" value={content.text} rows={7} placeholder="Use **bold**, *italic* and [link text](https://…)" onChange={(text) => updateContent({ text })} />;
-  if (type === "heading") fields = <><Text label="Heading" value={content.text} onChange={(text) => updateContent({ text })} /><label className="editor-field"><span>Level</span><select value={content.level || 2} onChange={(event) => updateContent({ level: Number(event.target.value) })}><option value="2">H2</option><option value="3">H3</option></select></label></>;
+  if (type === "heading") {
+    const level = Number(content.level) || 2;
+    fields = (
+      <div className="heading-block-editor">
+        <div className="heading-level-selector-row">
+          <span className="heading-level-label">Heading level</span>
+          <div className="heading-level-segmented" role="group" aria-label="Heading level">
+            <button
+              type="button"
+              className={`heading-level-pill ${level === 2 ? "is-active" : ""}`}
+              onClick={() => updateContent({ level: 2 })}
+            >
+              <strong>H2</strong>
+              <span>Main section</span>
+            </button>
+            <button
+              type="button"
+              className={`heading-level-pill ${level === 3 ? "is-active" : ""}`}
+              onClick={() => updateContent({ level: 3 })}
+            >
+              <strong>H3</strong>
+              <span>Subsection</span>
+            </button>
+          </div>
+        </div>
+        <Text
+          label="Heading"
+          value={content.text}
+          placeholder={level === 2 ? "e.g. Methodology & Framework" : "e.g. Key Observations"}
+          onChange={(text) => updateContent({ text })}
+        />
+      </div>
+    );
+  }
   if (type === "two_columns") fields = <TwoColumnsFields columns={content.columns} onChange={(columns) => updateContent({ columns })} />;
   if (type === "quotation") fields = <><Text label="Quote" value={content.quote} rows={4} onChange={(quote) => updateContent({ quote })} /><Text label="Attribution" value={content.attribution} onChange={(attribution) => updateContent({ attribution })} /></>;
   if (type === "highlight") fields = <Text label="Highlight" value={content.text} rows={3} onChange={(text) => updateContent({ text })} />;
@@ -401,8 +476,29 @@ export default function PortfolioBlockEditor({ block, index, expanded, onToggle,
       <button type="button" className="drag-handle" {...attributes} {...listeners} aria-label={`Drag ${BLOCK_LABELS[type]} to change its position`}><span aria-hidden="true">⠿</span></button>
       <button type="button" className="portfolio-block-card-toggle" aria-expanded={expanded} onClick={onToggle}>
         <span className="portfolio-block-order">{index + 1}</span>
-        <span className="portfolio-block-card-title"><strong>{BLOCK_LABELS[type]}</strong><small>{summary}</small></span>
-        <span className="portfolio-block-chevron" aria-hidden="true" />
+        <span className="portfolio-block-card-title">
+          <strong>{BLOCK_LABELS[type]}</strong>
+          <small>{summary}</small>
+        </span>
+        {hasImages && (
+          <div className="portfolio-block-thumb-side" aria-label={`${images.length} image${images.length === 1 ? "" : "s"}`}>
+            {images.slice(0, 3).map((img, i) => (
+              <span key={i} className="portfolio-block-thumb-frame">
+                <img src={img.url || img} alt={img.alt || ""} loading="lazy" />
+              </span>
+            ))}
+            {images.length > 3 && (
+              <span className="portfolio-block-thumb-badge" title={`${images.length} images total`}>
+                +{images.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+        <span className="portfolio-block-toggle-indicator" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </span>
       </button>
       <div className="portfolio-block-card-actions"><button type="button" className="quiet-button" onClick={() => onChange({ ...block, visible: block.visible === false })}>{block.visible === false ? "Show" : "Hide"}</button><button type="button" className="quiet-button" onClick={onDuplicate}>Duplicate</button><button type="button" className="quiet-button danger" onClick={onDelete}>Remove</button></div>
     </header>

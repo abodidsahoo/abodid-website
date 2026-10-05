@@ -4,7 +4,7 @@ import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } 
 import { CSS } from "@dnd-kit/utilities";
 import { BLOG_BLOCK_LABELS, BLOG_BLOCK_DESCRIPTIONS, getBlogBlockSummary, createBlogBlock } from "../../../lib/blogSchema";
 
-const CONTENT_BLOCK_TYPES = ["body_text", "heading", "divider", "quotation"];
+const CONTENT_BLOCK_TYPES = ["body_text", "heading", "single_image", "video_embed", "quotation", "divider"];
 const CONTENT_MORE_BLOCK_TYPES = ["two_columns", "highlight"];
 const MEDIA_BLOCK_TYPES = ["single_image", "video_embed"];
 
@@ -107,10 +107,40 @@ function BlogBlockFields({ block, onChange, onUpload, onChooseMedia, uploading }
     const type = block.blockType;
 
     if (type === "body_text") return <Field label="Text (Markdown supported)" value={c.text} rows={8} placeholder="Use **bold**, *italic*, and [link](https://…)" onChange={text => updateContent({ text })} />;
-    if (type === "heading") return <>
-        <Field label="Heading text" value={c.text} onChange={text => updateContent({ text })} />
-        <label className="editor-field"><span>Level</span><select value={c.level || 2} onChange={e => updateContent({ level: Number(e.target.value) })}><option value={2}>H2</option><option value={3}>H3</option></select></label>
-    </>;
+    if (type === "heading") {
+        const level = Number(c.level) || 2;
+        return (
+            <div className="heading-block-editor">
+                <div className="heading-level-selector-row">
+                    <span className="heading-level-label">Heading level</span>
+                    <div className="heading-level-segmented" role="group" aria-label="Heading level">
+                        <button
+                            type="button"
+                            className={`heading-level-pill ${level === 2 ? "is-active" : ""}`}
+                            onClick={() => updateContent({ level: 2 })}
+                        >
+                            <strong>H2</strong>
+                            <span>Main section</span>
+                        </button>
+                        <button
+                            type="button"
+                            className={`heading-level-pill ${level === 3 ? "is-active" : ""}`}
+                            onClick={() => updateContent({ level: 3 })}
+                        >
+                            <strong>H3</strong>
+                            <span>Subsection</span>
+                        </button>
+                    </div>
+                </div>
+                <Field
+                    label="Heading text"
+                    value={c.text}
+                    placeholder={level === 2 ? "e.g. Methodology & Findings" : "e.g. Key Observations"}
+                    onChange={text => updateContent({ text })}
+                />
+            </div>
+        );
+    }
     if (type === "quotation") return <>
         <Field label="Quote" value={c.quote} rows={4} onChange={quote => updateContent({ quote })} />
         <Field label="Attribution (optional)" value={c.attribution} placeholder="— Author, Source" onChange={attribution => updateContent({ attribution })} />
@@ -131,9 +161,58 @@ function BlogBlockFields({ block, onChange, onUpload, onChooseMedia, uploading }
     return null;
 }
 
+function extractBlockImages(block) {
+    if (!block) return [];
+    const content = block.content || {};
+    const images = [];
+
+    if (content.media) {
+        if (Array.isArray(content.media)) {
+            content.media.forEach((m) => {
+                if (typeof m === "string" && m.trim()) images.push({ url: m.trim() });
+                else if (m?.url) images.push(m);
+            });
+        } else if (typeof content.media === "string" && content.media.trim()) {
+            images.push({ url: content.media.trim() });
+        } else if (content.media?.url) {
+            images.push(content.media);
+        }
+    }
+
+    if (content.url && typeof content.url === "string" && !images.length) {
+        const isImg = /\.(jpeg|jpg|gif|png|webp|avif|svg)(\?.*)?$/i.test(content.url) || content.url.includes("/images/") || content.url.includes("/covers/");
+        if (isImg && block.blockType !== "video_embed") {
+            images.push({ url: content.url, caption: content.caption, alt: content.alt });
+        }
+    }
+
+    if (Array.isArray(content.images)) {
+        content.images.forEach((img) => {
+            if (typeof img === "string" && img.trim()) images.push({ url: img.trim() });
+            else if (img?.url) images.push(img);
+        });
+    }
+
+    if (Array.isArray(content.columns)) {
+        content.columns.forEach((col) => {
+            if (Array.isArray(col?.items)) {
+                col.items.forEach((item) => {
+                    if (item?.type === "image" && item.url) {
+                        images.push({ url: item.url, alt: item.alt, caption: item.caption });
+                    }
+                });
+            }
+        });
+    }
+
+    return images;
+}
+
 export function BlogBlockCard({ block, index, expanded, onToggle, onChange, onDuplicate, onDelete, onUpload, onChooseMedia, uploading }) {
     const type = block.blockType;
     const summary = getBlogBlockSummary(block);
+    const images = extractBlockImages(block);
+    const hasImages = images.length > 0;
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: block.id,
         data: {
@@ -160,7 +239,25 @@ export function BlogBlockCard({ block, index, expanded, onToggle, onChange, onDu
                         <strong>{BLOG_BLOCK_LABELS[type]}</strong>
                         <small>{summary}</small>
                     </span>
-                    <span className="portfolio-block-chevron" aria-hidden="true" />
+                    {hasImages && (
+                        <div className="portfolio-block-thumb-side" aria-label={`${images.length} image${images.length === 1 ? "" : "s"}`}>
+                            {images.slice(0, 3).map((img, i) => (
+                                <span key={i} className="portfolio-block-thumb-frame">
+                                    <img src={img.url || img} alt={img.alt || ""} loading="lazy" />
+                                </span>
+                            ))}
+                            {images.length > 3 && (
+                                <span className="portfolio-block-thumb-badge" title={`${images.length} images total`}>
+                                    +{images.length - 3}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                    <span className="portfolio-block-toggle-indicator" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </span>
                 </button>
                 <div className="portfolio-block-card-actions">
                     <button type="button" className="quiet-button" onClick={onDuplicate}>Duplicate</button>
@@ -173,21 +270,43 @@ export function BlogBlockCard({ block, index, expanded, onToggle, onChange, onDu
                         <BlogBlockFields block={block} onChange={onChange} onUpload={onUpload} onChooseMedia={onChooseMedia} uploading={uploading} />
                     </div>
                     {type !== "divider" && type !== "single_image" && (
-                        <footer>
-                            <label>Width
-                                <select value={block.settings?.width || "standard"} onChange={e => onChange({ ...block, settings: { ...block.settings, width: e.target.value } })}>
-                                    <option value="narrow">Narrow</option>
-                                    <option value="standard">Standard</option>
-                                    <option value="wide">Wide</option>
-                                </select>
-                            </label>
-                            <label>Spacing
-                                <select value={block.settings?.spacing || "default"} onChange={e => onChange({ ...block, settings: { ...block.settings, spacing: e.target.value } })}>
-                                    <option value="compact">Compact</option>
-                                    <option value="default">Default</option>
-                                    <option value="spacious">Spacious</option>
-                                </select>
-                            </label>
+                        <footer className="portfolio-block-footer">
+                            <div className="portfolio-block-setting">
+                                <span className="portfolio-block-setting-label">Width</span>
+                                <div className="portfolio-select-wrapper">
+                                    <select
+                                        value={block.settings?.width || "standard"}
+                                        onChange={e => onChange({ ...block, settings: { ...block.settings, width: e.target.value } })}
+                                    >
+                                        <option value="narrow">Narrow layout</option>
+                                        <option value="standard">Standard layout</option>
+                                        <option value="wide">Wide layout</option>
+                                    </select>
+                                    <span className="portfolio-select-arrow" aria-hidden="true">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="portfolio-block-setting">
+                                <span className="portfolio-block-setting-label">Spacing</span>
+                                <div className="portfolio-select-wrapper">
+                                    <select
+                                        value={block.settings?.spacing || "default"}
+                                        onChange={e => onChange({ ...block, settings: { ...block.settings, spacing: e.target.value } })}
+                                    >
+                                        <option value="compact">Compact margins</option>
+                                        <option value="default">Default spacing</option>
+                                        <option value="spacious">Spacious padding</option>
+                                    </select>
+                                    <span className="portfolio-select-arrow" aria-hidden="true">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
                         </footer>
                     )}
                 </div>

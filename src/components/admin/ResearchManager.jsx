@@ -49,7 +49,7 @@ const EMPTY_PROJECT = {
   updated_at: null,
 };
 
-const DESIGN_SECTIONS = ["basics", "content", "media"];
+const DESIGN_SECTIONS = ["basics", "content"];
 
 const slugify = (value) => String(value || "")
   .normalize("NFKD")
@@ -292,6 +292,8 @@ export default function ResearchManager() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [orderSaved, setOrderSaved] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
@@ -391,8 +393,16 @@ export default function ResearchManager() {
     updateUrl({ action: "new" });
   };
 
-  const closeEditor = () => {
-    if (dirty && !window.confirm("Discard the unsaved changes to this research project?")) return;
+  const handleBackClick = () => {
+    if (dirty) {
+      setShowDiscardModal(true);
+    } else {
+      forceCloseEditor();
+    }
+  };
+
+  const forceCloseEditor = () => {
+    setShowDiscardModal(false);
     setForm(null);
     setDirty(false);
     setError("");
@@ -504,8 +514,9 @@ export default function ResearchManager() {
     });
   };
 
-  const deleteProject = async () => {
-    if (!form.id || !window.confirm(`Permanently delete “${form.title}”? This cannot be undone.`)) return;
+  const confirmDeleteProject = async () => {
+    if (!form?.id) return;
+    setShowDeleteModal(false);
     setSaving(true);
     const { error: deleteError } = await supabase.from("research").delete().eq("id", form.id);
     if (deleteError) {
@@ -564,137 +575,241 @@ export default function ResearchManager() {
 
   if (form) {
     return (
-      <div className="portfolio-editor-shell research-portfolio-editor" aria-labelledby="research-editor-title">
-        <header className="portfolio-editor-topbar">
-          <div className="topbar-main-actions">
-            <button type="button" className="admin-back-button" onClick={closeEditor}><ArrowLeft size={15} aria-hidden="true" /> Back to research</button>
-            <span className={`save-state ${dirty ? "unsaved-changes" : ""}`}>{saving ? "Saving…" : dirty ? "Unsaved changes" : form.published && form.visible ? "Published · Live" : "Draft saved"}</span>
-            <div className="topbar-publish-combo">
-              <button type="button" className="save-draft-button" onClick={() => saveProject()} disabled={saving}><Save size={14} /> Save draft</button>
-              <button type="button" className="publish-button" onClick={() => saveProject({ publish: true, visible: true, message: "Research project published." })} disabled={saving}>{form.published && form.visible ? "Update live →" : "Publish →"}</button>
+      <div className="portfolio-admin-page research-admin-page is-embedded is-editor-mode" aria-labelledby="research-editor-title">
+        {/* Pop Editorial Header Card */}
+        <header className="portfolio-admin-list-header research-editor-header">
+          <div className="research-editor-header-nav">
+            <button type="button" className="admin-back-button" onClick={handleBackClick}>
+              <ArrowLeft size={15} aria-hidden="true" /> Back to all research
+            </button>
+            <div className="research-editor-save-indicator" data-dirty={dirty}>
+              <span className="status-dot" aria-hidden="true" />
+              <span>{saving ? "Saving…" : dirty ? "Unsaved changes" : form.published && form.visible ? "Published · Live" : "Draft saved"}</span>
+            </div>
+            <div className="header-actions">
+              {form.slug && (
+                <a href={`/research/${form.slug}`} target="_blank" rel="noreferrer" className="header-action-preview">
+                  Public Page <ArrowUpRight size={14} aria-hidden="true" />
+                </a>
+              )}
+              <button type="button" className="save-draft-button" onClick={() => saveProject()} disabled={saving}>
+                <Save size={14} /> Save draft
+              </button>
+              <button type="button" className="primary-button" onClick={() => saveProject({ publish: true, visible: true, message: "Research project published." })} disabled={saving}>
+                {form.published && form.visible ? "Update live →" : "Publish →"}
+              </button>
             </div>
           </div>
-        </header>
 
-        <main className="portfolio-editor-canvas">
-          <section className="portfolio-workspace-heading">
-            <div>
-              <span className="editor-eyebrow">Research Studio · {form.published && form.visible ? "Published" : form.visible ? "Draft" : "Archived"}</span>
-              <h1 id="research-editor-title">{form.title || "Untitled research project"}</h1>
+          <div className="research-editor-header-body">
+            <div className="portfolio-admin-header-copy">
+              <span className="research-editor-kicker">
+                Research Studio · {form.published && form.visible ? "Published" : form.visible ? "Draft" : "Archived"}
+              </span>
+              <h1 id="research-editor-title" className="admin-page-header__title">
+                {form.title || "Untitled research project"}
+              </h1>
+              {form.description && (
+                <p className="admin-page-header__description">{form.description}</p>
+              )}
             </div>
+
             <div className="portfolio-workspace-tabs" role="tablist" aria-label="Research workspace" data-active={workspaceTab}>
               <button type="button" role="tab" aria-selected={workspaceTab === "design"} onClick={() => openWorkspaceTab("design")}>Design</button>
               <button type="button" role="tab" aria-selected={workspaceTab === "preview"} onClick={() => openWorkspaceTab("preview")}>Preview</button>
               <button type="button" role="tab" aria-selected={workspaceTab === "publish"} onClick={() => openWorkspaceTab("publish")}>Publish</button>
               <span aria-hidden="true" />
             </div>
-          </section>
+          </div>
+        </header>
 
-          <div className={`portfolio-editor-scroll-region ${workspaceTab === "design" && designSection === "basics" ? "is-design-basics-mode" : ""} ${workspaceTab === "design" && designSection !== "basics" ? "is-design-elements-mode" : ""}`}>
-            {notice && <div className="research-notice is-success research-workspace-notice" role="status">{notice}</div>}
-            {error && <div className="research-notice is-error research-workspace-notice" role="alert">{error}</div>}
-            {workspaceTab === "design" && (
-              <div className={`portfolio-design-workspace ${designSection !== "basics" ? "is-elements-mode" : ""}`}>
-                <aside className="portfolio-design-sidebar">
-                  <div className="portfolio-design-section-tabs" role="tablist" aria-orientation="vertical" aria-label="Research design sections">
-                    {DESIGN_SECTIONS.map((section) => (
-                      <button type="button" role="tab" aria-selected={designSection === section} key={section} onClick={() => setDesignSection(section)}>{section}</button>
-                    ))}
-                  </div>
-                </aside>
+        {notice && <div className="research-list-notice is-success" role="status">{notice}</div>}
+        {error && <div className="research-list-notice is-error" role="alert">{error}</div>}
 
-                <div className="portfolio-design-main">
-                  {designSection === "basics" && (
-                    <section className="editor-spine-card" role="tabpanel">
-                      <span className="editor-eyebrow">Research spine</span>
-                      <div className="editor-spine-grid">
-                        <div className="editor-spine-fields">
-                          <label className="editor-field"><span>Project title <b>*</b></span><input value={form.title} placeholder="Untitled research project" onChange={(event) => setField("title", event.target.value)} style={{ fontSize: "1.1rem", fontWeight: 600 }} /></label>
-                          <label className="editor-field"><span>Short proposition</span><textarea rows={4} value={form.description} placeholder="What is the question, and why should someone care?" onChange={(event) => setField("description", event.target.value)} /></label>
-                          <div className="field-row">
-                            <label className="editor-field"><span>Your role</span><input value={form.role} placeholder="Researcher / Artist" onChange={(event) => setField("role", event.target.value)} /></label>
-                            <label className="editor-field"><span>Card colour</span><select value={form.accent} onChange={(event) => setField("accent", event.target.value)}><option value="lime">Lime</option><option value="pink">Pink</option><option value="yellow">Yellow</option><option value="cyan">Cyan</option><option value="orange">Orange</option><option value="purple">Purple</option></select></label>
-                          </div>
-                          <label className="editor-field"><span>Experiment URL</span><input type="text" inputMode="url" value={form.experiment_url} placeholder="https://… or /research/your-experiment" onChange={(event) => setField("experiment_url", event.target.value)} /></label>
-                          <TagEditor values={form.tags} onChange={(tags) => setField("tags", tags)} />
-                          <label className="editor-field"><span>Research index</span><span className="research-checkbox"><input type="checkbox" checked={form.featured} onChange={(event) => setField("featured", event.target.checked)} /> Feature this project</span></label>
-                        </div>
-
-                        <aside className="editor-spine-media" aria-label="Research cover">
-                          <header><div><span className="editor-eyebrow">Cover media</span><h2>Featured cover</h2></div></header>
-                          <div className="research-cover-preview">{form.cover_image ? <img src={form.cover_image} alt="Project cover preview" /> : <span><ImagePlus size={25} /> 16:10 cover preview</span>}</div>
-                          <label className="editor-field"><span>Cover image URL</span><input type="url" value={form.cover_image} placeholder="https://…" onChange={(event) => setField("cover_image", event.target.value)} /></label>
-                          <ImageUploader bucket="research" path="covers" buttonOnly className="research-upload-button" label={<><ImagePlus size={15} /> {form.cover_image ? "Replace cover" : "Upload cover"}</>} onUpload={(files) => setField("cover_image", files[0]?.url || "")} />
-                          {form.cover_image && <button type="button" className="quiet-button danger" onClick={() => setField("cover_image", "")}>Remove cover</button>}
-                        </aside>
-                      </div>
-                    </section>
-                  )}
-
-                  {designSection !== "basics" && (
-                    <BlogStudioBlockEditor blocks={form.blocks} onBlocksChange={(blocks) => setField("blocks", blocks)} onUpload={uploadBlockImage} uploading={uploadingBlock} designSection={designSection} />
-                  )}
+        <section className="research-editor-workspace-card">
+          {workspaceTab === "design" && (
+            <div className={`portfolio-design-workspace ${designSection !== "basics" ? "is-elements-mode" : ""}`}>
+              <aside className="portfolio-design-sidebar">
+                <div className="portfolio-design-section-tabs" role="tablist" aria-orientation="vertical" aria-label="Research design sections">
+                  {DESIGN_SECTIONS.map((section) => (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={designSection === section}
+                      key={section}
+                      onClick={() => setDesignSection(section)}
+                    >
+                      {section === "basics" ? "Basics" : "Content Blocks"}
+                    </button>
+                  ))}
                 </div>
-              </div>
-            )}
+              </aside>
 
-            {workspaceTab === "preview" && (
-              <section className="portfolio-inline-preview is-active">
-                <header className="portfolio-preview-toolbar">
-                  <div><span className="editor-eyebrow">Preview</span><h3>Research project live preview</h3></div>
-                  <div className="portfolio-preview-display-controls">
-                    {form.slug && <a href={`/research/${form.slug}`} target="_blank" rel="noreferrer" className="preview-fullscreen-button">Full screen <ArrowUpRight size={13} /></a>}
-                    <div className="preview-mode-switch">
-                      {['laptop', 'tablet', 'phone'].map((device) => <button type="button" key={device} className={`preview-mode-pill ${previewDevice === device ? "active" : ""}`} onClick={() => setPreviewDevice(device)}>{device}</button>)}
+              <div className="portfolio-design-main">
+                {designSection === "basics" && (
+                  <div className="editor-spine-card" role="tabpanel">
+                    <span className="editor-eyebrow">Project Basics</span>
+                    <div className="editor-spine-grid">
+                      <div className="editor-spine-fields">
+                        <label className="editor-field"><span>Project title <b>*</b></span><input value={form.title} placeholder="Untitled research project" onChange={(event) => setField("title", event.target.value)} style={{ fontSize: "1.1rem", fontWeight: 600 }} /></label>
+                        <label className="editor-field"><span>Short proposition</span><textarea rows={4} value={form.description} placeholder="What is the question, and why should someone care?" onChange={(event) => setField("description", event.target.value)} /></label>
+                        <div className="field-row">
+                          <label className="editor-field"><span>Your role</span><input value={form.role} placeholder="Researcher / Artist" onChange={(event) => setField("role", event.target.value)} /></label>
+                          <label className="editor-field"><span>Card colour</span><select value={form.accent} onChange={(event) => setField("accent", event.target.value)}><option value="lime">Lime</option><option value="pink">Pink</option><option value="yellow">Yellow</option><option value="cyan">Cyan</option><option value="orange">Orange</option><option value="purple">Purple</option></select></label>
+                        </div>
+                        <label className="editor-field"><span>Experiment URL</span><input type="text" inputMode="url" value={form.experiment_url} placeholder="https://… or /research/your-experiment" onChange={(event) => setField("experiment_url", event.target.value)} /></label>
+                        <TagEditor values={form.tags} onChange={(tags) => setField("tags", tags)} />
+                        <label className="editor-field"><span>Research index</span><span className="research-checkbox"><input type="checkbox" checked={form.featured} onChange={(event) => setField("featured", event.target.checked)} /> Feature this project</span></label>
+                      </div>
+
+                      <aside className="editor-spine-media" aria-label="Research cover">
+                        <header><div><span className="editor-eyebrow">Cover media</span><h2>Featured cover</h2></div></header>
+                        <div className="research-cover-preview">{form.cover_image ? <img src={form.cover_image} alt="Project cover preview" /> : <span><ImagePlus size={25} /> 16:10 cover preview</span>}</div>
+                        <label className="editor-field"><span>Cover image URL</span><input type="url" value={form.cover_image} placeholder="https://…" onChange={(event) => setField("cover_image", event.target.value)} /></label>
+                        <ImageUploader bucket="research" path="covers" buttonOnly className="research-upload-button" label={<><ImagePlus size={15} /> {form.cover_image ? "Replace cover" : "Upload cover"}</>} onUpload={(files) => setField("cover_image", files[0]?.url || "")} />
+                        {form.cover_image && <button type="button" className="quiet-button danger" onClick={() => setField("cover_image", "")}>Remove cover</button>}
+                      </aside>
                     </div>
                   </div>
-                </header>
-                <div className={`portfolio-inline-preview-device is-${previewDevice}`}>
-                  {form.slug ? <iframe src={`/research/${form.slug}`} title={`${form.title} preview`} /> : <div className="research-preview-empty">Add a title and slug to enable preview.</div>}
+                )}
+
+                {designSection !== "basics" && (
+                  <BlogStudioBlockEditor blocks={form.blocks} onBlocksChange={(blocks) => setField("blocks", blocks)} onUpload={uploadBlockImage} uploading={uploadingBlock} designSection={designSection} />
+                )}
+              </div>
+            </div>
+          )}
+
+          {workspaceTab === "preview" && (
+            <section className="portfolio-inline-preview is-active">
+              <header className="portfolio-preview-toolbar">
+                <div><span className="editor-eyebrow">Preview</span><h3>Research project live preview</h3></div>
+                <div className="portfolio-preview-display-controls">
+                  {form.slug && <a href={`/research/${form.slug}`} target="_blank" rel="noreferrer" className="preview-fullscreen-button">Full screen <ArrowUpRight size={13} /></a>}
+                  <div className="preview-mode-switch">
+                    {['laptop', 'tablet', 'phone'].map((device) => <button type="button" key={device} className={`preview-mode-pill ${previewDevice === device ? "active" : ""}`} onClick={() => setPreviewDevice(device)}>{device}</button>)}
+                  </div>
+                </div>
+              </header>
+              <div className={`portfolio-inline-preview-device is-${previewDevice}`}>
+                {form.slug ? <iframe src={`/research/${form.slug}`} title={`${form.title} preview`} /> : <div className="research-preview-empty">Add a title and slug to enable preview.</div>}
+              </div>
+            </section>
+          )}
+
+          {workspaceTab === "publish" && (
+            <section className="portfolio-publish-workspace">
+              <span className="editor-eyebrow">Publish</span>
+              <h2>Choose how this research project goes live</h2>
+              <section className="publish-slug-section">
+                <header><div><span className="editor-eyebrow">Public URL</span><h3>Research slug</h3></div><code>/research/{form.slug || "your-project"}</code></header>
+                <div className="publish-slug-control">
+                  <label className="editor-field"><span>Slug</span><input value={form.slug} placeholder={slugify(form.title) || "project-url"} onChange={(event) => setField("slug", slugify(event.target.value))} /></label>
+                  <button type="button" className="primary-button publish-slug-button" onClick={() => saveProject()} disabled={saving}>Save URL</button>
                 </div>
               </section>
-            )}
 
-            {workspaceTab === "publish" && (
-              <section className="portfolio-publish-workspace">
-                <span className="editor-eyebrow">Publish</span>
-                <h2>Choose how this research project goes live</h2>
-                <section className="publish-slug-section">
-                  <header><div><span className="editor-eyebrow">Public URL</span><h3>Research slug</h3></div><code>/research/{form.slug || "your-project"}</code></header>
-                  <div className="publish-slug-control">
-                    <label className="editor-field"><span>Slug</span><input value={form.slug} placeholder={slugify(form.title) || "project-url"} onChange={(event) => setField("slug", slugify(event.target.value))} /></label>
-                    <button type="button" className="primary-button publish-slug-button" onClick={() => saveProject()} disabled={saving}>Save URL</button>
+              <div className="publish-settings-grid">
+                <section className="publish-classification-section">
+                  <header><span className="editor-eyebrow">Discoverability</span><h3>Classification and access</h3></header>
+                  <TagEditor values={form.tags} onChange={(tags) => setField("tags", tags)} />
+                  <div className="research-publish-toggles">
+                    <label className="research-checkbox"><input type="checkbox" checked={form.featured} onChange={(event) => setField("featured", event.target.checked)} /> Feature on the Research index</label>
+                    <label className="research-checkbox"><input type="checkbox" checked={form.visible} onChange={(event) => setField("visible", event.target.checked)} /> Publicly visible</label>
                   </div>
+                  {form.experiment_url && <a className="manage-seo-link" href={form.experiment_url} target="_blank" rel="noreferrer"><span>Open linked experiment</span><ArrowUpRight size={14} /></a>}
                 </section>
 
-                <div className="publish-settings-grid">
-                  <section className="publish-classification-section">
-                    <header><span className="editor-eyebrow">Discoverability</span><h3>Classification and access</h3></header>
-                    <TagEditor values={form.tags} onChange={(tags) => setField("tags", tags)} />
-                    <div className="research-publish-toggles">
-                      <label className="research-checkbox"><input type="checkbox" checked={form.featured} onChange={(event) => setField("featured", event.target.checked)} /> Feature on the Research index</label>
-                      <label className="research-checkbox"><input type="checkbox" checked={form.visible} onChange={(event) => setField("visible", event.target.checked)} /> Publicly visible</label>
+                <section className="publish-properties">
+                  <header className="publish-properties-header"><span className="editor-eyebrow">Status</span><h3>Publishing</h3></header>
+                  <div className="publish-properties-body">
+                    <div className="publish-seo-handoff">
+                      <div><span className="editor-eyebrow">Live status</span><strong className={form.published && form.visible ? "research-status-live" : ""}>{form.published && form.visible ? "● Published · Live" : form.visible ? "○ Draft" : "○ Archived"}</strong></div>
+                      <div><span className="editor-eyebrow">Story</span><strong>{form.blocks.length} {form.blocks.length === 1 ? "block" : "blocks"}</strong></div>
                     </div>
-                    {form.experiment_url && <a className="manage-seo-link" href={form.experiment_url} target="_blank" rel="noreferrer"><span>Open linked experiment</span><ArrowUpRight size={14} /></a>}
-                  </section>
+                    <button type="button" className="primary-button publish-button full" onClick={() => saveProject({ publish: true, visible: true, message: "Research project published." })} disabled={saving}>{saving ? "Publishing…" : form.published && form.visible ? "Update live project →" : "Publish now →"}</button>
+                    {form.id && <button type="button" className="quiet-button full research-maintenance-button" onClick={toggleArchive} disabled={saving}>{form.visible ? <Archive size={15} /> : <ArchiveRestore size={15} />}{form.visible ? "Archive project" : "Restore project"}</button>}
+                    {form.id && <button type="button" className="quiet-button danger full research-maintenance-button" onClick={() => setShowDeleteModal(true)} disabled={saving}><Trash2 size={15} /> Permanently delete</button>}
+                  </div>
+                </section>
+              </div>
+            </section>
+          )}
+        </section>
 
-                  <section className="publish-properties">
-                    <header className="publish-properties-header"><span className="editor-eyebrow">Status</span><h3>Publishing</h3></header>
-                    <div className="publish-properties-body">
-                      <div className="publish-seo-handoff">
-                        <div><span className="editor-eyebrow">Live status</span><strong className={form.published && form.visible ? "research-status-live" : ""}>{form.published && form.visible ? "● Published · Live" : form.visible ? "○ Draft" : "○ Archived"}</strong></div>
-                        <div><span className="editor-eyebrow">Story</span><strong>{form.blocks.length} {form.blocks.length === 1 ? "block" : "blocks"}</strong></div>
-                      </div>
-                      <button type="button" className="primary-button publish-button full" onClick={() => saveProject({ publish: true, visible: true, message: "Research project published." })} disabled={saving}>{saving ? "Publishing…" : form.published && form.visible ? "Update live project →" : "Publish now →"}</button>
-                      {form.id && <button type="button" className="quiet-button full research-maintenance-button" onClick={toggleArchive} disabled={saving}>{form.visible ? <Archive size={15} /> : <ArchiveRestore size={15} />}{form.visible ? "Archive project" : "Restore project"}</button>}
-                      {form.id && <button type="button" className="quiet-button danger full research-maintenance-button" onClick={deleteProject} disabled={saving}><Trash2 size={15} /> Permanently delete</button>}
-                    </div>
-                  </section>
-                </div>
-              </section>
-            )}
+        {/* Unsaved Changes Discard Modal */}
+        {showDiscardModal && (
+          <div
+            className="admin-modal-backdrop"
+            onClick={() => setShowDiscardModal(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="discard-modal-title"
+          >
+            <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="admin-modal-header">
+                <span className="admin-modal-kicker">Unsaved Changes</span>
+                <h2 id="discard-modal-title">Discard unsaved changes?</h2>
+                <p>
+                  You have unsaved changes in “{form?.title || "Untitled project"}”. Leaving now will discard all modifications made since your last save.
+                </p>
+              </div>
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  className="admin-modal-button secondary"
+                  onClick={forceCloseEditor}
+                >
+                  Discard changes
+                </button>
+                <button
+                  type="button"
+                  className="admin-modal-button primary"
+                  onClick={() => setShowDiscardModal(false)}
+                >
+                  Keep editing
+                </button>
+              </div>
+            </div>
           </div>
-        </main>
+        )}
+
+        {/* Permanently Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div
+            className="admin-modal-backdrop"
+            onClick={() => setShowDeleteModal(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+          >
+            <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="admin-modal-header">
+                <span className="admin-modal-kicker">Confirm Deletion</span>
+                <h2 id="delete-modal-title">Delete “{form?.title || "Untitled project"}”?</h2>
+                <p>
+                  This project will be permanently deleted from the database. This action cannot be undone.
+                </p>
+              </div>
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  className="admin-modal-button secondary"
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="admin-modal-button danger"
+                  onClick={confirmDeleteProject}
+                >
+                  Permanently delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -23,16 +23,16 @@ body.work-project-page {
 body.work-project-page {
   margin: 0;
   padding: 0 !important;
-  color: var(--pe-ink);
+  color: var(--pop-foreground-on-deep, var(--pe-cream));
   --color-brand-red: var(--pe-purple);
-  --link-hover-color: var(--pe-purple);
+  --link-hover-color: var(--pe-yellow);
 }
 
 body.work-project-page .page-content-full { padding: 0; }
 
 .pe-shell {
   padding: var(--pe-seam);
-  color: var(--pe-ink);
+  color: var(--pop-foreground-on-deep, var(--pe-cream));
 }
 
 /* Case study main card and selectable text */
@@ -57,6 +57,48 @@ body.work-project-page .page-content-full { padding: 0; }
   justify-content: space-between;
   background: var(--case-accent, var(--pe-lime));
   color: var(--pe-ink);
+}
+
+/* Deep Accent Variants (Blue & Purple) - High contrast white/cream text */
+.rp-case[data-accent="blue"] .rp-case__hero,
+.rp-case[data-accent="purple"] .rp-case__hero,
+.rp-case__hero:where([data-pop-surface="blue"], [data-pop-surface="purple"]) {
+  color: var(--pop-foreground-on-deep, var(--pe-cream)) !important;
+}
+
+.rp-case[data-accent="blue"] .rp-case__hero :is(h1, p, a, span, strong, em, b),
+.rp-case[data-accent="purple"] .rp-case__hero :is(h1, p, a, span, strong, em, b),
+.rp-case__hero:where([data-pop-surface="blue"], [data-pop-surface="purple"]) :is(h1, p, a, span, strong, em, b) {
+  color: inherit;
+}
+
+.rp-case[data-accent="blue"] .rp-case__back,
+.rp-case[data-accent="purple"] .rp-case__back,
+.rp-case__hero:where([data-pop-surface="blue"], [data-pop-surface="purple"]) .rp-case__back {
+  color: var(--pop-foreground-on-deep, var(--pe-cream)) !important;
+}
+
+.rp-case[data-accent="blue"] .rp-case__reading-tag,
+.rp-case[data-accent="purple"] .rp-case__reading-tag,
+.rp-case__hero:where([data-pop-surface="blue"], [data-pop-surface="purple"]) .rp-case__reading-tag {
+  background: var(--pe-yellow);
+  color: var(--pe-ink);
+  border: 1.5px solid var(--pe-ink);
+}
+
+.rp-case[data-accent="blue"] .rp-case__meta-pill,
+.rp-case[data-accent="purple"] .rp-case__meta-pill,
+.rp-case__hero:where([data-pop-surface="blue"], [data-pop-surface="purple"]) .rp-case__meta-pill {
+  background: var(--pe-cream);
+  color: var(--pe-ink);
+  border: 1.5px solid var(--pe-ink);
+  box-shadow: 0 3px 0 var(--pe-ink);
+}
+
+.rp-case[data-accent="blue"] .rp-case__meta-pill :is(span, strong, b),
+.rp-case[data-accent="purple"] .rp-case__meta-pill :is(span, strong, b),
+.rp-case__hero:where([data-pop-surface="blue"], [data-pop-surface="purple"]) .rp-case__meta-pill :is(span, strong, b) {
+  color: var(--pe-ink) !important;
 }
 
 .rp-case__topline {
@@ -136,7 +178,7 @@ body.work-project-page .page-content-full { padding: 0; }
   color: var(--pe-ink, #15130f);
 }
 
-.rp-case__body :is(h2, h3, h4, p, li, dt, dd, span, strong, em, b, figcaption) {
+.rp-case__body :not(.rp-case__trio-card--blue, [data-pop-surface="blue"], [data-pop-surface="purple"], .rp-case__trio-card--blue *):is(h2, h3, h4, p, li, dt, dd, span, strong, em, b, figcaption) {
   color: var(--pe-ink, #15130f);
 }
 /* Pop-Editorial Cards (3-block for Work, 2-block for Research) */
@@ -217,19 +259,29 @@ body.work-project-page .page-content-full { padding: 0; }
 /* Trio Card 1 & 3: Blue Variant */
 .rp-case__trio-card--blue {
   background: var(--surface-bg, var(--pe-blue));
-  color: var(--surface-fg, var(--pe-cream));
+  color: var(--pop-foreground-on-deep, var(--pe-cream)) !important;
 }
 
-/* Keep copy legible and vivid on the deep-blue Brief and Outcome cards. */
-.rp-case__trio-card--blue :is(
+/* Keep copy legible and vivid on the deep-blue Brief and Outcome cards, without stomping nested buttons */
+.rp-case__trio-card--blue :not(.rp-case__experiment-btn, [data-pop-surface="yellow"], [data-pop-surface="lime"], [data-pop-surface="cream"], [data-pop-surface="white"], .rp-case__experiment-btn *):is(
   .rp-case__card-heading,
   .rp-case__card-text,
   .rp-case__outcome-title,
   .rp-case__outcome-narrative-text,
   .rp-case__outcome-status,
-  .rp-case__outcome-status span
+  .rp-case__outcome-status span,
+  h2, h3, h4, p, span, strong, b, em, div
 ) {
-  color: var(--pop-foreground-on-deep, var(--pe-cream));
+  color: var(--pop-foreground-on-deep, var(--pe-cream)) !important;
+}
+
+.rp-case__trio-card--blue .rp-case__question-label {
+  color: var(--pop-foreground-on-deep, var(--pe-cream)) !important;
+  opacity: 0.85;
+}
+
+.rp-case__trio-card--blue .rp-case__question-text {
+  color: var(--pop-secondary-on-deep, rgba(255, 248, 232, 0.88)) !important;
 }
 
 .rp-case__outcome-title {
@@ -277,11 +329,12 @@ body.work-project-page .page-content-full { padding: 0; }
 .rp-case__outcome-bottom .rp-case__experiment-btn {
   width: 100%;
   justify-content: center;
-  color: var(--pop-foreground-on-light, var(--pe-ink));
+  background: var(--pe-yellow);
+  color: var(--pop-foreground-on-light, var(--pe-ink)) !important;
 }
 
 .rp-case__outcome-bottom .rp-case__experiment-btn :is(span, strong, b, a, svg) {
-  color: var(--pop-foreground-on-light, var(--pe-ink));
+  color: var(--pop-foreground-on-light, var(--pe-ink)) !important;
 }
 
 /* Trio Card 2: Yellow Variant */
@@ -571,7 +624,7 @@ body.work-project-page .page-content-full { padding: 0; }
   padding: 0.85rem 1.8rem;
   min-height: 52px;
   background: var(--surface-bg, var(--pe-yellow));
-  color: var(--surface-fg, var(--pe-ink));
+  color: var(--pop-foreground-on-light, var(--pe-ink)) !important;
   border: 1.5px solid var(--pe-ink);
   border-radius: 999px;
   font: 750 0.86rem/1 var(--font-mono, monospace);
@@ -585,7 +638,7 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 
 .rp-case__experiment-btn :is(span, strong, b, a, svg) {
-  color: inherit;
+  color: var(--pop-foreground-on-light, var(--pe-ink)) !important;
 }
 
 .rp-case__experiment-btn:hover {
@@ -676,7 +729,7 @@ body.work-project-page .page-content-full { padding: 0; }
   gap: 0.75rem;
   padding: 0.85rem 1.6rem;
   background: var(--surface-bg, var(--pe-yellow));
-  color: var(--surface-fg, var(--pop-ink));
+  color: var(--surface-fg, var(--pop-ink)) !important;
   font-weight: 800;
   font-size: 0.95rem;
   font-family: var(--font-display, sans-serif);
@@ -685,6 +738,10 @@ body.work-project-page .page-content-full { padding: 0; }
   box-shadow: 0 3px 0 var(--pe-ink);
   transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
   white-space: nowrap;
+}
+
+.rp-case__next-button :is(span, strong, b, a, svg) {
+  color: var(--pop-ink) !important;
 }
 
 .rp-case__next-arrow {
@@ -728,7 +785,265 @@ body.work-project-page .page-content-full { padding: 0; }
 .rp-case[data-accent="yellow"] { --case-accent: var(--pe-yellow); }
 .rp-case[data-accent="cyan"] { --case-accent: var(--pe-cyan); }
 .rp-case[data-accent="orange"] { --case-accent: var(--pe-orange); }
+.rp-case[data-accent="blue"] { --case-accent: var(--pe-blue); }
 .rp-case[data-accent="purple"] { --case-accent: var(--pe-purple); }
+
+/* ─── Pop Editorial Content Blocks (Careers-derived rhythm & typography) ─── */
+.rp-case__blocks {
+  width: min(100%, 680px) !important;
+  margin: clamp(2.5rem, 6vw, 4.5rem) auto 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+.rp-case__blocks .portfolio-project-body,
+.rp-case__blocks .portfolio-blocks {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Reset all legacy portfolio spacing on individual blocks */
+.rp-case__blocks .portfolio-block,
+.rp-case__blocks .portfolio-block.spacing-compact,
+.rp-case__blocks .portfolio-block.spacing-default,
+.rp-case__blocks .portfolio-block.spacing-spacious,
+.rp-case__blocks .portfolio-block.width-narrow,
+.rp-case__blocks .portfolio-block.width-standard,
+.rp-case__blocks .portfolio-block.width-wide,
+.rp-case__blocks .portfolio-block.width-full {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-sizing: border-box !important;
+}
+
+/* Vertical Rhythm & Section Dividers (matching careers.css .career-prose section) */
+.rp-case__blocks .portfolio-block.portfolio-block-heading,
+.rp-case__blocks .portfolio-block.portfolio-block-section,
+.rp-case__blocks .portfolio-block.portfolio-block-content_block,
+.rp-case__blocks .portfolio-block.portfolio-block-editorial_block,
+.rp-case__blocks .portfolio-block.portfolio-block-process,
+.rp-case__blocks .portfolio-block.portfolio-block-list {
+  margin-top: clamp(2.6rem, 6vw, 4.5rem) !important;
+  padding-top: clamp(2.6rem, 6vw, 4.5rem) !important;
+  border-top: 1px solid var(--pe-line, rgba(21, 19, 15, 0.22)) !important;
+}
+
+.rp-case__blocks .portfolio-block:first-child,
+.rp-case__blocks .portfolio-block.portfolio-block-heading:first-child,
+.rp-case__blocks .portfolio-block.portfolio-block-section:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+}
+
+/* Editorial Kickers */
+.portfolio-section-kicker {
+  display: inline-flex !important;
+  margin: 0 0 0.75rem !important;
+  font: 750 0.72rem/1.35 var(--font-mono, "Space Mono", monospace) !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: rgba(21, 19, 15, 0.6) !important;
+}
+
+/* Headings — tight 1.25rem spacing directly above content */
+.rp-case__blocks .portfolio-block-heading .portfolio-heading-group,
+.rp-case__blocks .portfolio-block-heading h2,
+.rp-case__blocks .portfolio-block-heading h3,
+.rp-case__blocks .portfolio-editorial-section h2,
+.rp-case__blocks .portfolio-editorial-section h3,
+.rp-case__blocks .portfolio-list-block h2,
+.rp-case__blocks .portfolio-list-block h3 {
+  margin-top: 0 !important;
+  margin-bottom: 1.25rem !important;
+}
+
+.rp-case__blocks .portfolio-block h2,
+.rp-case__blocks .portfolio-editorial-section h2,
+.rp-case__blocks .portfolio-list-block h2 {
+  max-width: 17ch !important;
+  margin: 0 0 1.25rem !important;
+  color: var(--pe-ink, #15130f) !important;
+  font-size: clamp(2rem, 4.1vw, 3.4rem) !important;
+  font-weight: 630 !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.055em !important;
+  text-wrap: balance !important;
+}
+
+.rp-case__blocks .portfolio-block h3,
+.rp-case__blocks .portfolio-editorial-section h3,
+.rp-case__blocks .portfolio-list-block h3 {
+  margin: 1.75rem 0 0.65rem !important;
+  color: var(--pe-ink, #15130f) !important;
+  font-size: clamp(1.2rem, 2vw, 1.5rem) !important;
+  font-weight: 690 !important;
+  line-height: 1.18 !important;
+  letter-spacing: -0.03em !important;
+}
+
+/* Body Prose */
+.rp-case__blocks .portfolio-rich-text {
+  color: var(--pe-ink, #15130f) !important;
+  font-size: clamp(1.02rem, 1.22vw, 1.15rem) !important;
+  font-weight: 450 !important;
+  line-height: 1.68 !important;
+  letter-spacing: -0.008em !important;
+  text-wrap: pretty !important;
+}
+
+.rp-case__blocks .portfolio-rich-text p {
+  margin: 0 0 1.25rem !important;
+  color: var(--pe-ink, #15130f) !important;
+  line-height: 1.68 !important;
+}
+
+.rp-case__blocks .portfolio-rich-text p:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Links inside prose & standalone links */
+.rp-case__blocks .portfolio-rich-text a,
+.rp-case__blocks .portfolio-text-link {
+  color: var(--pe-ink, #15130f) !important;
+  text-decoration: underline !important;
+  text-decoration-color: var(--pe-purple, #5524c7) !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 4px !important;
+  font-weight: 600 !important;
+  transition: color 150ms ease, background-color 150ms ease !important;
+}
+
+.rp-case__blocks .portfolio-rich-text a:hover,
+.rp-case__blocks .portfolio-text-link:hover {
+  background: rgba(255, 228, 79, 0.55) !important;
+  text-decoration-color: var(--pe-ink, #15130f) !important;
+}
+
+/* Editorial Lists & Process */
+.rp-case__blocks .portfolio-rich-text ul,
+.rp-case__blocks .portfolio-rich-text ol,
+.rp-case__blocks .portfolio-editorial-list {
+  margin: 0 0 1.25rem !important;
+  padding-left: 1.35rem !important;
+  color: var(--pe-ink, #15130f) !important;
+  font-size: clamp(1.02rem, 1.22vw, 1.15rem) !important;
+  line-height: 1.68 !important;
+}
+
+.rp-case__blocks .portfolio-rich-text li,
+.rp-case__blocks .portfolio-editorial-list li {
+  margin: 0.48rem 0 !important;
+  padding-left: 0.3rem !important;
+  color: var(--pe-ink, #15130f) !important;
+}
+
+.rp-case__blocks .portfolio-rich-text li::marker,
+.rp-case__blocks .portfolio-editorial-list li::marker {
+  color: var(--pe-purple, #5524c7) !important;
+  font-weight: 700 !important;
+}
+
+/* Highlights / Callouts */
+.rp-case__blocks .portfolio-highlight {
+  background: #fff !important;
+  border: 1.5px solid var(--pe-ink, #15130f) !important;
+  border-left: 6px solid var(--pe-blue, #2444ca) !important;
+  border-radius: 14px !important;
+  padding: clamp(1.25rem, 3vw, 1.75rem) !important;
+  margin: 1.75rem 0 !important;
+  box-shadow: 0 3px 0 var(--pe-ink, #15130f) !important;
+  color: var(--pe-ink, #15130f) !important;
+}
+
+.rp-case__blocks .portfolio-highlight__title {
+  font: 700 1.15rem/1.3 var(--font-display, sans-serif) !important;
+  margin: 0 0 0.5rem !important;
+  color: var(--pe-ink, #15130f) !important;
+}
+
+.rp-case__blocks .portfolio-highlight__text {
+  margin: 0 !important;
+  font-size: clamp(0.98rem, 1.15vw, 1.08rem) !important;
+  line-height: 1.6 !important;
+  color: var(--pe-ink, #15130f) !important;
+}
+
+/* Quotes / Blockquotes */
+.rp-case__blocks .portfolio-editorial-quote,
+.rp-case__blocks blockquote {
+  margin: 1.75rem 0 !important;
+  padding: 1.25rem clamp(1.25rem, 3vw, 2rem) !important;
+  border-left: 4px solid var(--pe-purple, #5524c7) !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  border-radius: 0 12px 12px 0 !important;
+}
+
+.rp-case__blocks .portfolio-editorial-quote p,
+.rp-case__blocks blockquote p {
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem) !important;
+  font-weight: 550 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--pe-ink, #15130f) !important;
+  margin: 0 0 0.5rem !important;
+}
+
+.rp-case__blocks .portfolio-editorial-quote cite,
+.rp-case__blocks blockquote cite {
+  display: block !important;
+  font: 650 0.82rem/1.4 var(--font-mono, monospace) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: rgba(21, 19, 15, 0.65) !important;
+  font-style: normal !important;
+}
+
+/* Buttons and Links */
+.rp-case__blocks .portfolio-external-link,
+.rp-case__blocks .portfolio-column-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+  padding: 0.65rem 1.1rem !important;
+  border: 1.5px solid var(--pe-ink, #15130f) !important;
+  border-radius: 12px !important;
+  background: var(--pe-yellow, #ffe44f) !important;
+  color: var(--pe-ink, #15130f) !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  box-shadow: 0 3px 0 var(--pe-ink, #15130f) !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease !important;
+}
+
+.rp-case__blocks .portfolio-external-link:hover,
+.rp-case__blocks .portfolio-column-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 5px 0 var(--pe-ink, #15130f) !important;
+  background: #ffde3a !important;
+}
+
+/* Two Columns */
+.rp-case__blocks .portfolio-two-columns {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+  gap: clamp(1.5rem, 3vw, 2.5rem) !important;
+  margin: 1.75rem 0 !important;
+}
+
+/* Dividers */
+.rp-case__blocks .portfolio-divider {
+  border: 0 !important;
+  border-top: 1px solid var(--pe-line, rgba(21, 19, 15, 0.22)) !important;
+  margin: clamp(2rem, 4vw, 3rem) 0 !important;
+}
 /* Responsive adjustments */
 @media (max-width: 960px) {
   .rp-case__trio-grid {

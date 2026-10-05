@@ -108,6 +108,7 @@ const contactLabel = "Hire me";
     z-index: 50;
     padding: max(var(--home-next-gap), env(safe-area-inset-top, 0px)) max(var(--home-next-gap), env(safe-area-inset-right, 0px)) 0 max(var(--home-next-gap), env(safe-area-inset-left, 0px));
     background: transparent; /* always transparent — cream card is the only visible part */
+    color: var(--pop-ink);
     pointer-events: none;
   }
 
@@ -129,12 +130,13 @@ const contactLabel = "Hire me";
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-panel);
     background: var(--pop-cream);
+    color: var(--pop-ink);
     box-shadow: 0 4px 16px rgba(21, 19, 15, 0.08);
   }
 
   .site-header a,
   .site-header summary {
-    color: inherit;
+    color: var(--pop-ink);
     font: 700 0.68rem/1 var(--font-mono, monospace);
     letter-spacing: 0.05em;
     text-decoration: none;
@@ -179,7 +181,7 @@ const contactLabel = "Hire me";
     border: 1px solid var(--pop-ink);
     border-radius: var(--home-next-radius-control);
     background: #fff;
-    color: var(--pop-ink);
+    color: var(--pop-ink) !important;
     font: 700 0.68rem/1 var(--font-mono, monospace);
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -244,13 +246,17 @@ const contactLabel = "Hire me";
     border: 1px solid var(--pop-ink);
     border-radius: var(--home-next-radius-control);
     background: var(--pop-yellow);
-    color: var(--pop-ink);
+    color: var(--pop-ink) !important;
     font: 750 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     cursor: pointer;
     list-style: none;
     user-select: none;
     transition: transform var(--home-next-motion), box-shadow var(--home-next-motion), background-color var(--home-next-motion);
+  }
+
+  .site-header__menu-trigger-text {
+    color: var(--pop-ink) !important;
   }
 
   .site-header__menu-trigger:hover {

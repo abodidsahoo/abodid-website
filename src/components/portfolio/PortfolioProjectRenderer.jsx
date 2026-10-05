@@ -212,9 +212,32 @@ function inlineMarkup(text = "") {
 }
 
 function RichText({ text = "" }) {
-  return String(text).split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => (
-    <p key={index}>{inlineMarkup(paragraph.replace(/\n/g, " "))}</p>
-  ));
+  const blocks = String(text).split(/\n\s*\n/).filter(Boolean);
+  return blocks.map((block, index) => {
+    const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+    const isUnordered = lines.length > 0 && lines.every((l) => /^[-*•]\s+/.test(l));
+    const isOrdered = lines.length > 0 && lines.every((l) => /^\d+\.\s+/.test(l));
+
+    if (isUnordered) {
+      return (
+        <ul key={index}>
+          {lines.map((line, liIdx) => (
+            <li key={liIdx}>{inlineMarkup(line.replace(/^[-*•]\s+/, ""))}</li>
+          ))}
+        </ul>
+      );
+    }
+    if (isOrdered) {
+      return (
+        <ol key={index}>
+          {lines.map((line, liIdx) => (
+            <li key={liIdx}>{inlineMarkup(line.replace(/^\d+\.\s+/, ""))}</li>
+          ))}
+        </ol>
+      );
+    }
+    return <p key={index}>{inlineMarkup(block.replace(/\n/g, " "))}</p>;
+  });
 }
 
 function ExternalProjectLink({ href, label, className = "" }) {
@@ -514,14 +537,15 @@ function Lightbox({ media, index, onIndex, onClose }) {
 }
 
 function Block({ block }) {
+  if (!block || block.visible === false) return null;
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const triggerRefs = useRef([]);
   const { content = {}, settings = {} } = block;
-  const width = settings.width || "wide";
+  const width = settings.width || "standard";
   const spacing = settings.spacing || "default";
   const className = `portfolio-block portfolio-block-${block.blockType} width-${width} spacing-${spacing} align-${settings.alignment || "left"}`;
   const mediaList = (Array.isArray(content.media) ? content.media : content.media ? [content.media] : [])
-    .filter((item) => item && typeof item === "object");
+    .filter((item) => item && typeof item === "object" && (item.url || item.src));
   const openLightbox = (index) => { setLightboxIndex(index); };
   const closeLightbox = () => {
     const prior = lightboxIndex;
@@ -531,18 +555,99 @@ function Block({ block }) {
     });
   };
 
-  if (block.visible === false) return null;
   let body = null;
   switch (block.blockType) {
-    case "body_text": body = <div className="portfolio-rich-text"><RichText text={content.text} /></div>; break;
+    case "body_text":
+    case "text":
+    case "rich_text":
+    case "paragraph": {
+      const text = String(content.text || content.body || content.content || "").trim();
+      if (!text) return null;
+      body = <div className="portfolio-rich-text"><RichText text={text} /></div>;
+      break;
+    }
     case "heading": {
+      const text = String(content.text || content.heading || content.title || "").trim();
+      if (!text) return null;
       const Tag = Number(content.level) === 3 ? "h3" : "h2";
-      body = <Tag>{content.text}</Tag>;
+      const kicker = content.kicker || content.eyebrow || settings.kicker;
+      body = (
+        <div className="portfolio-heading-group">
+          {kicker && <span className="portfolio-section-kicker">{kicker}</span>}
+          <Tag>{text}</Tag>
+        </div>
+      );
+      break;
+    }
+    case "section":
+    case "content_block":
+    case "editorial_block": {
+      const title = String(content.title || content.heading || "").trim();
+      const kicker = String(content.kicker || content.eyebrow || "").trim();
+      const text = String(content.text || content.body || content.content || "").trim();
+      const items = Array.isArray(content.items || content.bullets || content.list)
+        ? (content.items || content.bullets || content.list).filter(Boolean)
+        : [];
+      if (!title && !text && items.length === 0) return null;
+      const Tag = Number(content.level) === 3 ? "h3" : "h2";
+      body = (
+        <div className="portfolio-editorial-section">
+          {kicker && <span className="portfolio-section-kicker">{kicker}</span>}
+          {title && <Tag>{title}</Tag>}
+          {text && <div className="portfolio-rich-text"><RichText text={text} /></div>}
+          {items.length > 0 && (
+            <ul className="portfolio-editorial-list">
+              {items.map((item, idx) => (
+                <li key={idx}>
+                  {typeof item === "string" ? inlineMarkup(item) : (
+                    <>
+                      {item.title && <strong>{item.title} </strong>}
+                      {item.text && inlineMarkup(item.text)}
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+      break;
+    }
+    case "process":
+    case "list":
+    case "bullets": {
+      const title = String(content.title || content.heading || "").trim();
+      const kicker = String(content.kicker || content.eyebrow || "").trim();
+      const items = (Array.isArray(content.items || content.bullets || content.list)
+        ? (content.items || content.bullets || content.list)
+        : String(content.text || "").split("\n")
+      ).map((l) => typeof l === "string" ? l.trim() : l).filter(Boolean);
+      if (items.length === 0 && !title) return null;
+      body = (
+        <div className="portfolio-list-block">
+          {kicker && <span className="portfolio-section-kicker">{kicker}</span>}
+          {title && <h2>{title}</h2>}
+          {items.length > 0 && (
+            <ul className="portfolio-editorial-list">
+              {items.map((item, idx) => (
+                <li key={idx}>{typeof item === "string" ? inlineMarkup(item) : inlineMarkup(item.text || item.title || "")}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
       break;
     }
     case "two_columns": {
       const columns = Array.isArray(content.columns) ? content.columns.slice(0, 2) : [];
       const gap = Math.min(96, Math.max(0, Number(settings.columnGap) || 32));
+      const hasAnyContent = columns.some((col) => {
+        if (!col) return false;
+        if (col.heading || col.text || col.linkText || col.linkUrl) return true;
+        if (Array.isArray(col.items) && col.items.length > 0) return true;
+        return false;
+      });
+      if (!hasAnyContent) return null;
       body = <div className="portfolio-two-columns" style={{ "--portfolio-column-gap": `${gap}px` }}>
         {Array.from({ length: 2 }, (_, index) => {
           const column = columns[index] || {};
@@ -552,14 +657,15 @@ function Block({ block }) {
             column.linkText || column.linkUrl ? { type: "link", text: column.linkText, url: column.linkUrl } : null,
           ].filter(Boolean);
           const items = Array.isArray(column.items) ? column.items : legacyItems;
+          if (items.length === 0) return null;
           return <article className="portfolio-two-column" key={column.id || index}>
             {items.map((item, itemIndex) => {
               const href = safeHref(item.url || item.linkUrl);
-              if (item.type === "heading") return item.text ? <h3 key={item.id || itemIndex}>{item.text}</h3> : null;
-              if (item.type === "text") return item.text ? <div className="portfolio-rich-text" key={item.id || itemIndex}><RichText text={item.text} /></div> : null;
-              if (item.type === "image") return href ? <ImageFigure key={item.id || itemIndex} media={{ url: href, alt: item.alt, caption: item.caption }} fit="cover" /> : null;
-              if (item.type === "button") return href ? <a className="portfolio-cta portfolio-column-button" key={item.id || itemIndex} href={href} {...externalLinkProps(href)}>{item.label || "Open link"}<span className="link-destination-arrow" aria-hidden="true">↗</span></a> : null;
-              if (["link", "external_link"].includes(item.type)) return href && item.text ? <ExternalProjectLink className="is-column-link" key={item.id || itemIndex} href={href} label={item.text} /> : null;
+              if (item.type === "heading" && item.text) return <h3 key={item.id || itemIndex}>{item.text}</h3>;
+              if (item.type === "text" && item.text) return <div className="portfolio-rich-text" key={item.id || itemIndex}><RichText text={item.text} /></div>;
+              if (item.type === "image" && href) return <ImageFigure key={item.id || itemIndex} media={{ url: href, alt: item.alt, caption: item.caption }} fit="cover" />;
+              if (item.type === "button" && href) return <a className="portfolio-cta portfolio-column-button" key={item.id || itemIndex} href={href} {...externalLinkProps(href)}>{item.label || "Open link"}<span className="link-destination-arrow" aria-hidden="true">↗</span></a>;
+              if (["link", "external_link"].includes(item.type) && href && item.text) return <ExternalProjectLink className="is-column-link" key={item.id || itemIndex} href={href} label={item.text} />;
               return null;
             })}
           </article>;
@@ -567,23 +673,62 @@ function Block({ block }) {
       </div>;
       break;
     }
-    case "quotation": body = <blockquote><p>{content.quote}</p>{content.attribution && <cite>{content.attribution}</cite>}</blockquote>; break;
-    case "highlight": body = <aside className="portfolio-highlight">{content.text}</aside>; break;
-    case "testimonial": body = <blockquote className="portfolio-testimonial"><p>{content.quote}</p><cite>{content.name}{content.role ? `, ${content.role}` : ""}</cite></blockquote>; break;
-    case "outcome": body = <div className="portfolio-outcome-block">{content.heading && <h2>{content.heading}</h2>}<div className="portfolio-rich-text"><RichText text={content.text} /></div></div>; break;
+    case "quotation":
+    case "quote": {
+      const quote = String(content.quote || content.text || "").trim();
+      if (!quote) return null;
+      body = <blockquote className="portfolio-editorial-quote"><p>{quote}</p>{content.attribution && <cite>{content.attribution}</cite>}</blockquote>;
+      break;
+    }
+    case "highlight":
+    case "callout":
+    case "note": {
+      const text = String(content.text || content.quote || content.content || "").trim();
+      const title = String(content.title || content.heading || "").trim();
+      if (!text && !title) return null;
+      body = (
+        <aside className="portfolio-highlight" data-pop-surface="cream">
+          {title && <h3 className="portfolio-highlight__title">{title}</h3>}
+          {text && <p className="portfolio-highlight__text">{inlineMarkup(text)}</p>}
+        </aside>
+      );
+      break;
+    }
+    case "testimonial": {
+      const quote = String(content.quote || content.text || "").trim();
+      if (!quote) return null;
+      body = <blockquote className="portfolio-testimonial"><p>{quote}</p><cite>{content.name}{content.role ? `, ${content.role}` : ""}</cite></blockquote>;
+      break;
+    }
+    case "outcome": {
+      const text = String(content.text || "").trim();
+      const heading = String(content.heading || "").trim();
+      if (!text && !heading) return null;
+      body = <div className="portfolio-outcome-block">{heading && <h2>{heading}</h2>}{text && <div className="portfolio-rich-text"><RichText text={text} /></div>}</div>;
+      break;
+    }
     case "collaborator": {
+      const name = String(content.name || "").trim();
+      if (!name) return null;
       const href = safeHref(content.url);
-      body = <div className="portfolio-profile-block"><div>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{content.name || "Collaborator"}</a> : <span>{content.name}</span>}{content.role && <small>{content.role}</small>}</div></div>;
+      body = <div className="portfolio-profile-block"><div>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{name}</a> : <span>{name}</span>}{content.role && <small>{content.role}</small>}</div></div>;
       break;
     }
     case "organisation": {
+      const name = String(content.name || "").trim();
+      if (!name) return null;
       const href = safeHref(content.url);
-      body = <div className="portfolio-profile-block"><div>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{content.name || "Organisation"}</a> : <span>{content.name}</span>}{content.location && <small>{content.location}</small>}</div></div>;
+      body = <div className="portfolio-profile-block"><div>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{name}</a> : <span>{name}</span>}{content.location && <small>{content.location}</small>}</div></div>;
       break;
     }
-    case "single_image": body = <ImageFigure media={mediaList[0]} fit={settings.mediaFit} />; break;
+    case "single_image": {
+      if (mediaList.length === 0) return null;
+      body = <ImageFigure media={mediaList[0]} fit={settings.mediaFit} />;
+      break;
+    }
     case "image_gallery":
     case "image_grid": {
+      if (mediaList.length === 0) return null;
       const displayMode = settings.displayMode || (block.blockType === "image_gallery" || settings.lightbox === true ? "lightbox" : "grid");
       if (displayMode === "floating") {
         body = <PortfolioFloatingGallery mediaList={mediaList} blockId={block.id || "multi-image"} spacing={spacing} imageSize={settings.imageSize || "medium"} />;
@@ -598,27 +743,47 @@ function Block({ block }) {
       }
       break;
     }
-    case "video_embed": body = <VideoEmbed content={content} />; break;
-    case "media_text": body = (
-      <div className={`portfolio-media-text media-${content.mediaPosition || "left"}`}>
-        <ImageFigure media={mediaList[0]} fit={settings.mediaFit} />
-        <div className="portfolio-rich-text"><RichText text={content.text} /></div>
-      </div>
-    ); break;
+    case "video_embed": {
+      if (!content.url && !content.embedUrl && !content.src) return null;
+      body = <VideoEmbed content={content} />;
+      break;
+    }
+    case "media_text": {
+      const text = String(content.text || "").trim();
+      if (mediaList.length === 0 && !text) return null;
+      body = (
+        <div className={`portfolio-media-text media-${content.mediaPosition || "left"}`}>
+          {mediaList[0] && <ImageFigure media={mediaList[0]} fit={settings.mediaFit} />}
+          {text && <div className="portfolio-rich-text"><RichText text={text} /></div>}
+        </div>
+      );
+      break;
+    }
     case "external_link": {
       const href = safeHref(content.url);
-      body = href ? <div className="portfolio-external-link-block"><ExternalProjectLink href={href} label={content.label} /></div> : null;
+      if (!href) return null;
+      body = <div className="portfolio-external-link-block"><ExternalProjectLink href={href} label={content.label || content.text} /></div>;
       break;
     }
     case "link": {
       const href = safeHref(content.url);
-      body = href && content.text ? <a className="portfolio-text-link" href={href} {...externalLinkProps(href)}>{content.text}<span className="link-destination-arrow" aria-hidden="true">↗</span></a> : null;
+      const text = String(content.text || content.label || "").trim();
+      if (!href || !text) return null;
+      body = <a className="portfolio-text-link" href={href} {...externalLinkProps(href)}>{text}<span className="link-destination-arrow" aria-hidden="true">↗</span></a>;
       break;
     }
-    case "divider": body = <hr />; break;
-    case "spacer": body = <div className="portfolio-spacer" style={{ height: `${Math.min(480, Math.max(0, Number(content.height) || 0))}px` }} aria-hidden="true" />; break;
+    case "divider": body = <hr className="portfolio-divider" />; break;
+    case "spacer": {
+      const height = Math.min(480, Math.max(0, Number(content.height) || 0));
+      if (height <= 0) return null;
+      body = <div className="portfolio-spacer" style={{ height: `${height}px` }} aria-hidden="true" />;
+      break;
+    }
     default: body = null;
   }
+
+  if (!body) return null;
+
   return (
     <section className={className}>
       {body}
@@ -1071,7 +1236,7 @@ function PopEditorialProject({ p, nextProject }) {
 
           {/* Clean Content Blocks (if any) */}
           {nonImageBlocks.length > 0 && (
-            <div className="rp-case__blocks" style={{ marginTop: "3.5rem" }}>
+            <div className="rp-case__blocks">
               <ProjectBlocks project={{ ...p, blocks: nonImageBlocks }} />
             </div>
           )}
