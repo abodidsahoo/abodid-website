@@ -1,13 +1,21 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import InlineInquiryForm from "./InlineInquiryForm.astro";
 import { breadcrumbJsonLd, personJsonLd, seoIdentity, serviceJsonLd } from "../lib/seoData";
+
+interface WorkflowStep {
+  title: string;
+  body: string;
+}
 
 interface Props {
   title: string;
   slug: string;
+  heroHeading: string;
   introduction: string;
   audience: string;
   focus: string[];
+  workflow: WorkflowStep[];
   outcome: string;
   modulesHref?: string;
 }
@@ -15,18 +23,27 @@ interface Props {
 const {
   title,
   slug,
+  heroHeading,
   introduction,
   audience,
   focus,
+  workflow,
   outcome,
   modulesHref,
-} = Astro.props;
+} = Astro.props as Props;
 
 const path = `/${slug}`;
 const pageTitle = `${title} with Abodid Sahoo`;
-const description = `${introduction} A live three-hour workshop for £180.`;
-const emailSubject = `${title} enquiry`;
+const description = `${introduction} A private three-hour workshop for £180.`;
+const emailSubject = `${title} booking enquiry`;
 const emailHref = `mailto:${seoIdentity.email}?subject=${encodeURIComponent(emailSubject)}`;
+const otherWorkshops = [
+  { title: "Autoethnography", href: "/autoethnography-workshop" },
+  { title: "Photography", href: "/photography-workshop" },
+  { title: "Filmmaking", href: "/filmmaking-workshop" },
+  { title: "Video editing", href: "/video-editing-workshop" },
+].filter((workshop) => workshop.href !== path);
+const portraitUrl = "https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp";
 const structuredData = [
   personJsonLd(),
   breadcrumbJsonLd([
@@ -48,101 +65,623 @@ const structuredData = [
   description={description}
   canonicalUrl={`${seoIdentity.siteUrl}${path}`}
   structuredData={structuredData}
+  fullWidth={true}
   showGlobalGrid={false}
   showNewsletterPopup={false}
-  bodyClass="workshop-brief-page"
+  bodyClass="workshop-landing-page"
 >
-  <article class="workshop-brief" aria-labelledby="workshop-title">
-    <p class="workshop-brief__eyebrow">Workshop · 3 hours · £180</p>
-    <h1 id="workshop-title">{title}</h1>
-    <p class="workshop-brief__intro">{introduction}</p>
+  <main class="workshop-site">
+    <section class="workshop-hero" aria-labelledby="workshop-title">
+      <div class="workshop-hero__copy">
+        <p class="workshop-eyebrow">{title} · 3 hours</p>
+        <h1 id="workshop-title">{heroHeading}</h1>
+        <p class="workshop-hero__body">{introduction}</p>
+        <p class="workshop-hero__audience"><strong>Designed for:</strong> {audience}</p>
 
-    <ul>
-      <li><strong>Target group:</strong> {audience}</li>
-      <li><strong>Format:</strong> One live, focused three-hour session for £180.</li>
-      {focus.map((item) => <li>{item}</li>)}
-      <li><strong>Outcome:</strong> {outcome}</li>
-    </ul>
+        <div class="workshop-hero__actions">
+          <a class="workshop-btn workshop-btn--primary" href="#discovery-call">
+            Book a free 15-minute discovery call
+          </a>
+          <a class="workshop-btn workshop-btn--secondary" href={emailHref}>
+            <span>Book one-on-one tutoring</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
 
-    {modulesHref && (
-      <p>
-        <a href={modulesHref}>View the existing class modules ↗</a>
-      </p>
-    )}
+        <div class="workshop-price" aria-label="Workshop price and format">
+          <strong>£180</strong>
+          <span>One private, focused 3-hour session</span>
+        </div>
+      </div>
 
-    <p class="workshop-brief__contact">
-      To arrange a session, reach out at <a href={emailHref}>{seoIdentity.email}</a>.
-    </p>
-  </article>
+      <figure class="workshop-hero__portrait">
+        <img
+          src={portraitUrl}
+          alt="Abodid Sahoo, workshop tutor"
+          width="800"
+          height="1000"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <figcaption>
+          <span>Live and tailored to your project</span>
+          <span>With Abodid Sahoo</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="workshop-process" aria-labelledby="process-heading">
+      <header class="workshop-process__header">
+        <p class="workshop-section-label">How the session works</p>
+        <h2 id="process-heading">A clear workflow, built around your material.</h2>
+        <p>
+          Bring a live project, an early idea, or a question you cannot yet resolve. We will work through it together and turn the session into practical next steps.
+        </p>
+      </header>
+
+      <ol class="workshop-workflow">
+        {workflow.map((step, index) => (
+          <li>
+            <span class="workshop-workflow__number">{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="workshop-focus" aria-labelledby="focus-heading">
+      <div class="workshop-focus__intro">
+        <p class="workshop-section-label">What we will focus on</p>
+        <h2 id="focus-heading">Focused guidance. Useful decisions. No generic syllabus.</h2>
+        <p>
+          The workshop adapts to your experience and the material you bring, while keeping a clear structure from question to outcome.
+        </p>
+        {modulesHref && (
+          <a class="workshop-resource-link" href={modulesHref}>
+            <span>View the existing class modules</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        )}
+      </div>
+
+      <div class="workshop-focus__cards">
+        {focus.map((item, index) => (
+          <article>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <p>{item}</p>
+          </article>
+        ))}
+        <article class="workshop-focus__outcome">
+          <span>Outcome</span>
+          <p>{outcome}</p>
+        </article>
+      </div>
+    </section>
+
+    <InlineInquiryForm
+      id="discovery-call"
+      heading="Book your free discovery call today."
+      eyebrow="Discovery call"
+      intro={`Tell me what you are working on and what you want from the ${title.toLowerCase()}. We will use a short call to shape the right session.`}
+      sourceName={slug}
+      defaultInterest={title}
+      variant="obsidian"
+      compact={true}
+      messageLabel="What would you like to work through?"
+      messagePlaceholder="Share the project, material or question you would bring to the session."
+      submitLabel="Yes, I'm Interested"
+      showEmailLink={false}
+    />
+
+    <nav class="workshop-related" aria-labelledby="related-heading">
+      <div>
+        <p class="workshop-section-label">Other workshops</p>
+        <h2 id="related-heading">Continue exploring</h2>
+      </div>
+      <div class="workshop-related__links">
+        {otherWorkshops.map((workshop) => (
+          <a href={workshop.href}>
+            <span>{workshop.title}</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        ))}
+      </div>
+    </nav>
+  </main>
 </BaseLayout>
 
 <style>
-  :global(body.workshop-brief-page) {
-    background: var(--pop-cream, #fff8e8);
-    color: var(--pop-ink, #15130f);
+  :global(html:has(body.workshop-landing-page)),
+  :global(body.workshop-landing-page) {
+    background: var(--pop-blue, #2444ca) !important;
   }
 
-  .workshop-brief {
-    max-width: 760px;
-    margin: clamp(5rem, 12vw, 10rem) auto;
-    padding: clamp(1.5rem, 5vw, 3.5rem);
-    border: 1px solid currentColor;
-    border-radius: clamp(18px, 3vw, 30px);
-    background: var(--pop-yellow, #f3ff69);
+  :global(body.workshop-landing-page main.page-content-full) {
+    overflow: visible;
   }
 
-  .workshop-brief__eyebrow {
-    margin: 0 0 1.25rem;
-    font-family: var(--font-mono, monospace);
-    font-size: 0.82rem;
-    font-weight: 700;
+  :global(body.workshop-landing-page .site-footer) {
+    --footer-bg: var(--pop-blue, #2444ca);
+    --footer-text-header: var(--pop-cream, #fff8e8);
+    --footer-text-dim: rgba(255, 248, 232, 0.82);
+    --footer-border: rgba(255, 248, 232, 0.3);
+  }
+
+  .workshop-site {
+    --workshop-ink: var(--pop-ink, #15130f);
+    --workshop-cream: var(--pop-cream, #fff8e8);
+    --workshop-blue: var(--pop-blue, #2444ca);
+    --workshop-pink: var(--pop-pink, #ff7eb5);
+    --workshop-yellow: var(--pop-yellow, #ffe44f);
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: clamp(1rem, 2.5vw, 2.2rem) clamp(1rem, 3vw, 2.5rem) clamp(3.5rem, 6vw, 6rem);
+    box-sizing: border-box;
+    overflow: hidden;
+    background: var(--workshop-blue);
+    color: var(--workshop-ink);
+  }
+
+  .workshop-site *,
+  .workshop-site *::before,
+  .workshop-site *::after {
+    box-sizing: border-box;
+  }
+
+  .workshop-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.95fr);
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+    align-items: stretch;
+  }
+
+  .workshop-hero__copy,
+  .workshop-hero__portrait {
+    min-width: 0;
+    min-height: clamp(540px, 58vw, 680px);
+    margin: 0;
+    overflow: hidden;
+    border: 1.5px solid var(--workshop-ink);
+    border-radius: clamp(18px, 2vw, 26px);
+  }
+
+  .workshop-hero__copy {
+    padding: clamp(2rem, 4vw, 3.8rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--workshop-pink);
+  }
+
+  .workshop-eyebrow,
+  .workshop-section-label {
+    width: fit-content;
+    margin: 0;
+    font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.25 var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .workshop-eyebrow {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--workshop-ink);
+    border-radius: 999px;
+    background: var(--workshop-cream);
+  }
+
+  .workshop-hero h1 {
+    max-width: 15ch;
+    margin: 0;
+    color: var(--workshop-ink);
+    font: 680 clamp(2.6rem, 5vw, 5.4rem)/0.94 var(--font-display);
+    letter-spacing: -0.06em;
+    text-wrap: balance;
+  }
+
+  .workshop-hero__body,
+  .workshop-hero__audience {
+    max-width: 50ch;
+    color: var(--workshop-ink);
+    font-size: clamp(0.98rem, 1.2vw, 1.12rem);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  .workshop-hero__body {
+    margin: clamp(1.2rem, 2vw, 1.65rem) 0 0;
+  }
+
+  .workshop-hero__audience {
+    margin: 0.7rem 0 0;
+  }
+
+  .workshop-hero__actions {
+    margin-top: clamp(1.5rem, 2.5vw, 2rem);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .workshop-btn {
+    min-height: 50px;
+    padding: 0.85rem 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: 1.5px solid var(--workshop-ink);
+    border-radius: 14px;
+    color: var(--workshop-ink);
+    font: 750 0.74rem/1.15 var(--font-mono);
+    letter-spacing: 0.045em;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .workshop-btn--primary { background: var(--workshop-cream); }
+  .workshop-btn--secondary { background: var(--workshop-yellow); }
+
+  .workshop-btn:hover,
+  .workshop-btn:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--workshop-ink);
+  }
+
+  .workshop-btn:focus-visible,
+  .workshop-resource-link:focus-visible,
+  .workshop-related a:focus-visible {
+    outline: 3px solid var(--workshop-cream);
+    outline-offset: 3px;
+  }
+
+  .workshop-price {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    color: var(--workshop-ink);
+  }
+
+  .workshop-price strong { font-size: 1.05rem; }
+
+  .workshop-price span {
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  .workshop-hero__portrait {
+    position: relative;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    background: var(--workshop-ink);
+  }
+
+  .workshop-hero__portrait img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: block;
+    object-fit: cover;
+    object-position: center 34%;
+    transition: transform 550ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .workshop-hero__portrait:hover img { transform: scale(1.025); }
+
+  .workshop-hero__portrait figcaption {
+    min-height: 54px;
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: var(--workshop-cream);
+    color: var(--workshop-ink);
+    font: 750 0.68rem/1.3 var(--font-mono);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  h1 {
-    max-width: 12ch;
-    margin: 0;
-    font-size: clamp(2.7rem, 8vw, 6.5rem);
-    line-height: 0.92;
-    letter-spacing: -0.065em;
+  .workshop-process,
+  .workshop-focus,
+  .workshop-related {
+    margin-top: clamp(1.25rem, 2.5vw, 2rem);
+    border: 1.5px solid var(--workshop-ink);
+    border-radius: clamp(18px, 2vw, 26px);
   }
 
-  .workshop-brief__intro {
-    max-width: 58ch;
-    margin: 2rem 0;
-    font-size: clamp(1.08rem, 2vw, 1.35rem);
-    line-height: 1.55;
+  .workshop-process {
+    overflow: hidden;
+    background: var(--workshop-cream);
   }
 
-  ul {
+  .workshop-process__header {
+    padding: clamp(2rem, 5vw, 4.5rem);
     display: grid;
-    gap: 0.75rem;
+    grid-template-columns: minmax(0, 1.3fr) minmax(16rem, 0.7fr);
+    gap: 1rem clamp(2rem, 7vw, 7rem);
+    align-items: end;
+  }
+
+  .workshop-process__header .workshop-section-label { grid-column: 1 / -1; }
+
+  .workshop-process__header h2,
+  .workshop-focus h2,
+  .workshop-related h2 {
     margin: 0;
-    padding-left: 1.25rem;
+    color: var(--workshop-ink);
+    font: 650 clamp(2.35rem, 5vw, 5.2rem)/0.92 var(--font-display);
+    letter-spacing: -0.055em;
+    text-wrap: balance;
+  }
+
+  .workshop-process__header > p:last-child,
+  .workshop-focus__intro > p:last-of-type {
+    margin: 0;
+    color: var(--workshop-ink);
+    font-size: clamp(0.98rem, 1.2vw, 1.1rem);
     line-height: 1.55;
+    text-wrap: pretty;
   }
 
-  p:last-child {
-    margin-bottom: 0;
+  .workshop-workflow {
+    margin: 0;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    list-style: none;
+    border-top: 1.5px solid var(--workshop-ink);
+    background: var(--workshop-blue);
   }
 
-  a {
-    color: inherit;
-    font-weight: 700;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 0.18em;
+  .workshop-workflow li {
+    min-width: 0;
+    min-height: 290px;
+    padding: clamp(1.25rem, 2.5vw, 2rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    border: 1px solid var(--workshop-ink);
+    border-radius: 16px;
+    background: var(--workshop-yellow);
   }
 
-  .workshop-brief__contact {
-    margin-top: 2rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid currentColor;
+  .workshop-workflow li:nth-child(even) { background: var(--workshop-pink); }
+
+  .workshop-workflow__number {
+    font: 750 0.75rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  .workshop-workflow h3 {
+    margin: 0;
+    color: var(--workshop-ink);
+    font: 650 clamp(1.5rem, 2.3vw, 2.5rem)/0.98 var(--font-display);
+    letter-spacing: -0.04em;
+  }
+
+  .workshop-workflow p {
+    margin: 0.8rem 0 0;
+    color: var(--workshop-ink);
+    font-size: 0.95rem;
+    line-height: 1.48;
+  }
+
+  .workshop-focus {
+    padding: 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+    gap: 8px;
+    background: var(--workshop-blue);
+  }
+
+  .workshop-focus__intro,
+  .workshop-focus__cards article {
+    border: 1px solid var(--workshop-ink);
+    border-radius: 16px;
+  }
+
+  .workshop-focus__intro {
+    padding: clamp(1.75rem, 4vw, 3.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--workshop-pink);
+  }
+
+  .workshop-focus h2 {
+    margin-top: 1rem;
+    font-size: clamp(2.2rem, 4vw, 4.5rem);
+  }
+
+  .workshop-focus__intro > p:last-of-type {
+    max-width: 42ch;
+    margin-top: 1.25rem;
+  }
+
+  .workshop-resource-link {
+    width: fit-content;
+    min-height: 44px;
+    margin-top: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--workshop-ink);
+    font-weight: 750;
+  }
+
+  .workshop-resource-link:hover span:first-child {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .workshop-focus__cards {
+    display: grid;
+    gap: 8px;
+  }
+
+  .workshop-focus__cards article {
+    min-height: 134px;
+    padding: clamp(1.2rem, 2.5vw, 2rem);
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    background: var(--workshop-cream);
+  }
+
+  .workshop-focus__cards article > span {
+    font: 750 0.72rem/1.4 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .workshop-focus__cards p {
+    max-width: 48ch;
+    margin: 0;
+    color: var(--workshop-ink);
+    font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+    font-weight: 600;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+
+  .workshop-focus__cards .workshop-focus__outcome { background: var(--workshop-yellow); }
+
+  .workshop-site :global(.inline-enquiry--obsidian) {
+    margin-top: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .workshop-related {
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+    gap: clamp(1.5rem, 5vw, 5rem);
+    align-items: start;
+    background: var(--workshop-yellow);
+  }
+
+  .workshop-related h2 {
+    margin-top: 0.65rem;
+    font-size: clamp(2rem, 3.8vw, 4rem);
+  }
+
+  .workshop-related__links {
+    display: grid;
+    gap: 8px;
+  }
+
+  .workshop-related a {
+    min-height: 64px;
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid var(--workshop-ink);
+    border-radius: 13px;
+    background: var(--workshop-cream);
+    color: var(--workshop-ink);
+    font-weight: 750;
+    text-decoration: none;
+    transition: transform 180ms ease, background 180ms ease;
+  }
+
+  .workshop-related a:hover {
+    transform: translateX(4px);
+    background: var(--workshop-pink);
+  }
+
+  @media (max-width: 1100px) {
+    .workshop-workflow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .workshop-workflow li { min-height: 240px; }
+  }
+
+  @media (max-width: 980px) {
+    .workshop-hero,
+    .workshop-process__header,
+    .workshop-focus,
+    .workshop-related {
+      grid-template-columns: 1fr;
+    }
+
+    .workshop-hero__copy,
+    .workshop-hero__portrait { min-height: 0; }
+    .workshop-hero__portrait img { aspect-ratio: 4 / 3; }
+    .workshop-process__header .workshop-section-label { grid-column: auto; }
+    .workshop-focus__intro { min-height: 390px; }
   }
 
   @media (max-width: 720px) {
-    .workshop-brief {
-      margin: 4.5rem 0 2rem;
+    .workshop-site { padding: 0.85rem 0.85rem 3.5rem; }
+    .workshop-hero__copy { padding: 1.65rem 1.15rem 1.8rem; }
+
+    .workshop-hero h1 {
+      font-size: clamp(2.65rem, 12vw, 4.2rem);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
     }
+
+    .workshop-hero__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .workshop-btn { width: 100%; }
+
+    .workshop-price {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .workshop-hero__portrait img { aspect-ratio: 4 / 4.6; }
+
+    .workshop-hero__portrait figcaption {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .workshop-process__header { padding: 1.75rem 1.15rem; }
+
+    .workshop-process__header h2,
+    .workshop-focus h2 { font-size: clamp(2.25rem, 10vw, 3.5rem); }
+
+    .workshop-workflow { grid-template-columns: 1fr; }
+    .workshop-workflow li { min-height: 0; }
+
+    .workshop-focus__intro {
+      min-height: 0;
+      padding: 1.75rem 1.15rem;
+    }
+
+    .workshop-focus__cards article {
+      grid-template-columns: 1fr;
+      gap: 0.7rem;
+    }
+
+    .workshop-related { padding: 1.25rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .workshop-site *,
+    .workshop-site *::before,
+    .workshop-site *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+
+    .workshop-hero__portrait:hover img,
+    .workshop-btn:hover,
+    .workshop-related a:hover { transform: none; }
   }
 </style>

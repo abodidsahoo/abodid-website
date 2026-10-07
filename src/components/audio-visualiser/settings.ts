@@ -7,7 +7,24 @@ import type {
 
 export const SETTINGS_STORAGE_KEY = "audio-visualiser:reference-settings:v1";
 export const MAGNETIC_SETTINGS_STORAGE_KEY =
-  "audio-visualiser:magnetic-aperture:v10";
+  "audio-visualiser:magnetic-aperture:v11";
+
+const GRAVITY_CONTROL_MIN = 0;
+const GRAVITY_CONTROL_MAX = 3;
+const GRAVITY_PHYSICS_MIN = 1;
+const GRAVITY_PHYSICS_MAX = 5;
+
+/** Maps the user-facing 0–3 gravity control to the stronger 1–5 physics range. */
+export const mapGravityPullToPhysics = (gravityPull: number) => {
+  const controlValue = Math.min(
+    GRAVITY_CONTROL_MAX,
+    Math.max(GRAVITY_CONTROL_MIN, gravityPull),
+  );
+  const progress =
+    (controlValue - GRAVITY_CONTROL_MIN) /
+    (GRAVITY_CONTROL_MAX - GRAVITY_CONTROL_MIN);
+  return GRAVITY_PHYSICS_MIN + progress * (GRAVITY_PHYSICS_MAX - GRAVITY_PHYSICS_MIN);
+};
 
 export const REFERENCE_SETTINGS: AudioVisualiserSettings = {
   sensitivity: 1,
@@ -46,6 +63,11 @@ export const MAGNETIC_REFERENCE_SETTINGS: MagneticApertureSettings = {
   // Aurora Backdrop
   backdropTheme: "purple-red",
   backdropIntensity: 0.65,
+  // Impact layer: a low-frequency flash at the core and a travelling pressure wave.
+  bassBloom: 1.25,
+  bassWave: 0.9,
+  // How strongly the perceptual spectrum sculpts the central contour edge.
+  spectralDetail: 1.0,
   backdropVisible: true,
   bassVisible: true,
   bassReactive: true,
@@ -75,8 +97,8 @@ export const MAGNETIC_REFERENCE_SETTINGS: MagneticApertureSettings = {
   contourRings: 5,
   contourDeformation: 1.0,
   // Fast attack + moderate release = snappy pop, visible sustain
-  apertureAttackMs: 14,
-  apertureReleaseMs: 180,
+  apertureAttackMs: 10,
+  apertureReleaseMs: 130,
   attraction: 1.0,
   softness: 0.11,
   tangentForce: 0.65,
@@ -130,7 +152,7 @@ const bounds: Record<keyof AudioVisualiserSettings, [number, number]> = {
 const magneticBounds: Partial<
   Record<keyof MagneticApertureSettings, [number, number]>
 > = {
-  overallReaction: [0, 2], bassPull: [0, 2.5], gravityPull: [0.2, 3.5], burstStrength: [0, 2.5],
+  overallReaction: [0, 2], bassPull: [0, 2.5], gravityPull: [0, 3], burstStrength: [0, 2.5],
   rotationSpeed: [0, 1.5], circleSize: [0.1, 0.34], deformation: [0, 1],
   fieldSpread: [0.55, 1.55], pieceCount: [120, 1200], pieceLength: [0.35, 2.2],
   pieceWidth: [0.4, 2], glow: [0, 1], hueShift: [-120, 120],
@@ -141,15 +163,15 @@ const magneticBounds: Partial<
   apertureBassAmount: [-0.5, 0.5], rimGlow: [0, 1],
   contourScale: [0.3, 2], contourDepth: [0, 0.24],
   contourRings: [1, 12], contourDeformation: [0.2, 3.0],
-  apertureAttackMs: [15, 240],
-  apertureReleaseMs: [80, 900], attraction: [0, 3], softness: [0.03, 0.35],
+  apertureAttackMs: [8, 240],
+  apertureReleaseMs: [50, 900], attraction: [0, 3], softness: [0.03, 0.35],
   tangentForce: [0, 2], homeRestore: [0, 3], eccentricity: [0.4, 1.15],
   petalCount: [2, 10], ringCount: [2, 9], seedJitter: [0, 1],
   burstRadial: [0, 2], burstAngular: [0, 2], linearDrag: [0.3, 4],
   angularDrag: [0.3, 5], maxVelocity: [0.15, 2], maxAcceleration: [0.4, 6],
   pullThreshold: [0.05, 0.65], releaseThreshold: [0.02, 0.5], dwellMs: [0, 500],
   sizeVariation: [0, 1], density: [0.3, 1], opacity: [0.15, 1], depth: [0, 1],
-  backdropIntensity: [0, 1],
+  backdropIntensity: [0, 1], bassBloom: [0, 2.5], bassWave: [0, 2.5], spectralDetail: [0, 2.5],
   backgroundHue: [0, 360], bassHue: [0, 360], midHue: [0, 360], highHue: [0, 360],
   saturation: [0, 1], brightness: [0.35, 1.6], zoom: [0.65, 1.6],
   centerX: [-0.35, 0.35], centerY: [-0.35, 0.35],
@@ -246,7 +268,7 @@ export const loadMagneticSettings = (): MagneticApertureSettings => {
   try {
     const saved = window.localStorage.getItem(MAGNETIC_SETTINGS_STORAGE_KEY);
     const parsed = saved ? JSON.parse(saved) : null;
-    return sanitiseMagneticSettings(parsed?.version === 10 ? parsed.settings : null);
+    return sanitiseMagneticSettings(parsed?.version === 11 ? parsed.settings : null);
   } catch {
     return { ...MAGNETIC_REFERENCE_SETTINGS };
   }
@@ -256,7 +278,7 @@ export const saveMagneticSettings = (settings: MagneticApertureSettings) => {
   try {
     window.localStorage.setItem(
       MAGNETIC_SETTINGS_STORAGE_KEY,
-      JSON.stringify({ version: 10, settings }),
+      JSON.stringify({ version: 11, settings }),
     );
   } catch {
     // Settings remain usable in memory when browser storage is unavailable.

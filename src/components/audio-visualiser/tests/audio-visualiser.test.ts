@@ -4,6 +4,7 @@ import { AudioFeatureProcessor } from "../AudioFeatureProcessor";
 import {
   MAGNETIC_REFERENCE_SETTINGS,
   REFERENCE_SETTINGS,
+  mapGravityPullToPhysics,
   sanitiseMagneticSettings,
   sanitiseSettings,
 } from "../settings";
@@ -53,6 +54,14 @@ describe("audio visualiser settings", () => {
       bassVisible: false,
       palette: "ember",
     });
+  });
+
+  it("maps the 0–3 gravity control to a stronger 1–5 physics range", () => {
+    expect(mapGravityPullToPhysics(0)).toBe(1);
+    expect(mapGravityPullToPhysics(1.5)).toBe(3);
+    expect(mapGravityPullToPhysics(3)).toBe(5);
+    expect(mapGravityPullToPhysics(-1)).toBe(1);
+    expect(mapGravityPullToPhysics(4)).toBe(5);
   });
 });
 
@@ -107,7 +116,14 @@ describe("shared audio feature processing", () => {
     expect(frame.sampleRate).toBe(48_000);
     expect(frame.bass.energy).toBeGreaterThan(frame.mid.energy);
     expect(frame.bass.onset).toBe(true);
+    expect(frame.bass.transient).toBeGreaterThan(0);
     expect(frame.high.energy).toBe(0);
+    expect(frame.spectrum).toHaveLength(24);
+    expect([...frame.spectrum].some((value) => value > 0)).toBe(true);
+    expect(frame.spectralCentroid).toBeGreaterThanOrEqual(0);
+    expect(frame.spectralCentroid).toBeLessThanOrEqual(1);
+    expect(frame.spectralFlatness).toBeGreaterThanOrEqual(0);
+    expect(frame.spectralFlatness).toBeLessThanOrEqual(1);
   });
 
   it("decays toward silence when playback is paused", () => {

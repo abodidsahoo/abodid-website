@@ -5,7 +5,8 @@ import type {
 } from "./types";
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-const HIGH_SPECTRUM_SLICES = 12;
+const SPECTRUM_SLICES = 24;
+const SPECTRUM_LOW_HZ = 30;
 
 type BandState = BandFeature & {
   armed: boolean;
@@ -16,6 +17,7 @@ const createBand = (): BandState => ({
   energy: 0,
   fast: 0,
   slow: 0,
+  transient: 0,
   onset: false,
   falling: false,
   armed: true,
@@ -28,6 +30,7 @@ const createBand = (): BandState => ({
  */
 export class AudioFeatureProcessor {
   private frequencyData = new Float32Array(0);
+  private readonly previousSpectrum = new Float32Array(SPECTRUM_SLICES);
   private lastTime = 0;
   private pullSince = 0;
   private releaseSince = 0;
@@ -39,7 +42,10 @@ export class AudioFeatureProcessor {
     bass: createBand(),
     mid: createBand(),
     high: createBand(),
-    highSpectrum: new Float32Array(HIGH_SPECTRUM_SLICES),
+    spectrum: new Float32Array(SPECTRUM_SLICES),
+    spectralCentroid: 0,
+    spectralFlatness: 0,
+    spectralFlux: 0,
     level: 0,
     hasSignal: false,
     pullActive: false,
@@ -86,7 +92,7 @@ export class AudioFeatureProcessor {
     this.updateBand(this.frame.bass, bassRaw * settings.bassSensitivity, deltaSeconds, time, settings);
     this.updateBand(this.frame.mid, midRaw * settings.midSensitivity, deltaSeconds, time, settings);
     this.updateBand(this.frame.high, highRaw * settings.highSensitivity, deltaSeconds, time, settings);
-    this.updateHighSpectrum(Boolean(analyser), settings, deltaSeconds);
+    this.updateSpectrum(Boolean(analyser), settings, deltaSeconds);
 
     this.frame.level =
       this.frame.bass.energy * 0.36 +
@@ -145,32 +151,60 @@ export class AudioFeatureProcessor {
     return clamp01(aggregate / Math.max(1, validSlices) * settings.normalisation);
   }
 
-  private updateHighSpectrum(
+  private updateSpectrum(
     hasAnalyser: boolean,
     settings: AudioFeatureSettings,
     deltaSeconds: number,
   ) {
     const sampleRate = this.frame.sampleRate || 48_000;
-    const low = Math.max(1, settings.midHighCrossover);
+    const low = SPECTRUM_LOW_HZ;
     const high = Math.min(12_000, sampleRate * 0.48);
     const logRange = Math.log(high / low);
+    let weightedPosition = 0;
+    let energySum = 0;
+    let logEnergySum = 0;
+    let positiveFlux = 0;
 
-    for (let index = 0; index < HIGH_SPECTRUM_SLICES; index += 1) {
-      const sliceLow = low * Math.exp(logRange * (index / HIGH_SPECTRUM_SLICES));
-      const sliceHigh = low * Math.exp(logRange * ((index + 1) / HIGH_SPECTRUM_SLICES));
+    for (let index = 0; index < SPECTRUM_SLICES; index += 1) {
+      const sliceLow = low * Math.exp(logRange * (index / SPECTRUM_SLICES));
+      const sliceHigh = low * Math.exp(logRange * ((index + 1) / SPECTRUM_SLICES));
+      const centre = Math.sqrt(sliceLow * sliceHigh);
+      const sensitivity = centre < settings.bassMidCrossover
+        ? settings.bassSensitivity
+        : centre < settings.midHighCrossover
+          ? settings.midSensitivity
+          : settings.highSensitivity;
       const target = hasAnalyser
         ? clamp01(
             this.aggregateBand(sliceLow, sliceHigh, sampleRate, settings) *
-            settings.highSensitivity,
+            sensitivity,
           )
         : 0;
-      const current = this.frame.highSpectrum[index];
-      // Guitar harmonics and pick noise need an almost immediate visual attack,
-      // followed by enough release time for each pulled-string peak to read.
-      const response = target > current ? 0.008 : 0.14;
-      this.frame.highSpectrum[index] +=
+      const current = this.frame.spectrum[index];
+      // The detailed spectrum gets a near-instant attack and a short visual
+      // memory. The slower band envelopes remain independently controllable.
+      const response = target > current ? 0.008 : 0.11;
+      this.frame.spectrum[index] +=
         (target - current) * (1 - Math.exp(-deltaSeconds / response));
+      const value = this.frame.spectrum[index];
+      weightedPosition += value * (index / (SPECTRUM_SLICES - 1));
+      energySum += value;
+      logEnergySum += Math.log(Math.max(1e-4, value));
+      positiveFlux += Math.max(0, value - this.previousSpectrum[index]);
+      this.previousSpectrum[index] = value;
     }
+
+    const centroidTarget = energySum > 1e-4 ? weightedPosition / energySum : 0;
+    const arithmeticMean = energySum / SPECTRUM_SLICES;
+    const geometricMean = Math.exp(logEnergySum / SPECTRUM_SLICES);
+    const flatnessTarget = arithmeticMean > 1e-4
+      ? clamp01(geometricMean / arithmeticMean)
+      : 0;
+    const fluxTarget = clamp01(positiveFlux / Math.max(1, SPECTRUM_SLICES * 0.12));
+    const descriptorBlend = 1 - Math.exp(-deltaSeconds / 0.06);
+    this.frame.spectralCentroid += (centroidTarget - this.frame.spectralCentroid) * descriptorBlend;
+    this.frame.spectralFlatness += (flatnessTarget - this.frame.spectralFlatness) * descriptorBlend;
+    this.frame.spectralFlux += (fluxTarget - this.frame.spectralFlux) * descriptorBlend;
   }
 
   private updateBand(
@@ -189,6 +223,7 @@ export class AudioFeatureProcessor {
     band.slow += (target - band.slow) * (1 - Math.exp(-deltaSeconds / 0.18));
     const diff = band.fast - band.slow;
     const normalizedNovelty = diff / Math.max(0.06, band.slow * 0.6);
+    band.transient = clamp01(Math.max(diff / Math.max(0.025, settings.onsetThreshold), normalizedNovelty));
     const isCooldownOver = time - band.lastOnset >= settings.onsetCooldownMs;
     band.onset = false;
     if (

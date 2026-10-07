@@ -4,229 +4,580 @@ import { getAwards } from "../../lib/api";
 
 const awards = await getAwards();
 const pageTitle = "Awards & Recognition";
+const pageDescription =
+  "A selection of scholarships, grants, awards, and funded opportunities that have supported Abodid Sahoo's creative and academic journey.";
+const awardCount = String(awards.length).padStart(2, "0");
+const years = awards
+  .flatMap((award) => String(award.year || "").match(/\b(?:19|20)\d{2}\b/g) || [])
+  .map(Number)
+  .sort((a, b) => a - b);
+const yearRange = years.length
+  ? years[0] === years[years.length - 1]
+    ? String(years[0])
+    : `${years[0]}—${years[years.length - 1]}`
+  : "Selected years";
+const tones = ["pink", "yellow", "blue", "cyan"];
 ---
 
-<BaseLayout title={pageTitle}>
-    <div class="page-container">
-        <header class="page-header">
-            <h1>{pageTitle}</h1>
-            <p class="section-intro">
-                A selection of scholarships, grants, and awards that have
-                supported my creative and academic journey.
-            </p>
-        </header>
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  fullWidth={true}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="awards-pop-page"
+>
+  <main class="awards-page">
+    <section class="awards-hero" aria-labelledby="awards-title">
+      <header class="awards-hero__copy">
+        <div>
+          <p class="awards-eyebrow">Recognition / Selected record</p>
+          <h1 id="awards-title">
+            <span>Awards</span>
+            <span>&amp; Recognition</span>
+          </h1>
+        </div>
+        <p class="awards-hero__lede">
+          A selection of scholarships, grants, and awards that have supported my
+          creative and academic journey.
+        </p>
+      </header>
 
-        <section class="awards-list-section">
-            <div class="awards-grid">
-                {/* Header Row */}
-                <div class="grid-row header-row">
-                    <div class="cell year-cell">Year</div>
-                    <div class="cell title-cell">Award / Honor</div>
-                    <div class="cell desc-cell">Description</div>
+      <aside class="awards-hero__summary" aria-label="Awards summary">
+        <p class="awards-eyebrow">At a glance</p>
+        <div class="awards-hero__metric" aria-label={`${awards.length} recognitions`}>
+          {awardCount}
+        </div>
+        <p class="awards-hero__metric-label">
+          Scholarships, awards and funded opportunities
+        </p>
+        <dl>
+          <div>
+            <dt>Recorded</dt>
+            <dd>{yearRange}</dd>
+          </div>
+          <div>
+            <dt>Entries</dt>
+            <dd>{awardCount}</dd>
+          </div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="awards-index" aria-labelledby="recognition-heading">
+      <header class="awards-index__header">
+        <div>
+          <p class="awards-eyebrow">Index / {awardCount} entries</p>
+          <h2 id="recognition-heading">Selected recognition</h2>
+        </div>
+        <p>
+          A chronological record of the institutions, programmes and moments
+          that have made sustained creative and research work possible.
+        </p>
+      </header>
+
+      <ol class="awards-grid" aria-label="Awards and recognition">
+        {
+          awards.map((award, index) => (
+            <li class="award-card" data-tone={tones[index % tones.length]}>
+              <div class="award-card__meta">
+                <span class="award-card__index">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span>{award.category === "conference" ? "Conference" : "Award"}</span>
+                <span class="award-card__year">{award.year}</span>
+              </div>
+
+              <div class="award-card__main">
+                <div class="award-card__identity">
+                  <h3>{award.title}</h3>
+                  {award.organization && <p>{award.organization}</p>}
                 </div>
-
-                {/* Data Rows */}
-                {
-                    awards.map((award) => (
-                        <div class="grid-row content-row">
-                            <div class="cell year-cell">
-                                <span class="mono-text">{award.year}</span>
-                            </div>
-
-                            <div class="cell title-cell">
-                                <div class="award-hierarchy">
-                                    <span class="award-name">
-                                        {award.title}
-                                    </span>
-                                    {award.organization && (
-                                        <span class="org-name">
-                                            {award.organization}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div class="cell desc-cell">
-                                <p class="award-description">
-                                    {award.description}
-                                </p>
-                            </div>
-                        </div>
-                    ))
-                }
-            </div>
-        </section>
-    </div>
+                <p class="award-card__description">{award.description}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  </main>
 </BaseLayout>
 
-<style>
-    .page-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding-bottom: 8rem;
+<style is:global>
+  body.awards-pop-page {
+    margin: 0;
+    padding: 0 !important;
+    background: var(--pop-blue) !important;
+    color: var(--pop-ink);
+  }
+
+  body.awards-pop-page main.page-content-full {
+    overflow: visible;
+  }
+
+  body.awards-pop-page :is(h1, h2, h3, p, dl, dd, ol) {
+    margin-top: 0;
+  }
+
+  body.awards-pop-page ::selection {
+    background: var(--pop-purple);
+    color: var(--pop-cream);
+  }
+
+  .awards-page {
+    overflow: clip;
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+  }
+
+  .awards-eyebrow {
+    margin-bottom: 1rem;
+    color: inherit;
+    font: 750 clamp(0.68rem, 0.9vw, 0.78rem) / 1.35 var(--font-mono, monospace);
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .awards-hero {
+    padding: var(--pop-gap);
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.7fr);
+    gap: var(--pop-gap);
+    align-items: stretch;
+    background: var(--pop-blue);
+  }
+
+  .awards-hero__copy,
+  .awards-hero__summary,
+  .awards-index,
+  .award-card {
+    min-width: 0;
+    border: 1px solid var(--pop-border);
+  }
+
+  .awards-hero__copy,
+  .awards-hero__summary {
+    min-height: clamp(470px, 65svh, 680px);
+    border-radius: var(--pop-radius-panel);
+  }
+
+  .awards-hero__copy {
+    padding: clamp(1.75rem, 4.8vw, 5.25rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: clamp(3rem, 8vw, 7rem);
+    background: var(--pop-pink);
+  }
+
+  .awards-hero h1 {
+    max-width: 10ch;
+    margin: 0;
+    color: inherit;
+    font: 720 clamp(4.2rem, 9vw, 9.4rem) / 0.82 var(--font-display, sans-serif);
+    letter-spacing: -0.075em;
+    text-wrap: balance;
+  }
+
+  .awards-hero h1 span {
+    display: block;
+  }
+
+  .awards-hero h1 span:last-child {
+    font-weight: 470;
+  }
+
+  .awards-hero__lede {
+    max-width: 38rem;
+    margin-bottom: 0;
+    color: rgba(21, 19, 15, 0.82);
+    font: 450 clamp(1.08rem, 1.6vw, 1.5rem) / 1.42 var(--font-body, sans-serif);
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .awards-hero__summary {
+    padding: clamp(1.5rem, 3vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    background: var(--pop-yellow);
+  }
+
+  .awards-hero__metric {
+    margin: auto 0 0;
+    font: 720 clamp(7.5rem, 15vw, 14rem) / 0.72 var(--font-display, sans-serif);
+    letter-spacing: -0.085em;
+  }
+
+  .awards-hero__metric-label {
+    max-width: 20ch;
+    margin: 1.5rem 0 2.25rem;
+    font: 620 clamp(1.35rem, 2.2vw, 2.25rem) / 1.02 var(--font-display, sans-serif);
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+    color: inherit;
+  }
+
+  .awards-hero__summary dl {
+    margin-bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid currentColor;
+  }
+
+  .awards-hero__summary dl div {
+    min-width: 0;
+    padding-top: 0.9rem;
+  }
+
+  .awards-hero__summary dl div + div {
+    padding-left: 1rem;
+    border-left: 1px solid currentColor;
+  }
+
+  .awards-hero__summary dt,
+  .awards-hero__summary dd,
+  .award-card__meta {
+    color: inherit;
+    font: 750 clamp(0.68rem, 0.86vw, 0.76rem) / 1.35 var(--font-mono, monospace);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .awards-hero__summary dt {
+    margin-bottom: 0.35rem;
+    opacity: 0.7;
+  }
+
+  .awards-hero__summary dd {
+    margin-left: 0;
+  }
+
+  .awards-index {
+    margin: 0 var(--pop-gap) var(--pop-gap);
+    padding: clamp(2rem, 5vw, 5.75rem);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-cream);
+  }
+
+  .awards-index__header {
+    margin-bottom: clamp(3.5rem, 7vw, 6.5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.65fr);
+    gap: 2rem clamp(2rem, 7vw, 7rem);
+    align-items: end;
+  }
+
+  .awards-index__header h2 {
+    max-width: 11ch;
+    margin-bottom: 0;
+    color: inherit;
+    font: 680 clamp(3.4rem, 7.8vw, 8rem) / 0.88 var(--font-display, sans-serif);
+    letter-spacing: -0.065em;
+    text-wrap: balance;
+  }
+
+  .awards-index__header > p {
+    max-width: 35rem;
+    margin-bottom: 0.3rem;
+    color: rgba(21, 19, 15, 0.78);
+    font: 450 clamp(0.98rem, 1.15vw, 1.12rem) / 1.55 var(--font-body, sans-serif);
+    text-wrap: pretty;
+  }
+
+  .awards-grid {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--pop-gap);
+    list-style: none;
+  }
+
+  .award-card {
+    min-height: clamp(360px, 37vw, 500px);
+    padding: clamp(1.35rem, 2.5vw, 2.4rem);
+    grid-column: span 7;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--pop-radius-card);
+    color: var(--pop-ink);
+  }
+
+  .award-card:nth-child(4n + 2),
+  .award-card:nth-child(4n + 3) {
+    grid-column: span 5;
+  }
+
+  .award-card:nth-child(4n + 4) {
+    grid-column: span 7;
+  }
+
+  .award-card:last-child:nth-child(odd) {
+    min-height: clamp(300px, 28vw, 410px);
+    grid-column: 1 / -1;
+  }
+
+  .award-card[data-tone="pink"] {
+    background: var(--pop-pink);
+  }
+
+  .award-card[data-tone="yellow"] {
+    background: var(--pop-yellow);
+  }
+
+  .award-card[data-tone="blue"] {
+    border-color: rgba(255, 248, 232, 0.5);
+    background: var(--pop-blue);
+    color: var(--pop-cream);
+  }
+
+  .award-card[data-tone="cyan"] {
+    background: var(--pop-cyan);
+  }
+
+  .award-card__meta {
+    padding-bottom: 0.9rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.75rem 1rem;
+    align-items: baseline;
+    border-bottom: 1px solid currentColor;
+  }
+
+  .award-card__index {
+    min-width: 2.3rem;
+  }
+
+  .award-card__year {
+    text-align: right;
+  }
+
+  .award-card__main {
+    flex: 1;
+    padding-top: clamp(1.5rem, 3vw, 2.75rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .award-card__identity h3 {
+    max-width: 15ch;
+    margin-bottom: 0.7rem;
+    color: inherit;
+    font: 650 clamp(2.05rem, 3.7vw, 4.2rem) / 0.94 var(--font-display, sans-serif);
+    letter-spacing: -0.055em;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  .award-card__identity p {
+    max-width: 34ch;
+    margin-bottom: 0;
+    font: 650 clamp(0.78rem, 0.95vw, 0.9rem) / 1.35 var(--font-mono, monospace);
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    color: inherit;
+  }
+
+  .award-card__description {
+    max-width: 56ch;
+    margin: auto 0 0;
+    padding-top: clamp(1.25rem, 2vw, 1.75rem);
+    border-top: 1px solid currentColor;
+    font: 450 clamp(0.98rem, 1.15vw, 1.12rem) / 1.52 var(--font-body, sans-serif);
+    text-wrap: pretty;
+    color: inherit;
+  }
+
+  .award-card:last-child:nth-child(odd) .award-card__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+    gap: 2rem clamp(2rem, 8vw, 8rem);
+    align-items: end;
+  }
+
+  .award-card:last-child:nth-child(odd) .award-card__description {
+    margin-top: 0;
+  }
+
+  @media (max-width: 980px) {
+    .awards-hero {
+      grid-template-columns: minmax(0, 1fr);
     }
 
-    .page-header {
-        margin-bottom: 5rem;
-        padding-top: 2rem;
-        text-align: left;
+    .awards-hero__copy,
+    .awards-hero__summary {
+      min-height: 0;
     }
 
-    h1 {
-        font-family: var(--font-display);
-        font-size: 3.5rem;
-        font-weight: 600;
-        letter-spacing: -0.02em;
-        color: var(--text-primary);
-        margin-bottom: 1rem;
+    .awards-hero__copy {
+      min-height: 520px;
     }
 
-    .section-intro {
-        font-family: var(--font-sans);
-        font-size: 1.1rem;
-        color: var(--text-secondary);
-        max-width: 600px;
-        margin: 0;
-        line-height: 1.6;
+    .awards-hero__summary {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(260px, 1.15fr);
+      gap: 1rem 2rem;
+      align-items: end;
     }
 
-    /* Strictly Enforced Grid Table */
-    .awards-grid {
-        display: flex;
-        flex-direction: column;
-        border: 1px solid var(--border-subtle);
-        background: var(--bg-canvas);
+    .awards-hero__summary .awards-eyebrow {
+      grid-column: 1 / -1;
     }
 
-    .grid-row {
-        display: grid;
-        grid-template-columns: 180px 350px 1fr;
-        border-bottom: 1px solid var(--border-subtle);
+    .awards-hero__metric {
+      margin: 1rem 0 0;
     }
 
-    .grid-row:last-child {
-        border-bottom: none;
+    .awards-hero__metric-label {
+      align-self: center;
     }
 
-    .cell {
-        padding: 2.5rem 2rem;
-        display: flex;
-        align-items: flex-start;
-        border-right: 1px solid var(--border-subtle);
+    .awards-hero__summary dl {
+      grid-column: 1 / -1;
     }
 
-    .cell:last-child {
-        border-right: none;
+    .awards-index__header {
+      grid-template-columns: minmax(0, 1fr);
     }
 
-    /* Header Styling */
-    .header-row {
-        background: rgba(255, 255, 255, 0.03);
+    .awards-index__header > p {
+      max-width: 46rem;
     }
 
-    .header-row .cell {
-        font-family: var(--font-ui);
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--text-tertiary);
-        padding: 1.25rem 2rem;
-        font-weight: 700;
+    .award-card,
+    .award-card:nth-child(4n + 2),
+    .award-card:nth-child(4n + 3),
+    .award-card:nth-child(4n + 4) {
+      min-height: 390px;
+      grid-column: span 6;
     }
 
-    /* Hierarchy & Typography */
-    .mono-text {
-        font-family: var(--font-ui);
-        font-size: 1rem;
-        color: var(--text-tertiary);
-        font-weight: 500;
+    .award-card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .awards-hero__copy,
+    .awards-hero__summary,
+    .awards-index {
+      border-radius: clamp(18px, 5vw, 24px);
     }
 
-    .award-hierarchy {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+    .awards-hero__copy {
+      min-height: 470px;
+      padding: clamp(1.35rem, 6vw, 2rem);
+      gap: 3rem;
     }
 
-    .award-name {
-        font-family: var(--font-display);
-        font-size: 1.35rem;
-        font-weight: 700; /* Bold for hierarchy */
-        color: var(--text-primary);
-        line-height: 1.2;
+    .awards-hero h1 {
+      max-width: none;
+      font: 720 clamp(3.25rem, 16.5vw, 5.2rem) / 0.86 var(--font-display, sans-serif);
+      letter-spacing: -0.065em;
     }
 
-    .org-name {
-        font-family: var(--font-ui);
-        font-size: 1rem;
-        color: var(--text-tertiary);
-        font-weight: 400;
-        opacity: 0.8;
+    .awards-hero__lede {
+      font-size: clamp(1rem, 4.6vw, 1.2rem);
     }
 
-    .award-description {
-        font-size: 1.05rem;
-        line-height: 1.7;
-        color: var(--text-secondary);
-        margin: 0;
-        max-width: 60ch;
+    .awards-hero__summary {
+      padding: 1.35rem;
+      grid-template-columns: minmax(0, 1fr);
     }
 
-    /* Hover State */
-    .content-row:hover {
-        background: rgba(255, 255, 255, 0.02);
+    .awards-hero__summary .awards-eyebrow,
+    .awards-hero__summary dl {
+      grid-column: auto;
     }
 
-    /* Responsive Design */
-    @media (max-width: 1100px) {
-        .grid-row {
-            grid-template-columns: 140px 300px 1fr;
-        }
-
-        .cell {
-            padding: 2rem 1.5rem;
-        }
+    .awards-hero__metric {
+      font-size: clamp(7rem, 38vw, 10rem);
     }
 
-    @media (max-width: 850px) {
-        .awards-grid {
-            border: none;
-        }
-
-        .header-row {
-            display: none; /* Hide header on mobile for stacked layout */
-        }
-
-        .grid-row {
-            grid-template-columns: 1fr;
-            border: 1px solid var(--border-subtle);
-            margin-bottom: 2rem;
-            border-radius: 4px;
-        }
-
-        .cell {
-            border-right: none;
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 1.5rem;
-        }
-
-        .cell:last-child {
-            border-bottom: none;
-        }
-
-        .year-cell {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 0.75rem 1.5rem;
-        }
-
-        h1 {
-            font-size: 3rem;
-        }
+    .awards-hero__metric-label {
+      max-width: 16ch;
+      margin: 0.5rem 0 1.5rem;
     }
 
-    @media (max-width: 768px) {
-        h1 {
-            font-size: 2.5rem;
-        }
+    .awards-index {
+      padding: clamp(1.35rem, 6vw, 2rem);
     }
+
+    .awards-index__header {
+      margin-bottom: 3.5rem;
+      gap: 1.5rem;
+    }
+
+    .awards-index__header h2 {
+      font: 680 clamp(3rem, 15vw, 4.8rem) / 0.92 var(--font-display, sans-serif);
+      letter-spacing: -0.055em;
+    }
+
+    .award-card,
+    .award-card:nth-child(4n + 2),
+    .award-card:nth-child(4n + 3),
+    .award-card:nth-child(4n + 4),
+    .award-card:last-child:nth-child(odd) {
+      min-height: 0;
+      grid-column: 1 / -1;
+    }
+
+    .award-card__main,
+    .award-card:last-child:nth-child(odd) .award-card__main {
+      min-height: 320px;
+      display: flex;
+    }
+
+    .award-card__identity h3 {
+      max-width: 17ch;
+      font-size: clamp(2rem, 10.5vw, 3.1rem);
+      line-height: 0.98;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .award-card__meta {
+      grid-template-columns: auto 1fr;
+    }
+
+    .award-card__year {
+      grid-column: 1 / -1;
+      padding-top: 0.35rem;
+      text-align: left;
+    }
+  }
+
+  @media (max-width: 340px) {
+    .awards-hero h1 {
+      font-size: 3rem;
+    }
+
+    .awards-hero__summary dl {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .awards-hero__summary dl div + div {
+      margin-top: 0.8rem;
+      padding: 0.8rem 0 0;
+      border-top: 1px solid currentColor;
+      border-left: 0;
+    }
+
+    .award-card__main,
+    .award-card:last-child:nth-child(odd) .award-card__main {
+      min-height: 360px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .awards-page *,
+    .awards-page *::before,
+    .awards-page *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 </style>

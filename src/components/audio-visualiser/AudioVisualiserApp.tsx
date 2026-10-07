@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
   Maximize2,
-  Minimize2,
+  Mic,
   Pause,
   Play,
   RotateCcw,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { AudioSourceManager } from "./AudioSourceManager";
 import { MagneticApertureRenderer } from "./MagneticApertureRenderer";
-import { MagneticControls } from "./MagneticControls";
+import { MagneticControlsV2 } from "./MagneticControlsV2";
 import {
   loadMagneticSettings,
   loadSavedSettings,
@@ -51,6 +51,11 @@ type SliderDefinition = {
   max: number;
   step: number;
   format: (value: number) => string;
+};
+
+type MicrophoneOption = {
+  deviceId: string;
+  label: string;
 };
 
 const sliders: SliderDefinition[] = [
@@ -96,14 +101,42 @@ export default function AudioVisualiserApp() {
   const [magneticSettings, setMagneticSettings] = useState(loadMagneticSettings);
   const [source, setSource] = useState<AudioSourceSnapshot>(INITIAL_SOURCE);
   const [message, setMessage] = useState(
-    "Choose a local track or share a Chrome tab to turn sound into a responsive visual field.",
+    "Use your microphone, choose a local track, or share a Chrome tab to turn sound into a responsive visual field.",
   );
   const [panelOpen, setPanelOpen] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isUserActive, setIsUserActive] = useState(true);
-  const [capturePending, setCapturePending] = useState(false);
+  const [capturePending, setCapturePending] = useState<"microphone" | "tab" | null>(null);
+  const [microphoneDevices, setMicrophoneDevices] = useState<MicrophoneOption[]>([
+    { deviceId: "default", label: "Default microphone" },
+  ]);
+  const [selectedMicrophoneId, setSelectedMicrophoneId] = useState("default");
   const [fps, setFps] = useState(0);
   const [diagnostics, setDiagnostics] = useState<MagneticDiagnostics | null>(null);
+
+  const refreshMicrophones = useCallback(async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const microphones = devices
+        .filter((device) => device.kind === "audioinput" && device.deviceId)
+        .map((device, index) => ({
+          deviceId: device.deviceId,
+          label: device.label ||
+            (device.deviceId === "default"
+              ? "Default microphone"
+              : `Microphone ${index + 1}`),
+        }));
+
+      if (!microphones.some((device) => device.deviceId === "default")) {
+        microphones.unshift({ deviceId: "default", label: "Default microphone" });
+      }
+      setMicrophoneDevices(microphones);
+    } catch {
+      setMicrophoneDevices([
+        { deviceId: "default", label: "Default microphone" },
+      ]);
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -133,7 +166,6 @@ export default function AudioVisualiserApp() {
     const handleFullscreenChange = () => {
       const active = document.fullscreenElement === rootRef.current;
       setIsFullscreen(active);
-      if (active) setIsUserActive(true);
     };
     const handlePageHide = (event: PageTransitionEvent) => {
       if (!event.persisted) void manager.destroy();
@@ -148,33 +180,14 @@ export default function AudioVisualiserApp() {
     };
   }, []);
 
-  // YouTube-style idle hide in fullscreen mode
   useEffect(() => {
-    if (!isFullscreen) {
-      setIsUserActive(true);
-      return;
-    }
-
-    let timeoutId: number;
-    const wakeUser = () => {
-      setIsUserActive(true);
-      window.clearTimeout(timeoutId);
-      timeoutId = window.setTimeout(() => {
-        setIsUserActive(false);
-      }, 2500);
-    };
-
-    // Wake immediately on entry and listen to pointer/keyboard events
-    wakeUser();
-    const root = rootRef.current || window;
-    const events = ["mousemove", "pointermove", "mousedown", "touchstart", "keydown"];
-    events.forEach((evt) => root.addEventListener(evt, wakeUser, { passive: true }));
-
+    void refreshMicrophones();
+    const mediaDevices = navigator.mediaDevices;
+    mediaDevices?.addEventListener?.("devicechange", refreshMicrophones);
     return () => {
-      window.clearTimeout(timeoutId);
-      events.forEach((evt) => root.removeEventListener(evt, wakeUser));
+      mediaDevices?.removeEventListener?.("devicechange", refreshMicrophones);
     };
-  }, [isFullscreen]);
+  }, [refreshMicrophones]);
 
   useEffect(() => {
     const manager = managerRef.current;
@@ -253,7 +266,7 @@ export default function AudioVisualiserApp() {
 
   const handleCapture = async () => {
     if (!managerRef.current || capturePending) return;
-    setCapturePending(true);
+    setCapturePending("tab");
     setMessage("Choose a Chrome tab and enable “Share tab audio” in the browser prompt.");
     try {
       await managerRef.current.captureTab();
@@ -264,14 +277,49 @@ export default function AudioVisualiserApp() {
         setMessage(error.message);
       }
     } finally {
-      setCapturePending(false);
+      setCapturePending(null);
     }
+  };
+
+  const handleMicrophone = async (deviceId = selectedMicrophoneId) => {
+    if (!managerRef.current || capturePending) return;
+    setCapturePending("microphone");
+    setMessage("Waiting for microphone permission…");
+    try {
+      const activeDeviceId = await managerRef.current.captureMicrophone(deviceId);
+      setSelectedMicrophoneId(activeDeviceId);
+      await refreshMicrophones();
+      return true;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "NotAllowedError") {
+        setMessage(
+          "Microphone access was not granted. Allow it in your browser’s site settings, then try again.",
+        );
+      } else if (error instanceof DOMException && error.name === "NotFoundError") {
+        setMessage("No microphone was found on this device.");
+      } else if (error instanceof DOMException && error.name === "NotReadableError") {
+        setMessage("The microphone is unavailable or is being used by another app.");
+      } else if (error instanceof Error) {
+        setMessage(error.message);
+      }
+      return false;
+    } finally {
+      setCapturePending(null);
+    }
+  };
+
+  const handleMicrophoneSelection = async (deviceId: string) => {
+    const previousDeviceId = selectedMicrophoneId;
+    setSelectedMicrophoneId(deviceId);
+    if (source.kind !== "microphone") return;
+    const switched = await handleMicrophone(deviceId);
+    if (!switched) setSelectedMicrophoneId(previousDeviceId);
   };
 
   const toggleFullscreen = async () => {
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
-      else await rootRef.current?.requestFullscreen();
+      else await rootRef.current?.requestFullscreen({ navigationUI: "hide" });
     } catch {
       setMessage("Full screen is unavailable in this browser or window.");
     }
@@ -282,7 +330,6 @@ export default function AudioVisualiserApp() {
     "av",
     isMagnetic ? "av--magnetic" : "",
     isFullscreen ? "av--fullscreen" : "",
-    isFullscreen && !isUserActive ? "is-idle" : "",
   ].filter(Boolean).join(" ");
 
   return (
@@ -308,23 +355,11 @@ export default function AudioVisualiserApp() {
           <span>B {diagnostics.bass.toFixed(2)} {diagnostics.bassOnset ? "↑ onset" : ""}</span>
           <span>M {diagnostics.mid.toFixed(2)} {diagnostics.midOnset ? "↑ onset" : ""}</span>
           <span>H {diagnostics.high.toFixed(2)} {diagnostics.highOnset ? "↑ onset" : ""}</span>
+          <span>BRIGHT {diagnostics.centroid.toFixed(2)} · TEXTURE {diagnostics.texture.toFixed(2)}</span>
           <span>{diagnostics.pullActive ? "PULL" : diagnostics.released ? "RELEASE" : "SETTLE"}</span>
           <span>{diagnostics.particles} pieces · {diagnostics.fps} fps · {diagnostics.frameTime.toFixed(1)} ms</span>
           <small>{diagnostics.renderer}</small>
         </div>
-      )}
-
-      {isFullscreen && (
-        <button
-          type="button"
-          className="av__fs-exit-btn"
-          onClick={toggleFullscreen}
-          title="Exit full screen (Esc)"
-          aria-label="Exit full screen"
-        >
-          <Minimize2 size={14} />
-          <span>Exit full screen</span>
-        </button>
       )}
 
       {!panelOpen && (
@@ -344,7 +379,7 @@ export default function AudioVisualiserApp() {
       {source.kind === "none" && (
         <div className="av__idle-copy" aria-hidden="true">
           <span>Audio Visualiser / {isMagnetic ? "02" : "01"}</span>
-          <p>{isMagnetic ? "Magnetic Aperture is resting. Add audio to pull the field into motion." : "Choose a local track or share a Chrome tab to turn sound into a responsive visual field."}</p>
+          <p>{isMagnetic ? "Magnetic Aperture is resting. Add audio to pull the field into motion." : "Use your microphone, choose a local track, or share a Chrome tab to turn sound into a responsive visual field."}</p>
         </div>
       )}
 
@@ -366,10 +401,10 @@ export default function AudioVisualiserApp() {
                 type="button"
                 className="av__header-btn"
                 onClick={toggleFullscreen}
-                title={isFullscreen ? "Exit full screen" : "Enter full screen"}
-                aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
+                title="Pure full screen · press Esc to exit"
+                aria-label="Enter pure full screen; press Escape to exit"
               >
-                {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                <Maximize2 size={14} />
               </button>
               <button
                 type="button"
@@ -419,9 +454,44 @@ export default function AudioVisualiserApp() {
                 onChange={(event) => handleFile(event.target.files?.[0])}
                 tabIndex={-1}
               />
+              <label className="av__microphone-picker">
+                <span>Microphone input</span>
+                <select
+                  aria-label="Microphone input"
+                  value={selectedMicrophoneId}
+                  onChange={(event) => void handleMicrophoneSelection(event.target.value)}
+                  disabled={capturePending !== null}
+                >
+                  {microphoneDevices.map((device) => (
+                    <option key={device.deviceId} value={device.deviceId}>
+                      {device.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {source.kind === "microphone" ? (
+                <button
+                  type="button"
+                  className="av__source-button av__source-button--microphone av__source-button--stop"
+                  onClick={() => managerRef.current?.stopCapture()}
+                >
+                  <Square size={15} fill="currentColor" />
+                  <span><strong>Stop microphone</strong><small>Releases microphone access</small></span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="av__source-button av__source-button--microphone"
+                  onClick={() => void handleMicrophone()}
+                  disabled={capturePending !== null}
+                >
+                  <Mic size={17} />
+                  <span><strong>{capturePending === "microphone" ? "Waiting for permission…" : "Use live microphone"}</strong><small>Analysed locally · not recorded</small></span>
+                </button>
+              )}
               <button
                 type="button"
-                className={`av__source-button ${source.kind === "local" ? "is-active" : ""}`}
+                className={`av__source-button av__source-button--file ${source.kind === "local" ? "is-active" : ""}`}
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload size={17} />
@@ -430,7 +500,7 @@ export default function AudioVisualiserApp() {
               {source.kind === "tab" ? (
                 <button
                   type="button"
-                  className="av__source-button av__source-button--stop"
+                  className="av__source-button av__source-button--tab av__source-button--stop"
                   onClick={() => managerRef.current?.stopCapture()}
                 >
                   <Square size={15} fill="currentColor" />
@@ -439,12 +509,12 @@ export default function AudioVisualiserApp() {
               ) : (
                 <button
                   type="button"
-                  className="av__source-button"
+                  className="av__source-button av__source-button--tab"
                   onClick={handleCapture}
-                  disabled={capturePending}
+                  disabled={capturePending !== null}
                 >
                   <span className="av__capture-mark" aria-hidden="true" />
-                  <span><strong>{capturePending ? "Waiting for Chrome…" : "Capture tab audio"}</strong><small>Choose a tab with audio</small></span>
+                  <span><strong>{capturePending === "tab" ? "Waiting for Chrome…" : "Capture tab audio"}</strong><small>Choose a tab with audio</small></span>
                 </button>
               )}
             </div>
@@ -487,12 +557,12 @@ export default function AudioVisualiserApp() {
 
             <p className="av__message" role="status" aria-live="polite">{message}</p>
             <p className="av__capture-note">
-              Tab capture works best in desktop Chrome. This page cannot automatically read Spotify’s desktop app or all Mac speaker output.
+              Microphone input requires permission and is never sent to a server. Tab capture works best in desktop Chrome.
             </p>
           </section>
 
           {isMagnetic ? (
-            <MagneticControls
+            <MagneticControlsV2
               settings={magneticSettings}
               onUpdate={updateMagneticSetting}
               onReset={resetMagnetic}

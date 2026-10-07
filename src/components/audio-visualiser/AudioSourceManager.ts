@@ -52,9 +52,11 @@ export class AudioSourceManager {
       throw new Error("Web Audio is not supported in this browser.");
     }
 
-    this.audioContext = new AudioContextClass();
+    this.audioContext = new AudioContextClass({ latencyHint: "interactive" });
     this.analyser = this.audioContext.createAnalyser();
-    this.analyser.fftSize = 2048;
+    // ~21 ms at 48 kHz: responsive enough for percussion while preserving
+    // substantially more bass resolution than a 512-sample transform.
+    this.analyser.fftSize = 1024;
     this.analyser.minDecibels = -90;
     this.analyser.maxDecibels = -10;
     this.analyser.smoothingTimeConstant = 0;
@@ -161,6 +163,54 @@ export class AudioSourceManager {
     this.handleMediaUpdate();
   };
 
+  captureMicrophone = async (deviceId = "default") => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Microphone input is not supported in this browser.");
+    }
+
+    await this.resumeContext();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        ...(deviceId !== "default"
+          ? { deviceId: { exact: deviceId } }
+          : {}),
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+      video: false,
+    });
+
+    const audioTrack = stream.getAudioTracks()[0];
+    if (!audioTrack) {
+      stream.getTracks().forEach((track) => track.stop());
+      throw new Error("The selected microphone did not provide an audio track.");
+    }
+
+    this.audio.pause();
+    this.stopCaptureTracks();
+    this.disconnectActiveNode();
+    this.captureStream = stream;
+    this.captureNode = this.audioContext!.createMediaStreamSource(stream);
+    this.captureNode.connect(this.analyser!);
+    audioTrack.onended = this.handleCaptureEnded;
+
+    this.updateSnapshot({
+      kind: "microphone",
+      label: audioTrack.label || "Live microphone",
+      isPlaying: true,
+      hasAudioTrack: true,
+      currentTime: 0,
+      duration: 0,
+    });
+    this.onMessage(
+      "Live microphone audio is being analysed locally. Nothing is recorded or uploaded.",
+    );
+    return deviceId === "default"
+      ? "default"
+      : audioTrack.getSettings().deviceId || deviceId;
+  };
+
   captureTab = async () => {
     if (!navigator.mediaDevices?.getDisplayMedia) {
       throw new Error("Tab audio capture is not supported in this browser.");
@@ -207,11 +257,20 @@ export class AudioSourceManager {
   };
 
   private handleCaptureEnded = () => {
-    this.stopCapture("Tab capture ended.");
+    this.stopCapture(
+      this.snapshot.kind === "microphone"
+        ? "Microphone access ended."
+        : "Tab capture ended.",
+    );
   };
 
-  stopCapture = (message = "Tab capture stopped.") => {
-    if (this.snapshot.kind !== "tab" && !this.captureStream) return;
+  stopCapture = (message?: string) => {
+    if (
+      this.snapshot.kind !== "tab" &&
+      this.snapshot.kind !== "microphone" &&
+      !this.captureStream
+    ) return;
+    const stoppedKind = this.snapshot.kind;
     this.captureNode?.disconnect();
     this.captureNode = null;
     this.stopCaptureTracks();
@@ -221,7 +280,12 @@ export class AudioSourceManager {
       isPlaying: false,
       hasAudioTrack: false,
     });
-    this.onMessage(message);
+    this.onMessage(
+      message ||
+        (stoppedKind === "microphone"
+          ? "Microphone input stopped."
+          : "Tab capture stopped."),
+    );
   };
 
   destroy = async () => {
@@ -244,4 +308,3 @@ export class AudioSourceManager {
     this.audio.removeEventListener("ended", this.handleMediaUpdate);
   };
 }
-

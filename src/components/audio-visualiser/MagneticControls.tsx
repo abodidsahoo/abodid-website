@@ -76,6 +76,9 @@ function Slider({
   format,
   onChange,
   disabled,
+  lowLabel,
+  highLabel,
+  description,
 }: {
   label: string;
   value: number;
@@ -85,6 +88,9 @@ function Slider({
   format?: (v: number) => string;
   onChange: (v: number) => void;
   disabled?: boolean;
+  lowLabel?: string;
+  highLabel?: string;
+  description?: string;
 }) {
   return (
     <label className="avm__slider" style={{ opacity: disabled ? 0.45 : 1 }}>
@@ -102,6 +108,12 @@ function Slider({
         onChange={(e) => onChange(Number(e.target.value))}
         disabled={disabled}
       />
+      {(lowLabel || highLabel) && (
+        <span className="avm__slider-direction" aria-hidden="true">
+          <span>{lowLabel}</span><span>{highLabel}</span>
+        </span>
+      )}
+      {description && <span className="avm__slider-description">{description}</span>}
     </label>
   );
 }
@@ -141,6 +153,7 @@ function BandRow({
   reactive,
   onSensitivity,
   onReactive,
+  hint,
 }: {
   label: string;
   band: string;
@@ -148,6 +161,7 @@ function BandRow({
   reactive: boolean;
   onSensitivity: (v: number) => void;
   onReactive: (v: boolean) => void;
+  hint?: string;
 }) {
   return (
     <div className={`avm__band-card ${!reactive ? "is-muted" : "is-active"}`}>
@@ -173,6 +187,34 @@ function BandRow({
         onChange={(e) => onSensitivity(Number(e.target.value))}
         className="avm__band-slider"
       />
+      {hint && <span className="avm__band-route">{hint}</span>}
+    </div>
+  );
+}
+
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+const toPercent = (value: number, min: number, max: number) =>
+  clamp01((value - min) / (max - min)) * 100;
+const fromPercent = (value: number, min: number, max: number) =>
+  min + clamp01(value / 100) * (max - min);
+const descriptiveAmount = (value: number) =>
+  value < 34 ? "Subtle" : value < 67 ? "Balanced" : "Strong";
+
+function SwitchRow({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="avm__switch-row">
+      <span><strong>{label}</strong><small>{hint}</small></span>
+      <Switch checked={checked} onChange={onChange} label={`Toggle ${label}`} />
     </div>
   );
 }
@@ -285,7 +327,7 @@ export function MagneticControls({ settings, onUpdate, onReset }: Props) {
               <Slider
                 label="Gravity Pull"
                 value={settings.gravityPull}
-                min={0.2} max={3.0} step={0.05}
+                min={0} max={3} step={0.05}
                 format={(v) => `${v.toFixed(2)}×`}
                 onChange={(v) => onUpdate("gravityPull", v)}
               />

@@ -3,6 +3,8 @@ export const prerender = true;
 import BaseLayout from "../layouts/BaseLayout.astro";
 
 const pageTitle = "Must Watch Videos";
+const pageDescription =
+  "A personal screening list of films, edits, and visual stories curated by Abodid Sahoo.";
 const videos = [
   {
     title: "Watchtower of Turkey",
@@ -68,267 +70,680 @@ const videos = [
       "https://i.vimeocdn.com/video/508920227-6ca1e82849f6d3b5442e752dc8b65dbb30270e00cd8009fa207608531c84f8f3-d_1280?region=us",
   },
 ];
+
+const totalVideos = videos.length;
 ---
 
 <BaseLayout
   title={pageTitle}
-  description="A small, carefully curated page of videos by Abodid."
+  description={pageDescription}
+  useDynamicOgImage={true}
+  fullWidth={true}
+  navigationVariant="next"
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="curated-videos-pop-page"
 >
-  <section class="must-watch-container">
-    <header class="page-header">
-      <h1>Must Watch Videos</h1>
-      <p class="curator-line">Curated by Abodid</p>
-    </header>
+  <div class="curated-shell">
+    <article class="curated-file">
+      <header class="curated-heading">
+        <div class="curated-heading__topline">
+          <p class="curated-file-tag">screening_room.js — personal curation</p>
+          <p class="curated-count">{String(totalVideos).padStart(2, "0")} selections</p>
+        </div>
 
-    <div class="videos-list">
-      {
-        videos.map((video, index) => (
-          <article class="video-feature fade-in-up" style={`animation-delay: ${index * 50}ms`}>
-            <div class="video-frame">
-              <button
-                class="video-poster"
-                type="button"
-                aria-label={`Play ${video.title}`}
-              >
-                <img src={video.thumbnailUrl} alt="" loading="lazy" />
-                <span class="play-overlay">
-                  <span class="play-button" aria-hidden="true">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M5 3L19 12L5 21V3Z"
-                        fill="currentColor"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linejoin="round"></path>
-                    </svg>
-                  </span>
-                </span>
-              </button>
-              <iframe
-                data-src={video.embedUrl}
-                title={`${video.title} curated by abodid`}
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerpolicy="strict-origin-when-cross-origin"
-                allowfullscreen
-              />
+        <div class="curated-heading__hero">
+          <h1>Must watch<br />videos</h1>
+          <div class="curated-heading__summary">
+            <p>
+              A living shelf of films I return to for their rhythm, feeling,
+              editing and way of seeing.
+            </p>
+            <div class="curated-heading__actions">
+              <a class="curated-action" href="/films">
+                <span>See films I’ve made</span>
+                <span class="link-destination-arrow" aria-hidden="true">↗</span>
+              </a>
+              <span class="curated-play-note">Choose a frame to begin</span>
             </div>
+          </div>
+        </div>
+      </header>
 
-            <div class="video-content">
-              <h2 class="video-title">{video.title}</h2>
-            </div>
-          </article>
-        ))
-      }
-    </div>
-  </section>
+      <section class="curated-board" aria-labelledby="screening-list-title">
+        <div class="curated-board__heading">
+          <div>
+            <p class="curated-board__eyebrow">Curated by Abodid</p>
+            <h2 id="screening-list-title">The screening list</h2>
+          </div>
+          <p class="curated-board__note">In no particular order</p>
+        </div>
+
+        <ol class="videos-grid">
+          {
+            videos.map((video, index) => {
+              const number = String(index + 1).padStart(2, "0");
+              const provider = video.embedUrl.includes("youtube")
+                ? "YouTube"
+                : "Vimeo";
+
+              return (
+                <li class="video-grid-item">
+                  <article class="video-feature">
+                    <div class="video-frame">
+                      <button
+                        class="video-poster"
+                        type="button"
+                        aria-label={`Play ${video.title}`}
+                      >
+                        <img
+                          src={video.thumbnailUrl}
+                          alt=""
+                          loading={index < 2 ? "eager" : "lazy"}
+                          fetchpriority={index === 0 ? "high" : "auto"}
+                        />
+                        <span class="video-poster__shade" aria-hidden="true" />
+                        <span class="play-button" aria-hidden="true">
+                          <svg
+                            width="26"
+                            height="26"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M8 5V19L19 12L8 5Z" fill="currentColor" />
+                          </svg>
+                        </span>
+                        <span class="play-label" aria-hidden="true">Play film</span>
+                      </button>
+                      <iframe
+                        data-src={video.embedUrl}
+                        title={`${video.title} — curated by Abodid`}
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                      />
+                    </div>
+
+                    <div class="video-content">
+                      <p class="video-meta">
+                        <span>{number} / {String(totalVideos).padStart(2, "0")}</span>
+                        <span>{provider}</span>
+                      </p>
+                      <h3 class="video-title">{video.title}</h3>
+                    </div>
+                  </article>
+                </li>
+              );
+            })
+          }
+        </ol>
+      </section>
+    </article>
+  </div>
 
   <script is:inline>
-    document.querySelectorAll(".video-frame").forEach((frame) => {
-      const poster = frame.querySelector(".video-poster");
-      const iframe = frame.querySelector("iframe");
+    function initialiseCuratedPlayers() {
+      document.querySelectorAll(".video-frame").forEach((frame) => {
+        if (frame.dataset.playerBound === "true") return;
 
-      poster?.addEventListener("click", () => {
-        if (!iframe?.dataset.src) return;
+        const poster = frame.querySelector(".video-poster");
+        const iframe = frame.querySelector("iframe");
+        if (!poster || !iframe) return;
 
-        iframe.src = iframe.dataset.src;
-        frame.classList.add("is-playing");
+        frame.dataset.playerBound = "true";
+        poster.addEventListener("click", () => {
+          const source = iframe.dataset.src;
+          if (!source) return;
+
+          iframe.src = source;
+          poster.hidden = true;
+          frame.classList.add("is-playing");
+          iframe.focus();
+        });
       });
-    });
+    }
+
+    initialiseCuratedPlayers();
+    document.addEventListener("astro:page-load", initialiseCuratedPlayers);
   </script>
 </BaseLayout>
 
-<style>
-  .must-watch-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding-bottom: 4rem;
+<style is:global>
+  html:has(body.curated-videos-pop-page) {
+    background: var(--pop-blue) !important;
   }
 
-  .page-header {
-    margin-bottom: 5rem;
-    padding-top: 2rem;
-    text-align: left;
-  }
-
-  h1 {
-    font-family: var(--font-display);
-    font-size: 3.5rem;
-    font-weight: 600;
-    margin: 0 0 1rem;
-    letter-spacing: -0.02em;
-    color: var(--text-primary);
-  }
-
-  .curator-line {
-    font-family: var(--font-sans);
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    max-width: 600px;
+  body.curated-videos-pop-page {
+    --curated-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --curated-mono:
+      "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
+      monospace;
     margin: 0;
-    line-height: 1.6;
+    padding: 0 !important;
+    min-height: 100vh;
+    background: var(--pop-blue) !important;
+    color: var(--pop-ink);
+    color-scheme: light;
   }
 
-  .videos-list {
+  body.curated-videos-pop-page main.page-content-full {
+    max-width: 100% !important;
+    padding: 0 !important;
+    overflow: visible;
+  }
+
+  body.curated-videos-pop-page :is(h1, h2, h3, p) {
+    margin-top: 0;
+  }
+
+  body.curated-videos-pop-page :is(a, button, iframe):focus-visible {
+    outline: 3px solid var(--pop-purple);
+    outline-offset: 3px;
+  }
+</style>
+
+<style>
+  .curated-shell {
+    width: 100%;
+    min-height: 100vh;
+    padding: 8px;
+    background: var(--pop-blue);
+  }
+
+  .curated-file {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--pop-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  .curated-heading {
+    padding: clamp(1.6rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--pop-ink);
+    background: var(--pop-pink);
+  }
+
+  .curated-heading__topline,
+  .curated-board__heading,
+  .video-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .curated-file-tag,
+  .curated-count,
+  .curated-board__eyebrow,
+  .curated-board__note,
+  .video-meta,
+  .curated-play-note {
+    margin: 0;
+    color: var(--pop-ink);
+    font: 750 0.72rem/1.35 var(--curated-mono, monospace);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .curated-heading__topline {
+    margin-bottom: clamp(2.5rem, 6vw, 6rem);
+  }
+
+  .curated-count {
+    flex: 0 0 auto;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: 12px;
+    background: var(--pop-yellow);
+  }
+
+  .curated-heading__hero {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 6.5rem;
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+    gap: clamp(2rem, 5vw, 6rem);
+    align-items: end;
+  }
+
+  .curated-heading h1 {
+    max-width: 10ch;
+    margin: 0;
+    color: var(--pop-ink);
+    font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.79 var(--curated-font, sans-serif);
+    letter-spacing: -0.075em;
+    text-wrap: balance;
+  }
+
+  .curated-heading__summary {
+    min-width: 0;
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .curated-heading__summary > p {
+    max-width: 31rem;
+    margin: 0;
+    color: var(--pop-ink);
+    font: 480 clamp(1.25rem, 2vw, 1.7rem)/1.24 var(--curated-font, sans-serif);
+    letter-spacing: -0.025em;
+    text-wrap: pretty;
+  }
+
+  .curated-heading__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+  }
+
+  .curated-action {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    font: 750 0.72rem/1 var(--curated-mono, monospace);
+    letter-spacing: 0.07em;
+    text-decoration: none;
+    text-transform: uppercase;
+    box-shadow: 0 3px 0 var(--pop-ink);
+    transition:
+      transform 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .curated-action:hover {
+    background: var(--pop-lime);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--pop-ink);
+  }
+
+  .curated-action .link-destination-arrow {
+    display: inline-block;
+    text-decoration: none;
+    transition: transform 180ms ease;
+  }
+
+  .curated-action:hover .link-destination-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  .curated-board {
+    padding: clamp(1rem, 3.25vw, 3rem);
+    background: var(--pop-cream);
+  }
+
+  .curated-board__heading {
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    padding-bottom: clamp(1rem, 2vw, 1.5rem);
+    border-bottom: 1px solid var(--pop-ink);
+    align-items: end;
+  }
+
+  .curated-board__eyebrow {
+    margin-bottom: 0.7rem;
+  }
+
+  .curated-board h2 {
+    margin: 0;
+    color: var(--pop-ink);
+    font: 650 clamp(2.4rem, 5.2vw, 5.6rem)/0.9 var(--curated-font, sans-serif);
+    letter-spacing: -0.06em;
+  }
+
+  .curated-board__note {
+    padding-bottom: 0.35rem;
+    text-align: right;
+  }
+
+  .videos-grid {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 8px;
+    list-style: none;
+  }
+
+  .video-grid-item {
+    min-width: 0;
+    grid-column: span 7;
+  }
+
+  .video-grid-item:nth-child(4n + 2),
+  .video-grid-item:nth-child(4n + 3) {
+    grid-column: span 5;
+  }
+
+  .video-grid-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 
   .video-feature {
+    height: 100%;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    opacity: 0;
-    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(16px, 1.6vw, 22px);
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease;
   }
 
-  .video-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+  .video-grid-item:nth-child(4n + 2) .video-feature,
+  .video-grid-item:nth-child(4n + 3) .video-feature {
+    background: var(--pop-yellow);
   }
 
-  .video-title {
-    font-family: var(--font-serif);
-    font-size: 1.75rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.2;
-    transition: color 0.2s ease;
+  .video-grid-item:nth-child(4n) .video-feature {
+    background: var(--pop-blue);
+    color: var(--pop-cream);
   }
 
-  .video-feature:hover .video-title {
-    font-weight: 700;
-    color: var(--text-primary);
+  .video-grid-item:last-child .video-feature {
+    background: var(--pop-lime);
+    color: var(--pop-ink);
+  }
+
+  .video-feature:hover {
+    z-index: 2;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--pop-ink);
   }
 
   .video-frame {
     width: 100%;
     aspect-ratio: 16 / 9;
-    border-radius: 12px;
     overflow: hidden;
     position: relative;
-    background: var(--bg-surface);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    transition:
-      transform 0.4s ease,
-      box-shadow 0.4s ease;
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(10px, 1.2vw, 16px);
+    background: var(--pop-ink);
   }
 
-  .video-frame:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  }
-
-  .video-poster {
+  .video-poster,
+  .video-frame iframe {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     border: 0;
-    padding: 0;
-    cursor: pointer;
-    background: var(--bg-surface);
-    color: white;
-    overflow: hidden;
-    transition: opacity 0.3s ease;
+  }
+
+  .video-poster {
     z-index: 2;
+    padding: 0;
+    overflow: hidden;
+    background: var(--pop-ink);
+    color: var(--pop-ink);
+    cursor: pointer;
+  }
+
+  .video-poster[hidden] {
+    display: none;
   }
 
   .video-poster img {
     width: 100%;
     height: 100%;
+    display: block;
     object-fit: cover;
-    transition: transform 0.6s ease;
+    transition: transform 550ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
-  .video-frame:hover .video-poster img {
-    transform: scale(1.05);
-  }
-
-  .play-overlay {
+  .video-poster__shade {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s ease;
+    background: linear-gradient(
+      180deg,
+      rgba(21, 19, 15, 0.02) 45%,
+      rgba(21, 19, 15, 0.62) 100%
+    );
+    transition: opacity 180ms ease;
   }
 
-  .video-frame:hover .play-overlay {
-    background: rgba(0, 0, 0, 0.1);
+  .video-poster:hover img {
+    transform: scale(1.025);
+  }
+
+  .video-poster:hover .video-poster__shade {
+    opacity: 0.78;
   }
 
   .play-button {
-    width: 64px;
-    height: 64px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: clamp(58px, 6vw, 76px);
+    height: clamp(58px, 6vw, 76px);
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--pop-ink);
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    transform: scale(0.9);
+    background: var(--pop-yellow);
+    box-shadow: 0 4px 0 var(--pop-ink);
+    transform: translate(-50%, -50%);
+    transition:
+      background-color 180ms ease,
+      transform 180ms ease,
+      box-shadow 180ms ease;
   }
 
-  .video-frame:hover .play-button {
-    transform: scale(1.1);
-    background: white;
-    color: black;
-    border-color: white;
+  .video-poster:hover .play-button {
+    background: var(--pop-pink);
+    box-shadow: 0 6px 0 var(--pop-ink);
+    transform: translate(-50%, calc(-50% - 2px));
   }
 
   .play-button svg {
-    margin-left: 4px;
+    margin-left: 3px;
   }
 
-  .video-frame.is-playing .video-poster {
-    opacity: 0;
-    pointer-events: none;
+  .play-label {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    min-height: 36px;
+    padding: 0 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--pop-ink);
+    border-radius: 11px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    font: 750 0.68rem/1 var(--curated-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   .video-frame iframe {
     display: block;
-    width: 100%;
-    height: 100%;
-    border: 0;
+    background: var(--pop-ink);
   }
 
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
+  .video-content {
+    padding: clamp(0.9rem, 1.5vw, 1.25rem) 0.5rem 0.45rem;
+  }
+
+  .video-meta {
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
+    color: inherit;
+  }
+
+  .video-title {
+    max-width: 26ch;
+    margin: 0;
+    color: inherit;
+    font: 620 clamp(1.55rem, 2.6vw, 3.1rem)/0.98 var(--curated-font, sans-serif);
+    letter-spacing: -0.045em;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .video-grid-item:last-child .video-title {
+    max-width: 30ch;
+    font-size: clamp(1.75rem, 3.2vw, 3.8rem);
+  }
+
+  @media (max-width: 980px) {
+    .curated-heading__hero {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.75rem;
     }
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
+    .curated-heading h1 {
+      max-width: 12ch;
+    }
+
+    .curated-heading__summary > p {
+      max-width: 38rem;
+    }
+
+    .videos-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .video-grid-item,
+    .video-grid-item:nth-child(4n + 2),
+    .video-grid-item:nth-child(4n + 3) {
+      grid-column: span 1;
+    }
+
+    .video-grid-item:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
     }
   }
 
-  @media (max-width: 768px) {
-    .page-header {
-      margin-bottom: 3rem;
+  @media (max-width: 720px) {
+    .curated-shell {
+      padding: 4px;
     }
 
-    .videos-list {
-      gap: 4rem;
+    .curated-heading {
+      padding: 1.25rem 1rem 1.5rem;
     }
 
-    h1 {
-      font-size: 2.5rem;
+    .curated-heading__topline {
+      margin-bottom: 3.25rem;
+      align-items: flex-start;
+    }
+
+    .curated-file-tag {
+      max-width: 20ch;
+    }
+
+    .curated-heading h1 {
+      font-size: clamp(3.1rem, 16vw, 5rem);
+      line-height: 0.84;
+      letter-spacing: -0.07em;
+    }
+
+    .curated-heading__summary > p {
+      max-width: 100%;
+      font-size: clamp(1.15rem, 5vw, 1.4rem);
+      line-height: 1.3;
+    }
+
+    .curated-heading__actions {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .curated-action {
+      width: 100%;
+    }
+
+    .curated-board {
+      padding: 1rem;
+    }
+
+    .curated-board__heading {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .curated-board__note {
+      padding-bottom: 0;
+      text-align: left;
+    }
+
+    .videos-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .video-grid-item,
+    .video-grid-item:nth-child(4n + 2),
+    .video-grid-item:nth-child(4n + 3),
+    .video-grid-item:last-child:nth-child(odd) {
+      grid-column: 1;
+    }
+
+    .video-feature {
+      min-height: 0;
+    }
+
+    .video-title,
+    .video-grid-item:last-child .video-title {
+      font-size: clamp(1.55rem, 7.5vw, 2.4rem);
+    }
+  }
+
+  @media (max-width: 380px) {
+    .curated-heading,
+    .curated-board {
+      padding-right: 0.85rem;
+      padding-left: 0.85rem;
+    }
+
+    .curated-heading__topline {
+      gap: 0.6rem;
+    }
+
+    .curated-count {
+      padding-inline: 0.6rem;
+      font-size: 0.64rem;
+    }
+
+    .curated-file-tag,
+    .curated-board__eyebrow,
+    .curated-board__note,
+    .video-meta,
+    .curated-play-note {
+      font-size: 0.66rem;
+    }
+
+    .play-label {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .curated-action,
+    .curated-action .link-destination-arrow,
+    .video-feature,
+    .video-poster img,
+    .video-poster__shade,
+    .play-button {
+      transition-duration: 0.01ms !important;
+      transform: none;
+    }
+
+    .video-poster .play-button,
+    .video-poster:hover .play-button {
+      transform: translate(-50%, -50%);
     }
   }
 </style>

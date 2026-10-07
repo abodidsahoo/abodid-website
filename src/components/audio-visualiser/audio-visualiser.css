@@ -286,6 +286,40 @@
 
 /* ---------- audio source ---------- */
 .av__source-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.av__microphone-picker {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 5px 6px 5px 10px;
+  border: 1.5px solid var(--pop-border);
+  border-radius: 10px;
+  background: var(--pop-cream);
+}
+.av__microphone-picker > span {
+  font: 750 0.55rem/1 "Satoshi-Variable", monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.av__microphone-picker select {
+  min-width: 0;
+  width: 100%;
+  height: 28px;
+  padding: 0 28px 0 9px;
+  border: 1px solid var(--pop-border);
+  border-radius: 7px;
+  background: white;
+  color: var(--av-ink);
+  font: 650 0.6rem/1 "Satoshi-Variable", sans-serif;
+  text-overflow: ellipsis;
+}
+.av__microphone-picker select:focus-visible {
+  outline: 2px solid var(--pop-purple);
+  outline-offset: 2px;
+}
 .av__source-button {
   min-width: 0;
   min-height: 52px;
@@ -300,8 +334,9 @@
   text-align: left;
   transition: border-color 130ms ease, background 130ms ease, box-shadow 130ms ease, transform 130ms ease;
 }
-.av__source-button:first-of-type { background: var(--pop-pink); }
-.av__source-button:last-of-type { background: var(--pop-cyan); }
+.av__source-button--microphone { grid-column: 1 / -1; background: var(--pop-lime); }
+.av__source-button--file { background: var(--pop-pink); }
+.av__source-button--tab { background: var(--pop-cyan); }
 .av__source-button:hover { border-color: var(--pop-ink); box-shadow: 3px 3px 0 var(--pop-ink); transform: translate(-1px, -1px); }
 .av__source-button.is-active { border-color: var(--pop-ink); background: var(--pop-yellow); }
 .av__source-button--stop,
@@ -558,6 +593,19 @@
   border-bottom: 1.5px solid var(--av-line);
 }
 
+.avm__tab-bar--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.avm__tab-bar--three .avm__tab-btn {
+  padding-inline: 6px;
+}
+
+.avm__tab-bar--three .avm__tab-btn:nth-child(2) { background: var(--pop-cyan); }
+.avm__tab-bar--three .avm__tab-btn:nth-child(3) { background: var(--pop-yellow); }
+.avm__tab-bar--three .avm__tab-btn.is-active { background: var(--pop-blue); }
+
 .avm__tab-btn {
   min-height: 44px;
   padding: 10px 12px;
@@ -592,6 +640,25 @@
 
 .avm__tab-content {
   display: grid;
+}
+
+.avm__tier-intro {
+  display: grid;
+  gap: 3px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--av-line);
+  background: color-mix(in srgb, var(--pop-pink) 44%, var(--av-panel));
+}
+.avm__tier-intro--hyper { background: color-mix(in srgb, var(--pop-yellow) 42%, var(--av-panel)); }
+.avm__tier-intro strong {
+  color: var(--av-ink);
+  font-size: 0.76rem;
+  line-height: 1.2;
+}
+.avm__tier-intro span {
+  color: var(--av-muted);
+  font-size: 0.62rem;
+  line-height: 1.4;
 }
 
 .avm__section {
@@ -739,6 +806,21 @@
   border-radius: 4px;
 }
 
+.avm__slider-direction {
+  display: flex;
+  justify-content: space-between;
+  color: color-mix(in srgb, var(--av-muted) 78%, transparent);
+  font: 650 0.46rem/1 "Satoshi-Variable", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.avm__slider-description {
+  color: var(--av-muted);
+  font-size: 0.56rem;
+  line-height: 1.35;
+}
+
 /* ---- Audio React Band Cards (Bass, Mid, Treble) ---- */
 .avm__bands {
   display: grid;
@@ -746,8 +828,8 @@
 }
 
 .avm__band-card {
-  min-height: 44px;
-  padding: 3px 7px 3px 10px;
+  min-height: 62px;
+  padding: 6px 7px 6px 10px;
   display: grid;
   grid-template-columns: auto minmax(64px, 1fr) 44px;
   align-items: center;
@@ -757,6 +839,14 @@
   background: var(--pop-pink);
   box-shadow: none;
   transition: opacity 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.avm__band-route {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  color: rgba(21, 19, 15, 0.68);
+  font-size: 0.51rem;
+  line-height: 1.25;
 }
 
 .avm__band-card:nth-child(2) { background: var(--pop-cyan); }
@@ -829,6 +919,29 @@
 .avm__band-slider {
   grid-column: 2;
   grid-row: 1;
+}
+
+.avm__switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(21, 19, 15, 0.07);
+}
+.avm__switch-row:last-child { border-bottom: 0; }
+.avm__switch-row > span { display: grid; gap: 2px; }
+.avm__switch-row strong {
+  color: var(--av-ink);
+  font: 750 0.56rem/1.1 "Satoshi-Variable", monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.avm__switch-row small {
+  color: var(--av-muted);
+  font-size: 0.52rem;
+  line-height: 1.25;
 }
 
 .avm__switch:focus-visible .avm__switch-track {
@@ -968,56 +1081,17 @@
 .avm__reset-btn:hover { color: var(--pop-ink) !important; background: var(--pop-orange); transform: translateY(-1px); }
 
 /* ============================================================
-   YouTube-style Immersive Fullscreen Mode
+   Pure visual fullscreen — Escape returns to the controls
    ============================================================ */
-.av--fullscreen.is-idle {
+.av--fullscreen {
   cursor: none !important;
-}
-
-.av--fullscreen.is-idle .av__panel,
-.av--fullscreen.is-idle .av__panel-reveal,
-.av--fullscreen.is-idle .av__fs-exit-btn,
-.av--fullscreen.is-idle .av__idle-copy,
-.av--fullscreen.is-idle .av__diagnostic-overlay {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transform: translateY(12px);
-  transition: opacity 400ms ease, transform 400ms ease;
 }
 
 .av--fullscreen .av__panel,
 .av--fullscreen .av__panel-reveal,
-.av--fullscreen .av__fs-exit-btn,
 .av--fullscreen .av__idle-copy,
 .av--fullscreen .av__diagnostic-overlay {
-  transition: opacity 220ms ease, transform 240ms ease;
-}
-
-.av__fs-exit-btn {
-  position: fixed;
-  z-index: 6;
-  top: max(14px, env(safe-area-inset-top));
-  left: max(14px, env(safe-area-inset-left));
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1.5px solid var(--pop-border);
-  border-radius: 14px;
-  background: var(--pop-yellow);
-  color: var(--pop-ink);
-  box-shadow: none;
-  cursor: pointer;
-  font: 750 0.62rem/1 "Satoshi-Variable", monospace;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: transform 140ms ease, box-shadow 140ms ease, opacity 350ms ease;
-}
-
-.av__fs-exit-btn:hover {
-  transform: translateY(-1px);
-  background: var(--pop-yellow);
+  display: none !important;
 }
 
 /* ============================================================

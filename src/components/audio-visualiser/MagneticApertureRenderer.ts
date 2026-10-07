@@ -1,4 +1,5 @@
 import { AudioFeatureProcessor } from "./AudioFeatureProcessor";
+import { mapGravityPullToPhysics } from "./settings";
 import type {
   AudioFeatureFrame,
   MagneticApertureSettings,
@@ -204,8 +205,8 @@ uniform vec4 uHarmonics;
 uniform vec4 uHarmonicPhases;
 uniform float uBeatExpansion;
 uniform float uBeatRippleAge;
-uniform float uHighSpectrum[12];
-uniform float uOuterHighStrength;
+uniform float uSpectrum[24];
+uniform float uSpectrumStrength;
 uniform vec3 uContourColor;
 uniform float uGlow;
 out vec4 outColor;
@@ -220,12 +221,12 @@ void main() {
   float baseSpacing = 0.038;
   float innerR = 0.065;
 
-  // Resolve the treble spectrum once, then echo the same angular peaks across
-  // the contour layers with a steep non-linear falloff toward the center.
+  // Place the full perceptual spectrum around the aperture. Low frequencies
+  // begin at the top and increasingly bright frequencies travel clockwise.
   float spectralPeak = 0.0;
   float spectralTheta = theta - uContourAngle;
-  for (int spectrumIndex = 0; spectrumIndex < 12; spectrumIndex++) {
-    float spectrumPosition = float(spectrumIndex) / 12.0;
+  for (int spectrumIndex = 0; spectrumIndex < 24; spectrumIndex++) {
+    float spectrumPosition = float(spectrumIndex) / 24.0;
     float peakAngle = -1.5707963 + spectrumPosition * 6.2831853;
     float angularDistance = abs(atan(
       sin(spectralTheta - peakAngle),
@@ -234,7 +235,7 @@ void main() {
     float peakShape = exp(-angularDistance * angularDistance * 38.0);
     // Sub-linear shaping deliberately lifts quieter distortion harmonics
     // so individual strings remain visible inside a dense guitar signal.
-    float spectrumEnergy = pow(clamp(uHighSpectrum[spectrumIndex], 0.0, 1.0), 0.46);
+    float spectrumEnergy = pow(clamp(uSpectrum[spectrumIndex], 0.0, 1.0), 0.54);
     spectralPeak += spectrumEnergy * peakShape;
   }
   spectralPeak = min(spectralPeak, 1.25);
@@ -287,7 +288,7 @@ void main() {
       -0.60 * pow(max(0.0, layerDistance - 0.55), 1.65)
     );
     distortedR *= 1.0 +
-      spectralPeak * uOuterHighStrength * 0.38 * layerFalloff;
+      spectralPeak * uSpectrumStrength * 0.30 * layerFalloff;
 
     float d = abs(r - distortedR);
     
@@ -332,6 +333,10 @@ uniform int uTheme; // 0 = purple-red, 1 = green-blue, 2 = earth-brown, 3 = deep
 uniform float uIntensity;
 uniform float uEnergy;
 uniform float uAspect;
+uniform float uBassBloom;
+uniform float uBassWaveAge;
+uniform float uBassWaveStrength;
+uniform vec3 uBassColor;
 out vec4 outColor;
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -408,6 +413,17 @@ void main() {
   // Subtle breathing pulse with audio energy
   finalColor *= (1.0 + uEnergy * 0.28);
 
+  // A kick or bass drum lights the center like a pressure source, then sends
+  // a thin wavefront into the field. Both decay independently of sustained bass.
+  vec2 centered = vUv - 0.5;
+  centered.x *= uAspect;
+  float radius = length(centered);
+  float coreBloom = exp(-radius * radius * 38.0) * uBassBloom;
+  float bloomHalo = exp(-radius * radius * 10.0) * uBassBloom * 0.28;
+  float waveRadius = min(1.35, uBassWaveAge * 0.92);
+  float pressureWave = exp(-pow((radius - waveRadius) * 25.0, 2.0)) * uBassWaveStrength;
+  finalColor += uBassColor * (coreBloom * 0.72 + bloomHalo * 0.36 + pressureWave * 0.42);
+
   // Intensity blend with deep ink
   finalColor = mix(vec3(0.014, 0.014, 0.018), finalColor, uIntensity);
 
@@ -426,6 +442,7 @@ export class MagneticApertureRenderer {
   private readonly featureProcessor = new AudioFeatureProcessor();
   private readonly pieceProgram: WebGLProgram;
   private readonly pieceVao: WebGLVertexArrayObject;
+  private readonly pieceCornerBuffer: WebGLBuffer;
   private readonly instanceBuffer: WebGLBuffer;
   private readonly contourProgram: WebGLProgram;
   private readonly contourVao: WebGLVertexArrayObject;
@@ -447,6 +464,7 @@ export class MagneticApertureRenderer {
   private readonly baseSize = new Float32Array(MAX_PARTICLES);
   private readonly family = new Uint8Array(MAX_PARTICLES);
   private readonly visibility = new Float32Array(MAX_PARTICLES);
+  private readonly routedSpectrum = new Float32Array(24);
   // Per-particle dynamic scale — responds to music energy with attack/sustain/decay
   private readonly dynScale = new Float32Array(MAX_PARTICLES);
   // Per-particle elongation for guitar-pluck effect
@@ -463,18 +481,18 @@ export class MagneticApertureRenderer {
   private contourAngularVel = 0.35;
   private contourBeatExpansion = 0;
   private contourBeatRippleAge = 4;
+  private bassBloomStrength = 0;
+  private bassWaveStrength = 0;
+  private bassWaveAge = 4;
 
   // Smooth parameter interpolation states for liquid slider tweaking
   private smoothedSpread = 0.94;
-  private smoothedGravityPull = 1.0;
+  private smoothedGravityPull = mapGravityPullToPhysics(1.0);
   private smoothedBurst = 1.0;
   private smoothedReaction = 1.0;
   private smoothedPieceLength = 1.05;
   private smoothedPieceWidth = 0.82;
   private smoothedRotationSpeed = 0.24;
-  private smoothedBassSens = 1.0;
-  private smoothedMidSens = 1.0;
-  private smoothedHighSens = 1.2;
 
   private animationFrame = 0;
   private resizeObserver: ResizeObserver | null = null;
@@ -524,6 +542,7 @@ export class MagneticApertureRenderer {
       throw new Error("Unable to allocate WebGL buffers.");
     }
     this.pieceVao = pieceVao;
+    this.pieceCornerBuffer = cornerBuffer;
     this.instanceBuffer = instanceBuffer;
     this.contourVao = contourVao;
     this.contourQuadBuffer = contourQuadBuffer;
@@ -608,6 +627,9 @@ export class MagneticApertureRenderer {
     this.contourAngularVel = 0.35 * settings.rotationDirection;
     this.contourBeatExpansion = 0;
     this.contourBeatRippleAge = 4;
+    this.bassBloomStrength = 0;
+    this.bassWaveStrength = 0;
+    this.bassWaveAge = 4;
     this.harmonicAmps.fill(0);
     this.harmonicVels.fill(0);
     for (let index = 0; index < MAX_PARTICLES; index += 1) {
@@ -711,6 +733,16 @@ export class MagneticApertureRenderer {
     // Bass drum (deep kick / 808s): powerful magnetic repulsion blast towards periphery
     if (features.bass.onset && settings.bassReactive) {
       this.applyBurst(settings, features, "bass");
+      const impact = Math.max(0.2, features.bass.transient);
+      this.bassBloomStrength = Math.max(
+        this.bassBloomStrength,
+        impact * settings.bassBloom * settings.overallReaction,
+      );
+      this.bassWaveStrength = Math.max(
+        this.bassWaveStrength,
+        impact * settings.bassWave * settings.overallReaction,
+      );
+      this.bassWaveAge = 0;
     }
 
     // Soft drum (snare / toms / punchy percussion): crisp magnetic repulsion towards periphery
@@ -726,10 +758,10 @@ export class MagneticApertureRenderer {
         (features.mid.onset && settings.midReactive))
     ) {
       const bassHit = settings.bassReactive
-        ? features.bass.fast * settings.bassSensitivity * 1.25
+        ? features.bass.fast * 1.25
         : 0;
       const drumHit = settings.midReactive
-        ? features.mid.fast * settings.midSensitivity * 0.85
+        ? features.mid.fast * 0.85
         : 0;
       const hitStrength = clamp(
         (bassHit + drumHit) * settings.overallReaction,
@@ -741,8 +773,15 @@ export class MagneticApertureRenderer {
     }
 
     // Amoeba contour warp impulses on bass / drum onsets
-    if ((features.bass.onset || features.mid.onset) && settings.contourVisible) {
-      const kick = (features.bass.fast * 1.8 + features.mid.fast * 1.2) * settings.contourDeformation;
+    if (
+      ((features.bass.onset && settings.bassReactive) ||
+        (features.mid.onset && settings.midReactive)) &&
+      settings.contourVisible
+    ) {
+      const kick = (
+        (settings.bassReactive ? features.bass.transient * 1.8 : 0) +
+        (settings.midReactive ? features.mid.transient * 1.2 : 0)
+      ) * settings.contourDeformation;
       // Multi-frequency directional twist on every beat so distortions occur in dynamic orientations
       this.harmonicVels[0] += (hash(this.activeCount, 31) - 0.5) * kick * 8.5;
       this.harmonicVels[1] += (hash(this.activeCount, 32) - 0.5) * kick * 7.0;
@@ -778,22 +817,25 @@ export class MagneticApertureRenderer {
     // Smooth blending on user parameter changes
     const blendRate = 1 - Math.exp(-24 * delta);
     this.smoothedSpread += (settings.fieldSpread - this.smoothedSpread) * blendRate;
-    this.smoothedGravityPull += (settings.gravityPull - this.smoothedGravityPull) * blendRate;
+    const effectiveGravityPull = mapGravityPullToPhysics(settings.gravityPull);
+    this.smoothedGravityPull += (effectiveGravityPull - this.smoothedGravityPull) * blendRate;
     this.smoothedBurst += (settings.burstStrength - this.smoothedBurst) * blendRate;
     this.smoothedReaction += (settings.overallReaction - this.smoothedReaction) * blendRate;
     this.smoothedPieceLength += (settings.pieceLength - this.smoothedPieceLength) * blendRate;
     this.smoothedPieceWidth += (settings.pieceWidth - this.smoothedPieceWidth) * blendRate;
     this.smoothedRotationSpeed += (settings.rotationSpeed - this.smoothedRotationSpeed) * blendRate;
-    this.smoothedBassSens += (settings.bassSensitivity - this.smoothedBassSens) * blendRate;
-    this.smoothedMidSens += (settings.midSensitivity - this.smoothedMidSens) * blendRate;
-    this.smoothedHighSens += (settings.highSensitivity - this.smoothedHighSens) * blendRate;
-
     // Calibrate master sensitivity so the initial sweet spot (0.1–0.4) is comfortably spread across the full 0.1–2.0 slider range
     const effReaction = this.smoothedReaction * 0.40;
-    const bass = settings.bassReactive ? features.bass.energy * effReaction * this.smoothedBassSens : 0;
-    const mid = settings.midReactive ? features.mid.energy * effReaction * this.smoothedMidSens : 0;
-    const high = settings.highReactive ? features.high.energy * effReaction * this.smoothedHighSens : 0;
+    // Sensitivity is applied once in AudioFeatureProcessor. The renderer only
+    // applies the creative master response, keeping every band predictable.
+    const bass = settings.bassReactive ? features.bass.energy * effReaction : 0;
+    const mid = settings.midReactive ? features.mid.energy * effReaction : 0;
+    const high = settings.highReactive ? features.high.energy * effReaction : 0;
     const totalEnergy = clamp((bass + mid + high) / 3, 0, 1);
+
+    this.bassBloomStrength *= Math.exp(-6.5 * delta);
+    this.bassWaveStrength *= Math.exp(-3.8 * delta);
+    this.bassWaveAge += delta;
 
     // Immediate onset injection above, followed by a smooth watery release.
     // Stronger hits start wider but share the same legible fade duration.
@@ -818,7 +860,8 @@ export class MagneticApertureRenderer {
     }
 
     this.rotationPhase +=
-      delta * settings.rotationDirection * this.smoothedRotationSpeed * (0.28 + mid * 1.8);
+      delta * settings.rotationDirection * this.smoothedRotationSpeed *
+      (0.24 + mid * 1.7 + features.spectralCentroid * 0.42);
 
     const linearDamping = Math.exp(-LINEAR_DRAG * delta);
     const angularDamping = Math.exp(-ANGULAR_DRAG * delta);
@@ -891,7 +934,8 @@ export class MagneticApertureRenderer {
 
       // 5. Treble shimmer on guitar/high-frequencies
       if (family === 2 && high > 0.04) {
-        const shimmer = Math.sin(this.phase[index] + this.rotationPhase * 8) * high * 0.75;
+        const shimmer = Math.sin(this.phase[index] + this.rotationPhase * 8) * high *
+          (0.48 + features.spectralFlatness * 0.72);
         ax += Math.cos(this.baseAngle[index]) * shimmer;
         ay += Math.sin(this.baseAngle[index]) * shimmer;
       }
@@ -980,8 +1024,7 @@ export class MagneticApertureRenderer {
   ) {
     const isBass = type === "bass";
     const effReaction = settings.overallReaction * 0.40;
-    const bandSens = isBass ? settings.bassSensitivity : settings.midSensitivity;
-    const strength = BURST_BASE * (0.35 + effReaction * 0.65) * settings.burstStrength * bandSens *
+    const strength = BURST_BASE * (0.35 + effReaction * 0.65) * settings.burstStrength *
       (isBass ? (0.7 + features.bass.fast * 1.3) : (0.5 + features.mid.fast * 1.0));
 
     for (let index = 0; index < this.activeCount; index += 1) {
@@ -1024,7 +1067,7 @@ export class MagneticApertureRenderer {
    */
   private applyGuitarRiffAndTreble(settings: MagneticApertureSettings, features: AudioFeatureFrame) {
     const effReaction = settings.overallReaction * 0.40;
-    const high = features.high.energy * effReaction * settings.highSensitivity;
+    const high = features.high.energy * effReaction;
     for (let index = 0; index < this.activeCount; index += 1) {
       const family = this.family[index];
       // Instant dramatic scale jump on guitar riff:
@@ -1077,20 +1120,42 @@ export class MagneticApertureRenderer {
       : settings.backdropTheme === "earth-brown"
       ? 2
       : 3;
-    const energy = features.hasSignal
-      ? (features.bass.energy + features.mid.energy + features.high.energy) / 3
-      : 0;
+    const routedBass = settings.bassReactive ? features.bass.energy : 0;
+    const routedMid = settings.midReactive ? features.mid.energy : 0;
+    const routedHigh = settings.highReactive ? features.high.energy : 0;
+    const energy = features.hasSignal ? (routedBass + routedMid + routedHigh) / 3 : 0;
 
     // ── 0. Aurora Atmospheric Backdrop Pass ─────────────────────────
     gl.disable(gl.BLEND);
-    if (settings.backdropVisible && settings.backdropIntensity > 0.001) {
+    if (
+      (settings.backdropVisible && settings.backdropIntensity > 0.001) ||
+      this.bassBloomStrength > 0.001 ||
+      this.bassWaveStrength > 0.001 ||
+      routedBass > 0.001
+    ) {
       gl.useProgram(this.backdropProgram);
       gl.bindVertexArray(this.backdropVao);
       gl.uniform1f(gl.getUniformLocation(this.backdropProgram, "uTime"), this.lastTime / 1000);
       gl.uniform1i(gl.getUniformLocation(this.backdropProgram, "uTheme"), themeIdx);
-      gl.uniform1f(gl.getUniformLocation(this.backdropProgram, "uIntensity"), settings.backdropIntensity);
+      gl.uniform1f(
+        gl.getUniformLocation(this.backdropProgram, "uIntensity"),
+        settings.backdropVisible ? settings.backdropIntensity : 0,
+      );
       gl.uniform1f(gl.getUniformLocation(this.backdropProgram, "uEnergy"), energy);
       gl.uniform1f(gl.getUniformLocation(this.backdropProgram, "uAspect"), aspect);
+      gl.uniform1f(
+        gl.getUniformLocation(this.backdropProgram, "uBassBloom"),
+        clamp(this.bassBloomStrength + routedBass * settings.bassBloom * 0.16, 0, 2.5),
+      );
+      gl.uniform1f(gl.getUniformLocation(this.backdropProgram, "uBassWaveAge"), this.bassWaveAge);
+      gl.uniform1f(
+        gl.getUniformLocation(this.backdropProgram, "uBassWaveStrength"),
+        clamp(this.bassWaveStrength, 0, 2.5),
+      );
+      gl.uniform3f(
+        gl.getUniformLocation(this.backdropProgram, "uBassColor"),
+        bassColor[0], bassColor[1], bassColor[2],
+      );
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       gl.bindVertexArray(null);
     } else {
@@ -1134,28 +1199,29 @@ export class MagneticApertureRenderer {
         gl.getUniformLocation(this.contourProgram, "uBeatRippleAge"),
         this.contourBeatRippleAge,
       );
+      const spectrumHigh = Math.min(12_000, features.sampleRate * 0.48 || 12_000);
+      const spectrumRange = Math.log(spectrumHigh / 30);
+      for (let index = 0; index < this.routedSpectrum.length; index += 1) {
+        const frequency = 30 * Math.exp(spectrumRange * ((index + 0.5) / this.routedSpectrum.length));
+        const enabled = frequency < settings.bassMidCrossover
+          ? settings.bassReactive
+          : frequency < settings.midHighCrossover
+            ? settings.midReactive
+            : settings.highReactive;
+        this.routedSpectrum[index] = enabled ? features.spectrum[index] : 0;
+      }
       gl.uniform1fv(
-        gl.getUniformLocation(this.contourProgram, "uHighSpectrum[0]"),
-        features.highSpectrum,
+        gl.getUniformLocation(this.contourProgram, "uSpectrum[0]"),
+        this.routedSpectrum,
       );
       gl.uniform1f(
-        gl.getUniformLocation(this.contourProgram, "uOuterHighStrength"),
-        settings.highReactive
-          ? clamp(
-              settings.overallReaction * (
-                2.1 +
-                clamp(
-                  Math.max(0, features.high.fast - features.high.slow) /
-                    Math.max(0.025, features.high.slow * 0.45),
-                  0,
-                  1,
-                ) * 3.4 +
-                clamp(features.high.fast * 2.2, 0, 1) * 0.8
-              ),
-              0,
-              6,
-            )
-          : 0,
+        gl.getUniformLocation(this.contourProgram, "uSpectrumStrength"),
+        clamp(
+          settings.spectralDetail * settings.overallReaction *
+            (0.28 + features.spectralFlux * 1.6 + features.spectralFlatness * 0.32),
+          0,
+          4.5,
+        ),
       );
       gl.uniform3f(gl.getUniformLocation(this.contourProgram, "uContourColor"), midColor[0], midColor[1], midColor[2]);
       gl.uniform1f(gl.getUniformLocation(this.contourProgram, "uGlow"), settings.glow);
@@ -1187,7 +1253,11 @@ export class MagneticApertureRenderer {
       const visible =
         family === 0 ? settings.bassVisible : family === 1 ? settings.midVisible : settings.highVisible;
       if (!visible || this.visibility[index] > settings.density) continue;
-      const energy = family === 0 ? features.bass.energy : family === 1 ? features.mid.energy : features.high.energy;
+      const energy = family === 0
+        ? (settings.bassReactive ? features.bass.energy : 0)
+        : family === 1
+          ? (settings.midReactive ? features.mid.energy : 0)
+          : (settings.highReactive ? features.high.energy : 0);
       const base = drawn * INSTANCE_STRIDE;
       const sizeVariation = 1 + (this.baseSize[index] - 1) * settings.sizeVariation;
 
@@ -1195,7 +1265,10 @@ export class MagneticApertureRenderer {
       const dynS = this.dynScale[index];
 
       // Elongation multiplier on long axis (guitar pluck / hi-hat)
-      const pluck = 1 + this.elongation[index];
+      const textureStretch = family === 2
+        ? 1 + features.spectralFlatness * energy * 1.4
+        : 1 + features.spectralFlatness * energy * 0.35;
+      const pluck = (1 + this.elongation[index]) * textureStretch;
 
       let widthRatio: number;
       if (settings.particleShape === "dash") {
@@ -1243,6 +1316,8 @@ export class MagneticApertureRenderer {
         bassOnset: this.bassOnsetSeen,
         midOnset: this.midOnsetSeen,
         highOnset: this.highOnsetSeen,
+        centroid: this.lastFeatures.spectralCentroid,
+        texture: this.lastFeatures.spectralFlatness,
         pullActive: this.lastFeatures.pullActive,
         released: this.releaseSeen,
         particles: this.drawnCount,
@@ -1269,6 +1344,7 @@ export class MagneticApertureRenderer {
     this.resizeObserver?.disconnect();
     document.removeEventListener("visibilitychange", this.handleVisibility);
     this.gl.deleteProgram(this.pieceProgram);
+    this.gl.deleteBuffer(this.pieceCornerBuffer);
     this.gl.deleteBuffer(this.instanceBuffer);
     this.gl.deleteVertexArray(this.pieceVao);
     this.gl.deleteProgram(this.contourProgram);

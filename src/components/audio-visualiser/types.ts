@@ -1,4 +1,4 @@
-export type AudioSourceKind = "none" | "local" | "tab";
+export type AudioSourceKind = "none" | "local" | "microphone" | "tab";
 
 export type AudioVisualiserScene = "symmetric-waveform" | "magnetic-aperture";
 
@@ -59,6 +59,9 @@ export type MagneticApertureSettings = {
   palette: MagneticPalette;
   backdropTheme: MagneticBackdropTheme;
   backdropIntensity: number;
+  bassBloom: number;
+  bassWave: number;
+  spectralDetail: number;
   backdropVisible: boolean;
   bassVisible: boolean;
   bassReactive: boolean;
@@ -142,6 +145,7 @@ export type BandFeature = {
   energy: number;
   fast: number;
   slow: number;
+  transient: number;
   onset: boolean;
   falling: boolean;
 };
@@ -150,7 +154,10 @@ export type AudioFeatureFrame = {
   bass: BandFeature;
   mid: BandFeature;
   high: BandFeature;
-  highSpectrum: Float32Array;
+  spectrum: Float32Array;
+  spectralCentroid: number;
+  spectralFlatness: number;
+  spectralFlux: number;
   level: number;
   hasSignal: boolean;
   pullActive: boolean;
@@ -165,6 +172,8 @@ export type MagneticDiagnostics = {
   bassOnset: boolean;
   midOnset: boolean;
   highOnset: boolean;
+  centroid: number;
+  texture: number;
   pullActive: boolean;
   released: boolean;
   particles: number;
