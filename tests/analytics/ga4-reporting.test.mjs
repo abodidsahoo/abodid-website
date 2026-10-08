@@ -59,6 +59,13 @@ test('runs the required seven-day sessions report and distinguishes an empty suc
     assert.deepEqual(request.dimensions, [{ name: 'date' }]);
     assert.deepEqual(request.metrics, [{ name: 'sessions' }]);
     assert.equal(request.dimensionFilter.andGroup.expressions[0].filter.fieldName, 'hostName');
+    const hostnamePattern = request.dimensionFilter.andGroup.expressions[0].filter.stringFilter.value;
+    assert.equal(hostnamePattern, '([a-z0-9-]+\\.)*abodid\\.com');
+    const hostnameRegex = new RegExp(`^(?:${hostnamePattern})$`, 'i');
+    assert.equal(hostnameRegex.test('abodid.com'), true);
+    assert.equal(hostnameRegex.test('www.abodid.com'), true);
+    assert.equal(hostnameRegex.test('curation.abodid.com'), true);
+    assert.equal(hostnameRegex.test('notabodid.com'), false);
     assert.equal(request.property, 'properties/497735650');
     assert.equal(result.empty, true);
     assert.equal(result.totalSessions, 0);

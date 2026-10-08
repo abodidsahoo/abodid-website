@@ -1,12 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { AudioAnalyserProcessor } from "../audioAnalysis";
 import { AudioFeatureProcessor } from "../AudioFeatureProcessor";
 import {
   MAGNETIC_REFERENCE_SETTINGS,
-  REFERENCE_SETTINGS,
   mapGravityPullToPhysics,
   sanitiseMagneticSettings,
-  sanitiseSettings,
 } from "../settings";
 
 const fakeAnalyser = (decibels: number): AnalyserNode =>
@@ -19,20 +16,9 @@ const fakeAnalyser = (decibels: number): AnalyserNode =>
   }) as unknown as AnalyserNode;
 
 describe("audio visualiser settings", () => {
-  it("clamps persisted values and keeps bar counts even", () => {
-    expect(
-      sanitiseSettings({
-        sensitivity: 99,
-        attackMs: -20,
-        barCount: 55,
-        hueShift: -200,
-      }),
-    ).toMatchObject({
-      sensitivity: 2.5,
-      attackMs: 10,
-      barCount: 56,
-      hueShift: -90,
-    });
+  it("uses a stronger gravity pull as the Magnetic Aperture default", () => {
+    expect(MAGNETIC_REFERENCE_SETTINGS.gravityPull).toBe(1.35);
+    expect(mapGravityPullToPhysics(MAGNETIC_REFERENCE_SETTINGS.gravityPull)).toBeCloseTo(2.8);
   });
 
   it("validates Magnetic Aperture presets and preserves safe crossover order", () => {
@@ -62,34 +48,6 @@ describe("audio visualiser settings", () => {
     expect(mapGravityPullToPhysics(3)).toBe(5);
     expect(mapGravityPullToPhysics(-1)).toBe(1);
     expect(mapGravityPullToPhysics(4)).toBe(5);
-  });
-});
-
-describe("audio analyser processing", () => {
-  it("returns true silence instead of inventing animation", () => {
-    const frame = new AudioAnalyserProcessor().process(
-      fakeAnalyser(-100),
-      REFERENCE_SETTINGS,
-    );
-
-    expect(frame.hasSignal).toBe(false);
-    expect(frame.level).toBe(0);
-    expect([...frame.bars].every((value) => value === 0)).toBe(true);
-  });
-
-  it("maps a live spectrum into finite logarithmic bars", () => {
-    const frame = new AudioAnalyserProcessor().process(
-      fakeAnalyser(-24),
-      REFERENCE_SETTINGS,
-    );
-
-    expect(frame.hasSignal).toBe(true);
-    expect(frame.bars).toHaveLength(64);
-    expect(frame.level).toBeGreaterThan(0);
-    expect([...frame.bars].every(Number.isFinite)).toBe(true);
-    expect(frame.bass).toBeGreaterThan(0);
-    expect(frame.mid).toBeGreaterThan(0);
-    expect(frame.treble).toBeGreaterThan(0);
   });
 });
 

@@ -276,7 +276,7 @@
   var ANALYTICS_ENDPOINT = "/api/analytics/collect";
   var SESSION_TIMEOUT_MS = 30 * 60 * 1000;
   var IDLE_TIMEOUT_MS = 60 * 1000;
-  var HUMAN_ENGAGEMENT_THRESHOLD_SECONDS = 5;
+  var HUMAN_ENGAGEMENT_THRESHOLD_SECONDS = 3;
   var HIGH_INTENT_CHECKPOINT_SECONDS = 30;
   var LONG_SESSION_CHECKPOINT_SECONDS = 60;
   var MAX_BUFFERED_EVENTS = 30;
@@ -593,11 +593,7 @@
   }
 
   function hasMeaningfulHumanSignals() {
-    var hasDirectInput = signalSummary.pointerSamples >= 2 ||
-      signalSummary.touchInteractions >= 1 || signalSummary.keyInteractions >= 1;
-    return totalSessionEngagedSeconds() >= HUMAN_ENGAGEMENT_THRESHOLD_SECONDS &&
-      signalSummary.scrollCount >= 1 && signalSummary.maxScrollDepth >= 0.12 &&
-      signalSummary.genuineClicks >= 1 && hasDirectInput;
+    return totalSessionEngagedSeconds() >= HUMAN_ENGAGEMENT_THRESHOLD_SECONDS;
   }
 
   // Client-Side Intent Inference
@@ -726,7 +722,7 @@
         hasSentInitial = true;
         flushSessionSnapshot(false);
       }
-    }, 5500);
+    }, 3250);
   }
 
   function recordInteraction() {

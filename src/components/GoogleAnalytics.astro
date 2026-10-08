@@ -21,19 +21,23 @@
 
   if (hasOwnerExclusionRequest(window.location.search)) excludeThisDevice();
 
-  let storageExcluded = false;
-  try {
-    storageExcluded = window.localStorage.getItem("abodid_analytics_exclude") === "1";
-  } catch (_error) {
-    // Use the cookie-only result.
-  }
+  const analyticsAllowedForCurrentPage = () => {
+    let storageExcluded = false;
+    try {
+      storageExcluded = window.localStorage.getItem("abodid_analytics_exclude") === "1";
+    } catch (_error) {
+      // Use the cookie-only result.
+    }
 
-  const shouldLoad = shouldLoadGoogleAnalytics({
-    hostname: window.location.hostname,
-    pathname: window.location.pathname,
-    cookie: document.cookie,
-    storageExcluded,
-  });
+    return shouldLoadGoogleAnalytics({
+      hostname: window.location.hostname,
+      pathname: window.location.pathname,
+      cookie: document.cookie,
+      storageExcluded,
+    });
+  };
+
+  const shouldLoad = analyticsAllowedForCurrentPage();
 
   (window as any).__abodidAnalyticsPrivacy = {
     excluded: !shouldLoad,
@@ -42,16 +46,34 @@
 
   if (shouldLoad) {
     (window as any).dataLayer = (window as any).dataLayer || [];
-    (window as any).gtag = function gtag(...args: unknown[]) {
-      (window as any).dataLayer.push(args);
+    // Keep Google's exact command-queue shape. The previous rest-argument
+    // array was not the official gtag bootstrap and could fail silently.
+    (window as any).gtag = (window as any).gtag || function gtag() {
+      (window as any).dataLayer.push(arguments);
     };
     (window as any).gtag("js", new Date());
-    (window as any).gtag("config", measurementId);
+    (window as any).gtag("config", measurementId, { send_page_view: true });
 
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
-    document.head.appendChild(script);
+    if (!document.querySelector(`script[data-abodid-ga4="${measurementId}"]`)) {
+      const script = document.createElement("script");
+      script.async = true;
+      script.dataset.abodidGa4 = measurementId;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+      document.head.appendChild(script);
+    }
+
+    // Astro client-side navigation does not reload the Google tag. Send one
+    // page view whenever the public URL actually changes.
+    let lastTrackedLocation = window.location.href;
+    document.addEventListener("astro:page-load", () => {
+      const nextLocation = window.location.href;
+      if (nextLocation === lastTrackedLocation || !analyticsAllowedForCurrentPage()) return;
+      lastTrackedLocation = nextLocation;
+      (window as any).gtag("event", "page_view", {
+        page_location: nextLocation,
+        page_path: `${window.location.pathname}${window.location.search}`,
+        page_title: document.title,
+      });
+    });
   }
 </script>
-

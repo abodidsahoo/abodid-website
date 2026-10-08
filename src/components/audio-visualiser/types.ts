@@ -1,21 +1,5 @@
 export type AudioSourceKind = "none" | "local" | "microphone" | "tab";
 
-export type AudioVisualiserScene = "symmetric-waveform" | "magnetic-aperture";
-
-export type AudioVisualiserSettings = {
-  sensitivity: number;
-  bassInfluence: number;
-  midInfluence: number;
-  trebleInfluence: number;
-  attackMs: number;
-  releaseMs: number;
-  barCount: number;
-  barGap: number;
-  heightPercent: number;
-  glow: number;
-  hueShift: number;
-};
-
 export type AudioSourceSnapshot = {
   kind: AudioSourceKind;
   label: string;
@@ -25,15 +9,6 @@ export type AudioSourceSnapshot = {
   duration: number;
   volume: number;
   contextState: AudioContextState | "not-started";
-};
-
-export type ProcessedAudioFrame = {
-  bars: Float32Array;
-  bass: number;
-  mid: number;
-  treble: number;
-  level: number;
-  hasSignal: boolean;
 };
 
 export type MagneticPalette = "ultraviolet" | "aurora" | "ember" | "crimson-white";

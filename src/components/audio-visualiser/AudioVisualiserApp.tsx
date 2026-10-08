@@ -6,7 +6,6 @@ import {
   Mic,
   Pause,
   Play,
-  RotateCcw,
   Square,
   Upload,
   Volume2,
@@ -16,21 +15,15 @@ import { MagneticApertureRenderer } from "./MagneticApertureRenderer";
 import { MagneticControlsV2 } from "./MagneticControlsV2";
 import {
   loadMagneticSettings,
-  loadSavedSettings,
   MAGNETIC_REFERENCE_SETTINGS,
-  REFERENCE_SETTINGS,
   sanitiseMagneticSettings,
   saveMagneticSettings,
-  saveSettings,
 } from "./settings";
 import type {
   AudioSourceSnapshot,
-  AudioVisualiserScene,
-  AudioVisualiserSettings,
   MagneticApertureSettings,
   MagneticDiagnostics,
 } from "./types";
-import { WaveformRenderer } from "./WaveformRenderer";
 import "./audio-visualiser.css";
 
 const INITIAL_SOURCE: AudioSourceSnapshot = {
@@ -44,33 +37,10 @@ const INITIAL_SOURCE: AudioSourceSnapshot = {
   contextState: "not-started",
 };
 
-type SliderDefinition = {
-  key: keyof AudioVisualiserSettings;
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  format: (value: number) => string;
-};
-
 type MicrophoneOption = {
   deviceId: string;
   label: string;
 };
-
-const sliders: SliderDefinition[] = [
-  { key: "sensitivity", label: "Sensitivity", min: 0.4, max: 2.5, step: 0.05, format: (v) => v.toFixed(2) },
-  { key: "bassInfluence", label: "Bass influence", min: 0, max: 2, step: 0.05, format: (v) => v.toFixed(2) },
-  { key: "midInfluence", label: "Mid influence", min: 0, max: 2, step: 0.05, format: (v) => v.toFixed(2) },
-  { key: "trebleInfluence", label: "Treble influence", min: 0, max: 2, step: 0.05, format: (v) => v.toFixed(2) },
-  { key: "attackMs", label: "Attack", min: 10, max: 150, step: 5, format: (v) => `${v} ms` },
-  { key: "releaseMs", label: "Release", min: 60, max: 700, step: 10, format: (v) => `${v} ms` },
-  { key: "barCount", label: "Bar count", min: 24, max: 96, step: 2, format: (v) => String(v) },
-  { key: "barGap", label: "Bar gap", min: 1, max: 10, step: 0.5, format: (v) => `${v.toFixed(1)} px` },
-  { key: "heightPercent", label: "Height", min: 20, max: 80, step: 1, format: (v) => `${v}%` },
-  { key: "glow", label: "Glow", min: 0, max: 1, step: 0.05, format: (v) => v.toFixed(2) },
-  { key: "hueShift", label: "Hue shift", min: -90, max: 90, step: 1, format: (v) => `${v > 0 ? "+" : ""}${v}°` },
-];
 
 const formatTime = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -79,25 +49,14 @@ const formatTime = (seconds: number) => {
   return `${minutes}:${String(remainder).padStart(2, "0")}`;
 };
 
-const loadScene = (): AudioVisualiserScene => {
-  if (typeof window === "undefined") return "symmetric-waveform";
-  return window.localStorage.getItem("audio-visualiser:active-scene:v1") === "magnetic-aperture"
-    ? "magnetic-aperture"
-    : "symmetric-waveform";
-};
-
 export default function AudioVisualiserApp() {
-  const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
   const magneticCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const managerRef = useRef<AudioSourceManager | null>(null);
   const magneticRendererRef = useRef<MagneticApertureRenderer | null>(null);
-  const settingsRef = useRef<AudioVisualiserSettings>(REFERENCE_SETTINGS);
   const magneticSettingsRef = useRef<MagneticApertureSettings>(MAGNETIC_REFERENCE_SETTINGS);
-  const [scene, setScene] = useState<AudioVisualiserScene>(loadScene);
-  const [settings, setSettings] = useState(loadSavedSettings);
   const [magneticSettings, setMagneticSettings] = useState(loadMagneticSettings);
   const [source, setSource] = useState<AudioSourceSnapshot>(INITIAL_SOURCE);
   const [message, setMessage] = useState(
@@ -110,7 +69,6 @@ export default function AudioVisualiserApp() {
     { deviceId: "default", label: "Default microphone" },
   ]);
   const [selectedMicrophoneId, setSelectedMicrophoneId] = useState("default");
-  const [fps, setFps] = useState(0);
   const [diagnostics, setDiagnostics] = useState<MagneticDiagnostics | null>(null);
 
   const refreshMicrophones = useCallback(async () => {
@@ -140,21 +98,10 @@ export default function AudioVisualiserApp() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveSettings(settings);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [settings]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
       saveMagneticSettings(magneticSettings);
     }, 350);
     return () => clearTimeout(timer);
   }, [magneticSettings]);
-
-  useEffect(() => {
-    window.localStorage.setItem("audio-visualiser:active-scene:v1", scene);
-  }, [scene]);
 
   useEffect(() => {
     if (panelRef.current) panelRef.current.inert = !panelOpen;
@@ -192,23 +139,11 @@ export default function AudioVisualiserApp() {
   useEffect(() => {
     const manager = managerRef.current;
     if (!manager) return;
-    setFps(0);
     setDiagnostics(null);
     const getAnalyser = () =>
       manager.getSnapshot().isPlaying ? manager.getAnalyser() : null;
 
-    if (scene === "symmetric-waveform" && waveformCanvasRef.current) {
-      const renderer = new WaveformRenderer({
-        canvas: waveformCanvasRef.current,
-        getAnalyser,
-        getSettings: () => settingsRef.current,
-        onFps: setFps,
-      });
-      renderer.start();
-      return () => renderer.destroy();
-    }
-
-    if (scene === "magnetic-aperture" && magneticCanvasRef.current) {
+    if (magneticCanvasRef.current) {
       try {
         const renderer = new MagneticApertureRenderer({
           canvas: magneticCanvasRef.current,
@@ -216,7 +151,6 @@ export default function AudioVisualiserApp() {
           getSettings: () => magneticSettingsRef.current,
           onDiagnostics: (next) => {
             setDiagnostics(next);
-            setFps(next.fps);
           },
         });
         magneticRendererRef.current = renderer;
@@ -229,13 +163,7 @@ export default function AudioVisualiserApp() {
         setMessage(error instanceof Error ? error.message : "Unable to start Magnetic Aperture.");
       }
     }
-  }, [scene]);
-
-  const updateSetting = (key: keyof AudioVisualiserSettings, value: number) => {
-    const next = { ...settingsRef.current, [key]: value };
-    settingsRef.current = next;
-    setSettings(next);
-  };
+  }, []);
 
   const updateMagneticSetting = <Key extends keyof MagneticApertureSettings>(
     key: Key,
@@ -325,31 +253,22 @@ export default function AudioVisualiserApp() {
     }
   };
 
-  const isMagnetic = scene === "magnetic-aperture";
   const rootClasses = [
     "av",
-    isMagnetic ? "av--magnetic" : "",
+    "av--magnetic",
     isFullscreen ? "av--fullscreen" : "",
   ].filter(Boolean).join(" ");
 
   return (
     <div className={rootClasses} ref={rootRef}>
       <canvas
-        ref={waveformCanvasRef}
-        className="av__canvas"
-        aria-hidden="true"
-        data-testid="waveform-canvas"
-        hidden={isMagnetic}
-      />
-      <canvas
         ref={magneticCanvasRef}
         className="av__canvas"
         aria-hidden="true"
         data-testid="magnetic-aperture-canvas"
-        hidden={!isMagnetic}
       />
 
-      {isMagnetic && magneticSettings.diagnostics && diagnostics && (
+      {magneticSettings.diagnostics && diagnostics && (
         <div className="av__diagnostic-overlay" aria-live="off">
           <strong>Magnetic Aperture / live</strong>
           <span>B {diagnostics.bass.toFixed(2)} {diagnostics.bassOnset ? "↑ onset" : ""}</span>
@@ -378,8 +297,8 @@ export default function AudioVisualiserApp() {
 
       {source.kind === "none" && (
         <div className="av__idle-copy" aria-hidden="true">
-          <span>Audio Visualiser / {isMagnetic ? "02" : "01"}</span>
-          <p>{isMagnetic ? "Magnetic Aperture is resting. Add audio to pull the field into motion." : "Use your microphone, choose a local track, or share a Chrome tab to turn sound into a responsive visual field."}</p>
+          <span>Audio Visualiser / Magnetic Aperture</span>
+          <p>Magnetic Aperture is resting. Add audio to pull the field into motion.</p>
         </div>
       )}
 
@@ -393,7 +312,7 @@ export default function AudioVisualiserApp() {
         <div className="av__panel-scroll">
           <header className="av__header">
             <div className="av__header-info">
-              <p className="av__eyebrow">Lab · Scene {isMagnetic ? "02" : "01"}</p>
+              <p className="av__eyebrow">Lab · Magnetic Aperture</p>
               <h1>Audio Visualiser</h1>
             </div>
             <div className="av__header-actions">
@@ -417,27 +336,6 @@ export default function AudioVisualiserApp() {
               </button>
             </div>
           </header>
-
-          <section className="av__section av__scene-section" aria-labelledby="scene-title">
-            <div className="av__section-heading">
-              <h2 id="scene-title">Scene</h2>
-              <span>{isMagnetic ? "GPU field" : "Canvas waveform"}</span>
-            </div>
-            <div className="av__segmented av__scene-picker">
-              <button
-                type="button"
-                className={!isMagnetic ? "is-active" : ""}
-                aria-pressed={!isMagnetic}
-                onClick={() => setScene("symmetric-waveform")}
-              ><small>01</small><span>Symmetric<br />Waveform</span></button>
-              <button
-                type="button"
-                className={isMagnetic ? "is-active" : ""}
-                aria-pressed={isMagnetic}
-                onClick={() => setScene("magnetic-aperture")}
-              ><small>02</small><span>Magnetic<br />Aperture</span></button>
-            </div>
-          </section>
 
           <section className="av__section" aria-labelledby="source-title">
             <div className="av__section-heading">
@@ -561,51 +459,11 @@ export default function AudioVisualiserApp() {
             </p>
           </section>
 
-          {isMagnetic ? (
-            <MagneticControlsV2
-              settings={magneticSettings}
-              onUpdate={updateMagneticSetting}
-              onReset={resetMagnetic}
-            />
-          ) : (
-            <>
-              <div className="av__section-waveform-head">
-                <h2>Response</h2>
-                <button
-                  type="button"
-                  className="av__reset"
-                  onClick={() => setSettings({ ...REFERENCE_SETTINGS })}
-                >
-                  <RotateCcw size={13} /> Reset
-                </button>
-              </div>
-              <div className="av__sliders">
-                {sliders.map((slider) => (
-                  <label className="av__slider" key={slider.key}>
-                    <span>{slider.label}</span>
-                    <input
-                      aria-label={slider.label}
-                      type="range"
-                      min={slider.min}
-                      max={slider.max}
-                      step={slider.step}
-                      value={settings[slider.key]}
-                      onChange={(event) => updateSetting(slider.key, Number(event.target.value))}
-                    />
-                  </label>
-                ))}
-              </div>
-              <details className="av__diagnostics">
-                <summary>Diagnostics</summary>
-                <dl>
-                  <div><dt>FPS</dt><dd>{fps || "—"}</dd></div>
-                  <div><dt>Context</dt><dd>{source.contextState}</dd></div>
-                  <div><dt>Track</dt><dd>{source.hasAudioTrack ? "Present" : "None"}</dd></div>
-                  <div><dt>Source</dt><dd>{source.kind}</dd></div>
-                </dl>
-              </details>
-            </>
-          )}
+          <MagneticControlsV2
+            settings={magneticSettings}
+            onUpdate={updateMagneticSetting}
+            onReset={resetMagnetic}
+          />
         </div>
       </aside>
     </div>

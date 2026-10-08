@@ -101,17 +101,11 @@ export const GET: APIRoute = async ({ request, url }) => {
                 : null;
 
         const signals = session.human_signals || {};
-        const hasBaselineHumanJourney = Number(session.total_engaged_seconds || 0) >= 5 &&
-            Number(signals.scrollCount || 0) >= 1 &&
-            Number(signals.maxScrollDepth || 0) >= 0.12 &&
-            Number(signals.genuineClicks || 0) >= 1 &&
-            (Number(signals.pointerSamples || 0) >= 2 ||
-                Number(signals.touchInteractions || 0) >= 1 ||
-                Number(signals.keyInteractions || 0) >= 1);
 
-        // A client-side form signal alone is never enough. Only a validated
-        // server-side submission may bypass the normal human-journey baseline.
-        if ((!hasBaselineHumanJourney && !conversion) || conversion?.status === 'spam') return [];
+        // The database query already limits this feed to server-qualified
+        // humans. Do not reapply the former click-and-scroll gate here, because
+        // it hid legitimate readers who stayed without interacting.
+        if (conversion?.status === 'spam') return [];
 
         return [{
             id: session.id,

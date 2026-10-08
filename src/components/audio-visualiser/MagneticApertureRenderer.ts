@@ -487,7 +487,7 @@ export class MagneticApertureRenderer {
 
   // Smooth parameter interpolation states for liquid slider tweaking
   private smoothedSpread = 0.94;
-  private smoothedGravityPull = mapGravityPullToPhysics(1.0);
+  private smoothedGravityPull = mapGravityPullToPhysics(1.35);
   private smoothedBurst = 1.0;
   private smoothedReaction = 1.0;
   private smoothedPieceLength = 1.05;

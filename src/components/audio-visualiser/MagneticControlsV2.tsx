@@ -448,7 +448,7 @@ export function MagneticControlsV2({ settings, onUpdate, onReset }: Props) {
 
       <div className="avm__footer">
         <button type="button" className="avm__reset-btn" onClick={onReset}>
-          <RotateCcw size={12} aria-hidden="true" /> Reset to defaults
+          <RotateCcw size={15} strokeWidth={2.5} aria-hidden="true" /> Reset all controls
         </button>
       </div>
     </div>

@@ -131,7 +131,9 @@ const publicTrafficFilter = (pathDimension = 'pagePath') => ({
                     fieldName: 'hostName',
                     stringFilter: {
                         matchType: 'FULL_REGEXP',
-                        value: '(^|\\.)abodid\\.com',
+                        // GA4's FULL_REGEXP must match the complete hostname.
+                        // Include the legacy www host and any first-party subdomain.
+                        value: '([a-z0-9-]+\\.)*abodid\\.com',
                         caseSensitive: false,
                     },
                 },

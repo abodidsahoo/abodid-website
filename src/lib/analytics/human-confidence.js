@@ -7,6 +7,8 @@ export const HUMAN_CONFIDENCE_TIERS = Object.freeze({
     EXCEPTIONAL: 'exceptional',
 });
 
+export const MIN_HUMAN_ENGAGEMENT_SECONDS = 3;
+
 /**
  * A deliberately small, deterministic scoring model. It runs once per batched
  * session snapshot, performs no network work, and does not use AI or fingerprinting.
@@ -55,6 +57,7 @@ export const calculateHumanConfidence = ({
         reasons.push(reason);
     };
 
+    if (signals.activeSeconds >= MIN_HUMAN_ENGAGEMENT_SECONDS) add(25, 'active_3s');
     if (signals.activeSeconds >= 5) add(10, 'active_5s');
     if (signals.activeSeconds >= 15) add(10, 'active_15s');
     if (signals.activeSeconds >= 30) add(15, 'active_30s');
@@ -71,15 +74,13 @@ export const calculateHumanConfidence = ({
 
     score = Math.min(100, score);
 
-    const hasHumanInput = signals.pointerSamples >= 2 || signals.touchInteractions >= 1 || signals.keyInteractions >= 1;
-    const hasBaselineHumanJourney = signals.activeSeconds >= 5 &&
-        signals.scrollCount >= 1 &&
-        signals.maxScrollDepth >= 0.12 &&
-        signals.genuineClicks >= 1 &&
-        hasHumanInput;
+    // Known bots are rejected above. For the remaining traffic, three seconds
+    // of active, visible attention is enough to retain a real reader even when
+    // they do not scroll or click. One- and two-second scans remain filtered.
+    const hasBaselineHumanJourney = signals.activeSeconds >= MIN_HUMAN_ENGAGEMENT_SECONDS;
     // Browser-reported form events are deliberately not a qualification
     // bypass. The form endpoints promote only server-validated submissions.
-    const qualified = hasBaselineHumanJourney && score >= 45;
+    const qualified = hasBaselineHumanJourney;
 
     let tier = HUMAN_CONFIDENCE_TIERS.FILTERED;
     if (qualified) tier = HUMAN_CONFIDENCE_TIERS.MEANINGFUL;

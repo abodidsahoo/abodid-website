@@ -5,16 +5,14 @@ import {
     HUMAN_CONFIDENCE_TIERS,
 } from '../../src/lib/analytics/human-confidence.js';
 
-test('does not qualify passive or scroll-only traffic', () => {
-    assert.equal(calculateHumanConfidence({ activeSeconds: 90 }).qualified, false);
-    assert.equal(calculateHumanConfidence({
-        activeSeconds: 90,
-        scrollCount: 20,
-        maxScrollDepth: 0.9,
-    }).qualified, false);
+test('filters one- and two-second scans but retains a visible three-second visit', () => {
+    assert.equal(calculateHumanConfidence({ activeSeconds: 1 }).qualified, false);
+    assert.equal(calculateHumanConfidence({ activeSeconds: 2 }).qualified, false);
+    assert.equal(calculateHumanConfidence({ activeSeconds: 3 }).qualified, true);
+    assert.equal(calculateHumanConfidence({ activeSeconds: 3 }).tier, HUMAN_CONFIDENCE_TIERS.MEANINGFUL);
 });
 
-test('qualifies a short visit only after scroll, click, and human input', () => {
+test('interaction signals raise confidence for a short human visit', () => {
     const result = calculateHumanConfidence({
         activeSeconds: 8,
         scrollCount: 2,
@@ -53,4 +51,10 @@ test('recognises high-intent and exceptional content journeys', () => {
 test('client form signals do not bypass human checks while rejected spam is filtered', () => {
     assert.equal(calculateHumanConfidence({ formSubmitted: true }).tier, HUMAN_CONFIDENCE_TIERS.FILTERED);
     assert.equal(calculateHumanConfidence({ formSubmitted: true, spamRejected: true }).tier, HUMAN_CONFIDENCE_TIERS.FILTERED);
+});
+
+test('known bots remain filtered even after sustained activity', () => {
+    const result = calculateHumanConfidence({ activeSeconds: 120, knownBot: true });
+    assert.equal(result.qualified, false);
+    assert.equal(result.tier, HUMAN_CONFIDENCE_TIERS.FILTERED);
 });

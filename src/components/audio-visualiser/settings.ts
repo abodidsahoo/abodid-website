@@ -1,12 +1,12 @@
 import type {
-  AudioVisualiserSettings,
   MagneticApertureSettings,
   MagneticPalette,
   MagneticParticleShape,
 } from "./types";
 
-export const SETTINGS_STORAGE_KEY = "audio-visualiser:reference-settings:v1";
 export const MAGNETIC_SETTINGS_STORAGE_KEY =
+  "audio-visualiser:magnetic-aperture:v12";
+const LEGACY_MAGNETIC_SETTINGS_STORAGE_KEY =
   "audio-visualiser:magnetic-aperture:v11";
 
 const GRAVITY_CONTROL_MIN = 0;
@@ -26,27 +26,13 @@ export const mapGravityPullToPhysics = (gravityPull: number) => {
   return GRAVITY_PHYSICS_MIN + progress * (GRAVITY_PHYSICS_MAX - GRAVITY_PHYSICS_MIN);
 };
 
-export const REFERENCE_SETTINGS: AudioVisualiserSettings = {
-  sensitivity: 1,
-  bassInfluence: 1,
-  midInfluence: 1,
-  trebleInfluence: 1,
-  attackMs: 35,
-  releaseMs: 220,
-  barCount: 64,
-  barGap: 4,
-  heightPercent: 55,
-  glow: 0.35,
-  hueShift: 0,
-};
-
 export const MAGNETIC_REFERENCE_SETTINGS: MagneticApertureSettings = {
   particleShape: "circle",
   // Overall reactivity — calibrated so initial sweet spot spans entire 0.1–2.0 slider
   overallReaction: 1.0,
   bassPull: 1.2,
   // Gravity pull: strength of the magnetic inward pull toward center
-  gravityPull: 1.0,
+  gravityPull: 1.35,
   // Burst strength: magnetic repulsion outward on drum beats
   burstStrength: 1.0,
   rotationSpeed: 0.24,
@@ -135,20 +121,6 @@ export const MAGNETIC_REFERENCE_SETTINGS: MagneticApertureSettings = {
   diagnostics: false,
 };
 
-const bounds: Record<keyof AudioVisualiserSettings, [number, number]> = {
-  sensitivity: [0.4, 2.5],
-  bassInfluence: [0, 2],
-  midInfluence: [0, 2],
-  trebleInfluence: [0, 2],
-  attackMs: [10, 150],
-  releaseMs: [60, 700],
-  barCount: [24, 96],
-  barGap: [1, 10],
-  heightPercent: [20, 80],
-  glow: [0, 1],
-  hueShift: [-90, 90],
-};
-
 const magneticBounds: Partial<
   Record<keyof MagneticApertureSettings, [number, number]>
 > = {
@@ -188,42 +160,6 @@ const particleShapes: MagneticParticleShape[] = ["dash", "pill", "diamond", "cir
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
-
-export const sanitiseSettings = (
-  candidate: Partial<AudioVisualiserSettings> | null | undefined,
-): AudioVisualiserSettings => {
-  const next = { ...REFERENCE_SETTINGS };
-
-  if (!candidate) return next;
-
-  (Object.keys(next) as Array<keyof AudioVisualiserSettings>).forEach((key) => {
-    const value = candidate[key];
-    if (typeof value !== "number" || !Number.isFinite(value)) return;
-    const [min, max] = bounds[key];
-    next[key] = clamp(value, min, max);
-  });
-
-  next.barCount = Math.round(next.barCount / 2) * 2;
-  return next;
-};
-
-export const loadSavedSettings = (): AudioVisualiserSettings => {
-  if (typeof window === "undefined") return { ...REFERENCE_SETTINGS };
-  try {
-    const saved = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
-    return sanitiseSettings(saved ? JSON.parse(saved) : null);
-  } catch {
-    return { ...REFERENCE_SETTINGS };
-  }
-};
-
-export const saveSettings = (settings: AudioVisualiserSettings) => {
-  try {
-    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-  } catch {
-    // Private browsing and storage policies can make localStorage unavailable.
-  }
-};
 
 export const sanitiseMagneticSettings = (
   candidate: Partial<MagneticApertureSettings> | null | undefined,
@@ -268,7 +204,21 @@ export const loadMagneticSettings = (): MagneticApertureSettings => {
   try {
     const saved = window.localStorage.getItem(MAGNETIC_SETTINGS_STORAGE_KEY);
     const parsed = saved ? JSON.parse(saved) : null;
-    return sanitiseMagneticSettings(parsed?.version === 11 ? parsed.settings : null);
+    if (parsed?.version === 12) return sanitiseMagneticSettings(parsed.settings);
+
+    const legacySaved = window.localStorage.getItem(LEGACY_MAGNETIC_SETTINGS_STORAGE_KEY);
+    const legacy = legacySaved ? JSON.parse(legacySaved) : null;
+    if (legacy?.version === 11) {
+      const legacySettings = legacy.settings || {};
+      return sanitiseMagneticSettings({
+        ...legacySettings,
+        // Preserve deliberate custom gravity values while upgrading the old default.
+        gravityPull: legacySettings.gravityPull === 1
+          ? MAGNETIC_REFERENCE_SETTINGS.gravityPull
+          : legacySettings.gravityPull,
+      });
+    }
+    return { ...MAGNETIC_REFERENCE_SETTINGS };
   } catch {
     return { ...MAGNETIC_REFERENCE_SETTINGS };
   }
@@ -278,7 +228,7 @@ export const saveMagneticSettings = (settings: MagneticApertureSettings) => {
   try {
     window.localStorage.setItem(
       MAGNETIC_SETTINGS_STORAGE_KEY,
-      JSON.stringify({ version: 11, settings }),
+      JSON.stringify({ version: 12, settings }),
     );
   } catch {
     // Settings remain usable in memory when browser storage is unavailable.

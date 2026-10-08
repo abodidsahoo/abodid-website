@@ -6,9 +6,10 @@ active page-view time, then presents the results as summary metrics, a line
 chart, a country bar chart, a traffic-source pie chart, page rankings, and
 visitor journeys. It also records mobile-menu opens, selections, dismissals,
 CTA/social clicks, ranked destinations, and country-level selection rates.
-The default Human visits tab includes only sessions with at least two seconds
-of active, visible engagement. Lower-engagement sessions are retained in the
-separate Filtered traffic tab so they do not distort the primary metrics.
+The private journey feed includes sessions with at least three seconds of
+active, visible engagement. Known bots and one- or two-second scans are
+discarded so legitimate readers are retained even when they do not click or
+scroll.
 
 ## Architecture
 
