@@ -199,6 +199,16 @@ export const sanitiseMagneticSettings = (
   return next;
 };
 
+/**
+ * Applies one control change without discarding values set in another control
+ * tier. Basic, Advanced, and Hyper all patch the same complete preset.
+ */
+export const patchMagneticSettings = <Key extends keyof MagneticApertureSettings>(
+  current: MagneticApertureSettings,
+  key: Key,
+  value: MagneticApertureSettings[Key],
+) => sanitiseMagneticSettings({ ...current, [key]: value });
+
 export const loadMagneticSettings = (): MagneticApertureSettings => {
   if (typeof window === "undefined") return { ...MAGNETIC_REFERENCE_SETTINGS };
   try {

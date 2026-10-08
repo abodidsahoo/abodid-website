@@ -3,6 +3,7 @@ import { AudioFeatureProcessor } from "../AudioFeatureProcessor";
 import {
   MAGNETIC_REFERENCE_SETTINGS,
   mapGravityPullToPhysics,
+  patchMagneticSettings,
   sanitiseMagneticSettings,
 } from "../settings";
 
@@ -48,6 +49,19 @@ describe("audio visualiser settings", () => {
     expect(mapGravityPullToPhysics(3)).toBe(5);
     expect(mapGravityPullToPhysics(-1)).toBe(1);
     expect(mapGravityPullToPhysics(4)).toBe(5);
+  });
+
+  it("keeps Basic, Advanced, and Hyper changes in one shared preset", () => {
+    let settings = { ...MAGNETIC_REFERENCE_SETTINGS };
+    settings = patchMagneticSettings(settings, "overallReaction", 1.8);
+    settings = patchMagneticSettings(settings, "gravityPull", 1.65);
+    settings = patchMagneticSettings(settings, "noiseFloor", -84);
+
+    expect(settings).toMatchObject({
+      overallReaction: 1.8,
+      gravityPull: 1.65,
+      noiseFloor: -84,
+    });
   });
 });
 

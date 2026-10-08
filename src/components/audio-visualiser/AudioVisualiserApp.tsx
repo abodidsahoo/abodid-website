@@ -16,7 +16,7 @@ import { MagneticControlsV2 } from "./MagneticControlsV2";
 import {
   loadMagneticSettings,
   MAGNETIC_REFERENCE_SETTINGS,
-  sanitiseMagneticSettings,
+  patchMagneticSettings,
   saveMagneticSettings,
 } from "./settings";
 import type {
@@ -56,8 +56,10 @@ export default function AudioVisualiserApp() {
   const panelRef = useRef<HTMLElement>(null);
   const managerRef = useRef<AudioSourceManager | null>(null);
   const magneticRendererRef = useRef<MagneticApertureRenderer | null>(null);
-  const magneticSettingsRef = useRef<MagneticApertureSettings>(MAGNETIC_REFERENCE_SETTINGS);
   const [magneticSettings, setMagneticSettings] = useState(loadMagneticSettings);
+  // The controls and the renderer begin with the exact same loaded preset.
+  // The ref lets the animation loop read it without causing per-frame renders.
+  const magneticSettingsRef = useRef<MagneticApertureSettings>(magneticSettings);
   const [source, setSource] = useState<AudioSourceSnapshot>(INITIAL_SOURCE);
   const [message, setMessage] = useState(
     "Use your microphone, choose a local track, or share a Chrome tab to turn sound into a responsive visual field.",
@@ -169,7 +171,7 @@ export default function AudioVisualiserApp() {
     key: Key,
     value: MagneticApertureSettings[Key],
   ) => {
-    const next = sanitiseMagneticSettings({ ...magneticSettingsRef.current, [key]: value });
+    const next = patchMagneticSettings(magneticSettingsRef.current, key, value);
     magneticSettingsRef.current = next;
     setMagneticSettings(next);
   };
