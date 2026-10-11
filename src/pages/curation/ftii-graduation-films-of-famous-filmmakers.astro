@@ -1,0 +1,651 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { ftiiStudentFilms } from "../../data/ftiiStudentFilms";
+
+export const prerender = true;
+
+const title = "FTII Graduation Films of Famous Filmmakers | Abodid Sahoo";
+const description = "A curated catalogue of student films made at the Film and Television Institute of India, with verified YouTube links.";
+const canonicalUrl = "https://www.abodid.com/curation/ftii-graduation-films-of-famous-filmmakers";
+const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
+  .map((genre) => ({
+    genre,
+    count: ftiiStudentFilms.filter((film) => film.genre === genre).length,
+  }))
+  .sort((a, b) => b.count - a.count || a.genre.localeCompare(b.genre));
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalUrl={canonicalUrl}
+  fullWidth={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  showCursorFollower={false}
+  bodyClass="ftii-curation-page"
+  navigationVariant="next"
+  initialBackgroundColor="#2444ca"
+>
+  <main class="ftii-page">
+    <div class="ftii-shell">
+      <article class="ftii-file">
+        <header class="ftii-heading">
+          <p class="ftii-file-tag">curation.01 — FTII film archive</p>
+          <div class="ftii-heading__hero">
+            <h1>FTII student films</h1>
+            <div class="ftii-heading__summary">
+              <p>Graduation films made at the Film and Television Institute of India—before the names became familiar.</p>
+              <div class="ftii-collection-meta" aria-label="Collection details">
+                <span><b>{ftiiStudentFilms.length}</b> verified films</span>
+                <span>1966—2020</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section class="ftii-board" aria-labelledby="browse-heading">
+          <div class="ftii-browser">
+            <div class="ftii-controls">
+              <div class="ftii-control-row">
+                <div class="ftii-filter-block">
+                  <p class="ftii-label">Filter by genre</p>
+                  <div class="ftii-genres" role="group" aria-label="Filter by genre">
+                    <button class="ftii-genre is-active" type="button" data-genre="all" aria-pressed="true">
+                      <span>All</span><b>{ftiiStudentFilms.length}</b>
+                    </button>
+                    {genres.map(({ genre, count }) => (
+                      <button class="ftii-genre" type="button" data-genre={genre} aria-pressed="false">
+                        <span>{genre}</span><b>{count}</b>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div class="ftii-search-wrap">
+                  <label class="ftii-label" for="film-search">Search the archive</label>
+                  <div class="ftii-search-field">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19">
+                      <circle cx="11" cy="11" r="7"></circle>
+                      <path d="m16.2 16.2 4.3 4.3"></path>
+                    </svg>
+                    <input id="film-search" type="search" placeholder="Film, filmmaker or year" autocomplete="off" data-film-search />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ftii-results-heading">
+              <h2 id="browse-heading">Curation pool</h2>
+              <div class="ftii-results-meta">
+                <span aria-live="polite"><b data-result-count>{ftiiStudentFilms.length}</b> films</span>
+                <button type="button" data-reset-filters hidden>Reset filters <span aria-hidden="true">×</span></button>
+              </div>
+            </div>
+
+            <section class="ftii-catalogue" aria-label="FTII student films">
+              <div class="ftii-grid" data-film-grid>
+                {ftiiStudentFilms.map((film, index) => {
+                  const youtubeUrl = `https://www.youtube.com/watch?v=${film.youtubeId}`;
+                  const searchable = [film.title, film.year, film.genre, film.description, ...film.names].join(" ").toLowerCase();
+
+                  return (
+                    <article
+                      class={`ftii-card ftii-card--tone-${(index % 4) + 1}`}
+                      data-film-card
+                      data-genre={film.genre}
+                      data-search={searchable}
+                    >
+                      <a
+                        class="ftii-card__media"
+                        href={youtubeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Watch ${film.title} on YouTube`}
+                      >
+                        <span class="ftii-card__fallback" aria-hidden="true">{film.title}</span>
+                        <img
+                          src={`https://i.ytimg.com/vi/${film.youtubeId}/hqdefault.jpg`}
+                          alt={`${film.title} film thumbnail`}
+                          loading={index < 6 ? "eager" : "lazy"}
+                          decoding="async"
+                          onerror="this.hidden = true; this.parentElement?.classList.add('has-fallback')"
+                        />
+                        <span class="ftii-card__genre" aria-hidden="true">{film.genre}</span>
+                        <span class="ftii-card__play" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M8 5v14l11-7z"></path></svg>
+                        </span>
+                      </a>
+
+                      <div class="ftii-card__body">
+                        <div class="ftii-card__title-row">
+                          <h3>{film.title}</h3>
+                          <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${film.title} on YouTube`}>
+                            <span aria-hidden="true">↗</span>
+                          </a>
+                        </div>
+                        <p class="ftii-card__description">{film.description}</p>
+                        <div class="ftii-card__meta">
+                          <div class="ftii-card__people">
+                            <span>By {film.names[0]}</span>
+                            {film.names.length > 1 && <span>With {film.names.slice(1).join(", ")}</span>}
+                          </div>
+                          <span class="ftii-card__year">{film.year}</span>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              <div class="ftii-empty" data-empty-state hidden>
+                <p class="ftii-label">No match</p>
+                <h2>Try another name or genre.</h2>
+                <button type="button" data-clear-filters>Show all films</button>
+              </div>
+            </section>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  function initialiseFilmCatalogue() {
+    const page = document.querySelector<HTMLElement>(".ftii-page");
+    if (!page || page.dataset.ready === "true") return;
+    page.dataset.ready = "true";
+
+    const search = page.querySelector<HTMLInputElement>("[data-film-search]");
+    const cards = [...page.querySelectorAll<HTMLElement>("[data-film-card]")];
+    const genreButtons = [...page.querySelectorAll<HTMLButtonElement>("[data-genre]")];
+    const resultCount = page.querySelector<HTMLElement>("[data-result-count]");
+    const emptyState = page.querySelector<HTMLElement>("[data-empty-state]");
+    const resetButton = page.querySelector<HTMLButtonElement>("[data-reset-filters]");
+    const clearButton = page.querySelector<HTMLButtonElement>("[data-clear-filters]");
+    let selectedGenre = "all";
+
+    const applyFilters = () => {
+      const query = search?.value.trim().toLowerCase() || "";
+      let visible = 0;
+
+      cards.forEach((card) => {
+        const matchesGenre = selectedGenre === "all" || card.dataset.genre === selectedGenre;
+        const matchesSearch = !query || card.dataset.search?.includes(query);
+        const isVisible = Boolean(matchesGenre && matchesSearch);
+        card.hidden = !isVisible;
+        if (isVisible) visible += 1;
+      });
+
+      if (resultCount) resultCount.textContent = String(visible);
+      if (emptyState) emptyState.hidden = visible !== 0;
+      if (resetButton) resetButton.hidden = selectedGenre === "all" && query.length === 0;
+    };
+
+    const clearFilters = () => {
+      selectedGenre = "all";
+      if (search) search.value = "";
+      genreButtons.forEach((button) => {
+        const active = button.dataset.genre === "all";
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+      applyFilters();
+      search?.focus();
+    };
+
+    genreButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedGenre = button.dataset.genre || "all";
+        genreButtons.forEach((candidate) => {
+          const active = candidate === button;
+          candidate.classList.toggle("is-active", active);
+          candidate.setAttribute("aria-pressed", String(active));
+        });
+        applyFilters();
+      });
+    });
+
+    search?.addEventListener("input", applyFilters);
+    resetButton?.addEventListener("click", clearFilters);
+    clearButton?.addEventListener("click", clearFilters);
+  }
+
+  initialiseFilmCatalogue();
+  document.addEventListener("astro:page-load", initialiseFilmCatalogue);
+</script>
+
+<style>
+  :global(html:has(body.ftii-curation-page)),
+  :global(body.ftii-curation-page) {
+    background: var(--pop-blue, #2444ca) !important;
+  }
+
+  :global(body.ftii-curation-page .header-padding) { padding-top: 0; }
+  :global(body.ftii-curation-page main.page-content-full) { max-width: 100% !important; padding: 0 !important; overflow: visible; }
+
+  .ftii-page {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-purple: #5524c7;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-motion: 180ms ease;
+    min-width: 0;
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+    font-family: var(--font-display, "Satoshi-Variable", "Poppins", sans-serif);
+  }
+
+  .ftii-shell { width: 100%; min-height: 100vh; padding: 8px; box-sizing: border-box; background: var(--pop-blue); }
+
+  .ftii-file {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--pop-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  .ftii-heading {
+    padding: clamp(1.6rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--pop-ink);
+    background: var(--pop-pink);
+  }
+
+  .ftii-file-tag,
+  .ftii-label {
+    margin: 0;
+    color: var(--pop-ink);
+    font: 750 0.72rem/1.25 var(--font-mono, "Space Mono", monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .ftii-file-tag { margin-bottom: clamp(1.5rem, 3vw, 2.8rem); }
+
+  .ftii-heading__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+    align-items: end;
+    gap: clamp(2rem, 5vw, 6rem);
+  }
+
+  .ftii-heading h1 {
+    max-width: 10ch;
+    margin: 0;
+    font: 720 clamp(4rem, 8vw, 8rem)/0.84 var(--font-display, sans-serif);
+    letter-spacing: -0.075em;
+    text-wrap: balance;
+  }
+
+  .ftii-heading__summary { display: grid; gap: clamp(1.15rem, 2vw, 1.8rem); }
+
+  .ftii-heading__summary > p {
+    max-width: 35rem;
+    margin: 0;
+    font: 500 clamp(1.25rem, 1.7vw, 1.55rem)/1.3 var(--font-display, sans-serif);
+    letter-spacing: -0.025em;
+    text-wrap: pretty;
+  }
+
+  .ftii-collection-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font: 750 0.72rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .ftii-collection-meta span {
+    min-height: 44px;
+    padding: 0 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: var(--pop-cream);
+  }
+
+  .ftii-collection-meta b { font-size: 1rem; }
+  .ftii-board { padding: clamp(1.2rem, 3.5vw, 3rem); background: var(--pop-cream); }
+  .ftii-browser { display: flex; flex-direction: column; gap: 28px; width: 100%; }
+
+  .ftii-control-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 410px);
+    align-items: end;
+    gap: clamp(1.5rem, 3vw, 3rem);
+  }
+
+  .ftii-filter-block,
+  .ftii-search-wrap { min-width: 0; display: grid; gap: 10px; }
+  .ftii-genres { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .ftii-genre {
+    min-height: 44px;
+    padding: 9px 12px 9px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    cursor: pointer;
+    font: 750 0.72rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    transition: transform var(--pop-motion), background-color var(--pop-motion), box-shadow var(--pop-motion);
+  }
+
+  .ftii-genre b {
+    min-width: 24px;
+    height: 24px;
+    padding-inline: 5px;
+    display: grid;
+    place-items: center;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    font-size: 0.65rem;
+  }
+
+  .ftii-genre:hover { transform: translateY(-2px); background: var(--pop-pink); box-shadow: 0 3px 0 var(--pop-ink); }
+  .ftii-genre.is-active { background: var(--pop-yellow); box-shadow: inset 0 -3px 0 var(--pop-ink); }
+
+  .ftii-search-field {
+    height: 46px;
+    padding: 0 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .ftii-search-field:focus-within { outline: 3px solid var(--pop-purple); outline-offset: 3px; }
+  .ftii-search-field svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; }
+  .ftii-search-field input {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--pop-ink);
+    font: 520 0.96rem/1 var(--font-display, sans-serif);
+  }
+
+  .ftii-search-field input::placeholder { color: rgba(21, 19, 15, 0.55); opacity: 1; }
+
+  .ftii-results-heading {
+    padding-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-top: 1px solid var(--pop-ink);
+  }
+
+  .ftii-results-heading h2 {
+    margin: 0;
+    font: 720 clamp(1.7rem, 2.5vw, 2.4rem)/1.05 var(--font-display, sans-serif);
+    letter-spacing: -0.045em;
+  }
+
+  .ftii-results-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font: 750 0.72rem/1.3 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .ftii-results-meta button,
+  .ftii-empty button {
+    min-height: 44px;
+    padding: 7px 14px;
+    border: 1px solid var(--pop-ink);
+    border-radius: 12px;
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+    cursor: pointer;
+    font: 750 0.7rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: transform var(--pop-motion), background-color var(--pop-motion);
+  }
+
+  .ftii-results-meta button:hover,
+  .ftii-empty button:hover { transform: translateY(-1px); background: var(--pop-yellow); }
+
+  .ftii-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+
+  .ftii-card {
+    min-width: 0;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 20px;
+    background: #fff;
+    color: var(--pop-ink);
+    box-shadow: 0 4px 0 var(--pop-ink);
+    transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+  }
+
+  .ftii-card:hover { transform: translateY(-3px); background: var(--pop-cream); box-shadow: 0 8px 0 var(--pop-ink); }
+
+  .ftii-card__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: linear-gradient(135deg, #d8e9ff, #ffd9e8);
+    color: var(--pop-ink);
+    text-decoration: none;
+  }
+
+  .ftii-card__media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 450ms ease;
+  }
+
+  .ftii-card:hover .ftii-card__media img { transform: scale(1.03); }
+  .ftii-card__media.has-fallback img { display: none; }
+
+  .ftii-card__fallback {
+    position: absolute;
+    inset: 0;
+    padding: clamp(1rem, 2.4vw, 2rem);
+    display: grid;
+    place-items: center;
+    text-align: center;
+    font: 700 clamp(1.45rem, 2.8vw, 2.7rem)/0.96 var(--font-display, sans-serif);
+    letter-spacing: -0.05em;
+    text-wrap: balance;
+  }
+
+  .ftii-card--tone-2 .ftii-card__media { background: linear-gradient(135deg, #ffe7bd, #ffd4e6); }
+  .ftii-card--tone-3 .ftii-card__media { background: linear-gradient(135deg, #d9f5da, #dce5ff); }
+  .ftii-card--tone-4 .ftii-card__media { background: linear-gradient(135deg, #f7dfef, #fff2b5); }
+
+  .ftii-card__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: 58px;
+    height: 58px;
+    padding-left: 3px;
+    display: grid;
+    place-items: center;
+    transform: translate(-50%, -50%);
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 50%;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    box-shadow: 0 3px 0 var(--pop-ink);
+    transition: transform var(--pop-motion), background-color var(--pop-motion);
+  }
+
+  .ftii-card__play svg { fill: currentColor; }
+  .ftii-card:hover .ftii-card__play { transform: translate(-50%, -50%) scale(1.08); background: var(--pop-pink); }
+
+  .ftii-card__genre {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    padding: 6px 12px;
+    border: 1px solid var(--pop-ink);
+    border-radius: 999px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    box-shadow: 0 2px 0 var(--pop-ink);
+    font: 750 0.67rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .ftii-card__body { padding: 15px 4px 4px; display: flex; flex: 1; flex-direction: column; gap: 10px; }
+  .ftii-card__title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+  .ftii-card h3 {
+    margin: 0;
+    font: 720 clamp(1.4rem, 2.2vw, 2rem)/1.08 var(--font-display, sans-serif);
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  .ftii-card__title-row > a {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: grid;
+    place-items: center;
+    color: var(--pop-ink);
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .ftii-card__title-row > a span { display: inline-block; transition: transform var(--pop-motion); }
+  .ftii-card:hover .ftii-card__title-row > a span { transform: translate(3px, -3px); }
+  .ftii-card:hover h3 { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+  .ftii-card__description {
+    min-height: 2.7em;
+    margin: 0;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: rgba(21, 19, 15, 0.82);
+    font: 470 0.9rem/1.35 var(--font-display, sans-serif);
+    text-wrap: pretty;
+  }
+
+  .ftii-card__meta {
+    margin-top: auto;
+    padding-top: 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid var(--pop-line);
+  }
+
+  .ftii-card__people { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+  .ftii-card__people span,
+  .ftii-card__year {
+    padding: 5px 9px;
+    border: 1px solid var(--pop-ink);
+    border-radius: 8px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    font: 750 0.66rem/1.2 var(--font-mono, monospace);
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  .ftii-card__year { flex: 0 0 auto; background: var(--pop-yellow); box-shadow: 0 2px 0 var(--pop-ink); font-size: 0.7rem; }
+
+  .ftii-empty { padding: clamp(2rem, 5vw, 4rem); border: 1px solid var(--pop-ink); border-radius: 20px; background: var(--pop-yellow); }
+  .ftii-empty h2 { margin: 0.4rem 0 1.5rem; font: 720 clamp(2rem, 4vw, 4rem)/0.95 var(--font-display, sans-serif); letter-spacing: -0.055em; }
+
+  .ftii-genre:focus-visible,
+  .ftii-results-meta button:focus-visible,
+  .ftii-card__media:focus-visible,
+  .ftii-card__title-row > a:focus-visible,
+  .ftii-empty button:focus-visible { outline: 3px solid var(--pop-purple); outline-offset: 3px; }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 1100px) {
+    .ftii-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ftii-control-row { grid-template-columns: minmax(0, 1fr); }
+    .ftii-search-wrap { max-width: 520px; }
+  }
+
+  @media (max-width: 980px) {
+    .ftii-heading__hero { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+    .ftii-heading h1 { max-width: 9ch; }
+    .ftii-heading__summary > p { max-width: 38rem; }
+  }
+
+  @media (max-width: 720px) {
+    .ftii-shell { padding: 4px; }
+    .ftii-heading, .ftii-board { padding: 1rem; }
+    .ftii-heading h1 { font-size: clamp(2.8rem, 14.5vw, 4.4rem); line-height: 0.9; letter-spacing: -0.065em; }
+    .ftii-heading__summary > p { font-size: 1.08rem; line-height: 1.36; }
+    .ftii-collection-meta { gap: 6px; }
+    .ftii-collection-meta span { min-height: 42px; }
+    .ftii-control-row { gap: 1rem; }
+    .ftii-search-wrap { order: -1; max-width: none; }
+    .ftii-genres { flex-wrap: nowrap; margin-inline: -1rem; padding: 0 1rem 0.35rem; overflow-x: auto; scroll-snap-type: x proximity; }
+    .ftii-genre { flex: 0 0 auto; scroll-snap-align: start; }
+    .ftii-results-heading { align-items: flex-start; }
+    .ftii-results-meta { flex-direction: column; align-items: flex-end; }
+    .ftii-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .ftii-card h3 { font-size: clamp(1.5rem, 7vw, 2rem); }
+    .ftii-card__description { min-height: 0; }
+  }
+
+  @media (max-width: 380px) {
+    .ftii-heading, .ftii-board { padding: 0.9rem; }
+    .ftii-heading h1 { font-size: clamp(2.7rem, 15vw, 3.6rem); }
+    .ftii-collection-meta { flex-direction: column; align-items: flex-start; }
+    .ftii-card__meta { align-items: flex-start; flex-direction: column; }
+    .ftii-card__year { align-self: flex-end; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ftii-page *,
+    .ftii-page *::before,
+    .ftii-page *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>

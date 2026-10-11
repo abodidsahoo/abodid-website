@@ -35,6 +35,7 @@ const secondaryGroups = [
     title: "Resources",
     links: [
       { href: "/resources", label: "Curation" },
+      { href: "/tools", label: "Tools" },
       { href: "/notepad", label: "Notepad" },
       { href: "/bsa-schedule", label: "BSA Conference" },
       { href: "/moodboard", label: "Visual Moodboard" },

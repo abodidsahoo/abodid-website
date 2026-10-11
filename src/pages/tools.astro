@@ -1,0 +1,659 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Tools — Digital Utilities by Abodid";
+const pageDescription =
+  "A suite of lightweight, browser-based utilities and media extractors built for visual storytellers, researchers, and creators.";
+
+const toolsList = [
+  {
+    id: "youtube-downloader",
+    title: "YouTube Downloader",
+    slug: "youtube-downloader",
+    href: "/tools/youtube-downloader",
+    category: "Video Utility",
+    badgeShade: "#ffe44f",
+    description:
+      "Extract and download clean YouTube video and audio streams directly. Supports multi-format quality extraction (360p up to 4K), audio extraction, and queue management.",
+    tags: ["MP4 / MP3", "Direct Stream", "No Bloat"],
+    status: "Active",
+    isReady: true,
+  },
+  {
+    id: "frame-extractor",
+    title: "Video Frame Extractor",
+    slug: "frame-extractor",
+    href: "/tools/youtube-downloader",
+    category: "Editing Utility",
+    badgeShade: "#ff7eb5",
+    description:
+      "Extract high-fidelity still frames and cinematic aspect-ratio crops directly from video streams for moodboards and treatments.",
+    tags: ["Frames", "Stills", "Curation"],
+    status: "Companion Feature",
+    isReady: false,
+  },
+  {
+    id: "audio-tempo-transcriber",
+    title: "Audio Speed & Stems Tool",
+    slug: "audio-stems",
+    href: "/tools/youtube-downloader",
+    category: "Audio Tool",
+    badgeShade: "#caff48",
+    description:
+      "Lightweight in-browser tempo adjuster and audio rip utility for sound designers, reference track isolation, and pitch preservation.",
+    tags: ["M4A / WAV", "Audio Rip", "Sound Design"],
+    status: "In Development",
+    isReady: false,
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  useDynamicOgImage={true}
+  fullWidth={true}
+  navigationVariant="next"
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="tools-moodboard-page"
+>
+  <main class="tools-shell">
+    <article class="tools-file">
+      <header class="tools-heading">
+        <p class="tools-file-tag">tools.js — digital utilities</p>
+        <div class="tools-heading__hero">
+          <h1>Tools</h1>
+          <div class="tools-heading__summary">
+            <p>
+              A suite of lightweight, browser-based utilities built for visual storytellers, researchers, and creators.
+            </p>
+            <div class="tools-heading__actions">
+              <a class="tools-action-btn" href="/tools/youtube-downloader">
+                <span>Launch YouTube Downloader</span>
+                <b class="link-destination-arrow" aria-hidden="true">↗</b>
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="tools-board">
+        <div class="tools-browser">
+          <div class="tools-results-heading">
+            <h2>Utilities Directory</h2>
+            <div class="tools-results-meta">
+              <span>{toolsList.length} Utilities</span>
+            </div>
+          </div>
+
+          <div class="tools-grid">
+            {toolsList.map((tool) => (
+              <article class="tool-card">
+                <a href={tool.href} class="tool-thumbnail-link" aria-label={`Open ${tool.title}`}>
+                  <div class="tool-thumbnail-container">
+                    <div class="tool-preview-art">
+                      {tool.id === "youtube-downloader" ? (
+                        <div class="tool-art-yt">
+                          <div class="tool-art-icon-ring">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                          </div>
+                          <div class="tool-art-wave">
+                            <span class="bar b1"></span>
+                            <span class="bar b2"></span>
+                            <span class="bar b3"></span>
+                            <span class="bar b4"></span>
+                            <span class="bar b5"></span>
+                          </div>
+                        </div>
+                      ) : tool.id === "frame-extractor" ? (
+                        <div class="tool-art-frames">
+                          <div class="tool-art-frame f1"></div>
+                          <div class="tool-art-frame f2"></div>
+                          <div class="tool-art-frame f3"></div>
+                        </div>
+                      ) : (
+                        <div class="tool-art-audio">
+                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18V5l12-2v13" />
+                            <circle cx="6" cy="18" r="3" />
+                            <circle cx="18" cy="16" r="3" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+
+                    <div
+                      class="tool-category-badge"
+                      style={`background-color: ${tool.badgeShade}`}
+                    >
+                      {tool.category}
+                    </div>
+
+                    <div class="tool-card-cta-badge">
+                      {tool.isReady ? "Launch Tool ↗" : "Preview"}
+                    </div>
+                  </div>
+                </a>
+
+                <div class="tool-content">
+                  <a href={tool.href} class="tool-title-wrapper">
+                    <h3 class="tool-title">
+                      <span>{tool.title}</span>
+                    </h3>
+                    <span class="tool-card-arrow" aria-hidden="true">↗</span>
+                  </a>
+
+                  <p class="tool-description">{tool.description}</p>
+
+                  <div class="tool-meta">
+                    <div class="tool-tags">
+                      {tool.tags.map((tag) => (
+                        <span class="tool-tag">{tag}</span>
+                      ))}
+                    </div>
+                    <span class:list={["tool-status-badge", { "status-ready": tool.isReady }]}>
+                      {tool.status}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    </article>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  html:has(body.tools-moodboard-page) {
+    background: var(--pop-blue) !important;
+  }
+
+  body.tools-moodboard-page {
+    --films-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --films-mono:
+      "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
+      monospace;
+    --tools-font: var(--films-font);
+    --tools-mono: var(--films-mono);
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    margin: 0;
+    padding: 0 !important;
+    min-height: 100vh;
+    background: var(--pop-blue) !important;
+    color: var(--pop-ink);
+    color-scheme: light;
+  }
+
+  body.tools-moodboard-page main.page-content-full {
+    max-width: 100% !important;
+    padding: 0 !important;
+    overflow: visible;
+  }
+
+  body.tools-moodboard-page :is(h1, h2, h3, p, figure) {
+    margin-top: 0;
+  }
+
+  body.tools-moodboard-page :is(a, button, summary):focus-visible {
+    outline: 3px solid var(--pop-purple);
+    outline-offset: 3px;
+  }
+</style>
+
+<style>
+  .tools-shell {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    background: var(--pop-blue);
+    min-height: 100vh;
+  }
+
+  .tools-file {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--pop-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  .tools-heading {
+    padding: clamp(1.6rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--pop-ink);
+    background: var(--pop-pink);
+  }
+
+  .tools-file-tag {
+    margin: 0 0 clamp(1.5rem, 4vw, 3.5rem);
+    color: var(--pop-ink);
+    font: 700 0.72rem/1 var(--tools-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .tools-heading__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+    gap: clamp(1.5rem, 4vw, 5rem);
+    align-items: end;
+  }
+
+  .tools-heading h1 {
+    max-width: 12ch;
+    margin: 0;
+    color: var(--pop-ink);
+    font: 720 clamp(3.5rem, 8.5vw, 7.5rem)/0.86 var(--tools-font, sans-serif);
+    letter-spacing: -0.075em;
+    overflow-wrap: anywhere;
+  }
+
+  .tools-heading__summary {
+    display: grid;
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .tools-heading__summary > p,
+  .tools-heading__hero p {
+    max-width: 38rem;
+    margin: 0;
+    color: var(--pop-ink);
+    font: 500 clamp(1.35rem, 1.8vw, 1.55rem)/1.32 var(--tools-font, sans-serif);
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    text-wrap: pretty;
+  }
+
+  .tools-heading__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 0.75rem;
+  }
+
+  .tools-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 18px;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    font: 700 0.76rem/1 var(--tools-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: none;
+    transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  }
+
+  .tools-action-btn:hover {
+    background: var(--pop-yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 0 var(--pop-ink);
+    text-decoration: none;
+  }
+
+  .tools-action-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .tools-action-btn .link-destination-arrow {
+    display: inline-block;
+    font-size: 0.95em;
+    transition: transform 180ms ease;
+  }
+
+  .tools-action-btn:hover .link-destination-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  .tools-board {
+    padding: clamp(1.2rem, 3.5vw, 3rem);
+    background: var(--pop-cream);
+  }
+
+  .tools-browser {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .tools-results-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(21, 19, 15, 0.2);
+  }
+
+  .tools-results-heading h2 {
+    font: 720 clamp(1.2rem, 2vw, 1.5rem)/1 var(--tools-font, sans-serif);
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+
+  .tools-results-meta {
+    font: 700 0.72rem/1 var(--tools-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(21, 19, 15, 0.7);
+  }
+
+  /* Grid Layout: Matches Films Editorial Grid */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  @media (max-width: 1100px) {
+    .tools-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .tools-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .tool-card {
+    padding: 12px;
+    border: 1.5px solid var(--pop-ink);
+    border-radius: 20px;
+    background: #ffffff;
+    color: var(--pop-ink);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 0 var(--pop-ink);
+    transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+  }
+
+  .tool-card:hover {
+    background: var(--pop-cream);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 0 var(--pop-ink);
+  }
+
+  .tool-thumbnail-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .tool-thumbnail-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: #15130f;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .tool-preview-art {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #262118 0%, #15130f 100%);
+    color: #ffffff;
+    transition: transform 400ms ease;
+  }
+
+  .tool-card:hover .tool-preview-art {
+    transform: scale(1.02);
+  }
+
+  .tool-art-yt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tool-art-icon-ring {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--pop-yellow);
+    border: 1.5px solid var(--pop-ink);
+    color: var(--pop-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 0 var(--pop-ink);
+    transition: transform 180ms ease, background 180ms ease;
+  }
+
+  .tool-card:hover .tool-art-icon-ring {
+    transform: scale(1.08);
+    background: var(--pop-pink);
+  }
+
+  .tool-art-wave {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 16px;
+  }
+
+  .tool-art-wave .bar {
+    width: 4px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 2px;
+  }
+  .tool-art-wave .b1 { height: 6px; }
+  .tool-art-wave .b2 { height: 14px; background: var(--pop-yellow); }
+  .tool-art-wave .b3 { height: 10px; }
+  .tool-art-wave .b4 { height: 16px; background: var(--pop-pink); }
+  .tool-art-wave .b5 { height: 8px; }
+
+  .tool-art-frames {
+    position: relative;
+    width: 80px;
+    height: 50px;
+  }
+
+  .tool-art-frame {
+    position: absolute;
+    width: 56px;
+    height: 38px;
+    border: 1.5px solid var(--pop-cream);
+    border-radius: 6px;
+  }
+  .tool-art-frame.f1 { top: 0; left: 0; opacity: 0.35; transform: rotate(-6deg); }
+  .tool-art-frame.f2 { top: 6px; left: 12px; opacity: 0.65; transform: rotate(4deg); }
+  .tool-art-frame.f3 { top: 12px; left: 24px; background: rgba(255, 255, 255, 0.1); border-color: var(--pop-yellow); }
+
+  .tool-art-audio {
+    color: var(--pop-cream);
+    opacity: 0.8;
+  }
+
+  .tool-category-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--pop-ink);
+    font: 700 0.72rem/1 var(--tools-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--pop-ink);
+    box-shadow: 0 2px 0 var(--pop-ink);
+    pointer-events: none;
+  }
+
+  .tool-card-cta-badge {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font: 700 0.68rem/1 var(--tools-mono, monospace);
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .tool-content {
+    padding: 16px 4px 4px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 12px;
+  }
+
+  .tool-title-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .tool-title {
+    margin: 0;
+    font: 700 clamp(1.2rem, 1.8vw, 1.35rem)/1.2 var(--tools-font, sans-serif);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tool-card-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--pop-cream);
+    border: 1px solid var(--pop-ink);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    transition: transform 180ms ease, background 180ms ease;
+  }
+
+  .tool-card:hover .tool-card-arrow {
+    transform: translate(2px, -2px);
+    background: var(--pop-yellow);
+  }
+
+  .tool-description {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: rgba(21, 19, 15, 0.75);
+    flex: 1;
+  }
+
+  .tool-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(21, 19, 15, 0.1);
+  }
+
+  .tool-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tool-tag {
+    font: 700 0.68rem/1 var(--tools-mono, monospace);
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(21, 19, 15, 0.05);
+    border: 1px solid rgba(21, 19, 15, 0.12);
+    color: var(--pop-ink);
+  }
+
+  .tool-status-badge {
+    font: 700 0.68rem/1 var(--tools-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(21, 19, 15, 0.6);
+  }
+
+  .tool-status-badge.status-ready {
+    color: #2e7d32;
+    background: #e8f5e9;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid #a5d6a7;
+  }
+
+  @media (max-width: 980px) {
+    .tools-heading__hero {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    .tools-heading__summary > p,
+    .tools-heading__hero p {
+      max-width: 36rem;
+      font-size: clamp(1.35rem, 2.5vw, 1.55rem);
+      line-height: 1.34;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .tools-shell {
+      padding: 4px;
+    }
+
+    .tools-heading__hero {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+    }
+
+    .tools-heading h1 {
+      font-size: clamp(2.8rem, 14.5vw, 4.4rem);
+      line-height: 0.9;
+      letter-spacing: -0.065em;
+    }
+
+    .tools-heading__summary > p,
+    .tools-heading__hero p {
+      max-width: 100%;
+      font-size: 1.1rem;
+      line-height: 1.36;
+    }
+
+    .tools-board {
+      padding: 1rem;
+    }
+  }
+</style>

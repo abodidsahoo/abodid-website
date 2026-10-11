@@ -102,7 +102,7 @@ export async function getApprovedResources(filters: ResourceFilters = {}): Promi
         // Or: join!
         // Simplest: 2-step in this fn or assume filter.username is handled by caller? 
         // Let's handle it here.
-        const { data: profile } = await supabase.from('profiles').select('id').eq('username', filters.username).single();
+        const { data: profile } = await supabase.from('public_profiles').select('id').eq('username', filters.username).single();
         if (profile) {
             query = query.eq('submitted_by', profile.id);
         } else {
@@ -449,8 +449,8 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 export async function getProfileByUsername(username: string): Promise<Profile | null> {
     if (!supabase) return null;
     const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
+        .from('public_profiles')
+        .select('id, username, full_name, avatar_url, website, bio, social_links')
         .eq('username', username)
         .single();
 

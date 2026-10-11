@@ -1,0 +1,400 @@
+{
+  "United Kingdom": {
+    "Advertising Agencies": [
+      {
+        "company_name": "Adam&EveDDB",
+        "overview": "Multinational creative agency known for award-winning campaigns and video production.",
+        "website": "https://adamandeveddb.com/"
+      },
+      {
+        "company_name": "Mother London",
+        "overview": "Fiercely independent agency focused on impactful and purpose-driven work with a global presence.",
+        "website": "https://www.motherlondon.com/information"
+      },
+      {
+        "company_name": "Uncommon Studio",
+        "overview": "Global creative studio renowned for delivering exceptional and impactful brand-building work.",
+        "website": "https://www.uncommon.studio/info"
+      },
+      {
+        "company_name": "W+K London",
+        "overview": "Global network with a diverse range of projects, including branding, campaigns, and unconventional creative ventures.",
+        "website": "https://www.wk.com/"
+      },
+      {
+        "company_name": "Lucky Generals",
+        "overview": "Creative company for ambitious clients, working across advertising, PR, design, and social media.",
+        "website": "https://luckygenerals.com/"
+      },
+      {
+        "company_name": "AMV BBDO",
+        "overview": "Largest advertising agency in the UK with a strong history of creative excellence.",
+        "website": "https://www.amvbbdo.com/"
+      },
+      {
+        "company_name": "MullenLowe London",
+        "overview": "Part of a global network, known for integrated campaigns and creative solutions.",
+        "website": "https://mullenlowegroup.com/uk/"
+      },
+      {
+        "company_name": "McCann London",
+        "overview": "Global advertising agency with a reputation for effective and creative campaigns.",
+        "website": "https://www.mccannlondon.co.uk/"
+      },
+      {
+        "company_name": "Droga5 London",
+        "overview": "Award-winning creative agency known for its innovative and impactful advertising campaigns.",
+        "website": "https://droga5.com/london/"
+      },
+      {
+        "company_name": "We Are Social London",
+        "overview": "Global social media agency focused on innovative and engaging social campaigns.",
+        "website": "https://wearesocial.com/uk/"
+      },
+      {
+        "company_name": "VCCP London",
+        "overview": "Integrated creative agency known for its challenger brand approach and innovative campaigns.",
+        "website": "https://www.vccp.com/london/"
+      },
+      {
+        "company_name": "Grey London",
+        "overview": "Part of a global advertising and marketing network with a long history of creative work.",
+        "website": "https://grey.com/london/"
+      },
+      {
+        "company_name": "BBH Global London",
+        "overview": "Global creative advertising agency founded in London, known for its elegant and award-winning creative work.",
+        "website": "https://www.bbh.co.uk/"
+      },
+      {
+        "company_name": "Wildfire London",
+        "overview": "Multidisciplinary creative studio in London offering a range of advertising and marketing services, with a focus on creative services.",
+        "website": "https://www.agencywildfire.com/"
+      },
+      {
+        "company_name": "New Commercial Arts (NCA)",
+        "overview": "London-based creative agency known for integrated campaigns.",
+        "website": "newcommercialarts.com"
+      }
+    ],
+    "Production Companies": [
+      {
+        "company_name": "Rogue Films",
+        "overview": "A London-based production company known for high-end commercials, music videos, and branded content. Works with top directors and global brands.",
+        "website": "https://www.roguefilms.co.uk"
+      },
+      {
+        "company_name": "Academy Films",
+        "overview": "Award-winning production company specializing in commercials, TV, and film. Represents acclaimed directors like Park Pictures and Pulse Films.",
+        "website": "https://www.academyfilms.com"
+      },
+      {
+        "company_name": "Trendy Grandad",
+        "overview": "Creative production studio focused on commercials, animation, and digital content. Known for quirky, innovative storytelling.",
+        "website": "https://www.trendygrandad.com"
+      },
+      {
+        "company_name": "Polar",
+        "overview": "London-based production company for commercials and content.",
+        "website": "https://www.polar.tv"
+      },
+      {
+        "company_name": "Fat Cow Media",
+        "overview": "UK video production and animation studio.",
+        "website": "https://www.fatcowmedia.co.uk"
+      },
+      {
+        "company_name": "Somesuch",
+        "overview": "A London-based production company renowned for its poetic and socially-driven storytelling across various media.",
+        "website": "somesuch.co.uk"
+      },
+      {
+        "company_name": "Prettybird UK",
+        "overview": "A creative think tank delivering visionary work in branded and music entertainment, emphasizing bold storytelling.",
+        "website": "prettybird.co.uk"
+      },
+      {
+        "company_name": "Object & Animal",
+        "overview": "A stylish, art-forward production company known for its visually compelling music videos and campaigns.",
+        "website": "objectanimal.com"
+      },
+      {
+        "company_name": "Pulse Films",
+        "overview": "A global production company excelling in music videos, documentaries, and branded content with a dynamic approach.",
+        "website": "pulsefilms.com"
+      },
+      {
+        "company_name": "Stink Films",
+        "overview": "An internationally acclaimed production company recognized for edgy and innovative work in commercials and music videos.",
+        "website": "stinkfilms.com"
+      },
+      {
+        "company_name": "RadicalMedia",
+        "overview": "A production company specializing in documentaries and branded entertainment, merging storytelling with innovation.",
+        "website": "radicalmedia.com"
+      },
+      {
+        "company_name": "Studio Birthplace",
+        "overview": "A creative studio and film production company focusing on environmental and social storytelling to inspire global action.",
+        "website": "studiobirthplace.com"
+      }
+    ],
+    "Film Studios": [
+      {
+        "company_name": "Ealing Studios",
+        "overview": "Historic British studio famous for classics like The Ladykillers; still active in film/TV production.",
+        "website": "https://www.ealingstudios.com"
+      },
+      {
+        "company_name": "Elstree Studios",
+        "overview": "Iconic UK studio complex used for Star Wars, The Crown, and major TV/film productions.",
+        "website": "https://www.elstreestudios.co.uk"
+      },
+      {
+        "company_name": "3 Mills Studios",
+        "overview": "London’s oldest working studio, hosting productions like Peaky Blinders and The Witcher.",
+        "website": "https://www.3mills.com"
+      },
+      {
+        "company_name": "Pinewood Studios",
+        "overview": "World-famous studio home to James Bond, Star Wars, and major Hollywood blockbusters.",
+        "website": "https://www.pinewoodgroup.com"
+      },
+      {
+        "company_name": "Black Hangar Studios",
+        "overview": "UK-based studio offering soundstages, aircraft hangars, and filming facilities for commercials and films.",
+        "website": "https://www.blackhangarstudios.co.uk"
+      },
+      {
+        "company_name": "Vanity Studios",
+        "overview": "London studio space for photography, film shoots, and events.",
+        "website": "https://www.vanitystudios.com"
+      },
+      {
+        "company_name": "Loft Studios",
+        "overview": "Creative workspace in London for photo shoots, filming, and productions.",
+        "website": "https://www.loftstudios.co.uk"
+      },
+      {
+        "company_name": "Blend Studios",
+        "overview": "Manchester-based studio for photography, TV, and commercial productions.",
+        "website": "https://www.blendstudios.co.uk"
+      },
+      {
+        "company_name": "Shoreditch Studios",
+        "overview": "Trendy East London studio for fashion, advertising, and film shoots.",
+        "website": "https://www.shoreditchstudios.com"
+      },
+      {
+        "company_name": "White Building",
+        "overview": "Creative hub in London for art, photography, and cultural events.",
+        "website": "https://www.whitebuilding.org.uk"
+      },
+      {
+        "company_name": "Stokey",
+        "overview": "Likely refers to Stokey Studio (London-based photography/film studio).",
+        "website": "https://www.stokeystudio.com"
+      }
+    ],
+    "Film Funding/Production (Public)": [
+      {
+        "company_name": "BBC Film",
+        "overview": "The filmmaking arm of the BBC, funding and producing British independent films (e.g., Poor Things, The Father).",
+        "website": "https://www.bbc.co.uk/bbcfilm"
+      },
+      {
+        "company_name": "Film4 Productions",
+        "overview": "Channel 4’s film division, known for backing critically acclaimed films like Slumdog Millionaire and The Favourite.",
+        "website": "https://www.film4productions.com"
+      }
+    ],
+    "Production Companies (Specific)": [
+      {
+        "company_name": "Fresh",
+        "overview": "Production company specializing in commercials and branded content.",
+        "website": "https://www.freshfilm.com"
+      },
+      {
+        "company_name": "Gramafilm",
+        "overview": "Budapest-based production company working in feature films, commercials, and international co-productions.",
+        "website": "https://www.gramafilm.hu"
+      }
+    ],
+    "Media/Broadcasters": [
+      {
+        "company_name": "BBC",
+        "overview": "British public service broadcaster producing news, TV, and film.",
+        "website": "https://www.bbc.com"
+      }
+    ],
+    "Media Conglomerates": [
+      {
+        "company_name": "NBCUniversal",
+        "overview": "Global media conglomerate (Universal Pictures, NBC, Sky).",
+        "website": "https://www.nbcuniversal.com"
+      },
+      {
+        "company_name": "The Walt Disney Company",
+        "overview": "Entertainment giant (Disney, Pixar, Marvel, Star Wars).",
+        "website": "https://www.thewaltdisneycompany.com"
+      },
+      {
+        "company_name": "Thomson Reuters",
+        "overview": "Multinational media and data analytics company.",
+        "website": "https://www.thomsonreuters.com"
+      }
+    ],
+    "News Publications": [
+      {
+        "company_name": "Financial Times",
+        "overview": "Leading global business/news publication.",
+        "website": "https://www.ft.com"
+      },
+      {
+        "company_name": "The Guardian",
+        "overview": "Major British news organization.",
+        "website": "https://www.theguardian.com"
+      }
+    ],
+    "Design/Branding Agencies": [
+      {
+        "company_name": "KOTA",
+        "overview": "London-based design studio for branding and digital experiences.",
+        "website": "https://www.kotastudio.co"
+      },
+      {
+        "company_name": "Superside",
+        "overview": "On-demand creative agency for design and marketing assets.",
+        "website": "https://www.superside.com"
+      },
+      {
+        "company_name": "Limeup",
+        "overview": "UK branding agency focused on startups and scale-ups.",
+        "website": "https://www.limeup.io"
+      },
+      {
+        "company_name": "Wildish & Co.",
+        "overview": "London branding agency for purpose-driven companies.",
+        "website": "https://www.wildishandco.com"
+      },
+      {
+        "company_name": "Fellow Studio",
+        "overview": "Design studio for branding and digital products.",
+        "website": "https://www.fellowstudio.co"
+      },
+      {
+        "company_name": "Series Eight",
+        "overview": "London design studio for branding and art direction.",
+        "website": "https://www.serieseight.com"
+      },
+      {
+        "company_name": "NEVERBLAND",
+        "overview": "Digital product and branding agency.",
+        "website": "https://www.neverbland.com"
+      },
+      {
+        "company_name": "Love Creative",
+        "overview": "Manchester-based agency known for bold branding and design work.",
+        "website": "lovecreative.com"
+      },
+      {
+        "company_name": "Chaos Design",
+        "overview": "London and Guildford agency specializing in disruptive brand strategies.",
+        "website": "chaosdesign.com"
+      },
+      {
+        "company_name": "Pearlfisher",
+        "overview": "Global design agency crafting iconic brand identities.",
+        "website": "pearlfisher.com"
+      },
+      {
+        "company_name": "Deep",
+        "overview": "Creative agency delivering immersive brand experiences.",
+        "website": "deep.co.uk"
+      },
+      {
+        "company_name": "Revenant",
+        "overview": "Edinburgh-based studio creating compelling designs across various media.",
+        "website": "revenant.tv"
+      },
+      {
+        "company_name": "Made Thought",
+        "overview": "A design-led studio shaping visionary brands into icons through thoughtful branding and storytelling.",
+        "website": "madethought.com"
+      }
+    ],
+    "Social Impact Agencies": [
+      {
+        "company_name": "Make Us Care",
+        "overview": "Creative agency specializing in social impact campaigns.",
+        "website": "https://www.makeuscare.com"
+      }
+    ],
+    "Marketing/Digital Agencies": [
+      {
+        "company_name": "Burst Digital",
+        "overview": "Likely a digital marketing agency (specific details unclear)."
+      },
+      {
+        "company_name": "MVF Global",
+        "overview": "Digital marketing and customer acquisition platform.",
+        "website": "https://www.mvfglobal.com"
+      },
+      {
+        "company_name": "Climb & Conquer",
+        "overview": "Durham-based digital marketing agency specializing in SEO, PPC, and e-commerce growth.",
+        "website": "climbandconquer.co.uk"
+      }
+    ],
+    "Communications/PR": [
+      {
+        "company_name": "Gabrielle Shaw Comm.",
+        "overview": "Communications and PR agency."
+      },
+      {
+        "company_name": "The Independents",
+        "overview": "Global luxury communications agency specializing in fashion and lifestyle branding.",
+        "website": "theindependents.global"
+      }
+    ],
+    "Creative Platforms": [
+      {
+        "company_name": "WePresent (by WeTransfer)",
+        "overview": "A creative platform showcasing film and photo essays that tell compelling stories across various mediums.",
+        "website": "wepresent.wetransfer.com"
+      },
+      {
+        "company_name": "NOWNESS",
+        "overview": "A platform for film, art, and culture, showcasing story-driven content that explores various aspects of human experience.",
+        "website": "nowness.com"
+      },
+      {
+        "company_name": "Dazed Studio",
+        "overview": "A creative studio part of Dazed Media, focusing on edgy fashion, youth culture, and documentary film.",
+        "website": "dazeddigital.com"
+      }
+    ],
+    "Creative Studios (General)": [
+      {
+        "company_name": "Studio Moross",
+        "overview": "A creative studio known for vibrant, playful visuals often tied to music and youth culture, blending art and design.",
+        "website": "studiomoross.com"
+      },
+      {
+        "company_name": "Ditto",
+        "overview": "A creative studio that publishes, designs, and creates unique campaigns and books, merging art with commerce.",
+        "website": "ditto.tv"
+      },
+      {
+        "company_name": "VOYAGE",
+        "overview": "A creative studio specializing in clean, human-focused filmmaking with a strong sensibility for storytelling.",
+        "website": "voyage.london"
+      },
+      {
+        "company_name": "Panoptica",
+        "overview": "A creative studio known for cinematic branding and mood-driven storytelling that resonates with audiences."
+      }
+    ]
+  }
+}
+

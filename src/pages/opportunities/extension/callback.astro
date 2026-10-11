@@ -1,0 +1,25 @@
+---
+export const prerender = false;
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/portfolio-pop-editorial.css';
+import '../../../styles/opportunities-editorial.css';
+---
+
+<BaseLayout
+    title="Completing Safari sign in · NextUp by Abodid"
+    description="Completing Safari extension sign in."
+    noindex={true}
+    fullWidth={true}
+    showGlobalGrid={false}
+    bodyClass="opportunities-editorial-page"
+    navigationVariant="next"
+>
+    <main class="opp-auth-callback" id="main-content">
+        <div>
+            <span>SAFARI EXTENSION</span>
+            <h1>Finishing secure sign in…</h1>
+            <p id="safari-extension-auth-status">Keep this tab open for a moment. The extension will close it when the PKCE exchange is complete.</p>
+            <a href="/opportunities">Open NextUp by Abodid →</a>
+        </div>
+    </main>
+</BaseLayout>

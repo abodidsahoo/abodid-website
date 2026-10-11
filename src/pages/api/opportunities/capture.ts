@@ -1,238 +1,185 @@
 import type { APIRoute } from 'astro';
 import {
-    isRequestAuthenticated,
-    verifyPassword,
-    createSessionToken,
-    setAuthCookie,
-    checkRateLimit,
-} from '../../../lib/opportunities/auth';
-import { canonicalizeCaptureUrl, computeContentHash, fetchWebpageContent, prioritizeOpportunityText } from '../../../lib/opportunities/scraper';
+    canonicalizeCaptureUrl,
+    computeContentHash,
+    fetchWebpageContent,
+    prioritizeOpportunityText,
+} from '../../../lib/opportunities/scraper';
 import { extractOpportunityWithLLM, resolveOpportunityDeadline, parseEventDate } from '../../../lib/opportunities/extractor';
 import { formatOpportunityTitle } from '../../../lib/opportunities/ui-helpers';
-import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
+import { authorizeOpportunityRequest, opportunityJson } from '../../../lib/opportunities/userAuth';
+import {
+    PRIVATE_SAVED_SELECT,
+    opportunityToSavedInsert,
+    savedRowToOpportunity,
+    type SavedOpportunityRow,
+} from '../../../lib/opportunities/saved';
 import type { Opportunity } from '../../../lib/opportunities/types';
+import { consumeOpportunityAiLimit } from '../../../lib/opportunities/rateLimit';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
+export const POST: APIRoute = async ({ request }) => {
+    const authorization = await authorizeOpportunityRequest(request);
+    if (!authorization.ok) return authorization.response;
+
     try {
         const body = await request.json().catch(() => ({}));
-        const {
-            url,
-            title: providedTitle,
-            page_text: providedText,
-            password,
-            captured_at: capturedAt,
-            capture_timezone: captureTimezone,
-        } = body;
-
-        // 1. Authenticate request (via cookie, bearer, or password in body)
-        let isAuthenticated = isRequestAuthenticated(request, cookies);
-        if (!isAuthenticated && password) {
-            if (verifyPassword(password)) {
-                isAuthenticated = true;
-                const token = createSessionToken();
-                setAuthCookie(cookies, token);
-            }
-        }
-
-        if (!isAuthenticated) {
-            return new Response(JSON.stringify({ error: 'Unauthorized: Valid password or session required' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
-        // 2. Rate limiting check
-        const clientIp = clientAddress || request.headers.get('x-forwarded-for') || 'unknown';
-        const rateCheck = checkRateLimit(clientIp, 25, 60 * 1000);
-        if (!rateCheck.allowed) {
-            return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please wait a moment before capturing again.' }), {
-                status: 429,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
-        // 3. Validate & canonicalize URL
-        if (!url || typeof url !== 'string') {
-            return new Response(JSON.stringify({ error: 'A valid URL is required' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
+        const url = typeof body.url === 'string' ? body.url.trim() : '';
+        if (!url || url.length > 4096) return opportunityJson({ error: 'A valid URL is required' }, 400);
 
         let canonicalUrl: string;
         try {
             canonicalUrl = canonicalizeCaptureUrl(url);
-        } catch (err: any) {
-            return new Response(JSON.stringify({ error: `Invalid URL format: ${err?.message || 'Check URL'}` }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
+        } catch {
+            return opportunityJson({ error: 'Enter a valid HTTP or HTTPS URL' }, 400);
+        }
+
+        // Per-user deduplication is the first check and costs no AI tokens.
+        const { data: existing } = await authorization.userClient
+            .from('saved_opportunities')
+            .select(PRIVATE_SAVED_SELECT)
+            .eq('canonical_url', canonicalUrl)
+            .maybeSingle();
+
+        if (existing) {
+            return opportunityJson({
+                success: true,
+                is_duplicate: true,
+                opportunity: savedRowToOpportunity(existing as unknown as SavedOpportunityRow),
             });
         }
 
-        const supabase = createSupabaseServiceClient();
-        if (!supabase) {
-            return new Response(JSON.stringify({ error: 'Database service unavailable' }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
-        // 4. Check for existing record (Deduplication - ZERO AI CALLS if exists)
-        const { data: existing, error: findError } = await supabase
+        // Reuse a founder-curated legacy record without running extraction again.
+        const { data: curated } = await authorization.serviceClient
             .from('opportunities')
             .select('*')
             .eq('canonical_url', canonicalUrl)
             .maybeSingle();
 
-        if (findError) {
-            console.error('Error querying opportunities table:', findError);
-        }
-
-        if (existing) {
-            return new Response(JSON.stringify({
+        if (curated) {
+            const insert = opportunityToSavedInsert(authorization.user.id, curated as Opportunity);
+            const { data, error } = await authorization.userClient
+                .from('saved_opportunities')
+                .upsert(insert, { onConflict: 'user_id,canonical_url', ignoreDuplicates: false })
+                .select(PRIVATE_SAVED_SELECT)
+                .single();
+            if (error || !data) return opportunityJson({ error: 'Could not save this curated opportunity' }, 500);
+            return opportunityJson({
                 success: true,
-                is_duplicate: true,
-                message: 'Opportunity already saved. Loaded existing record without calling AI.',
-                opportunity: existing,
-            }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-            });
+                is_duplicate: false,
+                reused_curated_record: true,
+                opportunity: savedRowToOpportunity(data as unknown as SavedOpportunityRow),
+            }, 201);
         }
 
-        // 5. Ingest and clean page content
+        const providedText = typeof body.page_text === 'string' ? body.page_text.slice(0, 100_000) : '';
         let cleanText = '';
-        let pageTitle = providedTitle || '';
+        let pageTitle = typeof body.title === 'string' ? body.title.slice(0, 500) : '';
 
-        if (providedText && typeof providedText === 'string' && providedText.trim().length > 100) {
-            // Direct text provided from Chrome Extension
+        if (providedText.trim().length > 100) {
             cleanText = prioritizeOpportunityText(providedText.trim());
         } else {
-            // Server-side fetch & clean
             try {
                 const fetched = await fetchWebpageContent(canonicalUrl);
                 cleanText = fetched.text;
                 pageTitle = pageTitle || fetched.title;
-            } catch (fetchErr: any) {
-                return new Response(JSON.stringify({
-                    error: `Could not fetch opportunity webpage: ${fetchErr?.message || 'Fetch failed'}. You can still create it manually.`,
+            } catch {
+                return opportunityJson({
+                    error: 'The page could not be fetched safely. Add it manually or try from the browser extension.',
                     can_manual_create: true,
                     canonical_url: canonicalUrl,
-                }), {
-                    status: 422,
-                    headers: { 'Content-Type': 'application/json' },
-                });
+                }, 422);
             }
         }
 
-        if (!cleanText || cleanText.length < 50) {
-            return new Response(JSON.stringify({
-                error: 'The webpage did not contain enough readable content to extract. You can create it manually.',
+        if (cleanText.length < 50) {
+            return opportunityJson({
+                error: 'The page did not contain enough readable content. Add it manually instead.',
                 can_manual_create: true,
                 canonical_url: canonicalUrl,
-            }), {
-                status: 422,
-                headers: { 'Content-Type': 'application/json' },
-            });
+            }, 422);
         }
 
-        // 6. Make ONE OpenRouter LLM extraction call
-        const sourceHash = computeContentHash(cleanText);
-        let extractedResult;
+        // Charge the durable quota only when a new OpenRouter extraction is
+        // actually needed; duplicates and curated cache hits remain free.
+        const aiLimit = await consumeOpportunityAiLimit(authorization.serviceClient, authorization.user.id);
+        if (!aiLimit.allowed) {
+            const response = opportunityJson({ error: 'Capture limit reached. Please try again later.' }, 429);
+            response.headers.set('Retry-After', String(aiLimit.retryAfter));
+            return response;
+        }
+
+        let extractedResult: Awaited<ReturnType<typeof extractOpportunityWithLLM>>;
         try {
             extractedResult = await extractOpportunityWithLLM(cleanText, pageTitle, {
-                sourceUrl: url.trim(),
-                capturedAt: typeof capturedAt === 'string' ? capturedAt : new Date().toISOString(),
-                timezone: typeof captureTimezone === 'string' ? captureTimezone : undefined,
+                sourceUrl: url,
+                capturedAt: typeof body.captured_at === 'string' ? body.captured_at : new Date().toISOString(),
+                timezone: typeof body.capture_timezone === 'string' ? body.capture_timezone : undefined,
             });
-        } catch (llmErr: any) {
-            return new Response(JSON.stringify({
-                error: `AI extraction failed: ${llmErr?.message || 'LLM error'}. You can create the opportunity manually.`,
+        } catch (error) {
+            console.error('Opportunity extraction failed', {
+                userId: authorization.user.id,
+                canonicalUrl,
+                error: error instanceof Error ? error.name : 'UnknownError',
+            });
+            return opportunityJson({
+                error: 'Extraction could not be completed. Add the opportunity manually or try again later.',
                 can_manual_create: true,
                 canonical_url: canonicalUrl,
-            }), {
-                status: 502,
-                headers: { 'Content-Type': 'application/json' },
-            });
+            }, 502);
         }
 
-        const { data: llmData, model: usedModel } = extractedResult;
+        const { data: extracted, model } = extractedResult;
+        const capturedAt = typeof body.captured_at === 'string' ? body.captured_at : undefined;
+        const captureTimezone = typeof body.capture_timezone === 'string' ? body.capture_timezone : undefined;
+        const deadline = resolveOpportunityDeadline(extracted.deadline, extracted.timezone, cleanText);
+        const eventDate = parseEventDate(extracted.event_date, capturedAt, captureTimezone);
 
-        // 7. Parse deadlines and dates deterministically
-        const parsedDeadline = resolveOpportunityDeadline(llmData.deadline, llmData.timezone, cleanText);
-        const parsedEventDate = parseEventDate(
-            llmData.event_date,
-            typeof capturedAt === 'string' ? capturedAt : undefined,
-            typeof captureTimezone === 'string' ? captureTimezone : undefined,
-        );
-
-        // 8. Insert record into Supabase
-        const rawExtractedTitle = llmData.title || pageTitle || 'Untitled Opportunity';
-        const newRecord = {
-            title: formatOpportunityTitle(rawExtractedTitle),
-            organisation: llmData.organisation || 'Unknown Organisation',
-            category: llmData.category || 'other',
-            source_url: url.trim(),
+        const opportunity = {
+            title: formatOpportunityTitle(extracted.title || pageTitle || 'Untitled Opportunity').slice(0, 240),
+            organisation: extracted.organisation || 'Unknown Organisation',
+            category: extracted.category || 'other',
+            source_url: url,
             canonical_url: canonicalUrl,
-            deadline_at: parsedDeadline.deadline_at,
-            deadline_raw: parsedDeadline.deadline_raw,
-            deadline_timezone: parsedDeadline.deadline_timezone,
-            deadline_confidence: parsedDeadline.deadline_confidence,
-            event_date: parsedEventDate,
-            location: llmData.location || null,
-            requirements: Array.isArray(llmData.requirements) ? llmData.requirements : [],
-            next_action: llmData.next_action || null,
-            application_url: llmData.application_url || null,
-            meeting_url: llmData.meeting_url || null,
-            fee_or_funding: llmData.fee_or_funding || null,
-            summary: llmData.summary || null,
+            deadline_at: deadline.deadline_at,
+            deadline_raw: deadline.deadline_raw,
+            deadline_timezone: deadline.deadline_timezone,
+            deadline_confidence: deadline.deadline_confidence,
+            event_date: eventDate,
+            location: extracted.location || null,
+            requirements: Array.isArray(extracted.requirements) ? extracted.requirements.slice(0, 50) : [],
+            next_action: extracted.next_action || null,
+            application_url: extracted.application_url || null,
+            meeting_url: extracted.meeting_url || null,
+            fee_or_funding: extracted.fee_or_funding || null,
+            summary: extracted.summary || null,
             status: 'inbox',
             priority: 1,
             outcome: null,
-            source_hash: sourceHash,
-            llm_model: usedModel,
-            llm_extraction_count: 1,
             notes: null,
-        };
+            source_hash: computeContentHash(cleanText),
+            llm_model: model,
+            llm_extraction_count: 1,
+            extracted_at: new Date().toISOString(),
+        } as Opportunity;
 
-        const { data: inserted, error: insertError } = await supabase
-            .from('opportunities')
-            .insert(newRecord)
-            .select('*')
+        const insert = opportunityToSavedInsert(authorization.user.id, opportunity);
+        const { data, error } = await authorization.userClient
+            .from('saved_opportunities')
+            .upsert(insert, { onConflict: 'user_id,canonical_url', ignoreDuplicates: false })
+            .select(PRIVATE_SAVED_SELECT)
             .single();
 
-        if (insertError || !inserted) {
-            throw new Error(`Failed to save extracted opportunity to database: ${insertError?.message || 'Database error'}`);
-        }
+        if (error || !data) return opportunityJson({ error: 'The opportunity was extracted but could not be saved' }, 500);
 
-        // 9. Log lightweight event
-        await supabase.from('opportunity_events').insert({
-            opportunity_id: inserted.id,
-            event_type: 'opportunity_saved',
-            metadata: {
-                model: usedModel,
-                canonical_url: canonicalUrl,
-                category: inserted.category,
-            },
-        });
-
-        return new Response(JSON.stringify({
+        return opportunityJson({
             success: true,
             is_duplicate: false,
-            message: 'Opportunity extracted and saved successfully.',
-            opportunity: inserted as Opportunity,
-        }), {
-            status: 201,
-            headers: { 'Content-Type': 'application/json' },
-        });
-
-    } catch (err: any) {
-        console.error('Capture endpoint unexpected error:', err);
-        return new Response(JSON.stringify({ error: err?.message || 'Internal server error during capture' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+            opportunity: savedRowToOpportunity(data as unknown as SavedOpportunityRow),
+        }, 201);
+    } catch (error) {
+        console.error('Capture endpoint failed', error instanceof Error ? error.name : 'UnknownError');
+        return opportunityJson({ error: 'Capture failed unexpectedly' }, 500);
     }
 };

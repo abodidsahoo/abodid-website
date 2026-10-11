@@ -12,9 +12,15 @@ import {
 } from "../../../../lib/media/r2";
 import { catalogueR2ImageVariants } from "../../../../lib/media/imageVariants";
 import {
+    extractMoodboardPalette,
+    isMoodboardPaletteData,
+} from "../../../../lib/moodboard/palette";
+import {
     isAuthorizedMoodboardQuickActionRequest,
     MOODBOARD_QUICK_ACTION_FOLDER,
     MOODBOARD_QUICK_ACTION_MAX_BYTES,
+    normalizeMoodboardArtistName,
+    normalizeMoodboardSourceUrl,
     orientedImageDimensions,
     readMoodboardRequestFields,
     resolveMoodboardImageType,
@@ -80,12 +86,15 @@ export const POST: APIRoute = async ({ request }) => {
         if (!dimensions.width || !dimensions.height) {
             throw new Error("The image dimensions could not be read.");
         }
+        const palette = await extractMoodboardPalette(bytes);
 
         const publicUrl = buildR2PublicUrl(config, uploadedObjectKey);
         const storagePath = `${config.bucket}/${uploadedObjectKey}`;
         const titleValue = fields.title;
         const requestedTitle = typeof titleValue === "string" ? titleValue.trim().slice(0, 200) : "";
-        const selection = "id,image_url,storage_path,title,tags,published,image_width,image_height,aspect_ratio,created_at,updated_at";
+        const sourceUrl = normalizeMoodboardSourceUrl(fields.sourceUrl);
+        const artistName = normalizeMoodboardArtistName(fields.artistName);
+        const selection = "id,image_url,storage_path,title,tags,published,image_width,image_height,aspect_ratio,source_url,artist_name,palette,created_at,updated_at";
         const { data: mediaAsset, error: mediaAssetError } = await supabase
             .from("media_assets")
             .upsert({
@@ -130,11 +139,22 @@ export const POST: APIRoute = async ({ request }) => {
             .maybeSingle();
         if (existingItemError) throw existingItemError;
         if (existingItem) {
+            let completedItem = existingItem;
+            if (!isMoodboardPaletteData(existingItem.palette)) {
+                const { data: updatedItem, error: paletteError } = await supabase
+                    .from("moodboard_items")
+                    .update({ palette })
+                    .eq("id", existingItem.id)
+                    .select(selection)
+                    .single();
+                if (paletteError) throw paletteError;
+                completedItem = updatedItem;
+            }
             return jsonResponse({
                 ok: true,
                 objectKey: uploadedObjectKey,
                 publicUrl,
-                item: existingItem,
+                item: completedItem,
                 alreadyCompleted: true,
                 variantsReady: true,
             });
@@ -150,6 +170,9 @@ export const POST: APIRoute = async ({ request }) => {
                 published: true,
                 image_width: dimensions.width,
                 image_height: dimensions.height,
+                palette,
+                source_url: sourceUrl,
+                artist_name: artistName,
             })
             .select(selection)
             .single();

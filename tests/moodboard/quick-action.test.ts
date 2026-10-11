@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
     MOODBOARD_QUICK_ACTION_FOLDER,
+    normalizeMoodboardArtistName,
+    normalizeMoodboardSourceUrl,
     orientedImageDimensions,
     readBearerToken,
     readMoodboardRequestFields,
@@ -55,6 +57,15 @@ describe("Moodboard Finder Quick Action", () => {
     it("creates a useful title from the image filename", () => {
         expect(titleFromMoodboardFilename("brutalist_home--reference.webp"))
             .toBe("brutalist home reference");
+    });
+
+    it("accepts only web source URLs and trims optional artist names", () => {
+        expect(normalizeMoodboardSourceUrl(" https://www.behance.net/gallery/123/example "))
+            .toBe("https://www.behance.net/gallery/123/example");
+        expect(normalizeMoodboardSourceUrl("javascript:alert(1)")).toBeNull();
+        expect(normalizeMoodboardSourceUrl("not a url")).toBeNull();
+        expect(normalizeMoodboardArtistName("  Studio   Name  ")).toBe("Studio Name");
+        expect(normalizeMoodboardArtistName("   ")).toBeNull();
     });
 
     it("accounts for EXIF rotation when recording dimensions", () => {

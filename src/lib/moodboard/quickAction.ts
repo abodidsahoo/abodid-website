@@ -77,6 +77,27 @@ export const titleFromMoodboardFilename = (filename: string) =>
         .trim()
         .slice(0, 200) || "Untitled mood";
 
+export const normalizeMoodboardSourceUrl = (value: unknown) => {
+    const raw = typeof value === "string" ? value.trim() : "";
+    if (!raw || raw.length > 2_048) return null;
+
+    try {
+        const url = new URL(raw);
+        return url.protocol === "http:" || url.protocol === "https:"
+            ? url.href
+            : null;
+    } catch {
+        return null;
+    }
+};
+
+export const normalizeMoodboardArtistName = (value: unknown) => {
+    const name = typeof value === "string"
+        ? value.replace(/\s+/g, " ").trim()
+        : "";
+    return name ? name.slice(0, 160) : null;
+};
+
 export const orientedImageDimensions = ({
     width,
     height,

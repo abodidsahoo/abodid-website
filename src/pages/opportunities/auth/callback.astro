@@ -1,0 +1,90 @@
+---
+export const prerender = false;
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/portfolio-pop-editorial.css';
+import '../../../styles/opportunities-editorial.css';
+---
+
+<BaseLayout
+    title="Completing sign in · NextUp by Abodid"
+    description="Completing Google sign in."
+    noindex={true}
+    fullWidth={true}
+    showGlobalGrid={false}
+    bodyClass="opportunities-editorial-page"
+    navigationVariant="next"
+>
+    <main class="opp-auth-callback" id="main-content">
+        <div>
+            <span>GOOGLE AUTHENTICATION</span>
+            <h1>Opening your collection…</h1>
+            <p id="opportunity-auth-status">Finishing secure sign in.</p>
+            <a id="opportunity-auth-retry" href="/opportunities" hidden>Return to sign in →</a>
+        </div>
+    </main>
+    <script>
+        import { supabase } from '../../../lib/supabase';
+
+        const status = document.getElementById('opportunity-auth-status');
+        const retry = document.getElementById('opportunity-auth-retry') as HTMLAnchorElement | null;
+        const params = new URLSearchParams(window.location.search);
+        const requestedNext = params.get('next');
+        const safeNext = requestedNext?.startsWith('/opportunities/') && !requestedNext.startsWith('//')
+            ? requestedNext
+            : null;
+
+        const showFailure = (message: string) => {
+            if (status) status.textContent = message;
+            if (retry) retry.hidden = false;
+        };
+
+        const getProfile = async (accessToken: string) => {
+            // Profile creation happens in the same database transaction as a
+            // first login, but a short retry also covers API/cache propagation.
+            for (const delay of [0, 250, 750]) {
+                if (delay) await new Promise((resolve) => window.setTimeout(resolve, delay));
+                const response = await fetch('/api/opportunities/session', {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                    cache: 'no-store',
+                });
+                if (response.ok) return response;
+                if (response.status !== 409) return response;
+            }
+            return null;
+        };
+
+        const complete = async () => {
+            const oauthError = params.get('error_description') || params.get('error');
+            if (oauthError) {
+                showFailure('Google sign in was cancelled or rejected. Please try again.');
+                return;
+            }
+
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session?.access_token) {
+                showFailure('Sign in could not be completed. Please return and try again.');
+                return;
+            }
+
+            const response = await getProfile(session.access_token);
+            if (!response) {
+                showFailure('Your profile could not be prepared. Please try again in a moment.');
+                return;
+            }
+            if (!response.ok) {
+                const payload = await response.json().catch(() => ({}));
+                showFailure(
+                    payload?.code === 'OPPORTUNITIES_NOT_CONFIGURED'
+                        ? 'Opportunities account storage is not configured yet.'
+                        : 'Your profile could not be opened. Please return and try again.',
+                );
+                return;
+            }
+
+            const payload = await response.json();
+            window.location.replace(safeNext || `/opportunities/${payload.profile.username}`);
+        };
+
+        void complete();
+    </script>
+</BaseLayout>

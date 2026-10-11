@@ -1,72 +1,25 @@
 import { LLMExtractionOutputSchema, type LLMExtractionOutput, type DeadlineConfidence } from './types';
 
-const DEFAULT_MODEL = import.meta.env.OPENROUTER_OPPORTUNITIES_MODEL || process.env.OPENROUTER_OPPORTUNITIES_MODEL || 'google/gemini-2.5-flash';
+const DEFAULT_MODEL = import.meta.env.OPENROUTER_OPPORTUNITIES_MODEL || process.env.OPENROUTER_OPPORTUNITIES_MODEL || 'google/gemini-3.8-flash';
 const FALLBACK_MODEL = 'openai/gpt-4o-mini';
+const OPENROUTER_TIMEOUT_MS = 30_000;
+const OPENROUTER_MAX_OUTPUT_TOKENS = Math.min(
+    2000,
+    Math.max(300, Number(import.meta.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS || process.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS) || 1200),
+);
 
-export const EXTRACTION_SYSTEM_PROMPT = `You are a precise, intelligent opportunity parser for creative technologists, artists, researchers, designers, and engineers.
-
-Your task is to analyze the provided webpage text and logically segregate the information into accurate, structured JSON fields for database storage.
-
-TARGET-SELECTION RULES (HIGHEST PRIORITY):
-- The PAGE TITLE, CURRENT PAGE, main heading, SOURCE URL, and URL fragment identify the target opportunity. Extract that target, not a secondary item merely mentioned or linked inside it.
-- Only treat a subsection event as the target when the PAGE TITLE, URL fragment, CURRENT SECTION, or main heading explicitly identifies that event.
-- A webinar, information/Q&A session, open day, interview, ceremony, or Teams/Zoom link inside a page about a studentship, grant, fellowship, residency, job, conference, or open call is secondary context. It MUST NOT replace the primary opportunity.
-- Link labels and LINK TARGETS are supporting evidence, not proof that the linked item is the target.
-- If the primary page explicitly labels an application deadline, submission deadline, closing date, "applications close", "apply by", or "submit by" date, use it as deadline. It outranks programme dates, event/session dates, interview dates, notification dates, publication dates, and dates inside navigation or related links.
-- Only put a date in event_date when it describes when the target opportunity itself takes place. Never put its application deadline in event_date.
-- When a deadline includes a time, return an ISO 8601 timestamp with an explicit numeric UTC offset. Resolve named local time using an IANA timezone. Example: "noon (UK time) on 15 January 2027" becomes deadline "2027-01-15T12:00:00+00:00" and timezone "Europe/London".
-- URLs must be literal absolute URLs present in the supplied text or LINK TARGETS. Never return a link label as a URL.
-
-FIELD EXTRACTION GUIDELINES:
-1. title (string, required):
-   - The clean, proper name of the opportunity (e.g. "SAM Residencies Open Call 2026", "Creative Fellowship", "AI Art Grant").
-   - Strip out website navigation junk, breadcrumbs, social counters, or raw URLs.
-
-2. organisation (string, required):
-   - The host foundation, institution, museum, or company offering the opportunity (e.g. "Singapore Art Museum", "Sundance Institute", "Mozilla").
-
-3. category (string, required):
-   - Must be strictly one of: "grant", "residency", "fellowship", "open_call", "job", "conference", "event", "other".
-   - Information sessions, webinars, open days, registration sessions, and scheduled talks MUST use "event".
-   - A PhD or degree programme itself is "other", not "fellowship", unless the page explicitly describes a funded fellowship.
-
-4. deadline (string | null):
-   - The application / submission deadline timestamp or date (e.g. "2026-10-15T23:59:00Z" or "October 15, 2026").
-   - Set to "rolling" if it is open year-round without a fixed cutoff.
-   - Do NOT confuse application deadlines with programme dates, residency operating dates, exhibition dates, information sessions, interviews, result notifications, publication dates, or office hours.
-
-5. timezone (string | null):
-   - Timezone for the deadline (e.g. "SGT", "EST", "CET", "UTC", "Asia/Singapore"). Null if not stated.
-
-6. event_date (string | null):
-   - The dates when the residency, fellowship, conference, or job actually takes place (e.g. "March 2027 – August 2027").
-   - For an information session, webinar, open day, registration session, or scheduled talk, this is the session start date and time.
-   - Use CAPTURE CONTEXT to resolve relative dates such as "tomorrow" or a month/day with no year.
-
-7. location (string | null):
-   - Host city and country (e.g. "Singapore", "Berlin, Germany", "Online / Remote").
-
-8. requirements (array of strings):
-   - Clean, actionable submission prerequisites (e.g. ["Portfolio (max 10 images/video links)", "Project proposal (500 words)", "CV / Artist Bio", "Artist statement"]).
-   - Filter out random numbers, time ranges, website navigation indices, or contact phone numbers.
-
-9. next_action (string | null):
-   - One short, concrete next step for the applicant (e.g. "Prepare 500-word proposal draft", "Review guidelines & download application PDF").
-
-10. application_url (string | null):
-    - Direct URL to the submission portal (Google Form, Submittable, Typeform, or portal link) if distinct from the main page.
-
-11. meeting_url (string | null):
-    - Direct URL to the online event, webinar, video call, or registration page when present in the supplied link targets.
-
-12. fee_or_funding (string | null):
-    - Clean financial summary (e.g. "SGD 5,000/month stipend + studio + housing provided", "USD 10,000 production grant", "Free application").
-
-13. summary (string, required):
-    - Concise 1-2 sentence overview (max 30 words) summarizing who this is for and what benefits are provided.
-
-When the PAGE TITLE, CURRENT SECTION, main heading, or URL fragment explicitly identifies a specific event or information session, extract that event—not the broader programme it discusses elsewhere.
-Never guess dates or requirements. If a field is not present or unclear, use null. Output strict JSON only.`;
+export const getExtractionSystemPrompt = () => {
+    // Keep the extraction instructions out of source control and every public
+    // bundle. Vercel supplies this only to server-side API functions.
+    const prompt = (
+        import.meta.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT
+        || process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT
+    )?.trim();
+    if (!prompt) {
+        throw new Error('Server Configuration Error: Missing OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT');
+    }
+    return prompt;
+};
 
 export interface OpportunityExtractionContext {
     sourceUrl?: string;
@@ -508,6 +461,7 @@ export async function extractOpportunityWithLLM(
     if (!apiKey) {
         throw new Error('Server Configuration Error: Missing OPENROUTER_API_KEY');
     }
+    const systemPrompt = getExtractionSystemPrompt();
 
     const modelsToTry = [DEFAULT_MODEL, FALLBACK_MODEL];
     let lastError: Error | null = null;
@@ -524,6 +478,7 @@ export async function extractOpportunityWithLLM(
         try {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
+                signal: AbortSignal.timeout(OPENROUTER_TIMEOUT_MS),
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
@@ -534,16 +489,17 @@ export async function extractOpportunityWithLLM(
                     model,
                     response_format: { type: 'json_object' },
                     messages: [
-                        { role: 'system', content: EXTRACTION_SYSTEM_PROMPT },
+                        { role: 'system', content: systemPrompt },
                         { role: 'user', content: userPrompt },
                     ],
                     temperature: 0.1,
+                    max_tokens: OPENROUTER_MAX_OUTPUT_TOKENS,
                 }),
             });
 
             if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`OpenRouter API error (HTTP ${response.status}): ${errText}`);
+                await response.body?.cancel().catch(() => undefined);
+                throw new Error(`OpenRouter request failed with HTTP ${response.status}`);
             }
 
             const jsonResponse = await response.json();
@@ -570,7 +526,10 @@ export async function extractOpportunityWithLLM(
             };
         } catch (err: any) {
             lastError = err;
-            console.warn(`Extraction attempt with model ${model} failed:`, err?.message || err);
+            console.warn('Opportunity extraction provider attempt failed', {
+                model,
+                error: err instanceof Error ? err.name : 'UnknownError',
+            });
             // Continue to fallback model if available
         }
     }

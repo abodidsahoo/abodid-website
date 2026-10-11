@@ -107,7 +107,8 @@ export interface CapturePayload {
     url?: string;
     title?: string;
     page_text?: string;
-    password?: string;
+    captured_at?: string;
+    capture_timezone?: string;
 }
 
 export interface NotificationLogEntry {

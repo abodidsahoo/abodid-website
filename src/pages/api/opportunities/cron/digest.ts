@@ -18,7 +18,6 @@ export const POST: APIRoute = async ({ request }) => {
             success: result.success,
             opportunity_title: result.oppTitle,
             deadline: result.deadlineFormatted,
-            recipient: result.recipient,
             error: result.error,
             timestamp: new Date().toISOString(),
         }), {
@@ -34,5 +33,3 @@ export const POST: APIRoute = async ({ request }) => {
         });
     }
 };
-
-export const GET: APIRoute = POST;

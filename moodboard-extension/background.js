@@ -75,7 +75,7 @@ const inferFilename = (srcUrl, contentType) => {
   return filename;
 };
 
-const sendImageToMoodboard = async (srcUrl) => {
+const sendImageToMoodboard = async (srcUrl, { sourceUrl = "", artistName = "" } = {}) => {
   const { apiBase = DEFAULT_API_BASE, token = "" } = await chrome.storage.local.get([
     "apiBase",
     "token",
@@ -143,6 +143,8 @@ const sendImageToMoodboard = async (srcUrl) => {
       objectKey: prepared.objectKey,
       originalFilename: filename,
       expectedSize: imageBlob.size,
+      sourceUrl,
+      artistName,
     }),
   });
   if (!completeResponse.ok) {
@@ -179,7 +181,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       throw new Error("No image was found under the pointer. Reload this page once and try again.");
     }
 
-    return sendImageToMoodboard(imageUrl);
+    return sendImageToMoodboard(imageUrl, {
+      sourceUrl: resolved?.sourceUrl || info.pageUrl || tab?.url || "",
+      artistName: resolved?.artistName || "",
+    });
   })()
     .then((filename) => notify(`${filename} was added to your mood board.`))
     .catch((error) => notify(error?.message || "The image could not be uploaded.", true));

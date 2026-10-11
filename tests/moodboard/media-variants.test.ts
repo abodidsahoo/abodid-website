@@ -15,6 +15,8 @@ const row = {
     image_width: 1200,
     image_height: 800,
     aspect_ratio: 1.5,
+    source_url: "https://www.behance.net/gallery/123/motion-study",
+    artist_name: "Example Studio",
     created_at: "2026-10-01T00:00:00.000Z",
     updated_at: "2026-10-01T00:00:00.000Z",
 };
@@ -33,6 +35,8 @@ describe("moodboard responsive media", () => {
         expect(item.thumbnailUrl).toContain("/800/");
         expect(item.imageUrl).toContain("/1600/");
         expect(item.originalUrl).toBe(row.image_url);
+        expect(item.sourceUrl).toBe(row.source_url);
+        expect(item.artistName).toBe(row.artist_name);
     });
 
     it("falls back safely while one or both variants are still processing", () => {

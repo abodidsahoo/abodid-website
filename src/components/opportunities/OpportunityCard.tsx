@@ -79,37 +79,39 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                 <div className="opp-card-footer" onClick={(e) => e.stopPropagation()}>
                     <div className="opp-card-footer-left">
                         {/* Priority Circles */}
-                        <div
-                            className="opp-priority-circles"
-                            onClick={(e) => e.stopPropagation()}
-                            title={`Priority: ${priority === 3 ? 'High' : priority === 2 ? 'Medium' : 'Low'}`}
-                        >
-                            {[1, 2, 3].map((lvl) => (
-                                <button
-                                    key={lvl}
-                                    type="button"
-                                    className={`opp-circle-btn ${lvl <= priority ? 'active' : ''}`}
-                                    onClick={(e) => handlePriorityClick(e, lvl)}
-                                    aria-label={`Set priority ${lvl}`}
-                                >
-                                    <svg
-                                        width="12"
-                                        height="12"
-                                        viewBox="0 0 24 24"
-                                        className="opp-circle-svg"
+                        {isAuthenticated && (
+                            <div
+                                className="opp-priority-circles"
+                                onClick={(e) => e.stopPropagation()}
+                                title={`Priority: ${priority === 3 ? 'High' : priority === 2 ? 'Medium' : 'Low'}`}
+                            >
+                                {[1, 2, 3].map((lvl) => (
+                                    <button
+                                        key={lvl}
+                                        type="button"
+                                        className={`opp-circle-btn ${lvl <= priority ? 'active' : ''}`}
+                                        onClick={(e) => handlePriorityClick(e, lvl)}
+                                        aria-label={`Set priority ${lvl}`}
                                     >
-                                        <circle
-                                            cx="12"
-                                            cy="12"
-                                            r="8.5"
-                                            fill={lvl <= priority ? "#ffe44f" : "#ffffff"}
-                                            stroke="#15130f"
-                                            strokeWidth="2.5"
-                                        />
-                                    </svg>
-                                </button>
-                            ))}
-                        </div>
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 24 24"
+                                            className="opp-circle-svg"
+                                        >
+                                            <circle
+                                                cx="12"
+                                                cy="12"
+                                                r="8.5"
+                                                fill={lvl <= priority ? "#ffe44f" : "#ffffff"}
+                                                stroke="#15130f"
+                                                strokeWidth="2.5"
+                                            />
+                                        </svg>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Category (Simple Clean Underlined Text - Clickable to filter) */}
                         <button

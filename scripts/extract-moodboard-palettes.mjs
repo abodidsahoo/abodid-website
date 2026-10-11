@@ -7,6 +7,7 @@ import sharp from 'sharp';
 import { createClient } from '@supabase/supabase-js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const moodboardOnly = process.argv.includes('--moodboard-only');
 dotenv.config({ path: path.join(root, '.env') });
 
 const supabaseUrl = process.env.PUBLIC_SUPABASE_URL;
@@ -129,6 +130,29 @@ function deltaE(lab1, lab2) {
     const da = lab1[1] - lab2[1];
     const db = lab1[2] - lab2[2];
     return Math.sqrt(dL * dL + da * da + db * db);
+}
+
+function palettePayload(record) {
+    return {
+        dominantHex: record.dominantHex,
+        dominantLab: record.dominantLab,
+        dominantHsl: record.dominantHsl,
+        paletteHex: record.paletteHex,
+        paletteLab: record.paletteLab,
+        paletteHsl: record.paletteHsl,
+        isDark: record.isDark,
+    };
+}
+
+function hasStoredPalette(value) {
+    return Boolean(
+        value
+        && typeof value === 'object'
+        && typeof value.dominantHex === 'string'
+        && Array.isArray(value.dominantLab)
+        && Array.isArray(value.paletteLab)
+        && value.paletteLab.length > 0,
+    );
 }
 
 function kMeansClustering(pixels, k = 4, iterations = 6) {
@@ -319,20 +343,30 @@ async function main() {
     }
 
     // 1. Fetch all moodboard items from Supabase
-    const { data: supabaseItems, error: fetchError } = await supabase
-        .from('moodboard_items')
-        .select('id, image_url, storage_path, title')
-        .order('created_at', { ascending: false });
-
-    if (fetchError) {
-        console.warn(`Could not query moodboard_items: ${fetchError.message}`);
+    const supabaseItems = [];
+    const pageSize = 1000;
+    for (let from = 0; ; from += pageSize) {
+        const { data, error: fetchError } = await supabase
+            .from('moodboard_items')
+            .select('id, image_url, storage_path, title, palette')
+            .order('created_at', { ascending: false })
+            .range(from, from + pageSize - 1);
+        if (fetchError) throw fetchError;
+        supabaseItems.push(...(data || []));
+        if (!data || data.length < pageSize) break;
     }
 
     const itemsToProcess = [];
+    const paletteUpdates = [];
 
     if (supabaseItems && supabaseItems.length) {
         for (const item of supabaseItems) {
-            if (!generatedMap[item.id] || !generatedMap[item.image_url]) {
+            if (hasStoredPalette(item.palette)) continue;
+
+            const cachedPalette = generatedMap[item.id] || generatedMap[item.image_url];
+            if (cachedPalette) {
+                paletteUpdates.push({ id: item.id, palette: palettePayload(cachedPalette) });
+            } else {
                 itemsToProcess.push({
                     id: item.id,
                     imageUrl: item.image_url,
@@ -342,8 +376,8 @@ async function main() {
         }
     }
 
-    // 2. Load R2 photography albums snapshot (boudoir, uk-2026, my-life/bts, etc.)
-    try {
+    // 2. Optionally update palettes used by the other photography moodboards.
+    if (!moodboardOnly) try {
         const r2SnapshotRaw = await fs.readFile(path.join(dataDir, 'photographyR2.generated.json'), 'utf8');
         const r2Snapshot = JSON.parse(r2SnapshotRaw);
 
@@ -378,7 +412,6 @@ async function main() {
 
     console.log(`Found ${itemsToProcess.length} new items to extract palettes for.`);
 
-    const supabaseRows = [];
     let successCount = 0;
     let failCount = 0;
 
@@ -407,18 +440,7 @@ async function main() {
                     }
 
                     if (item.id && item.id.includes('-') && item.id.length === 36) {
-                        supabaseRows.push({
-                            moodboard_item_id: item.id,
-                            storage_path: item.storagePath,
-                            image_url: item.imageUrl,
-                            dominant_hex: paletteData.dominantHex,
-                            dominant_lab: paletteData.dominantLab,
-                            dominant_hsl: paletteData.dominantHsl,
-                            palette_hex: paletteData.paletteHex,
-                            palette_lab: paletteData.paletteLab,
-                            palette_hsl: paletteData.paletteHsl,
-                            is_dark: paletteData.isDark,
-                        });
+                        paletteUpdates.push({ id: item.id, palette: paletteData });
                     }
 
                     successCount++;
@@ -438,25 +460,21 @@ async function main() {
     console.log(`\nSuccessfully wrote static palette cache to ${outputPath}`);
     console.log(`Extraction run complete: ${successCount} new successful, ${failCount} failed.`);
 
-    // 4. Upsert to Supabase if any supabase rows were processed
-    if (supabaseRows.length > 0) {
-        console.log('\nAttempting to upsert into Supabase moodboard_color_palettes...');
-        try {
-            const batchSize = 100;
-            for (let i = 0; i < supabaseRows.length; i += batchSize) {
-                const batch = supabaseRows.slice(i, i + batchSize);
-                const { error: upsertError } = await supabase
-                    .from('moodboard_color_palettes')
-                    .upsert(batch, { onConflict: 'moodboard_item_id' });
-
-                if (upsertError) {
-                    console.log(`Supabase table note: ${upsertError.message}`);
-                    break;
-                }
-            }
-        } catch (err) {
-            console.log(`Supabase upsert note: ${err.message}`);
+    // 4. Persist palettes on their moodboard rows in bounded concurrent batches.
+    if (paletteUpdates.length > 0) {
+        console.log(`\nSaving ${paletteUpdates.length} palettes on moodboard_items...`);
+        const updateConcurrency = 12;
+        for (let i = 0; i < paletteUpdates.length; i += updateConcurrency) {
+            const batch = paletteUpdates.slice(i, i + updateConcurrency);
+            await Promise.all(batch.map(async ({ id, palette }) => {
+                const { error: updateError } = await supabase
+                    .from('moodboard_items')
+                    .update({ palette })
+                    .eq('id', id);
+                if (updateError) throw updateError;
+            }));
         }
+        console.log(`Saved ${paletteUpdates.length} palettes to Supabase.`);
     }
 
     console.log('\n--- All moodboards & albums palette extraction finished! ---');

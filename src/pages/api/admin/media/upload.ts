@@ -16,6 +16,9 @@ import {
     putR2Object,
 } from "../../../../lib/media/r2";
 import { catalogueR2ImageVariants } from "../../../../lib/media/imageVariants";
+import { extractMoodboardPalette } from "../../../../lib/moodboard/palette";
+
+const MOODBOARD_R2_FOLDER = "photos/originals/moodboard";
 
 const optionalDimension = (value: unknown) => {
     const parsed = Number(value);
@@ -81,6 +84,9 @@ export const POST: APIRoute = async ({ request }) => {
         const config = getR2Config();
         const objectKey = await makeAvailableR2ObjectKey(folder, filename);
         const bytes = new Uint8Array(await file.arrayBuffer());
+        const palette = folder === MOODBOARD_R2_FOLDER
+            ? await extractMoodboardPalette(bytes)
+            : null;
         const uploaded = await putR2Object({
             objectKey,
             body: bytes,
@@ -148,6 +154,7 @@ export const POST: APIRoute = async ({ request }) => {
                     catalogued: false,
                     processingStatus: "uploaded",
                     processingError: null,
+                    palette,
                     variants: {},
                     createdAt: new Date().toISOString(),
                 },
@@ -192,6 +199,7 @@ export const POST: APIRoute = async ({ request }) => {
                 catalogued: true,
                 processingStatus: asset.processing_status,
                 processingError: asset.processing_error,
+                palette,
                 variants: mapVariants(asset.media_variants, config),
                 createdAt: asset.created_at,
             },

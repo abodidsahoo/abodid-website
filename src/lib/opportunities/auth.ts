@@ -1,228 +1,28 @@
-import type { APIContext, AstroCookies } from 'astro';
 import crypto from 'node:crypto';
 
-export const COOKIE_NAME = 'opp_session';
-const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+const cleanSecret = (value: unknown) =>
+    typeof value === 'string' && value.trim() ? value.trim().replace(/^['"]|['"]$/g, '') : null;
 
-function cleanEnvVar(val: any): string | null {
-    if (!val || typeof val !== 'string') return null;
-    const cleaned = val.trim().replace(/^["']|["']$/g, '');
-    return cleaned.length > 0 ? cleaned : null;
-}
+export const getCronSecret = () =>
+    cleanSecret(import.meta.env.OPPORTUNITIES_CRON_SECRET) ||
+    cleanSecret(process.env.OPPORTUNITIES_CRON_SECRET) ||
+    cleanSecret(import.meta.env.CRON_SECRET) ||
+    cleanSecret(process.env.CRON_SECRET);
 
-function getSecretKey(): string {
-    const secret =
-        cleanEnvVar(import.meta.env?.OPPORTUNITIES_SESSION_SECRET) ||
-        cleanEnvVar(process.env?.OPPORTUNITIES_SESSION_SECRET) ||
-        cleanEnvVar(import.meta.env?.OPPORTUNITY_SESSION_SECRET) ||
-        cleanEnvVar(process.env?.OPPORTUNITY_SESSION_SECRET) ||
-        cleanEnvVar(import.meta.env?.OPPORTUNITIES_PASSWORD) ||
-        cleanEnvVar(process.env?.OPPORTUNITIES_PASSWORD) ||
-        cleanEnvVar(import.meta.env?.OPPORTUNITY_PASSWORD) ||
-        cleanEnvVar(process.env?.OPPORTUNITY_PASSWORD) ||
-        cleanEnvVar(import.meta.env?.opportunity_password) ||
-        cleanEnvVar(process.env?.opportunity_password) ||
-        cleanEnvVar(import.meta.env?.opportunities_password) ||
-        cleanEnvVar(process.env?.opportunities_password);
+const safeCompare = (provided: string, expected: string) => {
+    const providedBuffer = Buffer.from(provided);
+    const expectedBuffer = Buffer.from(expected);
+    return providedBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(providedBuffer, expectedBuffer);
+};
 
-    return secret || 'fallback-opportunities-secret-key-2026';
-}
-
-export function getExpectedPassword(): string | null {
-    const pass =
-        cleanEnvVar(import.meta.env?.OPPORTUNITIES_PASSWORD) ||
-        cleanEnvVar(process.env?.OPPORTUNITIES_PASSWORD) ||
-        cleanEnvVar(import.meta.env?.OPPORTUNITY_PASSWORD) ||
-        cleanEnvVar(process.env?.OPPORTUNITY_PASSWORD) ||
-        cleanEnvVar(import.meta.env?.opportunity_password) ||
-        cleanEnvVar(process.env?.opportunity_password) ||
-        cleanEnvVar(import.meta.env?.opportunities_password) ||
-        cleanEnvVar(process.env?.opportunities_password) ||
-        cleanEnvVar(import.meta.env?.CURATOR_PASSWORD) ||
-        cleanEnvVar(process.env?.CURATOR_PASSWORD);
-
-    return pass;
-}
-
-export function getCronSecret(): string | null {
-    return (
-        import.meta.env.OPPORTUNITIES_CRON_SECRET ||
-        process.env.OPPORTUNITIES_CRON_SECRET ||
-        import.meta.env.CRON_SECRET ||
-        process.env.CRON_SECRET ||
-        null
-    );
-}
-
-/**
- * Creates an HMAC signed session token containing timestamp and entropy.
- */
-export function createSessionToken(): string {
-    const issuedAt = Date.now();
-    const entropy = crypto.randomBytes(16).toString('hex');
-    const payload = `${issuedAt}:${entropy}`;
-    const hmac = crypto.createHmac('sha256', getSecretKey()).update(payload).digest('hex');
-    return `${payload}.${hmac}`;
-}
-
-/**
- * Verifies if an HMAC signed session token is valid and unexpired.
- */
-export function verifySessionToken(token: string | null | undefined): boolean {
-    if (!token || typeof token !== 'string') return false;
-    const parts = token.split('.');
-    if (parts.length !== 2) return false;
-
-    const [payload, signature] = parts;
-    const expectedSignature = crypto.createHmac('sha256', getSecretKey()).update(payload).digest('hex');
-
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
-        return false;
-    }
-
-    const [issuedAtStr] = payload.split(':');
-    const issuedAt = Number(issuedAtStr);
-    if (!Number.isFinite(issuedAt)) return false;
-
-    const ageSeconds = (Date.now() - issuedAt) / 1000;
-    return ageSeconds >= 0 && ageSeconds <= SESSION_TTL_SECONDS;
-}
-
-function safeCompare(input: string, expected: string): boolean {
-    const inputBuf = Buffer.from(input.trim());
-    const expectedBuf = Buffer.from(expected.trim());
-    if (inputBuf.length !== expectedBuf.length) {
-        return false;
-    }
-    return crypto.timingSafeEqual(inputBuf, expectedBuf);
-}
-
-/**
- * Validates a plain password against the server environment variable in constant time.
- * In local dev mode, both the configured env password and 'admin' are accepted.
- */
-export function verifyPassword(inputPassword: string | null | undefined): boolean {
-    if (!inputPassword || typeof inputPassword !== 'string') {
-        return false;
-    }
-
-    const expected = getExpectedPassword();
-    if (expected && safeCompare(inputPassword, expected)) {
-        return true;
-    }
-
-    // In local development, also allow 'admin' mode
-    if (import.meta.env.DEV && safeCompare(inputPassword, 'admin')) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Checks if a request is authenticated via cookie, header password, or Bearer token.
- */
-export function isRequestAuthenticated(request: Request, cookies?: AstroCookies): boolean {
-    // 1. Check HttpOnly cookie
-    if (cookies) {
-        const cookieToken = cookies.get(COOKIE_NAME)?.value;
-        if (verifySessionToken(cookieToken)) {
-            return true;
-        }
-    }
-
-    // 2. Check Cookie header directly if AstroCookies was not provided
-    const cookieHeader = request.headers.get('cookie');
-    if (cookieHeader) {
-        const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`));
-        if (match && verifySessionToken(match[1])) {
-            return true;
-        }
-    }
-
-    // 3. Check Authorization header (Bearer token or Bearer <password>)
-    const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const tokenOrPassword = authHeader.slice(7).trim();
-        if (verifySessionToken(tokenOrPassword) || verifyPassword(tokenOrPassword)) {
-            return true;
-        }
-    }
-
-    // 4. Check x-opportunities-key header
-    const customHeader = request.headers.get('x-opportunities-key');
-    if (customHeader) {
-        if (verifySessionToken(customHeader) || verifyPassword(customHeader)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
- * Verifies cron secret for scheduled tasks.
- */
-export function isCronAuthenticated(request: Request): boolean {
+/** Scheduled jobs fail closed. User/admin credentials are never accepted as a
+ * cron credential and there is no hard-coded fallback secret. */
+export const isCronAuthenticated = (request: Request) => {
     const expected = getCronSecret();
-    if (!expected) {
-        // Fallback to checking normal admin authentication
-        return isRequestAuthenticated(request);
-    }
+    if (!expected) return false;
 
-    const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.slice(7).trim();
-        if (token === expected) return true;
-    }
-
-    const cronHeader = request.headers.get('x-cron-secret');
-    if (cronHeader && cronHeader.trim() === expected) {
-        return true;
-    }
-
-    return isRequestAuthenticated(request);
-}
-
-/**
- * Sets authenticated session cookie on response / context.
- */
-export function setAuthCookie(cookies: AstroCookies, token: string) {
-    const isSecure = process.env.NODE_ENV === 'production';
-    cookies.set(COOKIE_NAME, token, {
-        path: '/',
-        httpOnly: true,
-        secure: isSecure,
-        sameSite: 'lax',
-        maxAge: SESSION_TTL_SECONDS,
-    });
-}
-
-/**
- * Clears authenticated session cookie.
- */
-export function clearAuthCookie(cookies: AstroCookies) {
-    cookies.delete(COOKIE_NAME, {
-        path: '/',
-    });
-}
-
-/**
- * In-memory sliding rate limiter for capture endpoint.
- */
-const rateLimitMap = new Map<string, number[]>();
-
-export function checkRateLimit(key: string, limit = 20, windowMs = 60 * 1000): { allowed: boolean; remaining: number } {
-    const now = Date.now();
-    const timestamps = rateLimitMap.get(key) || [];
-    const valid = timestamps.filter((t) => now - t < windowMs);
-
-    if (valid.length >= limit) {
-        rateLimitMap.set(key, valid);
-        return { allowed: false, remaining: 0 };
-    }
-
-    valid.push(now);
-    rateLimitMap.set(key, valid);
-    return { allowed: true, remaining: limit - valid.length };
-}
+    const authorization = request.headers.get('authorization') || '';
+    const bearer = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
+    const header = request.headers.get('x-cron-secret')?.trim() || '';
+    return (bearer && safeCompare(bearer, expected)) || (header && safeCompare(header, expected));
+};

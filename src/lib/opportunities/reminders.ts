@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import { createSupabaseServiceClient } from '../supabaseServer';
 import type { Opportunity } from './types';
 import { formatOpportunityTitle } from './ui-helpers';
+import { PRIVATE_SAVED_SELECT, savedRowToOpportunity, type SavedOpportunityRow } from './saved';
 
 const SENDER_EMAIL = (typeof import.meta !== 'undefined' && import.meta.env?.CONTACT_NOTIFICATION_FROM_EMAIL) || process.env.CONTACT_NOTIFICATION_FROM_EMAIL || 'Abodid Opportunity Desk <contact@abodid.com>';
 const RECIPIENT_EMAIL = (typeof import.meta !== 'undefined' && import.meta.env?.OWNER_NOTIFICATION_EMAIL) || process.env.OWNER_NOTIFICATION_EMAIL || (typeof import.meta !== 'undefined' && import.meta.env?.CONTACT_FORM_TO_EMAIL) || process.env.CONTACT_FORM_TO_EMAIL || 'hello@abodid.com';
@@ -23,6 +24,32 @@ export const REMINDER_RULES: ReminderRule[] = [
     { type: 'event_24h', label: 'Event in 24 hours', hoursBefore: 24, targetField: 'event_date' },
     { type: 'event_1h', label: 'Event in 1 hour', hoursBefore: 1, targetField: 'event_date' },
 ];
+
+const loadFounderOpportunities = async (supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>) => {
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', 'abodid')
+        .single();
+
+    if (profileError || !profile?.id) {
+        return { userId: null, opportunities: null, error: profileError?.message || 'Founder profile not found' };
+    }
+
+    const { data, error } = await supabase
+        .from('saved_opportunities')
+        .select(PRIVATE_SAVED_SELECT)
+        .eq('user_id', profile.id)
+        .in('status', ['inbox', 'interested', 'preparing', 'registered', 'attending']);
+
+    return {
+        userId: profile.id as string,
+        opportunities: error
+            ? null
+            : ((data || []) as unknown as SavedOpportunityRow[]).map(savedRowToOpportunity),
+        error: error?.message,
+    };
+};
 
 /**
  * Calculates human-readable time remaining string.
@@ -218,19 +245,21 @@ export async function processOpportunityReminders(): Promise<{ sent: number; err
     let sentCount = 0;
 
     // Fetch actionable opportunities (status not in done, dismissed, submitted)
-    const { data: opportunities, error: oppError } = await supabase
-        .from('opportunities')
-        .select('*')
-        .in('status', ['inbox', 'interested', 'preparing', 'registered', 'attending']);
+    const { userId, opportunities, error: oppError } = await loadFounderOpportunities(supabase);
 
-    if (oppError || !opportunities) {
-        return { sent: 0, errors: [oppError?.message || 'Failed to fetch opportunities'] };
+    if (oppError || !opportunities || !userId) {
+        return { sent: 0, errors: [oppError || 'Failed to fetch opportunities'] };
     }
 
     // Fetch existing notification log entries to prevent duplicate emails
     const { data: sentLogs, error: logError } = await supabase
-        .from('notification_log')
-        .select('opportunity_id, notification_type');
+        .from('saved_opportunity_notification_log')
+        .select('opportunity_id, notification_type')
+        .eq('user_id', userId);
+
+    if (logError) {
+        return { sent: 0, errors: [logError.message] };
+    }
 
     const sentSet = new Set<string>();
     if (sentLogs) {
@@ -274,8 +303,9 @@ export async function processOpportunityReminders(): Promise<{ sent: number; err
                     }
 
                     // Log sent notification in Supabase
-                    await supabase.from('notification_log').insert({
+                    await supabase.from('saved_opportunity_notification_log').insert({
                         opportunity_id: opp.id,
+                        user_id: userId,
                         notification_type: rule.type,
                         scheduled_for: new Date(targetTime - rule.hoursBefore * 60 * 60 * 1000).toISOString(),
                         sent_at: new Date().toISOString(),
@@ -315,13 +345,10 @@ export async function sendDailyMorningDigest(): Promise<{ success: boolean; coun
     const oneDayMs = 24 * 60 * 60 * 1000;
     const sevenDaysMs = 7 * oneDayMs;
 
-    const { data: opportunities, error } = await supabase
-        .from('opportunities')
-        .select('*')
-        .in('status', ['inbox', 'interested', 'preparing', 'registered', 'attending']);
+    const { opportunities, error } = await loadFounderOpportunities(supabase);
 
     if (error || !opportunities) {
-        return { success: false, count: 0, error: error?.message || 'Failed to fetch opportunities' };
+        return { success: false, count: 0, error: error || 'Failed to fetch opportunities' };
     }
 
     const closingToday: Opportunity[] = [];
@@ -354,7 +381,7 @@ export async function sendDailyMorningDigest(): Promise<{ success: boolean; coun
     }
 
     const resend = new Resend(resendKey);
-    const emailHtml = buildDailyDigestEmailHtml(closingToday, closingThisWeek, meetingsToday);
+    const emailHtml = buildDigestEmailHtml(closingToday, closingThisWeek, meetingsToday);
     const dateFormatted = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
     const { error: sendError } = await resend.emails.send({
@@ -502,13 +529,10 @@ export async function sendNightlyClosestDeadlineDigest(customRecipient?: string)
     const now = Date.now();
 
     // Fetch active actionable opportunities
-    const { data: opportunities, error } = await supabase
-        .from('opportunities')
-        .select('*')
-        .in('status', ['inbox', 'interested', 'preparing', 'registered', 'attending']);
+    const { opportunities, error } = await loadFounderOpportunities(supabase);
 
     if (error || !opportunities || opportunities.length === 0) {
-        return { success: false, error: error?.message || 'No active opportunities found' };
+        return { success: false, error: error || 'No active opportunities found' };
     }
 
     // Filter and sort by closest future deadline

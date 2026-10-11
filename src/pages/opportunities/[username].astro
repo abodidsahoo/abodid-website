@@ -1,0 +1,27 @@
+---
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import OpportunityCollectionApp from '../../components/opportunities/OpportunityCollectionApp';
+import { OPPORTUNITY_RESERVED_USERNAMES } from '../../lib/opportunities/username';
+import '../../styles/portfolio-pop-editorial.css';
+import '../../styles/opportunities-editorial.css';
+
+const username = String(Astro.params.username || '').trim().toLowerCase();
+if (!/^[a-z0-9_]{3,24}$/.test(username) || OPPORTUNITY_RESERVED_USERNAMES.has(username)) {
+    return Astro.redirect('/opportunities', 302);
+}
+---
+
+<BaseLayout
+    title={`@${username} · NextUp by Abodid`}
+    description={`View @${username}'s shared opportunity collection.`}
+    noindex={false}
+    fullWidth={true}
+    showGlobalGrid={false}
+    bodyClass="opportunities-editorial-page"
+    navigationVariant="next"
+>
+    <div id="main-content" class="opp-route-canvas">
+        <OpportunityCollectionApp client:load username={username} />
+    </div>
+</BaseLayout>

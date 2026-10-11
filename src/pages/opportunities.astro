@@ -1,26 +1,22 @@
 ---
 export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
-import OpportunityDashboard from '../components/opportunities/OpportunityDashboard';
-import { isRequestAuthenticated } from '../lib/opportunities/auth';
+import OpportunityLanding from '../components/opportunities/OpportunityLanding';
 import '../styles/portfolio-pop-editorial.css';
 import '../styles/opportunities-editorial.css';
-
-const title = 'Curated Opportunities · Abodid Sahoo';
-const description = 'Curated artist residencies, grants, fellowships, and creative tech open calls.';
-const isAuth = isRequestAuthenticated(Astro.request, Astro.cookies);
 ---
 
 <BaseLayout
-    title={title}
-    description={description}
+    title="NextUp by Abodid · Never miss an application deadline"
+    description="Save it. Forget it. NextUp makes sure you do not miss the application deadline."
     noindex={false}
     fullWidth={true}
     showGlobalGrid={false}
     bodyClass="opportunities-editorial-page"
-    navigationVariant="next"
+    hideHeader={true}
+    hideSideMenuRail={true}
+    hideFooter={true}
+    showNewsletterPopup={false}
 >
-    <div id="main-content" style="background: var(--opp-blue); min-height: calc(100svh - 72px);">
-        <OpportunityDashboard client:load initialIsAuthenticated={isAuth} />
-    </div>
+    <OpportunityLanding client:load />
 </BaseLayout>

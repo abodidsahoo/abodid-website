@@ -1,8 +1,14 @@
 import * as cheerio from 'cheerio';
 import crypto from 'node:crypto';
+import { lookup } from 'node:dns/promises';
+import { BlockList, isIP } from 'node:net';
+import { Agent, buildConnector } from 'undici';
 
 const MAX_PAGE_TEXT_CHARS = 12000;
 const FETCH_TIMEOUT_MS = 12000;
+const MAX_HTML_SIZE_BYTES = 2 * 1024 * 1024;
+const MAX_REDIRECTS = 5;
+const CONNECT_TIMEOUT_MS = 8000;
 
 const TRACKING_PARAMS = new Set([
     'utm_source',
@@ -23,6 +29,207 @@ const TRACKING_PARAMS = new Set([
     'trk',
     'tracking_id',
 ]);
+
+const isPrivateIpv4 = (address: string) => {
+    const parts = address.split('.').map(Number);
+    if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return true;
+    const [a, b] = parts;
+    return (
+        a === 0 || a === 10 || a === 127 || a >= 224 ||
+        (a === 100 && b >= 64 && b <= 127) ||
+        (a === 169 && b === 254) ||
+        (a === 172 && b >= 16 && b <= 31) ||
+        (a === 192 && [0, 2, 168].includes(b)) ||
+        (a === 198 && [18, 19, 51].includes(b)) ||
+        (a === 203 && b === 0)
+    );
+};
+
+const isPrivateIpAddress = (address: string) => {
+    const normalized = address.toLowerCase().split('%')[0];
+    const version = isIP(normalized);
+    if (version === 4) return isPrivateIpv4(normalized);
+    if (version !== 6) return true;
+
+    if (normalized.startsWith('::ffff:')) {
+        return isPrivateIpv4(normalized.slice('::ffff:'.length));
+    }
+
+    return (
+        normalized === '::' || normalized === '::1' ||
+        normalized.startsWith('fc') || normalized.startsWith('fd') ||
+        /^fe[89ab]/.test(normalized) ||
+        normalized.startsWith('fec') || normalized.startsWith('fed') || normalized.startsWith('fee') || normalized.startsWith('fef') ||
+        normalized.startsWith('ff') ||
+        normalized.startsWith('2001:db8:')
+    );
+};
+
+type ResolvedPublicTarget = {
+    hostname: string;
+    address: string;
+    family: 4 | 6;
+};
+
+const assertPublicFetchTarget = async (rawUrl: string) => {
+    const parsed = new URL(rawUrl);
+    if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Only HTTP and HTTPS URLs are supported');
+    if (parsed.username || parsed.password) throw new Error('URLs containing credentials are not supported');
+    if (parsed.port && !['80', '443'].includes(parsed.port)) throw new Error('Only standard web ports are supported');
+
+    const hostname = parsed.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+    if (
+        !hostname || hostname === 'localhost' || hostname.endsWith('.localhost') ||
+        hostname.endsWith('.local') || hostname.endsWith('.internal')
+    ) {
+        throw new Error('Private or local network URLs are not supported');
+    }
+
+    const literalVersion = isIP(hostname);
+    if (literalVersion && isPrivateIpAddress(hostname)) {
+        throw new Error('Private or reserved network URLs are not supported');
+    }
+
+    if (literalVersion) {
+        return { hostname, address: hostname, family: literalVersion } as ResolvedPublicTarget;
+    }
+
+    const addresses = await lookup(hostname, { all: true, verbatim: true });
+    if (!addresses.length || addresses.some(({ address }) => isPrivateIpAddress(address))) {
+        throw new Error('URL resolves to a private or reserved network');
+    }
+
+    // Pin one address from the already-validated answer set. The HTTP connector
+    // below is never allowed to perform a second, attacker-controlled DNS lookup.
+    const selected = addresses[0];
+    return { hostname, address: selected.address, family: selected.family } as ResolvedPublicTarget;
+};
+
+const createPinnedDispatcher = (target: ResolvedPublicTarget) => {
+    const allowedAddress = new BlockList();
+    const expectedFamily = target.family === 6 ? 'ipv6' : 'ipv4';
+    allowedAddress.addAddress(target.address, expectedFamily);
+
+    const connector = buildConnector({
+        timeout: CONNECT_TIMEOUT_MS,
+        lookup: (_hostname: string, options: unknown, callback: (...args: unknown[]) => void) => {
+            if (typeof options === 'object' && options !== null && 'all' in options && (options as { all?: boolean }).all) {
+                callback(null, [{ address: target.address, family: target.family }]);
+                return;
+            }
+            callback(null, target.address, target.family);
+        },
+    } as Parameters<typeof buildConnector>[0]);
+
+    return new Agent({
+        connections: 1,
+        pipelining: 0,
+        connect: (options, callback) => {
+            const requestedHost = options.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+            if (requestedHost !== target.hostname) {
+                callback(new Error('Pinned connection hostname changed unexpectedly'), null);
+                return;
+            }
+
+            connector(options, (error, socket) => {
+                if (error || !socket) {
+                    callback(error || new Error('Pinned connection could not be established'), null);
+                    return;
+                }
+
+                const remoteAddress = socket.remoteAddress?.split('%')[0] || '';
+                const remoteVersion = isIP(remoteAddress);
+                const remoteFamily = remoteVersion === 6 ? 'ipv6' : 'ipv4';
+                if (
+                    !remoteVersion ||
+                    isPrivateIpAddress(remoteAddress) ||
+                    remoteFamily !== expectedFamily ||
+                    !allowedAddress.check(remoteAddress, remoteFamily)
+                ) {
+                    socket.destroy();
+                    callback(new Error('Connected server address did not match the validated public IP'), null);
+                    return;
+                }
+
+                callback(null, socket);
+            });
+        },
+    });
+};
+
+type SafeFetchResult = {
+    response: Response;
+    finalUrl: string;
+    release: () => Promise<void>;
+};
+
+const safeFetch = async (rawUrl: string, init: RequestInit, signal: AbortSignal): Promise<SafeFetchResult> => {
+    let currentUrl = rawUrl;
+    for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+        const target = await assertPublicFetchTarget(currentUrl);
+        const dispatcher = createPinnedDispatcher(target);
+        let released = false;
+        const release = async () => {
+            if (released) return;
+            released = true;
+            await dispatcher.close();
+        };
+
+        let response: Response;
+        try {
+            response = await fetch(currentUrl, {
+                ...init,
+                signal,
+                redirect: 'manual',
+                dispatcher,
+            } as RequestInit & { dispatcher: Agent });
+        } catch (error) {
+            await release();
+            throw error;
+        }
+
+        if (![301, 302, 303, 307, 308].includes(response.status)) {
+            return { response, finalUrl: currentUrl, release };
+        }
+
+        const location = response.headers.get('location');
+        await response.body?.cancel().catch(() => undefined);
+        await release();
+        if (!location) throw new Error('Redirect response did not include a destination');
+        if (redirectCount === MAX_REDIRECTS) throw new Error('Too many redirects');
+        currentUrl = new URL(location, currentUrl).toString();
+    }
+    throw new Error('Too many redirects');
+};
+
+const readBodyWithLimit = async (response: Response, maxBytes: number): Promise<Uint8Array> => {
+    const declaredLength = Number(response.headers.get('content-length') || 0);
+    if (declaredLength > maxBytes) throw new Error('Response exceeds the allowed size');
+    if (!response.body) return new Uint8Array();
+
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (!value) continue;
+        total += value.byteLength;
+        if (total > maxBytes) {
+            await reader.cancel();
+            throw new Error('Response exceeds the allowed size');
+        }
+        chunks.push(value);
+    }
+
+    const result = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+        result.set(chunk, offset);
+        offset += chunk.byteLength;
+    }
+    return result;
+};
 
 /**
  * Normalizes and canonicalizes a URL for consistent storage and deduplication.
@@ -255,42 +462,48 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
     const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
     try {
-        const response = await fetch(canonical, {
+        const fetched = await safeFetch(canonical, {
             method: 'GET',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,application/pdf;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
             },
-            signal: controller.signal,
-            redirect: 'follow',
-        });
-
-        clearTimeout(timeoutId);
+        }, controller.signal);
+        const { response } = fetched;
 
         if (!response.ok) {
+            await response.body?.cancel().catch(() => undefined);
+            await fetched.release();
             throw new Error(`Failed to fetch page: HTTP ${response.status} ${response.statusText}`);
         }
 
         const contentType = (response.headers.get('content-type') || '').toLowerCase();
         const contentLength = Number(response.headers.get('content-length') || 0);
-        const urlWithoutQuery = canonical.split('?')[0].toLowerCase();
+        const urlWithoutQuery = fetched.finalUrl.split('?')[0].toLowerCase();
         const isPdf = contentType.includes('application/pdf') || urlWithoutQuery.endsWith('.pdf');
 
         // Handle direct PDF documents
         if (isPdf) {
             if (contentLength > MAX_PDF_SIZE_BYTES) {
+                await response.body?.cancel().catch(() => undefined);
+                await fetched.release();
                 const sizeMb = (contentLength / (1024 * 1024)).toFixed(1);
                 throw new Error(`PDF exceeds the 10 MB limit (${sizeMb} MB). Please add this opportunity manually to conserve AI tokens.`);
             }
 
-            const arrayBuffer = await response.arrayBuffer();
-            if (arrayBuffer.byteLength > MAX_PDF_SIZE_BYTES) {
-                const sizeMb = (arrayBuffer.byteLength / (1024 * 1024)).toFixed(1);
+            let pdfBytes: Uint8Array;
+            try {
+                pdfBytes = await readBodyWithLimit(response, MAX_PDF_SIZE_BYTES);
+            } finally {
+                await fetched.release();
+            }
+            if (pdfBytes.byteLength > MAX_PDF_SIZE_BYTES) {
+                const sizeMb = (pdfBytes.byteLength / (1024 * 1024)).toFixed(1);
                 throw new Error(`PDF exceeds the 10 MB limit (${sizeMb} MB). Please add this opportunity manually to conserve AI tokens.`);
             }
 
-            const { text: pdfPagesText, totalPages } = await extractText(new Uint8Array(arrayBuffer), { mergePages: true });
+            const { text: pdfPagesText, totalPages } = await extractText(pdfBytes, { mergePages: true });
 
             if (totalPages > MAX_PDF_PAGES) {
                 throw new Error(`PDF exceeds the 30-page limit (${totalPages} pages). Please add this opportunity manually to conserve AI tokens.`);
@@ -311,10 +524,18 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
 
         // Handle HTML / text pages
         if (!contentType.includes('text/html') && !contentType.includes('application/xhtml+xml') && !contentType.includes('text/plain')) {
+            await response.body?.cancel().catch(() => undefined);
+            await fetched.release();
             throw new Error(`Unsupported content type: ${contentType}`);
         }
 
-        const html = await response.text();
+        let htmlBytes: Uint8Array;
+        try {
+            htmlBytes = await readBodyWithLimit(response, MAX_HTML_SIZE_BYTES);
+        } finally {
+            await fetched.release();
+        }
+        const html = new TextDecoder().decode(htmlBytes);
         let text = cleanHtmlToText(html);
 
         // If the HTML page is just an empty wrapper around an embedded PDF, extract the embedded PDF
@@ -327,19 +548,25 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
 
             if (embeddedPdfSrc) {
                 try {
-                    const resolvedPdfUrl = new URL(embeddedPdfSrc, canonical).toString();
-                    const pdfRes = await fetch(resolvedPdfUrl, {
+                    const resolvedPdfUrl = new URL(embeddedPdfSrc, fetched.finalUrl).toString();
+                    const embeddedFetch = await safeFetch(resolvedPdfUrl, {
                         headers: {
                             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
                             'Accept': 'application/pdf',
                         },
-                    });
+                    }, controller.signal);
+                    const pdfRes = embeddedFetch.response;
                     if (pdfRes.ok) {
                         const pdfLength = Number(pdfRes.headers.get('content-length') || 0);
                         if (pdfLength <= MAX_PDF_SIZE_BYTES) {
-                            const pdfBuf = await pdfRes.arrayBuffer();
+                            let pdfBuf: Uint8Array;
+                            try {
+                                pdfBuf = await readBodyWithLimit(pdfRes, MAX_PDF_SIZE_BYTES);
+                            } finally {
+                                await embeddedFetch.release();
+                            }
                             if (pdfBuf.byteLength <= MAX_PDF_SIZE_BYTES) {
-                                const { text: embeddedPdfText, totalPages } = await extractText(new Uint8Array(pdfBuf), { mergePages: true });
+                                const { text: embeddedPdfText, totalPages } = await extractText(pdfBuf, { mergePages: true });
                                 if (totalPages <= MAX_PDF_PAGES) {
                                     const fullText = typeof embeddedPdfText === 'string' ? embeddedPdfText : (Array.isArray(embeddedPdfText) ? (embeddedPdfText as string[]).join('\n\n') : '');
                                     if (fullText.trim().length > 100) {
@@ -347,7 +574,13 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
                                     }
                                 }
                             }
+                        } else {
+                            await pdfRes.body?.cancel().catch(() => undefined);
+                            await embeddedFetch.release();
                         }
+                    } else {
+                        await pdfRes.body?.cancel().catch(() => undefined);
+                        await embeddedFetch.release();
                     }
                 } catch {
                     // Fallback to original HTML text
@@ -362,10 +595,11 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
             title: extractHtmlTitle(html),
         };
     } catch (err: any) {
-        clearTimeout(timeoutId);
         if (err.name === 'AbortError') {
             throw new Error(`Fetch timed out after ${FETCH_TIMEOUT_MS}ms for ${canonical}`);
         }
         throw err;
+    } finally {
+        clearTimeout(timeoutId);
     }
 }

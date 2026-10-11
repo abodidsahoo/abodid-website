@@ -37,6 +37,101 @@ const bestSrcsetUrl = (value) => {
   return choices[0]?.url || "";
 };
 
+const cleanArtistName = (value) => {
+  const name = String(value || "")
+    .replace(/^\s*(?:by|created by|photo(?:graph)? by)\s+/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (name.length < 2 || name.length > 160 || /^https?:\/\//i.test(name)) return "";
+  return name;
+};
+
+const creatorNameFromValue = (value) => {
+  if (typeof value === "string") return cleanArtistName(value);
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const name = creatorNameFromValue(entry);
+      if (name) return name;
+    }
+    return "";
+  }
+  if (!value || typeof value !== "object") return "";
+  if (typeof value.name === "string") return cleanArtistName(value.name);
+  if (typeof value.alternateName === "string") return cleanArtistName(value.alternateName);
+  return "";
+};
+
+const structuredCreatorName = () => {
+  const scripts = [...document.querySelectorAll('script[type="application/ld+json"]')].slice(0, 8);
+  for (const script of scripts) {
+    const raw = script.textContent || "";
+    if (!raw || raw.length > 250_000) continue;
+    try {
+      const parsed = JSON.parse(raw);
+      const queue = Array.isArray(parsed) ? [...parsed] : [parsed];
+      let visited = 0;
+      while (queue.length && visited < 80) {
+        const entry = queue.shift();
+        visited += 1;
+        if (!entry || typeof entry !== "object") continue;
+        const creator = creatorNameFromValue(entry.creator) || creatorNameFromValue(entry.author);
+        if (creator) return creator;
+        if (Array.isArray(entry["@graph"])) queue.push(...entry["@graph"]);
+        if (entry.mainEntity && typeof entry.mainEntity === "object") queue.push(entry.mainEntity);
+      }
+    } catch {
+      // Malformed structured data is ignored; capture must always continue.
+    }
+  }
+  return "";
+};
+
+const instagramArtistName = (element) => {
+  const title = document.querySelector('meta[property="og:title"]')?.content || document.title || "";
+  const namedHandle = title.match(/^(.+?)\s+\(@([A-Za-z0-9._]+)\)/);
+  if (namedHandle) return cleanArtistName(`${namedHandle[1]} (@${namedHandle[2]})`);
+
+  const scope = element.closest("article") || document;
+  const reserved = new Set(["about", "accounts", "direct", "explore", "p", "reel", "reels", "stories"]);
+  for (const anchor of [...scope.querySelectorAll('header a[href], a[role="link"][href]')].slice(0, 24)) {
+    try {
+      const url = new URL(anchor.href, document.baseURI);
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (url.hostname.endsWith("instagram.com") && parts.length === 1 && !reserved.has(parts[0])) {
+        const handle = `@${parts[0]}`;
+        const label = cleanArtistName(anchor.textContent);
+        return label && label.toLowerCase() !== handle.toLowerCase()
+          ? `${label} (${handle})`
+          : handle;
+      }
+    } catch {
+      // Ignore invalid profile links.
+    }
+  }
+  return "";
+};
+
+const extractArtistName = (element) => {
+  try {
+    if (location.hostname === "instagram.com" || location.hostname.endsWith(".instagram.com")) {
+      const instagramName = instagramArtistName(element);
+      if (instagramName) return instagramName;
+    }
+
+    const explicitAuthor = document.querySelector(
+      'meta[name="author"], meta[property="article:author"], [itemprop="author"] [itemprop="name"], a[rel="author"]',
+    );
+    const explicitName = cleanArtistName(
+      explicitAuthor?.content || explicitAuthor?.getAttribute?.("content") || explicitAuthor?.textContent,
+    );
+    if (explicitName) return explicitName;
+
+    return structuredCreatorName();
+  } catch {
+    return "";
+  }
+};
+
 const selectorFor = (element) => {
   if (!(element instanceof Element)) return "";
   const parts = [];
@@ -64,6 +159,8 @@ const selectorFor = (element) => {
 
 const elementDetails = (element, url, sourceKind, css = "") => ({
   url,
+  sourceUrl: location.href,
+  artistName: extractArtistName(element),
   sourceKind,
   selector: selectorFor(element),
   tagName: element.localName,

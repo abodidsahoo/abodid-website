@@ -1,71 +1,53 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Save Opportunity</title>
-  <link rel="stylesheet" href="popup.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NextUp by Abodid</title>
+  <link rel="stylesheet" href="/popup.css">
 </head>
 <body>
-  <div class="pop-shell">
+  <main class="pop-shell">
     <header class="pop-header">
       <div class="pop-brand-wrap">
-        <span class="pop-brand-dot"></span>
-        <span class="pop-brand">OPPORTUNITY RADAR</span>
+        <span class="pop-brand-dot" aria-hidden="true"></span>
+        <span class="pop-brand">NEXTUP BY ABODID</span>
       </div>
-      <button id="settings-toggle" class="icon-btn" title="Settings" aria-label="Settings">⚙️</button>
+      <button id="dashboard-btn" class="icon-btn" type="button" title="Open dashboard" aria-label="Open dashboard">↗</button>
     </header>
 
-    <!-- Settings Pane (hidden by default) -->
-    <div id="settings-pane" class="pane hidden">
-      <div class="pane-header">Connection Settings</div>
-      <label class="pop-label" for="api-url">Backend URL</label>
-      <input type="url" id="api-url" class="pop-input" placeholder="https://abodid.com" value="https://abodid.com">
-      
-      <label class="pop-label" for="api-key">Curator Passcode</label>
-      <input type="password" id="api-key" class="pop-input" placeholder="Enter passcode...">
+    <section id="auth-panel" class="pane auth-pane">
+      <span class="pane-kicker">YOUR PRIVATE RADAR</span>
+      <h1>Save what comes next.</h1>
+      <p>Use the same Google account as abodid.com.</p>
+      <button id="sign-in-btn" class="pop-btn" type="button">Continue with Google →</button>
+    </section>
 
-      <button id="save-settings" class="pop-btn btn-sm">Save Config</button>
-      <div id="settings-msg" class="msg-note"></div>
-    </div>
-
-    <!-- Main Capture Pane -->
-    <div id="main-pane" class="pane">
-      <div id="target-info" class="target-card">
-        <div id="page-title" class="target-title">Loading tab...</div>
-        <div id="page-url" class="target-url">...</div>
+    <section id="capture-panel" class="pane hidden">
+      <div class="profile-row">
+        <span class="profile-copy"><strong id="profile-name"></strong><small id="profile-username"></small></span>
+        <button id="logout-btn" class="text-btn" type="button">Log out</button>
       </div>
 
-      <button id="save-btn" class="pop-btn btn-primary">
-        ⚡ Capture & Save
-      </button>
+      <div class="target-card">
+        <div class="target-label">CURRENT PAGE</div>
+        <div id="page-title" class="target-title">Loading tab…</div>
+        <div id="page-url" class="target-url">…</div>
+      </div>
 
-      <!-- Results Display -->
+      <button id="save-btn" class="pop-btn" type="button">Capture & Save →</button>
+
       <div id="result-box" class="result-box hidden">
-        <div class="result-header">
-          <span class="result-success-badge">✓ Captured & Saved</span>
-        </div>
-        
+        <span class="result-success-badge">SAVED ✓</span>
         <div class="result-details">
-          <div class="result-item">
-            <span class="result-item-label">Category</span>
-            <span id="result-category" class="result-category-tag">-</span>
-          </div>
-
-          <div class="result-item">
-            <span class="result-item-label">Deadline</span>
-            <div id="result-deadline" class="result-deadline-val">-</div>
-          </div>
+          <div><span>Category</span><strong id="result-category">—</strong></div>
+          <div><span>Deadline</span><strong id="result-deadline">—</strong></div>
         </div>
-
-        <a id="view-dashboard-link" href="https://abodid.com/opportunities" target="_blank" class="result-view-link">
-          Open Dashboard ↗
-        </a>
       </div>
+    </section>
 
-      <div id="status-msg" class="status-msg hidden"></div>
-    </div>
-  </div>
-
-  <script src="popup.js"></script>
+    <div id="status-msg" class="status-msg" role="status"></div>
+  </main>
+  <script type="module" src="/src/popup.ts"></script>
 </body>
 </html>

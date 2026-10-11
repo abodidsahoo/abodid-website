@@ -1,17 +1,13 @@
 import { supabase } from '../supabase';
 import { createSupabaseServiceClient } from '../supabaseServer';
+import {
+    isMoodboardPaletteData,
+    type MoodboardPaletteData,
+} from '../moodboard/palette';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export type PaletteData = {
-    dominantHex: string;
-    dominantLab: [number, number, number];
-    dominantHsl: [number, number, number];
-    paletteHex: string[];
-    paletteLab: [number, number, number][];
-    paletteHsl: [number, number, number][];
-    isDark: boolean;
-};
+export type PaletteData = MoodboardPaletteData;
 
 type MoodboardRow = {
     id: string;
@@ -23,6 +19,9 @@ type MoodboardRow = {
     image_width: number | null;
     image_height: number | null;
     aspect_ratio: number | null;
+    source_url: string | null;
+    artist_name: string | null;
+    palette?: unknown;
     created_at: string | null;
     updated_at: string | null;
 };
@@ -50,12 +49,14 @@ export type MoodboardItem = {
     imageWidth: number | null;
     imageHeight: number | null;
     aspectRatio: number | null;
+    sourceUrl: string;
+    artistName: string;
     palette?: PaletteData | null;
     createdAt: string | null;
     updatedAt: string | null;
 };
 
-const SELECT_FIELDS = 'id, image_url, storage_path, title, tags, published, image_width, image_height, aspect_ratio, created_at, updated_at';
+const SELECT_FIELDS = 'id, image_url, storage_path, title, tags, published, image_width, image_height, aspect_ratio, source_url, artist_name, palette, created_at, updated_at';
 const MOODBOARD_PAGE_SIZE = 1000;
 const MOODBOARD_R2_FOLDER = 'photos/originals/moodboard';
 const MEDIA_SELECT_FIELDS = 'object_key, public_url, media_variants(variant_key, public_url)';
@@ -113,7 +114,8 @@ export function mapMoodboardRows(
         const originalUrl = mediaAsset?.public_url || row.image_url;
         const imageUrl = variants.get('1600') || originalUrl;
         const thumbnailUrl = variants.get('800') || imageUrl;
-        const palette = palettes[row.id]
+        const palette = (isMoodboardPaletteData(row.palette) ? row.palette : null)
+            || palettes[row.id]
             || palettes[thumbnailUrl]
             || palettes[imageUrl]
             || palettes[originalUrl]
@@ -131,6 +133,8 @@ export function mapMoodboardRows(
             imageWidth: row.image_width,
             imageHeight: row.image_height,
             aspectRatio: row.aspect_ratio,
+            sourceUrl: row.source_url?.trim() || '',
+            artistName: row.artist_name?.trim() || '',
             palette,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
@@ -173,13 +177,13 @@ function mapMoodboardRowsWithoutVariants(
 
 export async function getPublishedMoodboardItems(): Promise<MoodboardItem[]> {
     try {
-        const palettes = loadGeneratedPalettes();
+        const moodboardClient = createSupabaseServiceClient() || supabase;
         const rows: MoodboardRow[] = [];
         let from = 0;
 
         while (true) {
             const to = from + MOODBOARD_PAGE_SIZE - 1;
-            const { data, error } = await supabase
+            const { data, error } = await moodboardClient
                 .from('moodboard_items')
                 .select(SELECT_FIELDS)
                 .eq('published', true)
@@ -194,6 +198,12 @@ export async function getPublishedMoodboardItems(): Promise<MoodboardItem[]> {
             if (page.length < MOODBOARD_PAGE_SIZE) break;
             from += MOODBOARD_PAGE_SIZE;
         }
+
+        // The generated file is only a legacy safety net. Avoid parsing and
+        // retaining it on normal requests once every row has a stored palette.
+        const palettes = rows.some((row) => !isMoodboardPaletteData(row.palette))
+            ? loadGeneratedPalettes()
+            : {};
 
         try {
             const mediaAssets = await loadMoodboardMediaAssets();

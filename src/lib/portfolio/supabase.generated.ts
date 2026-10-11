@@ -1167,13 +1167,16 @@ export type Database = {
       moodboard_items: {
         Row: {
           aspect_ratio: number | null
+          artist_name: string | null
           created_at: string
           id: string
           image_height: number | null
           image_url: string
           image_width: number | null
+          palette: Json | null
           published: boolean
           search_text: string
+          source_url: string | null
           storage_path: string
           tags: string[]
           title: string
@@ -1181,13 +1184,16 @@ export type Database = {
         }
         Insert: {
           aspect_ratio?: number | null
+          artist_name?: string | null
           created_at?: string
           id?: string
           image_height?: number | null
           image_url: string
           image_width?: number | null
+          palette?: Json | null
           published?: boolean
           search_text?: string
+          source_url?: string | null
           storage_path: string
           tags?: string[]
           title?: string
@@ -1195,13 +1201,16 @@ export type Database = {
         }
         Update: {
           aspect_ratio?: number | null
+          artist_name?: string | null
           created_at?: string
           id?: string
           image_height?: number | null
           image_url?: string
           image_width?: number | null
+          palette?: Json | null
           published?: boolean
           search_text?: string
+          source_url?: string | null
           storage_path?: string
           tags?: string[]
           title?: string

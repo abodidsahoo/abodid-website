@@ -57,6 +57,14 @@ export default function MoodboardPolaroidViewer({
                             (typeof item?.projectHref === 'string' && item.projectHref.trim()) ||
                             (typeof item?.href === 'string' && item.href.trim()) ||
                             '',
+                        sourceUrl:
+                            (typeof item?.sourceUrl === 'string' && item.sourceUrl.trim()) ||
+                            (typeof item?.source_url === 'string' && item.source_url.trim()) ||
+                            '',
+                        artistName:
+                            (typeof item?.artistName === 'string' && item.artistName.trim()) ||
+                            (typeof item?.artist_name === 'string' && item.artist_name.trim()) ||
+                            '',
                         imageUrl,
                         palette: item?.palette || null,
                         paletteImageUrl:
@@ -87,6 +95,7 @@ export default function MoodboardPolaroidViewer({
     const [overlayColor, setOverlayColor] = useState('rgba(10,10,10,0.95)');
     const [hoveredSwatch, setHoveredSwatch] = useState(null); // { color, name }
     const imgRef = useRef(null);
+    const closeButtonRef = useRef(null);
     const localAssetCacheRef = useRef({});
     const assetCacheRef = sharedAssetCacheRef || localAssetCacheRef;
 
@@ -97,6 +106,20 @@ export default function MoodboardPolaroidViewer({
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    useEffect(() => {
+        if (!mounted || typeof document === 'undefined') return undefined;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const focusFrame = window.requestAnimationFrame(() => {
+            closeButtonRef.current?.focus({ preventScroll: true });
+        });
+
+        return () => {
+            window.cancelAnimationFrame(focusFrame);
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [mounted]);
 
     useEffect(() => {
         if (!normalizedItems.length) return;
@@ -260,6 +283,18 @@ export default function MoodboardPolaroidViewer({
         setShutterState('closing');
     };
 
+    const handleCloseClick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof onClose === 'function') onClose();
+    };
+
+    const handleNavigationClick = (event, offset) => {
+        event.preventDefault();
+        event.stopPropagation();
+        requestSwitch(offset);
+    };
+
     const itemAspect =
         cachedData?.dimensions?.width && cachedData?.dimensions?.height
             ? `${cachedData.dimensions.width} / ${cachedData.dimensions.height}`
@@ -282,12 +317,16 @@ export default function MoodboardPolaroidViewer({
                 }}
             >
                 <button
+                    ref={closeButtonRef}
                     type="button"
                     className="close-viewer-btn"
-                    onClick={onClose}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={handleCloseClick}
                     aria-label="Close photo"
                 >
-                    ✕
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M6 6l12 12M18 6L6 18" />
+                    </svg>
                 </button>
 
                 {normalizedItems.length > 1 && (
@@ -295,18 +334,22 @@ export default function MoodboardPolaroidViewer({
                         <button
                             type="button"
                             className="global-nav-btn prev"
-                            onClick={() => requestSwitch(-1)}
-                            aria-label="Previous photo"
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onClick={(event) => handleNavigationClick(event, -1)}
+                            disabled={shutterState !== 'open'}
+                            aria-label={`Previous photo: ${normalizedItems[(currentIndex - 1 + normalizedItems.length) % normalizedItems.length]?.title || ''}`}
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
                         </button>
                         <button
                             type="button"
                             className="global-nav-btn next"
-                            onClick={() => requestSwitch(1)}
-                            aria-label="Next photo"
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onClick={(event) => handleNavigationClick(event, 1)}
+                            disabled={shutterState !== 'open'}
+                            aria-label={`Next photo: ${normalizedItems[(currentIndex + 1) % normalizedItems.length]?.title || ''}`}
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </>
                 )}
@@ -325,7 +368,7 @@ export default function MoodboardPolaroidViewer({
                             style={itemAspect ? { aspectRatio: itemAspect } : undefined}
                             animate={{
                                 clipPath:
-                                    shutterState === 'closed'
+                                    shutterState === 'closing' || shutterState === 'closed'
                                         ? 'inset(50% 0 50% 0)'
                                         : 'inset(0% 0 0% 0)',
                             }}
@@ -336,16 +379,10 @@ export default function MoodboardPolaroidViewer({
                                         ? [0.7, 0, 0.84, 0]
                                         : [0.16, 1, 0.3, 1],
                             }}
-                            onAnimationComplete={(definition) => {
-                                if (
-                                    shutterState === 'closing' &&
-                                    definition?.clipPath === 'inset(50% 0 50% 0)'
-                                ) {
+                            onAnimationComplete={() => {
+                                if (shutterState === 'closing') {
                                     handleShutterClosed();
-                                } else if (
-                                    shutterState === 'opening' &&
-                                    definition?.clipPath === 'inset(0% 0 0% 0)'
-                                ) {
+                                } else if (shutterState === 'opening') {
                                     handleShutterOpened();
                                 }
                             }}
@@ -408,12 +445,16 @@ export default function MoodboardPolaroidViewer({
 
                         </div>
 
-                        {currentItem.projectHref && !showTitles && (
+                        {(currentItem.sourceUrl || currentItem.projectHref) && !showTitles && (
                             <a
                                 className="project-link"
-                                href={currentItem.projectHref}
+                                href={currentItem.sourceUrl || currentItem.projectHref}
+                                target={currentItem.sourceUrl ? '_blank' : undefined}
+                                rel={currentItem.sourceUrl ? 'noopener noreferrer' : undefined}
                             >
-                                Open Project
+                                {currentItem.sourceUrl
+                                    ? (currentItem.artistName ? `Credit: ${currentItem.artistName}` : 'View original source')
+                                    : 'Open Project'}
                             </a>
                         )}
                     </div>
@@ -437,6 +478,7 @@ export default function MoodboardPolaroidViewer({
                         display: flex;
                         align-items: center;
                         justify-content: center;
+                        isolation: isolate;
                     }
 
                     .lightbox-polaroid {
@@ -629,16 +671,23 @@ export default function MoodboardPolaroidViewer({
 
                     .global-counter-external {
                         position: absolute;
-                        bottom: 36px;
+                        bottom: max(20px, env(safe-area-inset-bottom));
                         left: 50%;
                         transform: translateX(-50%);
                         font-family: var(--font-ui);
-                        font-size: 0.8rem;
-                        color: rgba(255, 255, 255, 0.6);
-                        letter-spacing: 0.2em;
+                        font-size: 0.72rem;
+                        font-weight: 700;
+                        color: rgba(255, 255, 255, 0.68);
+                        letter-spacing: 0.14em;
                         display: flex;
-                        gap: 0.5rem;
+                        gap: 0.4rem;
                         align-items: center;
+                        padding: 0.55rem 0.8rem;
+                        border: 1px solid rgba(255, 255, 255, 0.22);
+                        border-radius: 999px;
+                        background: rgba(10, 10, 10, 0.76);
+                        backdrop-filter: blur(10px);
+                        pointer-events: none;
                     }
 
                     .global-counter-external .current {
@@ -654,65 +703,110 @@ export default function MoodboardPolaroidViewer({
                         position: absolute;
                         top: 50%;
                         transform: translateY(-50%);
-                        background: rgba(255, 255, 255, 0.05);
-                        border: 1px solid rgba(255, 255, 255, 0.1);
-                        width: 44px;
-                        height: 44px;
-                        border-radius: 50%;
+                        width: 52px;
+                        height: 52px;
+                        padding: 0;
+                        border: 2px solid #111111;
+                        border-radius: 999px;
+                        background: rgba(255, 255, 255, 0.96);
+                        color: #111111;
+                        box-shadow: 0 4px 0 rgba(17, 17, 17, 0.95);
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         cursor: pointer;
-                        transition: all 0.2s;
-                        z-index: 10051;
+                        touch-action: manipulation;
+                        -webkit-tap-highlight-color: transparent;
+                        transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+                        z-index: 10060;
                     }
 
-                    .global-nav-btn:hover {
-                        background: rgba(255, 255, 255, 0.15);
-                        transform: translateY(-50%) scale(1.1);
+                    .global-nav-btn svg,
+                    .close-viewer-btn svg {
+                        width: 26px;
+                        height: 26px;
+                        fill: none;
+                        stroke: currentColor;
+                        stroke-width: 2.25;
+                        stroke-linecap: round;
+                        stroke-linejoin: round;
+                        pointer-events: none;
+                    }
+
+                    .global-nav-btn:hover:not(:disabled),
+                    .close-viewer-btn:hover {
+                        background: #ffffff;
+                        transform: translateY(-50%) translateY(-2px);
+                        box-shadow: 0 6px 0 rgba(17, 17, 17, 0.95);
+                    }
+
+                    .global-nav-btn:active:not(:disabled) {
+                        transform: translateY(-50%) translateY(2px);
+                        box-shadow: 0 2px 0 rgba(17, 17, 17, 0.95);
+                    }
+
+                    .global-nav-btn:focus-visible,
+                    .close-viewer-btn:focus-visible {
+                        outline: 3px solid #ffffff;
+                        outline-offset: 4px;
+                    }
+
+                    .global-nav-btn:disabled {
+                        cursor: wait;
+                        opacity: 0.58;
                     }
 
                     .global-nav-btn.prev {
-                        left: 40px;
+                        left: max(22px, env(safe-area-inset-left));
                     }
 
                     .global-nav-btn.next {
-                        right: 40px;
+                        right: max(22px, env(safe-area-inset-right));
                     }
 
                     .close-viewer-btn {
                         position: absolute;
-                        top: 20px;
-                        right: 22px;
-                        border: 1px solid rgba(255, 255, 255, 0.2);
-                        background: rgba(0, 0, 0, 0.22);
-                        color: rgba(255, 255, 255, 0.92);
-                        width: 36px;
-                        height: 36px;
+                        top: max(18px, env(safe-area-inset-top));
+                        right: max(18px, env(safe-area-inset-right));
+                        width: 52px;
+                        height: 52px;
+                        padding: 0;
+                        border: 2px solid #111111;
                         border-radius: 999px;
-                        font-family: var(--font-ui);
-                        font-size: 0.92rem;
+                        background: rgba(255, 255, 255, 0.96);
+                        color: #111111;
+                        box-shadow: 0 4px 0 rgba(17, 17, 17, 0.95);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                         cursor: pointer;
-                        text-transform: uppercase;
-                        z-index: 10051;
+                        touch-action: manipulation;
+                        -webkit-tap-highlight-color: transparent;
+                        transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+                        z-index: 10060;
                     }
 
                     .close-viewer-btn:hover {
-                        background: rgba(255, 255, 255, 0.12);
+                        transform: translateY(-2px);
+                    }
+
+                    .close-viewer-btn:active {
+                        transform: translateY(2px);
+                        box-shadow: 0 2px 0 rgba(17, 17, 17, 0.95);
                     }
 
                     @media (max-width: 900px) {
                         .global-nav-btn.prev {
-                            left: 14px;
+                            left: max(10px, env(safe-area-inset-left));
                         }
 
                         .global-nav-btn.next {
-                            right: 14px;
+                            right: max(10px, env(safe-area-inset-right));
                         }
 
                         .close-viewer-btn {
-                            right: 14px;
-                            top: 14px;
+                            right: max(12px, env(safe-area-inset-right));
+                            top: max(12px, env(safe-area-inset-top));
                         }
 
                         .lightbox-caption {
@@ -728,6 +822,35 @@ export default function MoodboardPolaroidViewer({
 
                         .lightbox-title {
                             font-size: 0.78rem;
+                        }
+                    }
+
+                    @media (max-width: 560px) {
+                        .global-nav-btn,
+                        .close-viewer-btn {
+                            width: 48px;
+                            height: 48px;
+                        }
+
+                        .global-nav-btn svg,
+                        .close-viewer-btn svg {
+                            width: 24px;
+                            height: 24px;
+                        }
+
+                        .global-nav-btn.prev {
+                            left: 8px;
+                        }
+
+                        .global-nav-btn.next {
+                            right: 8px;
+                        }
+                    }
+
+                    @media (prefers-reduced-motion: reduce) {
+                        .global-nav-btn,
+                        .close-viewer-btn {
+                            transition: none;
                         }
                     }
                 `}</style>

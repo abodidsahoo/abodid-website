@@ -20,12 +20,15 @@ export const supabase = createClient(
     hasSupabaseEnv ? supabaseAnonKey : FALLBACK_SUPABASE_ANON_KEY,
     {
         auth: {
-            // Site Workspace is a trusted, single-user Chrome app. Keep its
-            // Supabase session on this Mac and refresh it silently so opening
-            // the app normally goes straight to the dashboard.
+            // Supabase stores the browser session and rotates refresh tokens.
+            // APIs still verify the short-lived access token on every request;
+            // local persistence is convenience, not the authorization boundary.
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
+            // Authorization codes and the verifier are exchanged by
+            // supabase-js; tokens are never returned in the callback URL.
+            flowType: 'pkce',
         },
     },
 );

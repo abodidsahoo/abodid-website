@@ -32,5 +32,3 @@ export const POST: APIRoute = async ({ request }) => {
         });
     }
 };
-
-export const GET: APIRoute = POST;

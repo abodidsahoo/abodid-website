@@ -6,21 +6,40 @@ import { OpportunityCard } from './OpportunityCard';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
 import { EditOpportunityModal } from './EditOpportunityModal';
 import { ManualCreateModal } from './ManualCreateModal';
+import { supabase } from '../../lib/supabase';
 
 type UrgencyRailFilter = 'attention' | 'this_week' | 'this_month' | 'later' | 'all';
 
+type ProfileSummary = {
+    username: string;
+    display_name: string;
+    avatar_url: string | null;
+    is_public: boolean;
+    role?: string;
+};
+
 interface OpportunityDashboardProps {
-    initialIsAuthenticated?: boolean;
+    username: string;
+    accessToken?: string | null;
+    isOwner?: boolean;
+    viewerProfile?: ProfileSummary | null;
 }
 
-export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ initialIsAuthenticated = false }) => {
+export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
+    username,
+    accessToken = null,
+    isOwner = false,
+    viewerProfile = null,
+}) => {
     const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialIsAuthenticated);
-    const [isLoading, setIsLoading] = useState<boolean>(initialIsAuthenticated);
+    const [collectionProfile, setCollectionProfile] = useState<ProfileSummary | null>(
+        isOwner ? viewerProfile : null,
+    );
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     // Capture bar state
     const [captureUrl, setCaptureUrl] = useState('');
-    const [authPassword, setAuthPassword] = useState('');
     const [isCapturing, setIsCapturing] = useState(false);
 
     // Filters: Single clean Urgency Rail + Secondary Filter Tray Toggle
@@ -35,7 +54,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
     const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null);
     const [editingOpp, setEditingOpp] = useState<Opportunity | null>(null);
     const [isManualModalOpen, setIsManualModalOpen] = useState(false);
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [manualInitialUrl, setManualInitialUrl] = useState('');
 
     // Toast
@@ -53,19 +71,29 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         setTimeout(() => setToastMessage(null), 3000);
     };
 
-    // 1. Fetch Opportunities (Public by default)
+    const authenticatedHeaders = (includeJson = false) => ({
+        ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    });
+
+    // 1. Fetch the owner's private rows, or a deliberately safe public projection.
     const fetchOpportunities = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/opportunities?refresh=${Date.now()}`, {
+            const endpoint = isOwner
+                ? `/api/opportunities?refresh=${Date.now()}`
+                : `/api/opportunities/public/${encodeURIComponent(username)}?refresh=${Date.now()}`;
+            const res = await fetch(endpoint, {
                 cache: 'no-store',
+                headers: authenticatedHeaders(),
             });
             if (res.ok) {
                 const data = await res.json();
                 setOpportunities(data.opportunities || []);
-                if (typeof data.authenticated === 'boolean') {
-                    setIsAuthenticated(data.authenticated);
-                }
+                if (data.profile) setCollectionProfile(data.profile);
+            } else if (res.status === 404) {
+                setOpportunities([]);
+                setCollectionProfile(null);
             }
         } catch (err) {
             console.error('Failed to load opportunities:', err);
@@ -76,40 +104,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
 
     useEffect(() => {
         fetchOpportunities();
-    }, []);
-
-    // 2. Auth Login Handler
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!authPassword) return;
-
-        try {
-            const res = await fetch('/api/opportunities/auth', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: authPassword }),
-            });
-
-            if (res.ok) {
-                setIsAuthenticated(true);
-                setIsLoginModalOpen(false);
-                setAuthPassword('');
-                showToast('✓ Curator Workspace Unlocked');
-                fetchOpportunities();
-            } else {
-                showToast('❌ Invalid Passcode');
-            }
-        } catch {
-            showToast('❌ Login failed');
-        }
-    };
+    }, [username, accessToken, isOwner]);
 
     const handleLogout = async () => {
         try {
-            await fetch('/api/opportunities/auth', { method: 'DELETE' });
-            setIsAuthenticated(false);
-            showToast('Logged out of Curator Mode');
-            fetchOpportunities();
+            await supabase.auth.signOut();
+            window.location.assign('/opportunities');
         } catch {
             showToast('Logout failed');
         }
@@ -124,7 +124,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         try {
             const res = await fetch('/api/opportunities/capture', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authenticatedHeaders(true),
                 body: JSON.stringify({ url: captureUrl }),
             });
 
@@ -155,7 +155,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         try {
             const res = await fetch(`/api/opportunities/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authenticatedHeaders(true),
                 body: JSON.stringify({ status: newStatus }),
             });
             if (res.ok) {
@@ -178,7 +178,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         try {
             const res = await fetch(`/api/opportunities/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authenticatedHeaders(true),
                 body: JSON.stringify({ priority }),
             });
             if (res.ok) {
@@ -199,7 +199,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         try {
             const res = await fetch(`/api/opportunities/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authenticatedHeaders(true),
                 body: JSON.stringify(updates),
             });
             if (res.ok) {
@@ -218,7 +218,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         try {
             const res = await fetch('/api/opportunities', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authenticatedHeaders(true),
                 body: JSON.stringify(payload),
             });
             const data = await res.json();
@@ -238,6 +238,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         try {
             const res = await fetch(`/api/opportunities/${id}/re-extract`, {
                 method: 'POST',
+                headers: authenticatedHeaders(),
             });
             const data = await res.json();
             if (res.ok && data.opportunity) {
@@ -259,6 +260,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         try {
             const res = await fetch(`/api/opportunities/${id}`, {
                 method: 'DELETE',
+                headers: authenticatedHeaders(),
             });
             if (res.ok) {
                 showToast('✓ Opportunity deleted');
@@ -348,6 +350,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         (priorityFilter !== 'all' ? 1 : 0) +
         (searchQuery.trim() ? 1 : 0);
 
+    const collectionOwnerName = collectionProfile?.display_name || username;
+    const collectionTitle = `${collectionOwnerName.charAt(0).toUpperCase()}${collectionOwnerName.slice(1)}'s Opportunities`;
+
     return (
         <div className="opportunities-shell">
             {/* Enlarged Curated Opportunities Hero Deck */}
@@ -355,27 +360,47 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
                 <div className="opp-hero-main">
                     <div className="opp-hero-header-row">
                         <div className="opp-hero-branding">
-                            <h1 className="opp-hero-title">Curated Opportunities</h1>
-                            <p className="opp-hero-tagline">See it. Save it. Seize it.</p>
+                            <span className="opp-hero-eyebrow">NEXTUP BY ABODID</span>
+                            <h1 className="opp-hero-title">
+                                {isOwner ? 'My Opportunities' : collectionTitle}
+                            </h1>
+                            <p className="opp-hero-tagline">
+                                {isOwner ? 'See it. Save it. Seize it.' : 'A shared opportunity collection.'}
+                            </p>
                         </div>
-                        {isAuthenticated && (
-                            <div className="opp-hero-curator-top-pill">
-                                <span className="opp-curator-pulse-dot" />
-                                <span className="opp-curator-pill-label">Curator Mode</span>
+                        {viewerProfile ? (
+                            <div className="opp-user-menu">
                                 <button
                                     type="button"
-                                    className="opp-curator-pill-logout"
-                                    onClick={handleLogout}
-                                    title="Exit Curator Mode (Switch to Visitor View)"
+                                    className="opp-user-menu-trigger"
+                                    onClick={() => setIsProfileMenuOpen((open) => !open)}
+                                    aria-expanded={isProfileMenuOpen}
+                                    aria-haspopup="menu"
+                                    aria-label="Open account menu"
                                 >
-                                    Log Out ✕
+                                    <span className="opp-user-menu-copy">
+                                        <small>ACCOUNT</small>
+                                        <strong>Settings</strong>
+                                    </span>
+                                    <span aria-hidden="true">{isProfileMenuOpen ? '↑' : '↓'}</span>
                                 </button>
+                                {isProfileMenuOpen && (
+                                    <div className="opp-user-menu-popover" role="menu">
+                                        <a role="menuitem" href={`/opportunities/${viewerProfile.username}`}>My Opportunities <span aria-hidden="true">→</span></a>
+                                        <a role="menuitem" href="/opportunities/settings">Collection settings <span aria-hidden="true">→</span></a>
+                                        <button type="button" role="menuitem" onClick={handleLogout}>Log Out</button>
+                                    </div>
+                                )}
                             </div>
+                        ) : (
+                            <a className="opp-google-signin-compact" href={`/opportunities?next=${encodeURIComponent(`/opportunities/${username}`)}`}>
+                                Sign in with Google <span aria-hidden="true">→</span>
+                            </a>
                         )}
                     </div>
 
-                    {/* Capture Bar: Only shown when authenticated */}
-                    {isAuthenticated && (
+                    {/* Capture Bar: Only the collection owner may mutate data. */}
+                    {isOwner && (
                         <form onSubmit={handleCapture} className="opp-hero-capture-bar">
                             <input
                                 type="url"
@@ -569,6 +594,20 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
                 <div style={{ textAlign: 'center', padding: '60px', color: 'var(--opp-cream)', fontSize: '1.1rem', fontWeight: 800 }}>
                     ⚡ Loading opportunities...
                 </div>
+            ) : !collectionProfile && !isOwner ? (
+                <div className="opp-empty-split-grid">
+                    <div className="opp-empty-block">
+                        <div className="opp-empty-block-header">
+                            <div className="opp-empty-icon-sm">🔒</div>
+                            <div>
+                                <h2 className="opp-empty-heading">Collection unavailable</h2>
+                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--opp-muted)' }}>Private or not found</p>
+                            </div>
+                        </div>
+                        <p className="opp-empty-text">This username does not exist or the owner has kept their collection private.</p>
+                        <a className="opp-btn opp-btn-primary opp-btn-sm" href="/opportunities">Create your collection →</a>
+                    </div>
+                </div>
             ) : opportunities.length === 0 ? (
                 /* Split Empty State when 0 opportunities recorded */
                 <div className="opp-empty-split-grid">
@@ -576,14 +615,18 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
                         <div className="opp-empty-block-header">
                             <div className="opp-empty-icon-sm">⚡</div>
                             <div>
-                                <h3 className="opp-empty-heading">Start Tracking</h3>
-                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--opp-muted)' }}>Quick capture workflow</p>
+                                <h3 className="opp-empty-heading">{isOwner ? 'Start Tracking' : 'No Shared Opportunities Yet'}</h3>
+                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--opp-muted)' }}>
+                                    {isOwner ? 'Quick capture workflow' : `@${username}'s public collection`}
+                                </p>
                             </div>
                         </div>
                         <p className="opp-empty-text">
-                            Paste any opportunity link into the bar above or click Add Manually to log deadlines and setup automatic reminders.
+                            {isOwner
+                                ? 'Paste any opportunity link into the bar above or add one manually to track its deadline.'
+                                : 'This collection is public, but its owner has not shared any active opportunities yet.'}
                         </p>
-                        <div className="opp-empty-block-actions">
+                        {isOwner && <div className="opp-empty-block-actions">
                             <button
                                 type="button"
                                 className="opp-btn opp-btn-primary opp-btn-sm"
@@ -594,10 +637,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
                             >
                                 + Add Manually
                             </button>
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--opp-muted)', background: 'rgba(21, 19, 15, 0.04)', padding: '8px 12px', borderRadius: '6px' }}>
+                        </div>}
+                        {isOwner && <div style={{ fontSize: '0.8rem', color: 'var(--opp-muted)', background: 'rgba(21, 19, 15, 0.04)', padding: '8px 12px', borderRadius: '6px' }}>
                             💡 <strong>Tip:</strong> Pinned Chrome extension captures in 1 click from any browser tab.
-                        </div>
+                        </div>}
                     </div>
 
                     <div className="opp-empty-block accent">
@@ -649,7 +692,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
                         <OpportunityCard
                             key={opp.id}
                             opportunity={opp}
-                            isAuthenticated={isAuthenticated}
+                            isAuthenticated={isOwner}
                             onOpen={(o) => setSelectedDetailId(o.id)}
                             onUpdateStatus={handleUpdateStatus}
                             onUpdatePriority={handleUpdatePriority}
@@ -659,88 +702,32 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
                 </div>
             )}
 
-            {/* Bottom Public / Curator Access Trigger */}
+            {/* Bottom ownership / sign-in action */}
             <footer className="opp-public-footer">
-                {!isAuthenticated ? (
+                {!viewerProfile ? (
                     <div className="opp-curator-trigger-box">
-                        <button
-                            type="button"
-                            className="opp-curator-login-btn"
-                            onClick={() => setIsLoginModalOpen(true)}
-                        >
-                            + Add an opportunity
-                        </button>
+                        <a className="opp-curator-login-btn" href="/opportunities">
+                            Sign in to save opportunities →
+                        </a>
+                    </div>
+                ) : !isOwner ? (
+                    <div className="opp-curator-active-bar">
+                        <span className="opp-curator-badge">Viewing @{username}</span>
+                        <a className="opp-curator-logout-btn" href={`/opportunities/${viewerProfile.username}`}>
+                            Open My Opportunities →
+                        </a>
                     </div>
                 ) : (
                     <div className="opp-curator-active-bar">
-                        <span className="opp-curator-badge">✓ Curator Access Active</span>
-                        <button
-                            type="button"
-                            className="opp-curator-logout-btn"
-                            onClick={handleLogout}
-                        >
-                            Lock Desk 🔒
-                        </button>
+                        <span className="opp-curator-badge">
+                            {viewerProfile.is_public ? '● Public collection' : '● Private collection'}
+                        </span>
+                        <a className="opp-curator-logout-btn" href="/opportunities/settings">
+                            Sharing Settings →
+                        </a>
                     </div>
                 )}
             </footer>
-
-            {/* Curator Passcode Login Modal */}
-            {isLoginModalOpen && (
-                <div className="opp-modal-overlay" onClick={() => setIsLoginModalOpen(false)}>
-                    <div className="opp-modal opp-curator-modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="opp-modal-header">
-                            <span className="opp-modal-title">Curator Access</span>
-                            <button
-                                type="button"
-                                className="opp-modal-close-btn"
-                                onClick={() => setIsLoginModalOpen(false)}
-                                aria-label="Close"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        <form onSubmit={handleLogin} className="opp-curator-form">
-                            <p className="opp-curator-modal-desc">
-                                Enter your passcode to unlock opportunity URL capture and curation controls.
-                            </p>
-                            <div className="opp-curator-input-group">
-                                <label className="opp-curator-input-label" htmlFor="curator-passcode-input">
-                                    Passcode
-                                </label>
-                                <input
-                                    id="curator-passcode-input"
-                                    type="password"
-                                    className="opp-curator-input-field"
-                                    placeholder="Enter passcode..."
-                                    value={authPassword}
-                                    onChange={(e) => setAuthPassword(e.target.value)}
-                                    autoFocus
-                                    required
-                                />
-                                <div className="opp-curator-modal-hint-box">
-                                    <span className="opp-curator-modal-hint-icon">💡</span>
-                                    <span className="opp-curator-modal-hint-text">
-                                        Hint: Abodid's full name in <strong>lowercase</strong>
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="opp-curator-modal-actions">
-                                <button
-                                    type="button"
-                                    className="opp-btn opp-btn-secondary"
-                                    onClick={() => setIsLoginModalOpen(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button type="submit" className="opp-btn opp-btn-primary">
-                                    Unlock Desk →
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             {/* Opportunity Detail Modal with Keyboard Arrow Navigation */}
             {(() => {
@@ -758,7 +745,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
                 return (
                     <OpportunityDetailModal
                         opportunity={selectedOpp}
-                        isAuthenticated={isAuthenticated}
+                        isAuthenticated={isOwner}
                         isOpen={Boolean(selectedOpp)}
                         onClose={() => setSelectedDetailId(null)}
                         onUpdateStatus={handleUpdateStatus}
@@ -792,12 +779,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
             )}
 
             {/* Manual Create Modal */}
-            <ManualCreateModal
+            {isOwner && <ManualCreateModal
                 isOpen={isManualModalOpen}
                 initialUrl={manualInitialUrl}
                 onClose={() => setIsManualModalOpen(false)}
                 onCreate={handleManualCreate}
-            />
+            />}
 
             {/* Toast Notification */}
             {toastMessage && <div className="opp-toast">{toastMessage}</div>}

@@ -7,6 +7,8 @@ const MOODBOARD_BUCKET = 'moodboard-assets';
 const R2_BUCKET = 'assets';
 const MOODBOARD_R2_FOLDER = 'photos/originals/moodboard';
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+const MOODBOARD_PAGE_SIZE = 1000;
+const MOODBOARD_SELECT_FIELDS = 'id, image_url, storage_path, title, tags, published, image_width, image_height, aspect_ratio, source_url, artist_name, palette, created_at, updated_at';
 
 function buildQueueId() {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -124,6 +126,7 @@ export default function MoodboardManager({
     const [imageLoadErrors, setImageLoadErrors] = useState({});
 
     const [items, setItems] = useState([]);
+    const [totalItemCount, setTotalItemCount] = useState(0);
 
     // Live Upload Pipeline State
     const [uploadSession, setUploadSession] = useState({
@@ -156,13 +159,26 @@ export default function MoodboardManager({
         setErrorMsg('');
 
         try {
-            const { data, error } = await supabase
-                .from('moodboard_items')
-                .select('id, image_url, storage_path, title, tags, published, image_width, image_height, aspect_ratio, created_at, updated_at')
-                .order('created_at', { ascending: false });
+            const loadedItems = [];
+            let exactCount = null;
 
-            if (error) throw error;
-            setItems(data || []);
+            for (let from = 0; ; from += MOODBOARD_PAGE_SIZE) {
+                const { data, error, count } = await supabase
+                    .from('moodboard_items')
+                    .select(MOODBOARD_SELECT_FIELDS, { count: from === 0 ? 'exact' : undefined })
+                    .order('created_at', { ascending: false })
+                    .range(from, from + MOODBOARD_PAGE_SIZE - 1);
+
+                if (error) throw error;
+
+                const page = data || [];
+                loadedItems.push(...page);
+                if (from === 0 && typeof count === 'number') exactCount = count;
+                if (page.length < MOODBOARD_PAGE_SIZE) break;
+            }
+
+            setItems(loadedItems);
+            setTotalItemCount(exactCount ?? loadedItems.length);
         } catch (error) {
             console.error(error);
             setErrorMsg(error?.message || 'Failed to load moodboard items.');
@@ -246,12 +262,13 @@ export default function MoodboardManager({
                         published: true,
                         image_width: dimensions.width,
                         image_height: dimensions.height,
+                        palette: uploadedAsset.palette,
                     };
 
                     const { data: insertedItem, error: insertError } = await supabase
                         .from('moodboard_items')
                         .insert(payload)
-                        .select('id, image_url, storage_path, title, tags, published, image_width, image_height, aspect_ratio, created_at, updated_at')
+                        .select(MOODBOARD_SELECT_FIELDS)
                         .single();
 
                     if (insertError) throw insertError;
@@ -263,6 +280,7 @@ export default function MoodboardManager({
 
                     // Immediately prepend newly uploaded image to the library grid
                     setItems((prev) => [insertedItem, ...prev.filter((it) => it.id !== insertedItem.id)]);
+                    setTotalItemCount((previous) => previous + 1);
 
                     // Mark as success
                     setUploadSession((prev) => {
@@ -408,6 +426,7 @@ export default function MoodboardManager({
             }
 
             setItems((previous) => previous.filter((entry) => entry.id !== item.id));
+            setTotalItemCount((previous) => Math.max(0, previous - 1));
             setNotice('Image removed from the mood board.');
         } catch (error) {
             console.error(error);
@@ -615,7 +634,7 @@ export default function MoodboardManager({
                     {/* Resized, high-contrast, prominent stats */}
                     <div className="upload-stats" aria-label="Moodboard totals">
                         <div className="upload-stat">
-                            <span className="upload-stat-number">{items.length}</span>
+                            <span className="upload-stat-number">{totalItemCount}</span>
                             <span className="upload-stat-label">Images</span>
                         </div>
                         <div className="upload-stat">
@@ -728,7 +747,7 @@ export default function MoodboardManager({
 
             <section className="library-panel">
                 <div className="library-header-row">
-                    <h4>Moodboard Library ({items.length})</h4>
+                    <h4>Moodboard Library ({totalItemCount})</h4>
                     <input
                         className="library-search"
                         value={libraryFilter}
@@ -817,6 +836,18 @@ export default function MoodboardManager({
 
                                     {/* Redesigned Clean Tag Area (Add tag input first, tag list below) */}
                                     <div className="library-meta">
+                                        {item.source_url && (
+                                            <a
+                                                className="library-source-link"
+                                                href={item.source_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title={item.source_url}
+                                            >
+                                                {item.artist_name ? `Credit: ${item.artist_name}` : 'View original source'} ↗
+                                            </a>
+                                        )}
+
                                         {/* Clean, compact tag input pill at top of card meta */}
                                         <div className="library-tag-input-pill">
                                             <input
@@ -1518,6 +1549,23 @@ export default function MoodboardManager({
                     flex-direction: column;
                     gap: 0.45rem;
                     flex: 1;
+                }
+
+                .library-source-link {
+                    color: var(--text-secondary);
+                    font-size: 0.68rem;
+                    line-height: 1.25;
+                    text-decoration: none;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .library-source-link:hover,
+                .library-source-link:focus-visible {
+                    color: var(--text-primary);
+                    text-decoration: underline;
+                    text-underline-offset: 2px;
                 }
 
                 /* Compact Tag Input Pill - Fixed 28px height, uniform position across all cards */

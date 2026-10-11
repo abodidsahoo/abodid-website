@@ -1,33 +1,76 @@
-# Abodid Opportunity Capture Chrome Extension
+# NextUp by Abodid WebExtension
 
-A lightweight Manifest V3 Chrome Extension to capture jobs, open calls, residencies, grants, conferences, and fellowships into your private Opportunity Assistant with 1 click.
+One shared TypeScript source powers the Chrome, Firefox, and Safari builds. The extension contains no curator passcode, OpenRouter key, service-role key, extraction prompt, or configurable backend URL. It authenticates with Supabase Google OAuth using PKCE and stores the resulting rotating session in extension-local storage.
 
-## Installation Instructions (Developer Mode)
+## Build
 
-1. Open Google Chrome.
-2. Navigate to `chrome://extensions/` in the address bar.
-3. Toggle on **Developer mode** in the top right corner.
-4. Click **Load unpacked** in the top left.
-5. Select the `extension/` folder inside this repository:
-   `/Users/abodid/Documents/GitHub/personal-site/extension`
-6. Pin the **Abodid Opportunity Capture** icon (yellow square with 'O') to your Chrome toolbar.
+The build reads the public Supabase URL and publishable/anon key from the repository's ignored environment files. These identify the Supabase project but do not grant privileged database access; RLS remains the authorization boundary.
 
-## Configuration
+```sh
+npm run extension:build:chrome
+npm run extension:build:firefox
+npm run extension:build:safari
+```
 
-1. Click the extension icon on any webpage.
-2. Click the ⚙️ gear icon in the top right of the popup.
-3. Configure:
-   - **Backend API URL**: `https://abodid.com` (or `http://localhost:4321` for local testing).
-   - **Passphrase / Key**: Your `OPPORTUNITIES_PASSWORD` value.
-4. Click **Save Config**.
+Outputs:
 
-## Usage
+- `extension/dist/chrome`
+- `extension/dist/firefox`
+- `extension/dist/safari`
 
-1. When viewing any opportunity online, click the extension icon.
-2. Click **⚡ Save Opportunity**.
-3. The extension extracts the page text and sends it to the server capture API.
-4. The server checks for existing records (deduplication) and performs at most 1 AI extraction call.
-5. The extension displays:
-   - `Saved ✓`
-   - `Category`
-   - `Deadline`
+Source maps are disabled. Load the generated directory, not the `extension` source directory.
+
+## Supabase redirect allow-list
+
+Chrome and Firefox builds have a stable identity redirect. Obtain it from `identity.getRedirectURL('supabase-auth')` for the installed build and add the exact value to Supabase Auth → URL Configuration → Redirect URLs.
+
+- Chrome: `https://<extension-id>.chromiumapp.org/supabase-auth`
+- Firefox: the URL returned for the signed `opportunities@abodid.com` extension
+- Safari: `https://abodid.com/opportunities/extension/callback`
+
+Google's OAuth client continues to use the Supabase project callback URL; extension redirects are configured in Supabase, not as additional Google callback URLs.
+
+## Local installation and checks
+
+### Chrome
+
+1. Run `npm run extension:build:chrome`.
+2. Open `chrome://extensions`, enable Developer mode, and load `extension/dist/chrome`.
+3. Record the stable extension ID, allow-list its identity redirect in Supabase, then reload.
+4. Verify Google sign-in, session persistence, popup capture, context-menu capture, dashboard opening, logout, and a second account's isolation.
+
+### Firefox
+
+1. Run `npm run extension:build:firefox`.
+2. Load `extension/dist/firefox/manifest.json` temporarily from `about:debugging`.
+3. Allow-list the generated redirect URL.
+4. For distribution, sign the build through Firefox Add-ons. The manifest uses the stable Gecko ID `opportunities@abodid.com`.
+
+### Safari on macOS, iPhone, and iPad
+
+1. Run `npm run extension:build:safari`.
+2. Convert the output on macOS with Xcode:
+
+   ```sh
+   xcrun safari-web-extension-packager extension/dist/safari \
+     --project-location extension/safari-xcode \
+     --app-name "NextUp by Abodid" \
+     --bundle-identifier com.abodid.opportunities
+   ```
+
+3. Open the generated project in Xcode, select the Apple team/signing configuration, and enable the extension for the macOS and iOS/iPadOS app targets.
+4. Add `https://abodid.com/opportunities/extension/callback` to the Supabase redirect allow-list before device testing. Safari does not support the WebExtension `identity` API, so this target opens OAuth in a normal tab. A content script restricted to that callback route passes the one-time code and state back to the extension; the PKCE verifier and resulting tokens remain in extension-local storage.
+5. Test the containing macOS app and iOS/iPadOS app targets with separate accounts before App Store submission.
+
+## Permission rationale
+
+- `activeTab`: read the current page only after a user action.
+- `scripting`: collect visible text and structured-data hints for the server-side extractor.
+- `storage`: persist the Supabase PKCE verifier/session and extension state.
+- `contextMenus`: save a page or link through right-click.
+- `identity` (Chrome and Firefox only): complete browser-controlled OAuth without exposing tokens to visited pages.
+- Host permissions: only `abodid.com` and the configured Supabase project.
+
+The Safari callback content script runs only on `https://abodid.com/opportunities/extension/callback*` and relays a one-time authorization code plus anti-forgery state. It never receives an access token, refresh token, service-role key, or OpenRouter credential.
+
+The content script is injected only after explicit capture. It never receives access or refresh tokens; authenticated API calls are made by the extension background context.

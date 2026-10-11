@@ -1,0 +1,236 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import YouTubeDownloader from "../../components/tools/YouTubeDownloader.jsx";
+import "../../styles/youtube-downloader.css";
+
+const pageTitle = "YouTube + Vimeo Downloader — Abodid Tools";
+const pageDescription =
+  "A lightweight, ad-free utility to extract and download YouTube and Vimeo video and audio streams directly in your browser.";
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  useDynamicOgImage={true}
+  fullWidth={true}
+  navigationVariant="next"
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="yt-downloader-page"
+>
+  <main class="downloader-shell">
+    <div class="downloader-container">
+      {/* Back to Tools directory navigation */}
+      <nav class="downloader-nav" aria-label="Tools navigation">
+        <a href="/tools" class="downloader-back-link">
+          <span aria-hidden="true">←</span>
+          <span>Tools Directory</span>
+        </a>
+        <span class="downloader-nav-tag">Utility 01</span>
+      </nav>
+
+      {/* Hero Headline */}
+      <header class="downloader-header">
+        <div class="downloader-headline-wrap">
+          <span class="downloader-file-pill">tools.js / media-stream</span>
+          <h1 class="downloader-title">YouTube + Vimeo Downloader</h1>
+        </div>
+        <p class="downloader-lead">
+          Extract high-resolution YouTube and Vimeo video streams and clean audio directly without ads, spam popups, or external software.
+        </p>
+      </header>
+
+      {/* Main Interactive Downloader Component */}
+      <section class="downloader-utility-mount">
+        <YouTubeDownloader client:load />
+      </section>
+
+      {/* Privacy and Technical Ethics Note */}
+      <footer class="downloader-footer-notes">
+        <div class="downloader-notes-card">
+          <h4>About this utility</h4>
+          <p>
+            Built for video editors, archival researchers, and students who need direct access to reference footage. Uses the open-source yt-dlp engine locally and does not store personal user data or download history on a server.
+          </p>
+        </div>
+      </footer>
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  html:has(body.yt-downloader-page) {
+    background: var(--pop-blue) !important;
+  }
+
+  body.yt-downloader-page {
+    --films-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --films-mono:
+      "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
+      monospace;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    margin: 0;
+    padding: 0 !important;
+    min-height: 100vh;
+    background: var(--pop-blue) !important;
+    color: var(--pop-ink);
+    color-scheme: light;
+  }
+
+  body.yt-downloader-page main.page-content-full {
+    max-width: 100% !important;
+    padding: 0 !important;
+    overflow: visible;
+  }
+</style>
+
+<style>
+  .downloader-shell {
+    width: 100%;
+    min-height: 100vh;
+    padding: clamp(12px, 3vw, 28px);
+    box-sizing: border-box;
+    background: var(--pop-blue);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .downloader-container {
+    width: 100%;
+    max-width: 820px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(20px, 3.5vw, 32px);
+    box-sizing: border-box;
+  }
+
+  .downloader-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 2px;
+  }
+
+  .downloader-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: 700 0.8rem/1 var(--films-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--pop-cream);
+    text-decoration: none;
+    padding: 8px 14px;
+    background: rgba(21, 19, 15, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    transition: all 0.18s ease;
+  }
+
+  .downloader-back-link:hover {
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    border-color: var(--pop-ink);
+    transform: translateX(-3px);
+  }
+
+  .downloader-nav-tag {
+    font: 700 0.72rem/1 var(--films-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pop-cream);
+    opacity: 0.85;
+  }
+
+  .downloader-header {
+    background: var(--pop-pink);
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(18px, 3vw, 28px);
+    padding: clamp(1.8rem, 4vw, 3rem);
+    box-shadow: 0 8px 0 rgba(21, 19, 15, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .downloader-headline-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .downloader-file-pill {
+    align-self: flex-start;
+    font: 700 0.72rem/1 var(--films-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pop-ink);
+    background: var(--pop-cream);
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--pop-ink);
+  }
+
+  .downloader-title {
+    margin: 0;
+    font: 720 clamp(2.4rem, 6vw, 3.8rem)/0.95 var(--films-font, sans-serif);
+    letter-spacing: -0.055em;
+    color: var(--pop-ink);
+    overflow-wrap: anywhere;
+  }
+
+  .downloader-lead {
+    margin: 0;
+    font: 500 clamp(1.05rem, 2vw, 1.25rem)/1.35 var(--films-font, sans-serif);
+    color: var(--pop-ink);
+    letter-spacing: -0.02em;
+    max-width: 580px;
+  }
+
+  .downloader-utility-mount {
+    width: 100%;
+  }
+
+  .downloader-footer-notes {
+    margin-top: 10px;
+    padding-bottom: 40px;
+  }
+
+  .downloader-notes-card {
+    background: rgba(255, 248, 232, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    border-radius: 18px;
+    padding: 20px 24px;
+    color: var(--pop-cream);
+  }
+
+  .downloader-notes-card h4 {
+    margin: 0 0 6px;
+    font-size: 0.92rem;
+    font-family: var(--films-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .downloader-notes-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    opacity: 0.9;
+  }
+
+  @media (max-width: 600px) {
+    .downloader-shell {
+      padding: 8px;
+    }
+
+    .downloader-header {
+      padding: 1.5rem;
+    }
+  }
+</style>

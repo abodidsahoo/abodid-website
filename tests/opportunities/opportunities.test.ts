@@ -9,14 +9,15 @@ import {
     prioritizeOpportunityText,
 } from '../../src/lib/opportunities/scraper';
 import {
-    EXTRACTION_SYSTEM_PROMPT,
+    getExtractionSystemPrompt,
     extractExplicitDeadline,
     parseDeadline,
     parseEventDate,
     resolveOpportunityDeadline,
 } from '../../src/lib/opportunities/extractor';
 import { LLMExtractionOutputSchema, type Opportunity } from '../../src/lib/opportunities/types';
-import { createSessionToken, verifySessionToken } from '../../src/lib/opportunities/auth';
+import { isValidOpportunityUsername, normalizeOpportunityUsername } from '../../src/lib/opportunities/username';
+import { opportunityToSavedInsert, savedRowToOpportunity } from '../../src/lib/opportunities/saved';
 import { generateIcsFile, generateGoogleCalendarUrl } from '../../src/lib/opportunities/calendar';
 import { formatTimeRemaining } from '../../src/lib/opportunities/reminders';
 import { isOpportunityAttention, selectAttentionOpportunities } from '../../src/lib/opportunities/attention';
@@ -275,10 +276,12 @@ describe('Opportunity Assistant Core Functionality', () => {
     });
 
     describe('Zod Schema Validation for LLM Output', () => {
-        it('instructs the model to keep secondary information sessions subordinate to the primary opportunity', () => {
-            expect(EXTRACTION_SYSTEM_PROMPT).toContain('MUST NOT replace the primary opportunity');
-            expect(EXTRACTION_SYSTEM_PROMPT).toContain('application deadline');
-            expect(EXTRACTION_SYSTEM_PROMPT).toContain('Never return a link label as a URL');
+        it('loads extraction instructions only from the server environment', () => {
+            const previous = process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT;
+            process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT = 'Private test extraction instructions';
+            expect(getExtractionSystemPrompt()).toBe('Private test extraction instructions');
+            if (previous === undefined) delete process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT;
+            else process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT = previous;
         });
 
         it('validates and normalizes categories', () => {
@@ -315,16 +318,57 @@ describe('Opportunity Assistant Core Functionality', () => {
         });
     });
 
-    describe('HMAC Session Token Auth', () => {
-        it('creates and verifies valid session tokens', () => {
-            const token = createSessionToken();
-            expect(verifySessionToken(token)).toBe(true);
+    describe('Multi-user profile and saved-row boundaries', () => {
+        it('normalizes names and rejects reserved route usernames', () => {
+            expect(normalizeOpportunityUsername('Yashaswinee Sahoo')).toBe('yashaswineesahoo');
+            expect(isValidOpportunityUsername('yashaswinee')).toBe(true);
+            expect(isValidOpportunityUsername('settings')).toBe(false);
+            expect(isValidOpportunityUsername('ab')).toBe(false);
         });
 
-        it('rejects tampered session tokens', () => {
-            const token = createSessionToken();
-            const tampered = token.slice(0, -4) + 'abcd';
-            expect(verifySessionToken(tampered)).toBe(false);
+        it('round-trips the existing opportunity shape through one user-owned row', () => {
+            const source = {
+                id: 'saved-source',
+                title: 'Creative Residency',
+                organisation: 'Studio X',
+                category: 'residency',
+                source_url: 'https://example.com/residency',
+                canonical_url: 'https://example.com/residency',
+                deadline_at: '2027-01-01T00:00:00.000Z',
+                deadline_raw: '1 January 2027',
+                deadline_timezone: 'UTC',
+                deadline_confidence: 'date_only',
+                event_date: null,
+                location: 'London',
+                requirements: ['Portfolio'],
+                next_action: 'Draft proposal',
+                application_url: 'https://example.com/apply',
+                meeting_url: null,
+                fee_or_funding: 'Funded',
+                summary: 'A residency.',
+                status: 'interested',
+                outcome: null,
+                created_at: '2026-10-01T00:00:00.000Z',
+                updated_at: '2026-10-01T00:00:00.000Z',
+                extracted_at: '2026-10-01T00:00:00.000Z',
+                source_hash: 'hash',
+                llm_model: 'model',
+                llm_extraction_count: 1,
+                notes: 'Private note',
+                priority: 3,
+            } as Opportunity;
+            const insert = opportunityToSavedInsert('user-a', source);
+            const restored = savedRowToOpportunity({
+                id: source.id,
+                created_at: source.created_at,
+                updated_at: source.updated_at,
+                ...insert,
+            });
+
+            expect(restored.title).toBe(source.title);
+            expect(restored.organisation).toBe(source.organisation);
+            expect(restored.notes).toBe('Private note');
+            expect(restored.priority).toBe(3);
         });
     });
 

@@ -6,7 +6,9 @@ pointer, walks through gallery wrappers, and resolves the best available image
 from `srcset`, `currentSrc`, `src`, data attributes, SVG images, video posters,
 or CSS backgrounds. It then downloads the resolved image, uploads it to the
 `assets` R2 bucket under `photos/originals/moodboard/`, and creates the matching
-`moodboard_items` record.
+`moodboard_items` record. Each new browser capture also saves the page URL and,
+when the page exposes a clear author or account name, a best-effort artist credit.
+Missing artist information never blocks the upload.
 
 ## Install
 
