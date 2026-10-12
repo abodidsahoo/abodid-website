@@ -64,10 +64,10 @@ test("keeps authentication return paths safe and internal", () => {
   assert.equal(safeCurationReturnTo("//evil.example/steal"), "/resources/dashboard");
 });
 
-test("returns login visitors to Resources or the page that requested login", () => {
+test("returns curator-login visitors to the curation workspace or the page that requested login", () => {
   assert.equal(curationPath.login, "/resources/login");
-  assert.equal(curationLoginReturnTo(null), "/resources");
+  assert.equal(curationLoginReturnTo(null), "/resources/dashboard");
   assert.equal(curationLoginReturnTo("/resources/submit"), "/resources/submit");
   assert.equal(curationLoginReturnTo("/dashboard"), "/resources/dashboard");
-  assert.equal(curationLoginReturnTo("https://evil.example/steal"), "/resources");
+  assert.equal(curationLoginReturnTo("https://evil.example/steal"), "/resources/dashboard");
 });

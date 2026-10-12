@@ -58,7 +58,10 @@ export default function UnifiedDashboard() {
 
     if (!viewer) return <ResourceLoading reconnecting={reconnecting} />;
     if (viewer.role === 'curator' || viewer.role === 'admin') {
-        return <CuratorDashboard key={`${viewer.user.id}:${viewer.role}`} user={viewer.user} role={viewer.role} />;
+        // This route is the curator workspace. An administrator who entered
+        // through Curation works with curator controls here; full admin
+        // capabilities remain behind the separate /admin entry point.
+        return <CuratorDashboard key={`${viewer.user.id}:curator`} user={viewer.user} role="curator" />;
     }
     return <UserDashboard key={viewer.user.id} user={viewer.user} />;
 }

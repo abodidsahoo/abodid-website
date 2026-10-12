@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-
-const safeReturnPath = (value) => {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) return null;
-  return value;
-};
+import { adminDestinationForRole, safeAdminReturnTo } from '../../lib/adminAuthRoutes';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -12,36 +8,43 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const [session, setSession] = useState(null);
-
-
+  const [accessDenied, setAccessDenied] = useState(false);
 
   // Shared redirect logic
   const handleRedirect = async (userId, force = false) => {
     // Check for redirect param
     const urlParams = new URLSearchParams(window.location.search);
-    const redirectUrl = safeReturnPath(urlParams.get('next') || urlParams.get('redirect'));
+    const requestedPath = urlParams.get('next') || urlParams.get('redirect');
 
     // Check for loop prevention (skip if forced, e.g. after manual login)
     const reason = urlParams.get('reason');
     if (!force && reason === 'auth_failed') {
       console.warn('Redirect loop detected (auth_failed). Stopping auto-redirect.');
-      return;
+      return false;
     }
 
     // Check role to determine default redirect
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single();
 
-    if (profile?.role === 'admin') {
-      window.location.assign(redirectUrl || '/admin/dashboard');
-    } else {
-      window.location.assign("/resources/dashboard");
+    if (profileError) throw profileError;
+
+    const destination = adminDestinationForRole(profile?.role, requestedPath);
+    if (!destination) {
+      setAccessDenied(true);
+      setError('This account does not have administrator access. Use an approved admin account.');
+      setLoading(false);
+      setGoogleLoading(false);
+      return false;
     }
+
+    setAccessDenied(false);
+    window.location.assign(destination);
+    return true;
   };
 
   // Check auth on mount
@@ -85,6 +88,7 @@ export default function LoginForm() {
     } else {
       // Sync email to profile for admin too
       if (data.user) {
+        setSession(data.session);
         try {
           await supabase.from('profiles').update({ email: email }).eq('id', data.user.id);
         } catch (e) {
@@ -102,10 +106,14 @@ export default function LoginForm() {
     setError(null);
 
     try {
+      const params = new URLSearchParams(window.location.search);
+      const requestedPath = params.get('next') || params.get('redirect');
+      const callback = new URL('/admin/login', window.location.origin);
+      if (requestedPath) callback.searchParams.set('next', safeAdminReturnTo(requestedPath));
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: new URL('/admin/login', window.location.origin).toString(),
+          redirectTo: callback.toString(),
           queryParams: { prompt: 'select_account' },
         },
       });
@@ -121,6 +129,7 @@ export default function LoginForm() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setSession(null);
+    setAccessDenied(false);
     window.location.reload();
   };
 
@@ -128,20 +137,26 @@ export default function LoginForm() {
     return (
       <div className="login-container">
         <div className="welcome-back">
-          <h2>Welcome back!</h2>
-          <p>You are logged in as <strong>{session.user.email}</strong></p>
+          <h2>{accessDenied ? 'Admin access required' : 'Welcome back!'}</h2>
+          <p>
+            You are logged in as <strong>{session.user.email}</strong>
+            {accessDenied ? ', but this account is not an administrator.' : '.'}
+          </p>
+          {accessDenied && <div className="error-message" role="alert">{error}</div>}
           <div className="button-group">
-            <button
-              onClick={() => handleRedirect(session.user.id, true)}
-              className="btn-login"
-            >
-              Go to Dashboard
-            </button>
+            {!accessDenied && (
+              <button
+                onClick={() => handleRedirect(session.user.id, true)}
+                className="btn-login"
+              >
+                Go to Admin Dashboard
+              </button>
+            )}
             <button
               onClick={handleSignOut}
               className="btn-secondary"
             >
-              Sign Out
+              {accessDenied ? 'Use another account' : 'Sign Out'}
             </button>
           </div>
         </div>

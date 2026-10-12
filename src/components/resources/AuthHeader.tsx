@@ -69,7 +69,7 @@ export default function AuthHeader() {
                     {signingOut ? 'Logging out…' : 'Log out'}
                 </button>
             ) : (
-                <a className="resources-auth__button" href="/resources/login?redirect=%2Fresources">Curator login</a>
+                <a className="resources-auth__button" href="/resources/login?redirect=%2Fresources%2Fdashboard">Curator login</a>
             )}
             {error && <span className="resources-auth__error" role="alert">{error}</span>}
         </div>

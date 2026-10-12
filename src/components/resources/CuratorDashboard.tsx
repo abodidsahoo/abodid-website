@@ -395,16 +395,6 @@ export default function CuratorDashboard({ user, role }: Props) {
                     <a href="/resources" className="btn-back-logo">
                         Back to Resources ↗
                     </a>
-                    {role === 'admin' && (
-                        <a
-                            href="/resources/admin"
-                            className="btn-admin-panel"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Admin Panel ↗
-                        </a>
-                    )}
                     <button
                         onClick={async (e) => {
                             e.preventDefault();

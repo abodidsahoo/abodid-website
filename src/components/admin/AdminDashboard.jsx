@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { adminLoginHref } from '../../lib/adminAuthRoutes';
 import {
     loadNewsletterExhibitionMedia,
     pickNewsletterMedia,
@@ -214,6 +215,8 @@ class SectionErrorBoundary extends React.Component {
 
 export default function AdminDashboard() {
     const moodboardFileInputRef = useRef(null);
+    const authorizedUserIdRef = useRef(null);
+    const signOutDestinationRef = useRef(null);
     const opportunityDragRef = useRef({
         active: false,
         pointerId: null,
@@ -227,6 +230,7 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState('dashboard');
     const [connectionError, setConnectionError] = useState(null);
+    const [accessDenied, setAccessDenied] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [newsletterExhibition, setNewsletterExhibition] = useState({
         sample: null,
@@ -272,7 +276,10 @@ export default function AdminDashboard() {
 
                 if (!session) {
                     console.warn("AdminDashboard: No session found, redirecting.");
-                    window.location.href = '/admin/login?reason=no_session';
+                    window.location.replace(adminLoginHref(
+                        `${window.location.pathname}${window.location.search}`,
+                        'no_session'
+                    ));
                     return;
                 }
 
@@ -294,7 +301,8 @@ export default function AdminDashboard() {
 
                 if (profile?.role !== 'admin') {
                     console.warn("AdminDashboard: User is not admin. Role:", profile?.role);
-                    setConnectionError("Access Denied: You do not have admin privileges.");
+                    setSession(session);
+                    setAccessDenied(true);
                     setLoading(false);
                     return;
                 }
@@ -305,6 +313,8 @@ export default function AdminDashboard() {
                     : '';
                 document.cookie = `abodid_analytics_exclude=1; Max-Age=31536000; Path=/; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}${analyticsCookieDomain}`;
                 localStorage.setItem('abodid_analytics_exclude', '1');
+                authorizedUserIdRef.current = session.user.id;
+                setAccessDenied(false);
                 setSession(session);
                 setLoading(false);
 
@@ -322,9 +332,10 @@ export default function AdminDashboard() {
             // Listen for auth changes
             const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
                 if (event === 'SIGNED_OUT') {
+                    authorizedUserIdRef.current = null;
                     setSession(null);
-                    window.location.href = '/admin/login';
-                } else if (nextSession) {
+                    window.location.href = signOutDestinationRef.current || '/admin/login';
+                } else if (nextSession?.user?.id === authorizedUserIdRef.current) {
                     // Keep API consumers in sync when Supabase rotates the JWT.
                     // Without this, the admin shell remains signed in while child
                     // sections continue sending an expired access token.
@@ -625,6 +636,17 @@ export default function AdminDashboard() {
 
     const handleLogout = async () => { await supabase.auth.signOut(); };
 
+    const handleAdminAccountSwitch = async () => {
+        const destination = adminLoginHref(
+            `${window.location.pathname}${window.location.search}`,
+            'access_denied'
+        );
+        signOutDestinationRef.current = destination;
+        setLoading(true);
+        await supabase.auth.signOut();
+        window.location.replace(destination);
+    };
+
     // Blocking Loading State (Clean, no glitchy skeletons)
     if (loading) return (
         <div className="loading-screen">
@@ -637,6 +659,49 @@ export default function AdminDashboard() {
             <LoadingState message="Redirecting to login..." />
         </div>
     );
+
+    if (accessDenied) {
+        return (
+            <div className="loading-screen" style={{ flexDirection: 'column', gap: '1rem', fontFamily: 'var(--font-sans)' }}>
+                <div style={{ textAlign: 'center', maxWidth: '360px' }}>
+                    <h1 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', margin: '0 0 0.55rem 0' }}>
+                        Admin account required
+                    </h1>
+                    <p role="alert" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: '0 0 1.5rem 0', lineHeight: '1.5' }}>
+                        You are signed in as <strong>{session?.user?.email || 'a member account'}</strong>, but this account does not have access to Creator Studio.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
+                        <button
+                            type="button"
+                            onClick={handleAdminAccountSwitch}
+                            style={{
+                                fontSize: '0.875rem',
+                                padding: '0.65rem 1.25rem',
+                                border: 'none',
+                                background: 'var(--text-primary)',
+                                color: 'var(--bg-color)',
+                                borderRadius: '6px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Use an admin account
+                        </button>
+                        <a
+                            href="/resources"
+                            style={{
+                                color: 'var(--text-tertiary)',
+                                fontSize: '0.75rem',
+                                textDecoration: 'underline'
+                            }}
+                        >
+                            Return to Resources Hub
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (connectionError) {
         return (

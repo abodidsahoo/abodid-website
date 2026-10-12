@@ -126,7 +126,7 @@ export const safeCurationReturnTo = (value, fallback = curationPath.dashboard) =
 };
 
 export const curationLoginReturnTo = (value) =>
-  safeCurationReturnTo(value || curationPath.home, curationPath.home);
+  safeCurationReturnTo(value || curationPath.dashboard, curationPath.dashboard);
 
 export const isCurationOnlyPath = (pathname = "") => {
   if (pathname.startsWith("/resources")) return true;
