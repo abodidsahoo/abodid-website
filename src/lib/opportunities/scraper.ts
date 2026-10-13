@@ -455,7 +455,7 @@ const MAX_PDF_PAGES = 30; // 30 pages limit
 /**
  * Fetches the webpage or PDF content server-side with timeout and realistic User-Agent.
  */
-export async function fetchWebpageContent(url: string): Promise<{ html: string; text: string; status: number; title: string }> {
+export async function fetchWebpageContent(url: string): Promise<{ html: string; text: string; status: number; title: string; finalUrl: string }> {
     const canonical = canonicalizeUrl(url);
 
     const controller = new AbortController();
@@ -519,6 +519,7 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
                 text: cleanText,
                 status: response.status,
                 title: '',
+                finalUrl: fetched.finalUrl,
             };
         }
 
@@ -593,6 +594,7 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
             text,
             status: response.status,
             title: extractHtmlTitle(html),
+            finalUrl: fetched.finalUrl,
         };
     } catch (err: any) {
         if (err.name === 'AbortError') {
