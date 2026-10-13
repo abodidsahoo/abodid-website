@@ -69,7 +69,7 @@ export default function OpportunityLanding() {
                         <span className="opp-landing-brand-by">by Abodid.</span>
                     </h1>
                     <div className="opp-landing-divider" aria-hidden="true" />
-                    <p className="opp-landing-promise">Every opportunity organized.</p>
+                    <p className="opp-landing-promise">One Click. Every opportunity organized.</p>
                     <p className="opp-landing-promise-copy">Save open calls, residencies, fellowships, grants and jobs. AI automatically summarizes key details, identifies important dates and helps users stay on track.</p>
                 </div>
                 <div className="opp-landing-action">

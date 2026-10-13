@@ -369,7 +369,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 {isOwner ? 'My Opportunities' : collectionTitle}
                             </h1>
                             <p className="opp-hero-tagline">
-                                {isOwner ? 'Every opportunity organized.' : 'An organized, shared opportunity collection.'}
+                                {isOwner ? 'One Click. Every opportunity organized.' : 'An organized, shared opportunity collection.'}
                             </p>
                         </div>
                         {viewerProfile ? (

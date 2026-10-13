@@ -20,7 +20,7 @@ Save open calls, residencies, fellowships, grants and jobs. AI summarizes key de
 
 **Tagline**
 
-Every opportunity organized.
+One Click. Every opportunity organized.
 
 **Category**
 
@@ -61,7 +61,7 @@ SUPPORT
 Questions, privacy requests or bug reports: hello@abodid.com
 Privacy policy: https://abodid.com/privacy
 
-Version 2.0.0 — Branded as Opportunity Tracker with clearer capture privacy information and more reliable error feedback.
+Version 2.0.0 — Branded as Opportunity Tracker with responsive display typography, clearer capture privacy information and more reliable error feedback.
 ```
 
 ## URLs and developer information
