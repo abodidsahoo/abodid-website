@@ -52,7 +52,7 @@ export const signInWithGoogle = async () => {
     }
 
     if (!webext.identity?.launchWebAuthFlow || !webext.identity?.getRedirectURL) {
-        throw new Error('This browser build requires the Safari native authentication bridge. Open One Click Opportunity Tracker to sign in.');
+        throw new Error('This browser build requires the Safari native authentication bridge. Open Opportunity Tracker to sign in.');
     }
 
     const redirectTo = webext.identity.getRedirectURL('supabase-auth');

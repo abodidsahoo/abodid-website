@@ -48,8 +48,8 @@ const showActionFeedback = async (text: string, color: string) => {
 webext.runtime.onInstalled.addListener(() => {
     void (async () => {
         await webext.contextMenus.removeAll();
-        webext.contextMenus.create({ id: 'save-opportunity-page', title: 'Save page to One Click Opportunity Tracker', contexts: ['page'] });
-        webext.contextMenus.create({ id: 'save-opportunity-link', title: 'Save link to One Click Opportunity Tracker', contexts: ['link'] });
+        webext.contextMenus.create({ id: 'save-opportunity-page', title: 'Save page to Opportunity Tracker', contexts: ['page'] });
+        webext.contextMenus.create({ id: 'save-opportunity-link', title: 'Save link to Opportunity Tracker', contexts: ['link'] });
     })().catch((error) => {
         console.warn('Opportunity context menus could not be created', error instanceof Error ? error.message : error);
     });

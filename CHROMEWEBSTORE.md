@@ -1,4 +1,4 @@
-# Chrome Web Store Listing — One Click Opportunity Tracker
+# Chrome Web Store Listing — Opportunity Tracker
 
 > Last updated: 2026-10-13
 >
@@ -12,7 +12,7 @@ This file is the source of truth for Chrome Web Store metadata, permission justi
 
 **Extension name**
 
-One Click Opportunity Tracker
+Opportunity Tracker
 
 **Short description — 127/132 characters**
 
@@ -20,7 +20,7 @@ Save open calls, residencies, fellowships, grants and jobs. AI summarizes key de
 
 **Tagline**
 
-One click. Every opportunity organized.
+Every opportunity organized.
 
 **Category**
 
@@ -40,15 +40,15 @@ Save opportunity pages to a private tracker that extracts and organizes the deta
 Save open calls, residencies, fellowships, grants and jobs to one organized private tracker.
 
 FEATURES
-• Capture the opportunity in your current tab with one click
+• Capture the opportunity in your current tab
 • Save a page or link from Chrome's right-click menu
 • Automatically summarize the opportunity, organisation, requirements and next action
 • Identify deadlines and other important dates
-• Open your private One Click Opportunity Tracker dashboard from the toolbar popup
+• Open your private Opportunity Tracker dashboard from the toolbar popup
 
 HOW TO USE
 1. Sign in with the same Google account you use on abodid.com.
-2. Open a public opportunity page and select Capture & Save, or right-click a page or link and choose Save to One Click Opportunity Tracker.
+2. Open a public opportunity page and select Capture & Save, or right-click a page or link and choose Save to Opportunity Tracker.
 3. Review and manage the saved opportunity in your dashboard.
 
 PRIVACY
@@ -61,7 +61,7 @@ SUPPORT
 Questions, privacy requests or bug reports: hello@abodid.com
 Privacy policy: https://abodid.com/privacy
 
-Version 2.0.0 — Rebranded as One Click Opportunity Tracker with clearer capture privacy information and more reliable error feedback.
+Version 2.0.0 — Branded as Opportunity Tracker with clearer capture privacy information and more reliable error feedback.
 ```
 
 ## URLs and developer information
@@ -102,7 +102,7 @@ These entries must match the built `extension/dist/chrome/manifest.json`, not on
 | `storage` | API permission | Stores the user's Supabase PKCE authentication session and refresh state in extension-local storage so sign-in persists across popup and service-worker restarts. It is not used for advertising, profiling or cross-device browsing-history sync. |
 | `contextMenus` | API permission | Adds “Save page” and “Save link” commands to Chrome's right-click menu so a user can deliberately send an opportunity to the same private tracker without first opening the popup. |
 | `identity` | API permission | Opens and completes the browser-controlled Google/Supabase OAuth flow using a `chromiumapp.org` redirect. This keeps the authorization result out of visited pages and is used only when the user selects Continue with Google. |
-| `https://abodid.com/*` | Host permission | Sends authenticated session checks and user-triggered opportunity captures to the One Click Opportunity Tracker API and opens the user's dashboard. No code is downloaded or executed from this origin. |
+| `https://abodid.com/*` | Host permission | Sends authenticated session checks and user-triggered opportunity captures to the Opportunity Tracker API and opens the user's dashboard. No code is downloaded or executed from this origin. |
 | `https://jwipqbjxpmgyevfzpjjx.supabase.co/*` | Host permission added at build time | Authenticates the user, refreshes the signed-in session and stores or retrieves that user's private tracker records through the configured Supabase project. Access is restricted by authenticated Row Level Security. |
 
 ### Permission minimization result
@@ -242,7 +242,7 @@ Chrome runtime test matrix:
 
 | Version | Date | Changes | Store status |
 |---|---|---|---|
-| 2.0.0 | 2026-10-13 | Rebranded as One Click Opportunity Tracker; added prominent capture disclosure, resilient popup errors, and visible context-menu failure feedback. | Draft |
+| 2.0.0 | 2026-10-13 | Branded as Opportunity Tracker; added prominent capture disclosure, resilient popup errors, and visible context-menu failure feedback. | Draft |
 
 ## Review notes
 

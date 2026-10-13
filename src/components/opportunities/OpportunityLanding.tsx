@@ -64,12 +64,12 @@ export default function OpportunityLanding() {
             <div className="opp-landing-card">
                 <div className="opp-landing-copy">
                     <h1 id="opportunities-title" className="opp-landing-brand">
-                        <span className="opp-landing-brand-title">One Click</span>
-                        <span className="opp-landing-brand-product">Opportunity Tracker</span>
+                        <span className="opp-landing-brand-title">Opportunity</span>
+                        <span className="opp-landing-brand-product">Tracker</span>
                         <span className="opp-landing-brand-by">by Abodid.</span>
                     </h1>
                     <div className="opp-landing-divider" aria-hidden="true" />
-                    <p className="opp-landing-promise">One click. Every opportunity organized.</p>
+                    <p className="opp-landing-promise">Every opportunity organized.</p>
                     <p className="opp-landing-promise-copy">Save open calls, residencies, fellowships, grants and jobs. AI automatically summarizes key details, identifies important dates and helps users stay on track.</p>
                 </div>
                 <div className="opp-landing-action">
@@ -84,7 +84,7 @@ export default function OpportunityLanding() {
                         <span aria-hidden="true">→</span>
                     </a>
                     {error && <p className="opp-auth-error" role="alert">{error}</p>}
-                    <small>AI-powered summaries, key dates and deadline tracking—in one click.</small>
+                    <small>AI-powered summaries, key dates and deadline tracking—all in one place.</small>
                 </div>
             </div>
         </section>
