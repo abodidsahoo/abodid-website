@@ -64,15 +64,16 @@ export default function OpportunityLanding() {
             <div className="opp-landing-card">
                 <div className="opp-landing-copy">
                     <h1 id="opportunities-title" className="opp-landing-brand">
-                        <span className="opp-landing-brand-title">NextUp</span>
+                        <span className="opp-landing-brand-title">One Click</span>
+                        <span className="opp-landing-brand-product">Opportunity Tracker</span>
                         <span className="opp-landing-brand-by">by Abodid.</span>
                     </h1>
                     <div className="opp-landing-divider" aria-hidden="true" />
-                    <p className="opp-landing-promise">Save it. Forget it.</p>
-                    <p className="opp-landing-promise-copy">We’ll make sure you don’t miss the application deadline!</p>
+                    <p className="opp-landing-promise">One click. Every opportunity organized.</p>
+                    <p className="opp-landing-promise-copy">Save open calls, residencies, fellowships, grants and jobs. AI automatically summarizes key details, identifies important dates and helps users stay on track.</p>
                 </div>
                 <div className="opp-landing-action">
-                    <span className="opp-landing-action-label">MAKE YOUR NEXT MOVE</span>
+                    <span className="opp-landing-action-label">ORGANIZE YOUR NEXT MOVE</span>
                     <button type="button" className="opp-google-signin" onClick={signIn} disabled={checking || signingIn}>
                         <span className="opp-google-mark" aria-hidden="true">G</span>
                         <span>{checking ? 'Checking your session…' : signingIn ? 'Opening Google…' : 'Continue with Google'}</span>
@@ -83,7 +84,7 @@ export default function OpportunityLanding() {
                         <span aria-hidden="true">→</span>
                     </a>
                     {error && <p className="opp-auth-error" role="alert">{error}</p>}
-                    <small>AI powered countdown timer for your NEXT big opportunity!</small>
+                    <small>AI-powered summaries, key dates and deadline tracking—in one click.</small>
                 </div>
             </div>
         </section>

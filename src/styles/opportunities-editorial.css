@@ -699,6 +699,13 @@ body.opportunities-editorial-page {
   letter-spacing: -0.07em;
 }
 
+.opp-landing-brand-product {
+  max-width: 10ch;
+  margin-top: 0.7rem;
+  font: 620 clamp(2.25rem, 4.2vw, 3.4rem)/0.9 var(--opp-font);
+  letter-spacing: -0.055em;
+}
+
 .opp-landing-brand-by {
   margin-top: 0.45rem;
   font: 350 clamp(1.35rem, 2.3vw, 2.1rem)/1.05 var(--opp-font);
@@ -926,6 +933,7 @@ body.opportunities-editorial-page {
   .opp-landing-card { box-shadow: 5px 5px 0 var(--opp-ink); }
   .opp-landing-copy { min-height: 300px; padding: 2rem 1.5rem; }
   .opp-landing-brand-title { font-size: clamp(3.4rem, 16vw, 4.8rem); line-height: 0.84; }
+  .opp-landing-brand-product { font-size: clamp(2.15rem, 10vw, 3rem); }
   .opp-landing-brand-by { font-size: clamp(1.2rem, 6vw, 1.7rem); }
   .opp-landing-action { padding: 1.5rem; }
   .opp-settings-shell { padding: 1rem; }

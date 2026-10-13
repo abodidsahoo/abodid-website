@@ -1,4 +1,4 @@
-# NextUp by Abodid WebExtension
+# One Click Opportunity Tracker WebExtension
 
 One shared TypeScript source powers the Chrome, Firefox, and Safari builds. The extension contains no curator passcode, OpenRouter key, service-role key, extraction prompt, or configurable backend URL. It authenticates with Supabase Google OAuth using PKCE and stores the resulting rotating session in extension-local storage.
 
@@ -54,7 +54,7 @@ Google's OAuth client continues to use the Supabase project callback URL; extens
    ```sh
    xcrun safari-web-extension-packager extension/dist/safari \
      --project-location extension/safari-xcode \
-     --app-name "NextUp by Abodid" \
+     --app-name "One Click Opportunity Tracker" \
      --bundle-identifier com.abodid.opportunities
    ```
 

@@ -41,8 +41,8 @@ const saveUrl = async (url: string, title = '', pageText = '') => {
 
 webext.runtime.onInstalled.addListener(() => {
     void webext.contextMenus.removeAll().then(() => {
-        webext.contextMenus.create({ id: 'save-opportunity-page', title: 'Save page to NextUp by Abodid', contexts: ['page'] });
-        webext.contextMenus.create({ id: 'save-opportunity-link', title: 'Save link to NextUp by Abodid', contexts: ['link'] });
+        webext.contextMenus.create({ id: 'save-opportunity-page', title: 'Save page to One Click Opportunity Tracker', contexts: ['page'] });
+        webext.contextMenus.create({ id: 'save-opportunity-link', title: 'Save link to One Click Opportunity Tracker', contexts: ['link'] });
     });
 });
 

@@ -87,7 +87,7 @@ export default function OpportunitySettings() {
             <section className="opp-settings-card">
                 <div className="opp-settings-heading">
                     <div>
-                        <span>NEXTUP BY ABODID · PROFILE & SHARING</span>
+                        <span>ONE CLICK OPPORTUNITY TRACKER · PROFILE & SHARING</span>
                         <h1>Collection settings</h1>
                     </div>
                 </div>
