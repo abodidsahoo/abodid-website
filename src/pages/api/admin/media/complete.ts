@@ -15,9 +15,8 @@ import {
     getR2ObjectBytes,
 } from "../../../../lib/media/r2";
 import {
-    canGenerateR2ImageVariants,
-    catalogueR2ImageVariants,
-} from "../../../../lib/media/imageVariants";
+    shouldUseVercelVariantProcessor,
+} from "../../../../lib/media/variantProcessor";
 
 const optionalDimension = (value: unknown) => {
     const parsed = Number(value);
@@ -119,10 +118,6 @@ export const POST: APIRoute = async ({ request }) => {
             etag: cleanEtag(object.ETag),
             created_by: authorization.user.id,
             ...(originProjectId ? { origin_project_id: originProjectId } : {}),
-            metadata: {
-                cacheControl: object.CacheControl || null,
-                lastModified: object.LastModified?.toISOString() || null,
-            },
         };
 
         const { data, error } = await authorization.supabase
@@ -149,8 +144,12 @@ export const POST: APIRoute = async ({ request }) => {
             );
         }
 
-        if (canGenerateR2ImageVariants(data.object_key, data.mime_type)) {
+        let asset = data;
+        // Cloudflare handles the normal path asynchronously from the R2 event.
+        // Downloading and resizing on Vercel is reserved for an explicit fallback.
+        if (shouldUseVercelVariantProcessor() && data.mime_type.startsWith("image/")) {
             const sourceBytes = await getR2ObjectBytes(data.object_key);
+            const { catalogueR2ImageVariants } = await import("../../../../lib/media/imageVariants");
             const variantResult = await catalogueR2ImageVariants({
                 supabase: authorization.supabase,
                 assetId: data.id,
@@ -165,13 +164,13 @@ export const POST: APIRoute = async ({ request }) => {
                     objectKey: data.object_key,
                 }, 502);
             }
+            const { data: processedData } = await authorization.supabase
+                .from("media_assets")
+                .select("*,media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)")
+                .eq("id", data.id)
+                .single();
+            asset = processedData || data;
         }
-        const { data: processedData } = await authorization.supabase
-            .from("media_assets")
-            .select("*,media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)")
-            .eq("id", data.id)
-            .single();
-        const asset = processedData || data;
 
         return jsonResponse({
             asset: {

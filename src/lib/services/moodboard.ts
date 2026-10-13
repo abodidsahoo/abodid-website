@@ -3,7 +3,7 @@ import { createSupabaseServiceClient } from '../supabaseServer';
 import {
     isMoodboardPaletteData,
     type MoodboardPaletteData,
-} from '../moodboard/palette';
+} from '../moodboard/paletteCore';
 import fs from 'node:fs';
 import path from 'node:path';
 

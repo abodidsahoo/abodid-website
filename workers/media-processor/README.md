@@ -13,6 +13,15 @@ The main moodboard uses the 800px record in the masonry grid and the 1600px
 record in the opened viewer, falling back to the original only while a variant
 is unavailable.
 
+Vercel upload routes only validate and catalogue the original. The R2
+notification queue is the authoritative resize and palette path, so uploads
+return without spending Vercel CPU on image decoding or the 800/1600
+transforms. For moodboard originals, Cloudflare creates a temporary 100x100 PNG
+in memory, extracts the palette, stores only the palette JSON in Supabase, and
+discards the sample. If Cloudflare processing is temporarily unavailable, set
+`MEDIA_VARIANT_PROCESSOR=vercel` on Vercel to restore the synchronous Sharp
+fallback; leave it unset for normal Cloudflare processing.
+
 The Worker requires two encrypted secrets:
 
 - `SUPABASE_URL`

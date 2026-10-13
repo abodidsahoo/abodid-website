@@ -15,10 +15,7 @@ import {
     normalizeR2FolderPath,
     putR2Object,
 } from "../../../../lib/media/r2";
-import { catalogueR2ImageVariants } from "../../../../lib/media/imageVariants";
-import { extractMoodboardPalette } from "../../../../lib/moodboard/palette";
-
-const MOODBOARD_R2_FOLDER = "photos/originals/moodboard";
+import { shouldUseVercelVariantProcessor } from "../../../../lib/media/variantProcessor";
 
 const optionalDimension = (value: unknown) => {
     const parsed = Number(value);
@@ -84,9 +81,6 @@ export const POST: APIRoute = async ({ request }) => {
         const config = getR2Config();
         const objectKey = await makeAvailableR2ObjectKey(folder, filename);
         const bytes = new Uint8Array(await file.arrayBuffer());
-        const palette = folder === MOODBOARD_R2_FOLDER
-            ? await extractMoodboardPalette(bytes)
-            : null;
         const uploaded = await putR2Object({
             objectKey,
             body: bytes,
@@ -122,9 +116,6 @@ export const POST: APIRoute = async ({ request }) => {
             etag: null,
             created_by: authorization.user.id,
             ...(originProjectId ? { origin_project_id: originProjectId } : {}),
-            metadata: {
-                lastModified: new Date().toISOString(),
-            },
         };
 
         const { data, error } = await authorization.supabase
@@ -154,33 +145,38 @@ export const POST: APIRoute = async ({ request }) => {
                     catalogued: false,
                     processingStatus: "uploaded",
                     processingError: null,
-                    palette,
                     variants: {},
                     createdAt: new Date().toISOString(),
                 },
             });
         }
 
-        const variantResult = await catalogueR2ImageVariants({
-            supabase: authorization.supabase,
-            assetId: data.id,
-            objectKey: data.object_key,
-            sourceBytes: bytes,
-            mimeType: data.mime_type,
-        });
-        if (variantResult.attempted && !variantResult.ready) {
-            return jsonResponse({
-                error: variantResult.error || "The original was uploaded, but its required variants could not be created.",
-                code: "MEDIA_VARIANTS_FAILED",
+        let asset = data;
+        // R2 object-create notifications normally hand resizing to Cloudflare.
+        // This branch is an explicit operational fallback, not the default path.
+        if (shouldUseVercelVariantProcessor() && data.mime_type.startsWith("image/")) {
+            const { catalogueR2ImageVariants } = await import("../../../../lib/media/imageVariants");
+            const variantResult = await catalogueR2ImageVariants({
+                supabase: authorization.supabase,
+                assetId: data.id,
                 objectKey: data.object_key,
-            }, 502);
+                sourceBytes: bytes,
+                mimeType: data.mime_type,
+            });
+            if (variantResult.attempted && !variantResult.ready) {
+                return jsonResponse({
+                    error: variantResult.error || "The original was uploaded, but its required variants could not be created.",
+                    code: "MEDIA_VARIANTS_FAILED",
+                    objectKey: data.object_key,
+                }, 502);
+            }
+            const { data: processedData } = await authorization.supabase
+                .from("media_assets")
+                .select("*,media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)")
+                .eq("id", data.id)
+                .single();
+            asset = processedData || data;
         }
-        const { data: processedData } = await authorization.supabase
-            .from("media_assets")
-            .select("*,media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)")
-            .eq("id", data.id)
-            .single();
-        const asset = processedData || data;
 
         return jsonResponse({
             asset: {
@@ -199,7 +195,6 @@ export const POST: APIRoute = async ({ request }) => {
                 catalogued: true,
                 processingStatus: asset.processing_status,
                 processingError: asset.processing_error,
-                palette,
                 variants: mapVariants(asset.media_variants, config),
                 createdAt: asset.created_at,
             },

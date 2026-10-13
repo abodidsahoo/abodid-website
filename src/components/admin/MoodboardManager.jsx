@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ArrowUpRight, Check, CornerDownLeft, Eye, EyeOff, Loader2, RotateCw, X } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { extractMoodboardPaletteInBrowser } from '../../lib/moodboard/paletteBrowser';
 import AdminPageHeader from './AdminPageHeader';
 
 const MOODBOARD_BUCKET = 'moodboard-assets';
@@ -225,7 +226,10 @@ export default function MoodboardManager({
                         throw new Error('Your admin session has expired. Sign in again before uploading.');
                     }
 
-                    const dimensions = await readImageDimensions(nextEntry.file);
+                    const [dimensions, palette] = await Promise.all([
+                        readImageDimensions(nextEntry.file),
+                        extractMoodboardPaletteInBrowser(nextEntry.file),
+                    ]);
 
                     const formData = new FormData();
                     formData.append('file', nextEntry.file);
@@ -262,7 +266,7 @@ export default function MoodboardManager({
                         published: true,
                         image_width: dimensions.width,
                         image_height: dimensions.height,
-                        palette: uploadedAsset.palette,
+                        palette,
                     };
 
                     const { data: insertedItem, error: insertError } = await supabase

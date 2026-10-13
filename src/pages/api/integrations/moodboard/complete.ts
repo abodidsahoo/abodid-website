@@ -1,20 +1,15 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import sharp from "sharp";
 import { jsonResponse } from "../../../../lib/admin/serverAuth";
 import {
     assertSafeR2ObjectKey,
     buildR2PublicUrl,
     deleteR2Objects,
-    getR2ObjectBytes,
     headR2Object,
 } from "../../../../lib/media/r2";
-import { catalogueR2ImageVariants } from "../../../../lib/media/imageVariants";
-import {
-    extractMoodboardPalette,
-    isMoodboardPaletteData,
-} from "../../../../lib/moodboard/palette";
+import { shouldUseVercelVariantProcessor } from "../../../../lib/media/variantProcessor";
+import { isMoodboardPaletteData } from "../../../../lib/moodboard/paletteCore";
 import {
     isAuthorizedMoodboardQuickActionRequest,
     MOODBOARD_QUICK_ACTION_FOLDER,
@@ -27,8 +22,6 @@ import {
     titleFromMoodboardFilename,
 } from "../../../../lib/moodboard/quickAction";
 import { createSupabaseServiceClient } from "../../../../lib/supabaseServer";
-
-export const maxDuration = 300;
 
 const cleanEtag = (value: string | undefined) =>
     value?.replace(/^"|"$/g, "") || null;
@@ -80,14 +73,6 @@ export const POST: APIRoute = async ({ request }) => {
             throw new Error("The uploaded image size did not match the selected file.");
         }
 
-        const bytes = await getR2ObjectBytes(uploadedObjectKey);
-        const metadata = await sharp(bytes, { animated: true }).metadata();
-        const dimensions = orientedImageDimensions(metadata);
-        if (!dimensions.width || !dimensions.height) {
-            throw new Error("The image dimensions could not be read.");
-        }
-        const palette = await extractMoodboardPalette(bytes);
-
         const publicUrl = buildR2PublicUrl(config, uploadedObjectKey);
         const storagePath = `${config.bucket}/${uploadedObjectKey}`;
         const titleValue = fields.title;
@@ -106,30 +91,45 @@ export const POST: APIRoute = async ({ request }) => {
                 original_filename: originalFilename,
                 mime_type: contentType,
                 file_size: fileSize,
-                width: dimensions.width,
-                height: dimensions.height,
                 etag: cleanEtag(object.ETag),
-                processing_status: "uploaded",
-                processing_error: null,
-                metadata: {
-                    cacheControl: object.CacheControl || null,
-                    capturedBy: "moodboard-quick-action",
-                },
             }, { onConflict: "storage_provider,storage_bucket,object_key" })
-            .select("id")
+            .select("id,processing_status,width,height,metadata")
             .single();
         if (mediaAssetError || !mediaAsset) throw mediaAssetError || new Error("Could not catalogue the image.");
         cataloguedMediaAssetId = mediaAsset.id;
+        const assetMetadata = mediaAsset.metadata && typeof mediaAsset.metadata === "object"
+            ? mediaAsset.metadata as Record<string, unknown>
+            : {};
+        let palette = isMoodboardPaletteData(assetMetadata.palette) ? assetMetadata.palette : null;
+        let imageWidth = Number(mediaAsset.width) || null;
+        let imageHeight = Number(mediaAsset.height) || null;
 
-        const variantResult = await catalogueR2ImageVariants({
-            supabase,
-            assetId: mediaAsset.id,
-            objectKey: uploadedObjectKey,
-            sourceBytes: bytes,
-            mimeType: contentType,
-        });
-        if (!variantResult.attempted || !variantResult.ready) {
-            throw new Error(variantResult.error || "The required 800px and 1600px variants could not be created.");
+        let variantsReady = mediaAsset.processing_status === "ready";
+        // The R2 event normally triggers the Cloudflare worker. Keep the former
+        // Vercel resize path available only when Cloudflare cannot be used.
+        if (shouldUseVercelVariantProcessor()) {
+            const { getR2ObjectBytes } = await import("../../../../lib/media/r2");
+            const bytes = await getR2ObjectBytes(uploadedObjectKey);
+            const [{ default: sharp }, { extractMoodboardPalette }] = await Promise.all([
+                import("sharp"),
+                import("../../../../lib/moodboard/palette"),
+            ]);
+            const dimensions = orientedImageDimensions(await sharp(bytes, { animated: true }).metadata());
+            imageWidth = dimensions.width;
+            imageHeight = dimensions.height;
+            palette = await extractMoodboardPalette(bytes);
+            const { catalogueR2ImageVariants } = await import("../../../../lib/media/imageVariants");
+            const variantResult = await catalogueR2ImageVariants({
+                supabase,
+                assetId: mediaAsset.id,
+                objectKey: uploadedObjectKey,
+                sourceBytes: bytes,
+                mimeType: contentType,
+            });
+            if (!variantResult.attempted || !variantResult.ready) {
+                throw new Error(variantResult.error || "The required 800px and 1600px variants could not be created.");
+            }
+            variantsReady = true;
         }
 
         const { data: existingItem, error: existingItemError } = await supabase
@@ -140,10 +140,14 @@ export const POST: APIRoute = async ({ request }) => {
         if (existingItemError) throw existingItemError;
         if (existingItem) {
             let completedItem = existingItem;
-            if (!isMoodboardPaletteData(existingItem.palette)) {
+            const repair: Record<string, unknown> = {};
+            if (palette && !isMoodboardPaletteData(existingItem.palette)) repair.palette = palette;
+            if (imageWidth && !existingItem.image_width) repair.image_width = imageWidth;
+            if (imageHeight && !existingItem.image_height) repair.image_height = imageHeight;
+            if (Object.keys(repair).length > 0) {
                 const { data: updatedItem, error: paletteError } = await supabase
                     .from("moodboard_items")
-                    .update({ palette })
+                    .update(repair)
                     .eq("id", existingItem.id)
                     .select(selection)
                     .single();
@@ -156,7 +160,8 @@ export const POST: APIRoute = async ({ request }) => {
                 publicUrl,
                 item: completedItem,
                 alreadyCompleted: true,
-                variantsReady: true,
+                variantsQueued: !variantsReady,
+                variantsReady,
             });
         }
 
@@ -168,8 +173,8 @@ export const POST: APIRoute = async ({ request }) => {
                 title: requestedTitle || titleFromMoodboardFilename(originalFilename),
                 tags: [],
                 published: true,
-                image_width: dimensions.width,
-                image_height: dimensions.height,
+                image_width: imageWidth,
+                image_height: imageHeight,
                 palette,
                 source_url: sourceUrl,
                 artist_name: artistName,
@@ -182,7 +187,8 @@ export const POST: APIRoute = async ({ request }) => {
             objectKey: uploadedObjectKey,
             publicUrl,
             item,
-            variantsReady: true,
+            variantsQueued: !variantsReady,
+            variantsReady,
         }, 201);
     } catch (error) {
         if (cataloguedMediaAssetId) {
