@@ -84,7 +84,11 @@ export default function OpportunityLanding() {
                         <span aria-hidden="true">→</span>
                     </a>
                     {error && <p className="opp-auth-error" role="alert">{error}</p>}
-                    <small>AI-powered summaries, key dates and deadline tracking—all in one place.</small>
+                    <small>
+                        One click AI-powered Opportunity and Deadline tracker.<br />
+                        Just Paste the Link. And done.<br />
+                        (Chrome Extension Coming Soon)
+                    </small>
                 </div>
             </div>
         </section>
