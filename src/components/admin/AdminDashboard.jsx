@@ -646,7 +646,7 @@ export default function AdminDashboard() {
         window.history.pushState({}, '', url);
     };
 
-    const handleLogout = async () => { await supabase.auth.signOut(); };
+    const handleLogout = async () => { await supabase.auth.signOut({ scope: 'local' }); };
 
     const handleAdminAccountSwitch = async () => {
         const destination = adminLoginHref(
@@ -655,7 +655,7 @@ export default function AdminDashboard() {
         );
         signOutDestinationRef.current = destination;
         setLoading(true);
-        await supabase.auth.signOut();
+        await supabase.auth.signOut({ scope: 'local' });
         window.location.replace(destination);
     };
 

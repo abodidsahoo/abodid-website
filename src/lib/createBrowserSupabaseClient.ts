@@ -1,0 +1,34 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+const hasSupabaseEnv = Boolean(supabaseUrl && supabaseAnonKey);
+
+const FALLBACK_SUPABASE_URL = 'https://placeholder.supabase.co';
+const FALLBACK_SUPABASE_ANON_KEY = 'placeholder-anon-key';
+
+if (!hasSupabaseEnv) {
+    console.warn(
+        '[supabase] Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_ANON_KEY. ' +
+        'Using a placeholder client so the app can keep rendering with graceful fallbacks.',
+    );
+}
+
+export const createBrowserSupabaseClient = (storageKey?: string) => createClient(
+    hasSupabaseEnv ? supabaseUrl : FALLBACK_SUPABASE_URL,
+    hasSupabaseEnv ? supabaseAnonKey : FALLBACK_SUPABASE_ANON_KEY,
+    {
+        auth: {
+            // Supabase stores the browser session and rotates refresh tokens.
+            // APIs still verify the short-lived access token on every request;
+            // local persistence is convenience, not the authorization boundary.
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            // Authorization codes and the verifier are exchanged by
+            // supabase-js; tokens are never returned in the callback URL.
+            flowType: 'pkce',
+            ...(storageKey ? { storageKey } : {}),
+        },
+    },
+);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
 import { OPPORTUNITY_RESERVED_USERNAMES, normalizeOpportunityUsername } from '../../lib/opportunities/username';
 
 type SettingsProfile = {

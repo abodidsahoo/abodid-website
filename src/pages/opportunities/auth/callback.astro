@@ -23,7 +23,7 @@ import '../../../styles/opportunities-editorial.css';
         </div>
     </main>
     <script>
-        import { supabase } from '../../../lib/supabase';
+        import { opportunitySupabase as supabase } from '../../../lib/opportunitySupabase';
 
         const status = document.getElementById('opportunity-auth-status');
         const retry = document.getElementById('opportunity-auth-retry') as HTMLAnchorElement | null;

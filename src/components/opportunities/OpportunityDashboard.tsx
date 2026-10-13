@@ -6,7 +6,7 @@ import { OpportunityCard } from './OpportunityCard';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
 import { EditOpportunityModal } from './EditOpportunityModal';
 import { ManualCreateModal } from './ManualCreateModal';
-import { supabase } from '../../lib/supabase';
+import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
 
 type UrgencyRailFilter = 'attention' | 'this_week' | 'this_month' | 'later' | 'all';
 
@@ -108,7 +108,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     const handleLogout = async () => {
         try {
-            await supabase.auth.signOut();
+            await supabase.auth.signOut({ scope: 'local' });
             window.location.assign('/opportunities');
         } catch {
             showToast('Logout failed');
