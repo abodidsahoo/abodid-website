@@ -13,8 +13,22 @@ const consumeLimit = async (
         p_limit: limit,
         p_window_seconds: windowSeconds,
     });
-    if (error || !data?.[0]) return { allowed: false, retryAfter: 60 };
-    return { allowed: Boolean(data[0].allowed), retryAfter: Number(data[0].retry_after_seconds) || 0 };
+    if (error || !data?.[0]) {
+        console.error('Opportunity rate-limit check failed', {
+            code: error?.code || 'MISSING_RESULT',
+            message: error?.message || 'The quota function returned no result',
+        });
+        return { allowed: false, retryAfter: 0, unavailable: true };
+    }
+
+    const allowed = Boolean(data[0].allowed);
+    return {
+        allowed,
+        // An allowed window can still report when it resets. That value must
+        // not inflate the retry time of a different, blocked window.
+        retryAfter: allowed ? 0 : Number(data[0].retry_after_seconds) || 60,
+        unavailable: false,
+    };
 };
 
 export const consumeOpportunityAiLimit = async (serviceClient: SupabaseClient, userId: string) => {
@@ -26,5 +40,6 @@ export const consumeOpportunityAiLimit = async (serviceClient: SupabaseClient, u
     return {
         allowed: minuteLimit.allowed && dailyLimit.allowed,
         retryAfter: Math.max(minuteLimit.retryAfter, dailyLimit.retryAfter),
+        unavailable: minuteLimit.unavailable || dailyLimit.unavailable,
     };
 };

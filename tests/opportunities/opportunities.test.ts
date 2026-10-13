@@ -21,6 +21,7 @@ import { opportunityToSavedInsert, savedRowToOpportunity } from '../../src/lib/o
 import { generateIcsFile, generateGoogleCalendarUrl } from '../../src/lib/opportunities/calendar';
 import { formatTimeRemaining } from '../../src/lib/opportunities/reminders';
 import { isOpportunityAttention, selectAttentionOpportunities } from '../../src/lib/opportunities/attention';
+import { normalizeOpportunityCaptureUrl, unwrapOpportunityRedirect } from '../../src/lib/opportunities/captureUrl';
 
 describe('Opportunity Assistant Core Functionality', () => {
     describe('Attention selection', () => {
@@ -57,6 +58,26 @@ describe('Opportunity Assistant Core Functionality', () => {
     });
 
     describe('URL Canonicalization & Deduplication', () => {
+        it('unwraps LinkedIn safety links before fetching or saving them', () => {
+            const wrapped = 'https://www.linkedin.com/safety/go?url=https%3A%2F%2Fexample.org%2Fgrant%2F%3Futm_source%3Dlinkedin&trk=flagship';
+
+            expect(unwrapOpportunityRedirect(wrapped)).toBe('https://example.org/grant/?utm_source=linkedin');
+            expect(normalizeOpportunityCaptureUrl(wrapped)).toEqual({
+                sourceUrl: 'https://example.org/grant/?utm_source=linkedin',
+                canonicalUrl: 'https://example.org/grant',
+            });
+        });
+
+        it('does not unwrap lookalike LinkedIn hosts', () => {
+            const lookalike = 'https://linkedin.com.example.org/safety/go?url=https%3A%2F%2Fexample.org%2Fgrant';
+            expect(unwrapOpportunityRedirect(lookalike)).toBe(lookalike);
+        });
+
+        it('rejects non-web protocols inside a safety redirect', () => {
+            const wrapped = 'https://www.linkedin.com/safety/go?url=javascript%3Aalert%281%29';
+            expect(() => unwrapOpportunityRedirect(wrapped)).toThrow('Unsupported URL protocol');
+        });
+
         it('strips tracking parameters and hashes', () => {
             const raw = 'https://example.com/jobs/creative-tech/?utm_source=twitter&utm_medium=social&ref=123#apply';
             const canonical = canonicalizeUrl(raw);

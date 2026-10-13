@@ -138,6 +138,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 });
             } else {
                 showToast(`❌ ${data.error || 'Failed to capture'}`);
+                if (data.can_manual_create) {
+                    setManualInitialUrl(data.canonical_url || captureUrl.trim());
+                    setIsManualModalOpen(true);
+                }
             }
         } catch (err: any) {
             showToast(`❌ Network error: ${err.message}`);

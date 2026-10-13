@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
 import {
-    canonicalizeCaptureUrl,
     computeContentHash,
     fetchWebpageContent,
     prioritizeOpportunityText,
@@ -16,6 +15,7 @@ import {
 } from '../../../lib/opportunities/saved';
 import type { Opportunity } from '../../../lib/opportunities/types';
 import { consumeOpportunityAiLimit } from '../../../lib/opportunities/rateLimit';
+import { normalizeOpportunityCaptureUrl } from '../../../lib/opportunities/captureUrl';
 
 export const prerender = false;
 
@@ -28,9 +28,10 @@ export const POST: APIRoute = async ({ request }) => {
         const url = typeof body.url === 'string' ? body.url.trim() : '';
         if (!url || url.length > 4096) return opportunityJson({ error: 'A valid URL is required' }, 400);
 
+        let sourceUrl: string;
         let canonicalUrl: string;
         try {
-            canonicalUrl = canonicalizeCaptureUrl(url);
+            ({ sourceUrl, canonicalUrl } = normalizeOpportunityCaptureUrl(url));
         } catch {
             return opportunityJson({ error: 'Enter a valid HTTP or HTTPS URL' }, 400);
         }
@@ -105,7 +106,18 @@ export const POST: APIRoute = async ({ request }) => {
         // actually needed; duplicates and curated cache hits remain free.
         const aiLimit = await consumeOpportunityAiLimit(authorization.serviceClient, authorization.user.id);
         if (!aiLimit.allowed) {
-            const response = opportunityJson({ error: 'Capture limit reached. Please try again later.' }, 429);
+            if (aiLimit.unavailable) {
+                return opportunityJson({
+                    error: 'Capture is temporarily unavailable. Please try again in a moment.',
+                    code: 'CAPTURE_QUOTA_UNAVAILABLE',
+                }, 503);
+            }
+
+            const retryMinutes = Math.max(1, Math.ceil(aiLimit.retryAfter / 60));
+            const response = opportunityJson({
+                error: `Capture limit reached. Try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+                retry_after: aiLimit.retryAfter,
+            }, 429);
             response.headers.set('Retry-After', String(aiLimit.retryAfter));
             return response;
         }
@@ -113,7 +125,7 @@ export const POST: APIRoute = async ({ request }) => {
         let extractedResult: Awaited<ReturnType<typeof extractOpportunityWithLLM>>;
         try {
             extractedResult = await extractOpportunityWithLLM(cleanText, pageTitle, {
-                sourceUrl: url,
+                sourceUrl,
                 capturedAt: typeof body.captured_at === 'string' ? body.captured_at : new Date().toISOString(),
                 timezone: typeof body.capture_timezone === 'string' ? body.capture_timezone : undefined,
             });
@@ -140,7 +152,7 @@ export const POST: APIRoute = async ({ request }) => {
             title: formatOpportunityTitle(extracted.title || pageTitle || 'Untitled Opportunity').slice(0, 240),
             organisation: extracted.organisation || 'Unknown Organisation',
             category: extracted.category || 'other',
-            source_url: url,
+            source_url: sourceUrl,
             canonical_url: canonicalUrl,
             deadline_at: deadline.deadline_at,
             deadline_raw: deadline.deadline_raw,

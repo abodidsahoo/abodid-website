@@ -25,7 +25,18 @@ export const POST: APIRoute = async ({ params, request }) => {
 
     const aiLimit = await consumeOpportunityAiLimit(authorization.serviceClient, authorization.user.id);
     if (!aiLimit.allowed) {
-        const response = opportunityJson({ error: 'Extraction limit reached. Please try again later.' }, 429);
+        if (aiLimit.unavailable) {
+            return opportunityJson({
+                error: 'Re-extraction is temporarily unavailable. Please try again in a moment.',
+                code: 'CAPTURE_QUOTA_UNAVAILABLE',
+            }, 503);
+        }
+
+        const retryMinutes = Math.max(1, Math.ceil(aiLimit.retryAfter / 60));
+        const response = opportunityJson({
+            error: `Extraction limit reached. Try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+            retry_after: aiLimit.retryAfter,
+        }, 429);
         response.headers.set('Retry-After', String(aiLimit.retryAfter));
         return response;
     }
