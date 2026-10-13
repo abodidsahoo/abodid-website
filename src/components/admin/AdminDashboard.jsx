@@ -405,16 +405,27 @@ export default function AdminDashboard() {
     }, [session?.access_token]);
 
     useEffect(() => {
-        if (!session || activeSection !== 'dashboard') return undefined;
+        const accessToken = session?.access_token;
+        if (!accessToken || activeSection !== 'dashboard') return undefined;
 
         const controller = new AbortController();
         setOpportunityFocus((current) => ({ ...current, loading: true, error: '' }));
 
-        fetch(`/api/opportunities?refresh=${Date.now()}`, {
-            cache: 'no-store',
-            signal: controller.signal,
-        })
-            .then(async (response) => {
+        const loadOpportunityFocus = async () => {
+            const requestOpportunities = (token) => fetch(`/api/opportunities?refresh=${Date.now()}`, {
+                cache: 'no-store',
+                headers: { Authorization: `Bearer ${token}` },
+                signal: controller.signal,
+            });
+
+            try {
+                let response = await requestOpportunities(accessToken);
+                if (response.status === 401) {
+                    const { data, error: refreshError } = await supabase.auth.refreshSession();
+                    const refreshedToken = data?.session?.access_token;
+                    if (!refreshError && refreshedToken) response = await requestOpportunities(refreshedToken);
+                }
+
                 const payload = await response.json().catch(() => ({}));
                 if (!response.ok) throw new Error(payload.error || 'Could not load opportunities.');
                 const attentionItems = selectAttentionOpportunities(payload.opportunities || [], Date.now());
@@ -424,14 +435,15 @@ export default function AdminDashboard() {
                     loading: false,
                     error: '',
                 });
-            })
-            .catch((error) => {
+            } catch (error) {
                 if (error.name === 'AbortError') return;
                 setOpportunityFocus({ items: [], total: 0, loading: false, error: error.message });
-            });
+            }
+        };
 
+        void loadOpportunityFocus();
         return () => controller.abort();
-    }, [activeSection, session]);
+    }, [activeSection, session?.access_token]);
 
     useEffect(() => {
         const accessToken = session?.access_token;
