@@ -69,7 +69,7 @@ Version 2.0.0 — Branded as Opportunity Tracker with personalized first-name gr
 | Field | Value | Status |
 |---|---|---|
 | Homepage URL | `https://abodid.com/opportunities` | Ready |
-| Privacy policy URL | `https://abodid.com/privacy` | Ready after the 2026-10-14 policy update is deployed and rechecked |
+| Privacy policy URL | `https://abodid.com/privacy` | Ready; 2026-10-14 identity and capture disclosures deployed and rechecked in production |
 | Support URL | `https://abodid.com/contact` | Ready |
 | Support email | `hello@abodid.com` | Confirm this inbox is monitored before submission |
 | Publisher name | Abodid Sahoo | Confirm it matches the Developer Dashboard account |
@@ -222,12 +222,12 @@ Chrome runtime test matrix:
 - [x] No remote code execution or runtime-loaded scripts.
 - [x] No secrets or privileged backend credentials in the extension package.
 - [x] Public privacy policy source now describes extension collection, providers, retention, deletion and Limited Use.
+- [x] The updated public privacy policy is deployed at `https://abodid.com/privacy` and was rechecked in production on 2026-10-14.
 - [x] User-triggered data collection is prominently disclosed inside the popup.
 - [x] Context-menu save actions provide visible success and failure feedback.
 
 ### Must complete before submission
 
-- [ ] Deploy the updated privacy policy and verify `https://abodid.com/privacy` is public, current and returns HTTP 200.
 - [ ] Restart Codex so the newly configured Chrome DevTools MCP server is loaded, enable remote debugging for the Chrome session, and use it for the remaining authenticated and restricted-page rows above. The equivalent Chrome Extensions DevTools-domain load, popup, manifest and worker checks already pass in Chrome 155.
 - [ ] Establish the production Chrome Web Store extension ID, then add `https://<extension-id>.chromiumapp.org/supabase-auth` to the Supabase redirect allow-list.
 - [ ] Complete a successful Google sign-in and sign-out test with the production/stable extension ID.
