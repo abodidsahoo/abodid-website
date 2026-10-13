@@ -21,6 +21,11 @@ const showError = (message: string) => {
     status.className = 'status-msg error';
 };
 
+const clearStatus = () => {
+    status.textContent = '';
+    status.className = 'status-msg';
+};
+
 const renderState = async () => {
     const response = await sendRuntimeMessage<any>({ type: 'AUTH_STATE' });
     const signedIn = Boolean(response?.ok && response.data?.signedIn);
@@ -29,70 +34,102 @@ const renderState = async () => {
     if (!signedIn) return;
 
     const profile = response.data.profile;
-    profileName.textContent = profile.display_name;
-    profileUsername.textContent = `@${profile.username}`;
+    profileName.textContent = profile?.display_name || 'Opportunity tracker';
+    profileUsername.textContent = profile?.username ? `@${profile.username}` : '';
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    activeTab = await getActiveTab();
-    if (activeTab?.url) {
-        pageTitle.textContent = activeTab.title || 'Untitled page';
-        pageUrl.textContent = activeTab.url;
-    } else {
-        pageTitle.textContent = 'This tab cannot be captured';
-        pageUrl.textContent = 'Open a normal webpage and try again.';
-        saveButton.disabled = true;
+    try {
+        activeTab = await getActiveTab();
+        if (activeTab?.url) {
+            pageTitle.textContent = activeTab.title || 'Untitled page';
+            pageUrl.textContent = activeTab.url;
+        } else {
+            pageTitle.textContent = 'This tab cannot be captured';
+            pageUrl.textContent = 'Open a normal webpage and try again.';
+            saveButton.disabled = true;
+        }
+        await renderState();
+    } catch (error) {
+        showError(error instanceof Error ? error.message : 'The extension could not start. Reopen it and try again.');
     }
-    await renderState();
 });
 
 signInButton.addEventListener('click', async () => {
     signInButton.disabled = true;
     signInButton.textContent = 'Opening Google…';
-    const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGIN' });
-    if (!response?.ok) showError(response?.error || 'Sign in failed');
-    if (response?.data?.pending) {
-        status.textContent = 'Finish Google sign-in in the Safari tab, then reopen this panel.';
-        status.className = 'status-msg';
+    clearStatus();
+    try {
+        const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGIN' });
+        if (!response?.ok) {
+            showError(response?.error || 'Sign in failed');
+            return;
+        }
+        if (response?.data?.pending) {
+            status.textContent = 'Finish Google sign-in in the Safari tab, then reopen this panel.';
+        }
+        await renderState();
+    } catch (error) {
+        showError(error instanceof Error ? error.message : 'Sign in failed');
+    } finally {
+        signInButton.disabled = false;
+        signInButton.textContent = 'Continue with Google →';
     }
-    await renderState();
-    signInButton.disabled = false;
-    signInButton.textContent = 'Continue with Google →';
 });
 
 logoutButton.addEventListener('click', async () => {
-    await sendRuntimeMessage({ type: 'AUTH_LOGOUT' });
-    await renderState();
+    clearStatus();
+    try {
+        const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGOUT' });
+        if (!response?.ok) throw new Error(response?.error || 'Log out failed');
+        await renderState();
+    } catch (error) {
+        showError(error instanceof Error ? error.message : 'Log out failed');
+    }
 });
 
-dashboardButton.addEventListener('click', () => sendRuntimeMessage({ type: 'OPEN_DASHBOARD' }));
+dashboardButton.addEventListener('click', async () => {
+    clearStatus();
+    try {
+        const response = await sendRuntimeMessage<any>({ type: 'OPEN_DASHBOARD' });
+        if (!response?.ok) throw new Error(response?.error || 'Dashboard could not be opened');
+    } catch (error) {
+        showError(error instanceof Error ? error.message : 'Dashboard could not be opened');
+    }
+});
 
 saveButton.addEventListener('click', async () => {
     if (!activeTab?.url) return;
     saveButton.disabled = true;
     saveButton.textContent = 'Extracting…';
-    status.textContent = '';
+    clearStatus();
     result.classList.add('hidden');
 
-    const response = await sendRuntimeMessage<any>({
-        type: 'CAPTURE_TAB',
-        tabId: activeTab.id,
-        url: activeTab.url,
-        title: activeTab.title || '',
-    });
+    try {
+        const response = await sendRuntimeMessage<any>({
+            type: 'CAPTURE_TAB',
+            tabId: activeTab.id,
+            url: activeTab.url,
+            title: activeTab.title || '',
+        });
 
-    if (!response?.ok) {
-        showError(response?.error || 'Opportunity could not be saved');
-        saveButton.disabled = false;
+        if (!response?.ok) {
+            showError(response?.error || 'Opportunity could not be saved');
+            saveButton.textContent = 'Try Again →';
+            return;
+        }
+
+        const opportunity = response.data.opportunity;
+        byId<HTMLSpanElement>('result-category').textContent = String(opportunity.category || 'other').replace('_', ' ');
+        byId<HTMLDivElement>('result-deadline').textContent = opportunity.deadline_at
+            ? new Date(opportunity.deadline_at).toLocaleString()
+            : opportunity.deadline_raw || 'No deadline found';
+        result.classList.remove('hidden');
+        saveButton.textContent = response.data.is_duplicate ? 'Already saved ✓' : 'Saved ✓';
+    } catch (error) {
+        showError(error instanceof Error ? error.message : 'Opportunity could not be saved');
         saveButton.textContent = 'Try Again →';
-        return;
+    } finally {
+        saveButton.disabled = false;
     }
-
-    const opportunity = response.data.opportunity;
-    byId<HTMLSpanElement>('result-category').textContent = String(opportunity.category || 'other').replace('_', ' ');
-    byId<HTMLDivElement>('result-deadline').textContent = opportunity.deadline_at
-        ? new Date(opportunity.deadline_at).toLocaleString()
-        : opportunity.deadline_raw || 'No deadline found';
-    result.classList.remove('hidden');
-    saveButton.textContent = response.data.is_duplicate ? 'Already saved ✓' : 'Saved ✓';
 });

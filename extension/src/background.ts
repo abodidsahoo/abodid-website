@@ -39,10 +39,19 @@ const saveUrl = async (url: string, title = '', pageText = '') => {
     return payload;
 };
 
+const showActionFeedback = async (text: string, color: string) => {
+    await webext.action?.setBadgeText({ text });
+    await webext.action?.setBadgeBackgroundColor({ color });
+    setTimeout(() => { void webext.action?.setBadgeText({ text: '' }); }, 2500);
+};
+
 webext.runtime.onInstalled.addListener(() => {
-    void webext.contextMenus.removeAll().then(() => {
+    void (async () => {
+        await webext.contextMenus.removeAll();
         webext.contextMenus.create({ id: 'save-opportunity-page', title: 'Save page to One Click Opportunity Tracker', contexts: ['page'] });
         webext.contextMenus.create({ id: 'save-opportunity-link', title: 'Save link to One Click Opportunity Tracker', contexts: ['link'] });
+    })().catch((error) => {
+        console.warn('Opportunity context menus could not be created', error instanceof Error ? error.message : error);
     });
 });
 
@@ -51,11 +60,10 @@ webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
     if (!url) return;
     try {
         await saveUrl(url, tab?.title || '');
-        await webext.action?.setBadgeText({ text: '✓' });
-        await webext.action?.setBadgeBackgroundColor({ color: '#caff48' });
-        setTimeout(() => { void webext.action?.setBadgeText({ text: '' }); }, 2500);
+        await showActionFeedback('✓', '#caff48');
     } catch (error) {
         console.warn('Context-menu opportunity save failed', error instanceof Error ? error.message : error);
+        await showActionFeedback('!', '#ff4d4d');
     }
 });
 
@@ -100,8 +108,13 @@ webext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (
         }
     };
 
-    void handle().then((data) => sendResponse({ ok: true, data })).catch((error) => {
-        sendResponse({ ok: false, error: error instanceof Error ? error.message : 'Extension request failed' });
-    });
+    void (async () => {
+        try {
+            const data = await handle();
+            sendResponse({ ok: true, data });
+        } catch (error) {
+            sendResponse({ ok: false, error: error instanceof Error ? error.message : 'Extension request failed' });
+        }
+    })();
     return true;
 });

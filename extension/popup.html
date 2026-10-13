@@ -46,7 +46,13 @@
       </div>
     </section>
 
-    <div id="status-msg" class="status-msg" role="status"></div>
+    <aside class="privacy-note" aria-label="Capture privacy information">
+      <strong>YOUR CHOICE, YOUR DATA</strong>
+      <span>Nothing is collected until you choose Capture &amp; Save. Then this page's URL, title and visible text are securely sent to abodid.com and its AI service only to extract and save the opportunity.</span>
+      <a href="https://abodid.com/privacy" target="_blank" rel="noreferrer">Privacy policy ↗</a>
+    </aside>
+
+    <div id="status-msg" class="status-msg" role="status" aria-live="polite" aria-atomic="true"></div>
   </main>
   <script type="module" src="/src/popup.ts"></script>
 </body>

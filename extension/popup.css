@@ -40,6 +40,9 @@ button { font: inherit; }
 .result-details > div { min-width: 0; display: grid; gap: 3px; }
 .result-details span { font-size: 0.65rem; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; }
 .result-details strong { overflow-wrap: anywhere; font-size: 0.78rem; line-height: 1.25; text-transform: capitalize; }
+.privacy-note { display: grid; gap: 5px; margin-top: 10px; padding: 10px 11px; border: 1px solid var(--ink); border-radius: 11px; background: var(--cream); color: var(--ink); font-size: 0.68rem; line-height: 1.35; }
+.privacy-note strong { font-size: 0.63rem; letter-spacing: 0.08em; }
+.privacy-note a { width: fit-content; color: var(--ink); font-weight: 800; text-underline-offset: 2px; }
 .status-msg { min-height: 20px; padding: 10px 4px 0; color: var(--cream); font-size: 0.75rem; line-height: 1.35; }
 .status-msg.error { color: #fff; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; transform: none !important; } }

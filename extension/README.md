@@ -20,6 +20,18 @@ Outputs:
 
 Source maps are disabled. Load the generated directory, not the `extension` source directory.
 
+## Chrome DevTools MCP
+
+The repository uses Google's `chrome-extensions` and `modern-web-guidance` skills under `.agents/skills/`. Codex is configured with the Chrome DevTools MCP server using extension tools and automatic connection:
+
+```sh
+codex mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest --categoryExtensions --autoConnect
+```
+
+Restart Codex after adding or changing the MCP entry. For an existing Chrome profile, open `chrome://inspect/#remote-debugging`, allow remote debugging for that browser session, then use the MCP extension tools to install `extension/dist/chrome`, trigger the toolbar action, inspect the popup and service worker, and reload the extension after code changes.
+
+Keep the root `CHROMEWEBSTORE.md` synchronized with manifest permissions, data handling, store copy, release evidence, and submission blockers whenever this extension changes.
+
 ## Supabase redirect allow-list
 
 Chrome and Firefox builds have a stable identity redirect. Obtain it from `identity.getRedirectURL('supabase-auth')` for the installed build and add the exact value to Supabase Auth → URL Configuration → Redirect URLs.
