@@ -845,6 +845,15 @@ body.opportunities-editorial-page {
 }
 
 .opp-landing-action > small { margin-top: 1rem; color: var(--opp-ink); font-weight: 650; }
+.opp-auth-disclosure {
+  margin: 0.9rem 0 0 !important;
+  color: var(--opp-ink) !important;
+  font-size: 0.76rem !important;
+  font-weight: 560;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.opp-auth-disclosure a { color: inherit; font-weight: 800; text-underline-offset: 2px; }
 .opp-auth-error { margin: 12px 0 0 !important; color: #7f1d1d; font-size: 0.9rem !important; }
 
 .opp-settings-shell {

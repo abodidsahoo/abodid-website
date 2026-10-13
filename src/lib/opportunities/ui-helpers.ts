@@ -1,6 +1,15 @@
 import type { Opportunity, OpportunityCategory, OpportunityStatus } from './types';
 
 /**
+ * Returns a compact first name for personalized tracker UI. The length limit
+ * keeps user-provided profile names from overwhelming responsive headings.
+ */
+export function getFirstName(displayName: string | null | undefined, fallback = 'there'): string {
+    const normalized = displayName?.trim().replace(/\s+/g, ' ') || '';
+    return normalized.split(' ')[0]?.slice(0, 40) || fallback;
+}
+
+/**
  * Formats deadline into prominent, human days remaining text.
  * e.g. "31 days left", "Tomorrow", "6 hours left", "Rolling deadline", "Past deadline"
  */

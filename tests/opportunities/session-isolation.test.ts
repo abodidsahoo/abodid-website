@@ -4,6 +4,19 @@ import { describe, expect, it } from 'vitest';
 const source = (path: string) => readFile(new URL(path, import.meta.url), 'utf8');
 
 describe('Opportunity authentication session isolation', () => {
+    it('requests only the basic Google identity scopes in the website and extension', async () => {
+        const [opportunityLanding, extensionAuth] = await Promise.all([
+            source('../../src/components/opportunities/OpportunityLanding.tsx'),
+            source('../../extension/src/auth.ts'),
+        ]);
+
+        for (const authSource of [opportunityLanding, extensionAuth]) {
+            expect(authSource).toContain("GOOGLE_IDENTITY_SCOPES = 'openid email profile'");
+            expect(authSource).toContain('scopes: GOOGLE_IDENTITY_SCOPES');
+            expect(authSource).not.toMatch(/scopes:\s*['"][^'"]*(gmail|calendar|drive|contacts)/i);
+        }
+    });
+
     it('uses a dedicated storage namespace at every opportunity auth entry point', async () => {
         const clientSource = await source('../../src/lib/opportunitySupabase.ts');
         expect(clientSource).toContain("OPPORTUNITY_AUTH_STORAGE_KEY = 'abodid-opportunities-auth'");

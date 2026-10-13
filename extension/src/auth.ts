@@ -7,6 +7,7 @@ declare const __APP_ORIGIN__: string;
 declare const __BROWSER_TARGET__: string;
 
 const SAFARI_STATE_KEY = 'opportunity-safari-oauth-state';
+const GOOGLE_IDENTITY_SCOPES = 'openid email profile';
 
 const extensionStorage = {
     getItem: async (key: string) => {
@@ -41,6 +42,7 @@ export const signInWithGoogle = async () => {
         const { data, error } = await extensionSupabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
+                scopes: GOOGLE_IDENTITY_SCOPES,
                 redirectTo: redirect.toString(),
                 skipBrowserRedirect: true,
                 queryParams: { prompt: 'select_account' },
@@ -59,6 +61,7 @@ export const signInWithGoogle = async () => {
     const { data, error } = await extensionSupabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
+            scopes: GOOGLE_IDENTITY_SCOPES,
             redirectTo,
             skipBrowserRedirect: true,
             queryParams: { prompt: 'select_account' },

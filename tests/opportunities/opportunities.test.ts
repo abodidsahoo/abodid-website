@@ -22,8 +22,21 @@ import { generateIcsFile, generateGoogleCalendarUrl } from '../../src/lib/opport
 import { formatTimeRemaining } from '../../src/lib/opportunities/reminders';
 import { isOpportunityAttention, selectAttentionOpportunities } from '../../src/lib/opportunities/attention';
 import { normalizeOpportunityCaptureUrl, unwrapOpportunityRedirect } from '../../src/lib/opportunities/captureUrl';
+import { getFirstName } from '../../src/lib/opportunities/ui-helpers';
 
 describe('Opportunity Assistant Core Functionality', () => {
+    describe('Profile personalization', () => {
+        it('uses only the first display-name token in the dashboard greeting', () => {
+            expect(getFirstName('  Yashaswinee Chandra  ')).toBe('Yashaswinee');
+            expect(getFirstName('Abodid')).toBe('Abodid');
+            expect(getFirstName('')).toBe('there');
+        });
+
+        it('limits user-provided names so responsive headings remain stable', () => {
+            expect(getFirstName('A'.repeat(80))).toHaveLength(40);
+        });
+    });
+
     describe('Attention selection', () => {
         const now = new Date('2026-09-24T00:00:00.000Z').getTime();
         const opportunity = (overrides: Partial<Opportunity> = {}) => ({

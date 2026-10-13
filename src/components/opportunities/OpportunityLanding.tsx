@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
 
+const GOOGLE_IDENTITY_SCOPES = 'openid email profile';
+
 const safeNextPath = () => {
     const candidate = new URLSearchParams(window.location.search).get('next');
     return candidate && candidate.startsWith('/opportunities/') && !candidate.startsWith('//')
@@ -49,6 +51,7 @@ export default function OpportunityLanding() {
         const { error: authError } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
+                scopes: GOOGLE_IDENTITY_SCOPES,
                 redirectTo: callback.toString(),
                 queryParams: { prompt: 'select_account' },
             },
@@ -84,6 +87,9 @@ export default function OpportunityLanding() {
                         <span aria-hidden="true">→</span>
                     </a>
                     {error && <p className="opp-auth-error" role="alert">{error}</p>}
+                    <p className="opp-auth-disclosure">
+                        Google sign-in shares your name, email and profile photo so we can create and personalize your tracker account. We do not request access to Gmail, Drive, Calendar or Contacts. <a href="/privacy">Privacy details</a>.
+                    </p>
                     <small>
                         AI-powered Opportunity and Deadline tracker.<br />
                         Just Paste the Link. And done.<br />

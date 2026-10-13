@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Opportunity, OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
-import { formatCategoryTitle } from '../../lib/opportunities/ui-helpers';
+import { formatCategoryTitle, getFirstName } from '../../lib/opportunities/ui-helpers';
 import { isOpportunityAttention, opportunityAttentionScore } from '../../lib/opportunities/attention';
 import { OpportunityCard } from './OpportunityCard';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
@@ -356,6 +356,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     const collectionOwnerName = collectionProfile?.display_name || username;
     const collectionTitle = `${collectionOwnerName.charAt(0).toUpperCase()}${collectionOwnerName.slice(1)}'s Opportunities`;
+    const viewerFirstName = getFirstName(viewerProfile?.display_name || viewerProfile?.username || username);
 
     return (
         <div className="opportunities-shell">
@@ -366,7 +367,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         <div className="opp-hero-branding">
                             <span className="opp-hero-eyebrow">OPPORTUNITY TRACKER</span>
                             <h1 className="opp-hero-title">
-                                {isOwner ? 'My Opportunities' : collectionTitle}
+                                {isOwner ? `Hi, ${viewerFirstName}.` : collectionTitle}
                             </h1>
                             <p className="opp-hero-tagline">
                                 {isOwner ? 'One Click. Every opportunity organized.' : 'An organized, shared opportunity collection.'}

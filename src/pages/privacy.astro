@@ -15,7 +15,7 @@ const structuredData = [
   ]),
 ];
 
-const lastUpdatedDate = "13 October 2026";
+const lastUpdatedDate = "14 October 2026";
 ---
 
 <BaseLayout
@@ -99,7 +99,7 @@ const lastUpdatedDate = "13 October 2026";
             <div class="privacy-item__index">1.0</div>
             <div class="privacy-item__content">
               <h3>Information Collected &amp; How It Is Used</h3>
-              <p>We only collect information that you knowingly and voluntarily provide:</p>
+              <p>We only collect information that you provide directly or authorize through a clear action:</p>
               <ul class="privacy-list">
                 <li>
                   <strong>Newsletter &amp; Reading Digest:</strong> When you subscribe, we collect your email address solely to deliver new essays, research notes, and studio dispatches. Powered via Resend with secure tokenized storage.
@@ -111,7 +111,10 @@ const lastUpdatedDate = "13 October 2026";
                   <strong>Interactive Experiments (e.g., Punctum / Vault):</strong> Exploratory interactions run locally in your browser or through stateless API endpoints. Text or image prompts submitted to AI experiments are not used to train proprietary surveillance models.
                 </li>
                 <li>
-                  <strong>Opportunity Tracker:</strong> When you choose Capture &amp; Save, the extension sends the current page URL, page title, visible page text, capture time, and browser timezone to abodid.com to identify and save opportunity details. Your Google account email, display name, username, and authentication session are used to sign you in and keep your private collection separate. No page is read or transmitted until you take the capture action.
+                  <strong>Opportunity Tracker sign-in:</strong> When you choose Continue with Google, Google shares only the basic identity information authorized by the <code>openid</code>, <code>email</code>, and <code>profile</code> scopes: your Google account identifier, primary email address, display name, and profile photo. These details are used to create your private account, show your first name and profile image in the tracker, and associate saved opportunities with you. Opportunity Tracker does not request access to Gmail, Drive, Calendar, Contacts, or your Google password.
+                </li>
+                <li>
+                  <strong>Opportunity capture:</strong> When you choose Capture &amp; Save, the extension sends the current page URL, page title, visible page text, capture time, and browser timezone to abodid.com to identify and save opportunity details. No page is read or transmitted until you take the capture action.
                 </li>
               </ul>
             </div>
@@ -146,6 +149,9 @@ const lastUpdatedDate = "13 October 2026";
                 For Opportunity Tracker, Google provides account sign-in, Supabase provides authentication and database storage, Vercel hosts the application endpoints, and OpenRouter processes the page text needed to extract opportunity details. Raw captured page text is processed for extraction and is not stored in the saved opportunity record; the derived title, organisation, dates, summary, requirements, links, and related fields are stored for the tracker. Data is not used for advertising, creditworthiness, or purposes unrelated to the tracker.
               </p>
               <p>
+                Basic Google profile details are not used to read or access other Google services. They are retained with the tracker account until the account is deleted or an erasure request is completed. Signing out removes the local session but does not delete the account or its saved opportunities.
+              </p>
+              <p>
                 The use of information received from Google APIs adheres to the Chrome Web Store User Data Policy, including the Limited Use requirements.
               </p>
             </div>
@@ -159,7 +165,7 @@ const lastUpdatedDate = "13 October 2026";
               <p>Under UK GDPR, European GDPR, and international privacy standards, you hold full rights over your data:</p>
               <ul class="privacy-list">
                 <li><strong>Right to Access:</strong> You may request a summary of any personal information held about you.</li>
-                <li><strong>Right to Erasure:</strong> You can request complete and permanent deletion of your email address and communication history at any time.</li>
+                <li><strong>Right to Erasure:</strong> You can request complete and permanent deletion of your email address, Google profile details, tracker account, saved opportunities, and communication history at any time.</li>
                 <li><strong>Right to Unsubscribe:</strong> Every automated email sent includes a direct, one-click unsubscribe link.</li>
               </ul>
             </div>
