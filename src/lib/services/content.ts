@@ -244,19 +244,26 @@ export async function getRecentPosts(): Promise<BlogPost[]> {
 }
 
 export async function getAllPosts(): Promise<BlogPost[]> {
-    // Basic mapping for mockPosts
+    // Listing consumers only need summary fields. Keep article bodies on detail routes.
     const mappedMock = mockPosts.map((p: any) => ({
-        ...p,
+        title: p.title,
+        slug: p.slug || String(p.href || '').replace(/^\/blog\//, ''),
+        href: p.href,
+        image: p.image,
+        category: Array.isArray(p.category) ? p.category : [p.category].filter(Boolean),
+        tags: p.tags || [],
         pubDate: new Date(p.date),
-        description: p.title,
-        published_at: new Date(p.date).toISOString()
+        date: p.date,
+        description: p.description || p.title,
+        published: true,
+        published_at: new Date(p.date).toISOString(),
     }));
 
     if (!isSupabaseConfigured() || !supabase) return mappedMock as unknown as BlogPost[];
 
     const { data, error } = await supabase
         .from('blog')
-        .select('*')
+        .select('title,slug,published_at,tags,cover_image,category,excerpt,published,sort_order')
         .eq('published', true)
         .order('sort_order', { ascending: true })
         .order('published_at', { ascending: false });
@@ -275,8 +282,7 @@ export async function getAllPosts(): Promise<BlogPost[]> {
         slug: post.slug,
         published: post.published,
         published_at: post.published_at,
-        blocks: post.blocks,
-        content: post.content
+        sort_order: post.sort_order,
     } as BlogPost));
 }
 

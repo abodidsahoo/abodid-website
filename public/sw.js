@@ -1,5 +1,5 @@
 // Abodid Sahoo — PWA Service Worker
-const CACHE_VERSION = 'abodid-pwa-v1';
+const CACHE_VERSION = 'abodid-pwa-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -96,9 +96,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategy B: Static Build Assets (_astro, styles, scripts, fonts, icons) -> Stale While Revalidate
+  // Strategy B: Hashed build assets are immutable, so a cache hit never needs
+  // a competing background revalidation request.
+  if (url.pathname.startsWith('/_astro/')) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return networkResponse;
+        });
+      })
+    );
+    return;
+  }
+
+  // Strategy C: Other static assets -> Stale While Revalidate
   const isStaticAsset =
-    url.pathname.startsWith('/_astro/') ||
     url.pathname.startsWith('/icons/') ||
     url.pathname.startsWith('/fonts/') ||
     url.pathname.startsWith('/styles/') ||
@@ -128,7 +147,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategy C: Default -> Network with Cache Fallback
+  // Strategy D: Default -> Network with Cache Fallback
   event.respondWith(
     fetch(request)
       .then((networkResponse) => {

@@ -163,7 +163,8 @@ const FilmsFilter = ({ items }) => {
                                         sizes="(max-width: 768px) 100vw, 50vw"
                                         alt={film.title || 'Film thumbnail'}
                                         className="thumbnail"
-                                        loading="lazy"
+                                        loading={index < 2 ? 'eager' : 'lazy'}
+                                        fetchpriority={index === 0 ? 'high' : 'auto'}
                                     />
                                 ) : (
                                     <div className="thumbnail-placeholder">

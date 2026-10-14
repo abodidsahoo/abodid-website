@@ -2,6 +2,20 @@ import { supabase } from '../supabaseClient';
 import { isSupabaseConfigured } from './utils';
 import type { MediaMention, Award, Education, TimelineCard, CV, PageMetadata } from './types';
 
+const PAGE_METADATA_CACHE_TTL_MS = 5 * 60 * 1000;
+const pageMetadataCache = new Map<string, { value: PageMetadata | null; expiresAt: number }>();
+const pageMetadataRequests = new Map<string, Promise<PageMetadata | null>>();
+
+const clearPageMetadataCache = (pagePath?: string) => {
+    if (pagePath) {
+        pageMetadataCache.delete(pagePath);
+        pageMetadataRequests.delete(pagePath);
+        return;
+    }
+    pageMetadataCache.clear();
+    pageMetadataRequests.clear();
+};
+
 const defaultAwards: Award[] = [
     {
         title: 'Apple Scholarship',
@@ -284,20 +298,36 @@ export async function getPageMetadata(pagePath: string): Promise<PageMetadata | 
         return null;
     }
 
-    const { data, error } = await supabase
-        .from('page_metadata')
-        .select('*')
-        .eq('page_path', pagePath)
-        .eq('is_active', true)
-        .maybeSingle();
-
-    if (error) {
-        // It's common to not find metadata for every page, so silent fail or debug log
-        // console.debug(`No metadata found for ${pagePath}`);
-        return null;
+    const cached = pageMetadataCache.get(pagePath);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.value;
     }
 
-    return data as PageMetadata;
+    const pending = pageMetadataRequests.get(pagePath);
+    if (pending) return pending;
+
+    const request = (async () => {
+        const { data, error } = await supabase
+            .from('page_metadata')
+            .select('*')
+            .eq('page_path', pagePath)
+            .eq('is_active', true)
+            .maybeSingle();
+
+        if (error) return null;
+
+        const value = data as PageMetadata | null;
+        pageMetadataCache.set(pagePath, {
+            value,
+            expiresAt: Date.now() + PAGE_METADATA_CACHE_TTL_MS,
+        });
+        return value;
+    })().finally(() => {
+        pageMetadataRequests.delete(pagePath);
+    });
+
+    pageMetadataRequests.set(pagePath, request);
+    return request;
 }
 
 export async function getAllPageMetadata(): Promise<PageMetadata[]> {
@@ -327,6 +357,7 @@ export async function updatePageMetadata(pagePath: string, updates: Partial<Page
         console.error(`Error updating metadata for ${pagePath}:`, error);
         return false;
     }
+    clearPageMetadataCache(pagePath);
     return true;
 }
 
@@ -341,6 +372,7 @@ export async function createPageMetadata(metadata: PageMetadata): Promise<boolea
         console.error(`Error creating metadata for ${metadata.page_path}:`, error);
         return false;
     }
+    clearPageMetadataCache(metadata.page_path);
     return true;
 }
 
@@ -356,5 +388,6 @@ export async function deletePageMetadata(id: string): Promise<boolean> {
         console.error(`Error deleting metadata ${id}:`, error);
         return false;
     }
+    clearPageMetadataCache();
     return true;
 }

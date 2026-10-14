@@ -24,34 +24,6 @@ const BlogFilter = ({ posts = [], initialTag = 'All' }) => {
         };
         window.addEventListener('popstate', handlePopState);
 
-        // ⚡ Early background preloading of blog posts (both JSON data and HTML document prefetch)
-        window.__PRELOADED_POSTS__ = window.__PRELOADED_POSTS__ || {};
-        posts.forEach((post) => {
-            const rawSlug = post.slug || (post.href ? post.href.replace('/blog/', '').replace(/\/$/, '') : '');
-            if (!rawSlug) return;
-            const cleanSlug = decodeURIComponent(rawSlug);
-
-            // Prefetch JSON payload
-            if (!window.__PRELOADED_POSTS__[cleanSlug]) {
-                fetch(`/api/blog-post.json?slug=${encodeURIComponent(cleanSlug)}`, { priority: 'low' })
-                    .then((res) => res.json())
-                    .then((data) => {
-                        if (data && data.post) {
-                            window.__PRELOADED_POSTS__[cleanSlug] = data;
-                        }
-                    })
-                    .catch(() => {});
-            }
-
-            // Prefetch HTML page document for instant browser navigation
-            if (post.href && !document.querySelector(`link[rel="prefetch"][href="${post.href}"]`)) {
-                const link = document.createElement('link');
-                link.rel = 'prefetch';
-                link.href = post.href;
-                document.head.appendChild(link);
-            }
-        });
-
         return () => window.removeEventListener('popstate', handlePopState);
     }, [posts]);
 
@@ -78,23 +50,6 @@ const BlogFilter = ({ posts = [], initialTag = 'All' }) => {
         window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
     };
 
-    const preloadSinglePost = (post) => {
-        const rawSlug = post.slug || (post.href ? post.href.replace('/blog/', '').replace(/\/$/, '') : '');
-        if (!rawSlug) return;
-        const cleanSlug = decodeURIComponent(rawSlug);
-        window.__PRELOADED_POSTS__ = window.__PRELOADED_POSTS__ || {};
-        if (window.__PRELOADED_POSTS__[cleanSlug]) return;
-
-        fetch(`/api/blog-post.json?slug=${encodeURIComponent(cleanSlug)}`)
-            .then((res) => res.json())
-            .then((data) => {
-                if (data && data.post) {
-                    window.__PRELOADED_POSTS__[cleanSlug] = data;
-                }
-            })
-            .catch(() => {});
-    };
-
     return (
         <section className="blog-archive" aria-label="Browse articles">
             <div className="blog-topics" role="group" aria-labelledby="blog-topics-label">
@@ -112,6 +67,9 @@ const BlogFilter = ({ posts = [], initialTag = 'All' }) => {
                             data-count={count}
                         >
                             <span>{label}</span>
+                            <span className="blog-topic__count" aria-hidden="true">
+                                {String(count).padStart(2, '0')}
+                            </span>
                         </button>
                     ))}
                 </div>
@@ -139,8 +97,7 @@ const BlogFilter = ({ posts = [], initialTag = 'All' }) => {
                                 <a
                                     href={post.href}
                                     className="blog-post-card"
-                                    onMouseEnter={() => preloadSinglePost(post)}
-                                    onTouchStart={() => preloadSinglePost(post)}
+                                    data-astro-prefetch="hover"
                                     aria-labelledby={`blog-title-${index}`}
                                 >
                                     <div className="blog-card-image">
@@ -160,7 +117,12 @@ const BlogFilter = ({ posts = [], initialTag = 'All' }) => {
                                         </div>
                                         <div className="blog-card-footer">
                                             <div className="blog-card-category" aria-label="Article categories">
-                                                {postCategories.map((category) => <span className="blog-card-tag" key={category}>{category}</span>)}
+                                                {postCategories.map((category, categoryIndex) => (
+                                                    <React.Fragment key={category}>
+                                                        {categoryIndex > 0 && <span className="blog-card-category__separator" aria-hidden="true"> · </span>}
+                                                        <span className="blog-card-tag">{category}</span>
+                                                    </React.Fragment>
+                                                ))}
                                             </div>
                                             {date.label && <time className="blog-card-date" dateTime={date.iso}>{date.label}</time>}
                                         </div>

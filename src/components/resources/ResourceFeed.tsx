@@ -85,7 +85,9 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
     const [query, setQuery] = useState(initialQuery);
     const [audience, setAudience] = useState(initialAudience);
 
-    // Fetch fresh data on mount to catch updates
+    // Fetch immediately when the static shell has no data. If server/build data
+    // is already present, refresh during idle time so it does not compete with
+    // the initial render.
     useEffect(() => {
         const fetchFresh = async () => {
             try {
@@ -98,7 +100,19 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
                 console.error("Failed to refresh feed:", e);
             }
         };
-        fetchFresh();
+
+        if (initialResources.length === 0) {
+            fetchFresh();
+            return;
+        }
+
+        if ('requestIdleCallback' in window) {
+            const handle = window.requestIdleCallback(fetchFresh, { timeout: 2000 });
+            return () => window.cancelIdleCallback(handle);
+        }
+
+        const timeout = globalThis.setTimeout(fetchFresh, 500);
+        return () => globalThis.clearTimeout(timeout);
     }, []);
 
     // Client-Side Filter Logic (Instant)

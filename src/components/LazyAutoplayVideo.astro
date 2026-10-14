@@ -1,0 +1,109 @@
+---
+interface Props {
+  src: string;
+  label: string;
+  width?: number;
+  height?: number;
+}
+
+const {
+  src,
+  label,
+  width = 1600,
+  height = 900,
+} = Astro.props;
+// Native lazy loading for media is newer than Astro's current HTML typings.
+// The IntersectionObserver below remains the cross-browser bandwidth fallback.
+const lazyMediaAttributes = { loading: "lazy" } as any;
+---
+
+<video
+  {...lazyMediaAttributes}
+  data-lazy-autoplay-video
+  data-src={src}
+  preload="none"
+  muted
+  loop
+  playsinline
+  width={width}
+  height={height}
+  aria-label={label}
+></video>
+<noscript>
+  <video
+    src={src}
+    preload="metadata"
+    muted
+    loop
+    playsinline
+    controls
+    width={width}
+    height={height}
+    aria-label={label}
+  ></video>
+</noscript>
+
+<script>
+  let lazyVideoObserver: IntersectionObserver | null = null;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const loadVideo = (video: HTMLVideoElement) => {
+    if (!video.src && video.dataset.src) {
+      video.src = video.dataset.src;
+      delete video.dataset.src;
+      video.preload = "metadata";
+      video.load();
+    }
+
+    if (reducedMotion.matches) {
+      video.pause();
+      return;
+    }
+
+    const play = () => video.play().catch(() => {});
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      play();
+    } else {
+      video.addEventListener("canplay", play, { once: true });
+    }
+  };
+
+  const initialiseLazyVideos = () => {
+    lazyVideoObserver?.disconnect();
+
+    const videos = Array.from(
+      document.querySelectorAll<HTMLVideoElement>("video[data-lazy-autoplay-video]"),
+    );
+    if (videos.length === 0) return;
+
+    if (!("IntersectionObserver" in window)) {
+      videos.forEach(loadVideo);
+      return;
+    }
+
+    lazyVideoObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting) {
+            loadVideo(video);
+          } else if (!video.paused) {
+            video.pause();
+          }
+        });
+      },
+      { rootMargin: "100px 0px", threshold: 0.01 },
+    );
+
+    videos.forEach((video) => lazyVideoObserver?.observe(video));
+  };
+
+  reducedMotion.addEventListener("change", initialiseLazyVideos);
+  document.addEventListener("astro:page-load", initialiseLazyVideos);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialiseLazyVideos, { once: true });
+  } else {
+    initialiseLazyVideos();
+  }
+</script>

@@ -5,14 +5,15 @@ import LabExperimentCards from "../../components/lab/LabExperimentCards.astro";
 
 export const prerender = false;
 
-// Lab cards are managed independently in the admin, so keep the edge cache short.
+// Lab cards are managed independently in the admin. Serve a five-minute fresh
+// response and keep the last good response available while it revalidates.
 Astro.response.headers.set(
   "Cache-Control",
-  "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
+  "public, max-age=0, s-maxage=300, stale-while-revalidate=86400",
 );
 Astro.response.headers.set(
   "Vercel-CDN-Cache-Control",
-  "s-maxage=60, stale-while-revalidate=300",
+  "s-maxage=300, stale-while-revalidate=86400",
 );
 ---
 

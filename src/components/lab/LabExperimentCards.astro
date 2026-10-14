@@ -1,5 +1,6 @@
 ---
 import HeroVaultTagsCard from "../HeroVaultTagsCard";
+import LazyAutoplayVideo from "../LazyAutoplayVideo.astro";
 import { getLabExperiments } from "../../data/labExperiments";
 import { labUrl } from "../../lib/labRoutes.js";
 
@@ -48,14 +49,11 @@ const labExperiments = await getLabExperiments();
                     ariaLabel={`Interactive preview of ${experiment.title}`}
                   />
                 ) : experiment.video || experiment.thumbnail?.endsWith(".mp4") ? (
-                  <video
+                  <LazyAutoplayVideo
                     src={experiment.video || experiment.thumbnail}
-                    autoplay
-                    muted
-                    loop
-                    playsinline
-                    preload="auto"
-                    aria-label={experiment.thumbnailAlt}
+                    label={experiment.thumbnailAlt}
+                    width={1600}
+                    height={950}
                   />
                 ) : (
                   <img
@@ -89,39 +87,6 @@ const labExperiments = await getLabExperiments();
     <p class="lab-catalogue__empty">Lab projects are temporarily unavailable.</p>
   )}
 </section>
-
-<script>
-  const ensureVideosPlay = () => {
-    document.querySelectorAll<HTMLVideoElement>(".lab-card__media video[autoplay]").forEach((video) => {
-      const playVideo = () => {
-        if (video.paused) video.play().catch(() => {});
-      };
-
-      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-        playVideo();
-      } else {
-        video.addEventListener("canplay", playVideo, { once: true });
-        if (video.readyState === HTMLMediaElement.HAVE_NOTHING) video.load();
-      }
-
-      if (video.dataset.viewportPlaybackReady !== "true") {
-        video.dataset.viewportPlaybackReady = "true";
-        const observer = new IntersectionObserver((entries) => {
-          if (entries.some((entry) => entry.isIntersecting)) playVideo();
-        }, { threshold: 0.1 });
-        observer.observe(video);
-      }
-    });
-  };
-
-  document.addEventListener("astro:page-load", ensureVideosPlay);
-  window.addEventListener("pageshow", ensureVideosPlay);
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", ensureVideosPlay, { once: true });
-  } else {
-    ensureVideosPlay();
-  }
-</script>
 
 <style>
   .lab-catalogue {

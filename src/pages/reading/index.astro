@@ -13,8 +13,14 @@ let feedError = "";
 let feed;
 try {
   feed = await getPublicReadingFeed({ topic: initialTag || null, includeTopics: true });
-  Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=45");
-  Astro.response.headers.set("Vercel-CDN-Cache-Control", "s-maxage=45");
+  Astro.response.headers.set(
+    "Cache-Control",
+    "public, max-age=0, s-maxage=300, stale-while-revalidate=86400",
+  );
+  Astro.response.headers.set(
+    "Vercel-CDN-Cache-Control",
+    "s-maxage=300, stale-while-revalidate=86400",
+  );
 } catch (error) {
   feedError = "The reading file is temporarily unavailable. Please try again shortly.";
   console.error("Reading feed unavailable:", error);

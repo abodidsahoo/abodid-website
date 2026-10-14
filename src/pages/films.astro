@@ -21,9 +21,6 @@ const films = await getFilms();
   showCursorFollower={false}
   bodyClass="films-moodboard-page"
 >
-  <!-- Plyr CSS -->
-  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-
   <main class="films-shell">
     <article class="films-file">
       <header class="films-heading">
@@ -74,20 +71,60 @@ const films = await getFilms();
         </svg>
       </button>
       <div class="plyr__video-embed" id="player">
-        <iframe src="" allowfullscreen allowtransparency allow="autoplay"
+        <iframe title="Film player" allowfullscreen allowtransparency allow="autoplay"
         ></iframe>
       </div>
     </div>
   </div>
 
-  <!-- Plyr JS -->
-  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js" is:inline></script>
-
   <script is:inline>
     let player = null;
+    let playerAssetsPromise = null;
+    let openRequest = 0;
 
-    window.openVideo = function openVideo(url, provider) {
+    function loadPlayerAssets() {
+      if (window.Plyr) return Promise.resolve();
+      if (playerAssetsPromise) return playerAssetsPromise;
+
+      const stylesheetPromise = new Promise((resolve, reject) => {
+        const existing = document.getElementById("plyr-stylesheet");
+        if (existing) {
+          resolve();
+          return;
+        }
+        const link = document.createElement("link");
+        link.id = "plyr-stylesheet";
+        link.rel = "stylesheet";
+        link.href = "https://cdn.plyr.io/3.7.8/plyr.css";
+        link.onload = resolve;
+        link.onerror = reject;
+        document.head.appendChild(link);
+      });
+
+      const scriptPromise = new Promise((resolve, reject) => {
+        const existing = document.getElementById("plyr-script");
+        if (existing) {
+          if (window.Plyr) resolve();
+          else existing.addEventListener("load", resolve, { once: true });
+          return;
+        }
+        const script = document.createElement("script");
+        script.id = "plyr-script";
+        script.src = "https://cdn.plyr.io/3.7.8/plyr.polyfilled.js";
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+
+      playerAssetsPromise = Promise.all([stylesheetPromise, scriptPromise]);
+      return playerAssetsPromise;
+    }
+
+    window.openVideo = async function openVideo(url, provider) {
       if (!url) return;
+
+      const requestId = ++openRequest;
 
       const modal = document.getElementById("video-modal");
       const container = document.getElementById("player");
@@ -109,18 +146,28 @@ const films = await getFilms();
         embedSrc = `https://www.youtube.com/embed/${videoId}?origin=${location.origin}&iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1`;
       }
 
+      // Show the native embed immediately while the enhanced controls download.
+      const iframe = container.querySelector("iframe");
+      iframe.src = embedSrc;
+      modal.classList.add("active");
+      document.body.style.overflow = "hidden";
+
+      try {
+        await loadPlayerAssets();
+      } catch (error) {
+        console.warn("Enhanced video controls could not be loaded.", error);
+        return;
+      }
+      if (requestId !== openRequest || !modal.classList.contains("active")) return;
+
       // 2. Strict Tear Down
       if (player) {
         player.destroy();
         player = null;
       }
 
-      // Explicitly clear and update iframe
-      const iframe = container.querySelector("iframe");
-      iframe.src = embedSrc;
-
       // 3. Initialize Plyr (fresh instance)
-      player = new Plyr("#player", {
+      player = new window.Plyr("#player", {
         controls: [
           "play-large",
           "play",
@@ -148,10 +195,6 @@ const films = await getFilms();
         },
       });
 
-      // Show modal
-      modal.classList.add("active");
-      document.body.style.overflow = "hidden";
-
       // Auto-play when ready
       player.on("ready", () => {
         player.play();
@@ -159,6 +202,7 @@ const films = await getFilms();
     };
 
     window.closeVideo = function () {
+      openRequest += 1;
       const modal = document.getElementById("video-modal");
       modal.classList.remove("active");
 
@@ -171,7 +215,7 @@ const films = await getFilms();
       document.body.style.overflow = "";
 
       const iframe = document.querySelector("#player iframe");
-      if (iframe) iframe.src = "";
+      if (iframe) iframe.removeAttribute("src");
     };
 
     // Close on Escape key

@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import InlineInquiryForm from "../components/InlineInquiryForm.astro";
 import Newsletter from "../components/Newsletter.astro";
 import LandingInteractiveHero from "../components/LandingInteractiveHero.jsx";
+import LazyAutoplayVideo from "../components/LazyAutoplayVideo.astro";
 import { getRecentPosts } from "../lib/api";
 import {
   cloudflareExhibitionFallbacks,
@@ -211,14 +212,9 @@ const structuredData = [
                   />
                 ) : project.video &&
                   /\.(mp4|webm)(?:[?#]|$)/i.test(project.video) ? (
-                  <video
+                  <LazyAutoplayVideo
                     src={project.video}
-                    autoplay
-                    muted
-                    loop
-                    playsinline
-                    preload="auto"
-                    aria-label={project.alt}
+                    label={project.alt}
                   />
                 ) : (
                   <img
@@ -837,7 +833,7 @@ const structuredData = [
       };
 
       const ensureVideosPlay = () => {
-        document.querySelectorAll("video[autoplay]").forEach((element) => {
+        document.querySelectorAll("video[autoplay]:not([data-lazy-autoplay-video])").forEach((element) => {
           if (!(element instanceof HTMLVideoElement)) return;
           const video = element;
           const playVideo = () => {
