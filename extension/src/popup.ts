@@ -11,10 +11,14 @@ const pageTitle = byId<HTMLDivElement>('page-title');
 const pageUrl = byId<HTMLDivElement>('page-url');
 const status = byId<HTMLDivElement>('status-msg');
 const result = byId<HTMLDivElement>('result-box');
+const resultSuccessBadge = byId<HTMLSpanElement>('result-success-badge');
+const resultCategory = byId<HTMLElement>('result-category');
+const resultDeadline = byId<HTMLElement>('result-deadline');
 const saveButton = byId<HTMLButtonElement>('save-btn');
 const signInButton = byId<HTMLButtonElement>('sign-in-btn');
 const logoutButton = byId<HTMLButtonElement>('logout-btn');
 const dashboardButton = byId<HTMLButtonElement>('dashboard-btn');
+const resultDashboardButton = byId<HTMLButtonElement>('result-dashboard-btn');
 
 let activeTab: any = null;
 let authResolved = false;
@@ -48,6 +52,49 @@ const showError = (message: string) => {
 const clearStatus = () => {
     status.textContent = '';
     status.className = 'status-msg';
+};
+
+const formatResultDeadline = (deadlineAt: unknown, deadlineRaw: unknown) => {
+    if (typeof deadlineAt !== 'string' || !deadlineAt.trim()) {
+        return {
+            label: typeof deadlineRaw === 'string' && deadlineRaw.trim()
+                ? deadlineRaw.trim()
+                : 'No deadline found',
+            hasPassed: false,
+        };
+    }
+
+    const deadline = new Date(deadlineAt);
+    if (Number.isNaN(deadline.getTime())) {
+        return {
+            label: typeof deadlineRaw === 'string' && deadlineRaw.trim()
+                ? deadlineRaw.trim()
+                : 'No deadline found',
+            hasPassed: false,
+        };
+    }
+
+    const formattedDate = new Intl.DateTimeFormat('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    }).format(deadline);
+    const hasPassed = deadline.getTime() < Date.now();
+
+    return {
+        label: hasPassed ? `⚠ Deadline passed (${formattedDate})` : formattedDate,
+        hasPassed,
+    };
+};
+
+const openDashboard = async () => {
+    clearStatus();
+    try {
+        const response = await sendRuntimeMessage<any>({ type: 'OPEN_DASHBOARD' });
+        if (!response?.ok) throw new Error(response?.error || 'Dashboard could not be opened');
+    } catch (error) {
+        showError(error instanceof Error ? error.message : 'Dashboard could not be opened');
+    }
 };
 
 const renderState = async () => {
@@ -132,15 +179,8 @@ logoutButton.addEventListener('click', async () => {
     }
 });
 
-dashboardButton.addEventListener('click', async () => {
-    clearStatus();
-    try {
-        const response = await sendRuntimeMessage<any>({ type: 'OPEN_DASHBOARD' });
-        if (!response?.ok) throw new Error(response?.error || 'Dashboard could not be opened');
-    } catch (error) {
-        showError(error instanceof Error ? error.message : 'Dashboard could not be opened');
-    }
-});
+dashboardButton.addEventListener('click', openDashboard);
+resultDashboardButton.addEventListener('click', openDashboard);
 
 saveButton.addEventListener('click', async () => {
     if (!activeTab?.url) return;
@@ -166,12 +206,13 @@ saveButton.addEventListener('click', async () => {
         }
 
         const opportunity = response.data.opportunity;
-        byId<HTMLSpanElement>('result-category').textContent = String(opportunity.category || 'other').replace('_', ' ');
-        byId<HTMLDivElement>('result-deadline').textContent = opportunity.deadline_at
-            ? new Date(opportunity.deadline_at).toLocaleString()
-            : opportunity.deadline_raw || 'No deadline found';
+        const deadline = formatResultDeadline(opportunity.deadline_at, opportunity.deadline_raw);
+        resultSuccessBadge.textContent = response.data.is_duplicate ? '✓ Already Saved' : '✓ Captured & Saved';
+        resultCategory.textContent = String(opportunity.category || 'other').replaceAll('_', ' ');
+        resultDeadline.textContent = deadline.label;
+        resultDeadline.classList.toggle('result-deadline-passed', deadline.hasPassed);
         result.classList.remove('hidden');
-        saveButton.textContent = response.data.is_duplicate ? 'Already saved ✓' : 'Saved ✓';
+        saveButton.textContent = response.data.is_duplicate ? '✓ Already in Tracker' : '✓ Saved to Tracker';
     } catch (error) {
         showError(error instanceof Error ? error.message : 'Opportunity could not be saved');
         saveButton.textContent = 'Try Again →';

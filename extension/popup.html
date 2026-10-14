@@ -38,11 +38,21 @@
       <button id="save-btn" class="pop-btn" type="button" disabled>Checking tracker…</button>
 
       <div id="result-box" class="result-box hidden">
-        <span class="result-success-badge">SAVED ✓</span>
+        <span id="result-success-badge" class="result-success-badge">✓ Captured &amp; Saved</span>
         <div class="result-details">
-          <div><span>Category</span><strong id="result-category">—</strong></div>
-          <div><span>Deadline</span><strong id="result-deadline">—</strong></div>
+          <div class="result-detail result-category-detail">
+            <span>Category</span>
+            <strong id="result-category">—</strong>
+          </div>
+          <div class="result-detail">
+            <span>Deadline</span>
+            <strong id="result-deadline">—</strong>
+          </div>
         </div>
+        <button id="result-dashboard-btn" class="result-dashboard-btn" type="button">
+          <span>Open Dashboard</span>
+          <span aria-hidden="true">↗</span>
+        </button>
       </div>
     </section>
 

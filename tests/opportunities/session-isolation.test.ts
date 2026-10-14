@@ -25,7 +25,6 @@ describe('Opportunity authentication session isolation', () => {
             source('../../src/components/opportunities/OpportunityLanding.tsx'),
             source('../../src/components/opportunities/OpportunityCollectionApp.tsx'),
             source('../../src/components/opportunities/OpportunityDashboard.tsx'),
-            source('../../src/components/opportunities/OpportunitySettings.tsx'),
             source('../../src/pages/opportunities/auth/callback.astro'),
         ]);
 

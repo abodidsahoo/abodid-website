@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — Opportunity Tracker
 
-> Last updated: 2026-10-14
+> Last updated: 2026-10-15
 >
 > Manifest source: `extension/manifests/chrome.json`
 >
@@ -44,6 +44,7 @@ FEATURES
 • Save a page or link from Chrome's right-click menu with visible extraction and completion feedback
 • Automatically summarize the opportunity, organisation, requirements and next action
 • Identify deadlines and other important dates
+• See a clear saved receipt with the extracted category and deadline immediately after capture
 • Open your private Opportunity Tracker dashboard from the toolbar popup
 
 HOW TO USE
@@ -84,7 +85,7 @@ Version 2.0.0 — Branded as Opportunity Tracker with personalized first-name gr
 | Toolbar and context-menu icon | 16×16 PNG | Ready | `extension/icons/icon-16.png`; the optically centred “O” is explicitly assigned to the toolbar action and supplied through the manifest for Chrome’s right-click menu, verified as 16×16 |
 | Extension-management icon | 48×48 PNG | Ready | `extension/icons/icon-48.png`; matching optically centred yellow “O”, verified as 48×48 |
 | Screenshot 1 | 1280×800 or 640×400 | Missing | Capture the signed-out popup with the privacy disclosure visible |
-| Screenshot 2 | 1280×800 or 640×400 | Missing | Capture a successful save and extracted deadline/category |
+| Screenshot 2 | 1280×800 or 640×400 | Missing; refresh required for the redesigned receipt | Capture the current successful-save card with its confirmation badge, category, deadline and Open Dashboard action |
 | Screenshot 3 | 1280×800 or 640×400 | Missing | Show the private dashboard with organized opportunities |
 | Small promo tile | 440×280 PNG or JPEG | Recommended, missing | Use the Pop Editorial blue, cream and yellow system without unsupported claims |
 | Marquee promo tile | 1400×560 PNG or JPEG | Optional, missing | Create only if merchandising is planned |
@@ -206,7 +207,8 @@ Chrome runtime test matrix:
 ### Performance evidence
 
 - The unpacked Chrome package is approximately 224 KB.
-- Release output is minified with source maps disabled: popup JavaScript 4.47 KB (1.71 KB gzip), popup CSS 4.66 KB (1.53 KB gzip), and background JavaScript 184.62 KB (49.75 KB gzip).
+- Release output is minified with source maps disabled: popup JavaScript 5.12 KB (1.96 KB gzip), popup CSS 5.60 KB (1.72 KB gzip), and background JavaScript 184.62 KB (49.75 KB gzip).
+- The redesigned successful-save receipt was rendered at the popup's 360×600 viewport on 2026-10-15 with no horizontal overflow; all popup buttons measured at least 44px tall, and category/deadline values are configured to wrap inside the keylined facts panel.
 - The extension registers no always-on content script in Chrome. Page extraction is injected only after a user capture action, avoiding work on ordinary page loads.
 - The updated signed-in popup was reloaded and visually verified in real Chrome on 2026-10-14; its first visible state contained the current page title and URL, not the Google sign-in card.
 - Current-tab lookup and session resolution start independently, so the page title and URL do not wait for the network-backed account check. Network and AI extraction remain deferred until sign-in or capture.
@@ -244,7 +246,7 @@ Chrome runtime test matrix:
 
 | Version | Date | Changes | Store status |
 |---|---|---|---|
-| 2.0.0 | 2026-10-14 | Branded as Opportunity Tracker; corrected the yellow “O” icon’s optical centring across the store listing, toolbar and context menu; added first-name personalization, an instant current-page preview without authentication flash, yellow scanning feedback, explicit minimal Google identity scopes, prominent toolbar/right-click disclosures, resilient extraction diagnostics, and an on-page context-menu progress/completion toast. | Draft |
+| 2.0.0 | 2026-10-15 | Branded as Opportunity Tracker; corrected the yellow “O” icon’s optical centring across the store listing, toolbar and context menu; added first-name personalization, an instant current-page preview without authentication flash, yellow scanning feedback, a redesigned post-capture receipt with clear category/deadline facts and a direct dashboard action, explicit minimal Google identity scopes, prominent toolbar/right-click disclosures, resilient extraction diagnostics, and an on-page context-menu progress/completion toast. | Draft |
 
 ## Review notes
 
