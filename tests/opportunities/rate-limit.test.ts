@@ -3,11 +3,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { consumeOpportunityAiLimit } from '../../src/lib/opportunities/rateLimit';
 
 describe('Opportunity AI rate limiting', () => {
-    it('uses only the blocked window when calculating retry time', async () => {
+    it('keeps short-window abuse protection without imposing a daily quota', async () => {
         const rpc = vi.fn(async (_name: string, params: { p_limit: number }) => ({
             data: [{
                 allowed: params.p_limit !== 10,
-                retry_after_seconds: params.p_limit === 10 ? 42 : 80_000,
+                retry_after_seconds: 42,
             }],
             error: null,
         }));
@@ -15,6 +15,11 @@ describe('Opportunity AI rate limiting', () => {
         const result = await consumeOpportunityAiLimit({ rpc } as unknown as SupabaseClient, 'user-1');
 
         expect(result).toEqual({ allowed: false, retryAfter: 42, unavailable: false });
+        expect(rpc).toHaveBeenCalledTimes(1);
+        expect(rpc).toHaveBeenCalledWith(
+            'consume_opportunity_ingestion_rate_limit',
+            expect.objectContaining({ p_limit: 10, p_window_seconds: 60 }),
+        );
     });
 
     it('distinguishes a quota backend error from an exhausted quota', async () => {

@@ -1,4 +1,5 @@
 import { LLMExtractionOutputSchema, type LLMExtractionOutput, type DeadlineConfidence } from './types';
+import { OPPORTUNITY_EXTRACTION_SYSTEM_PROMPT } from './extractionPrompt';
 
 const DEFAULT_MODEL = import.meta.env.OPENROUTER_OPPORTUNITIES_MODEL || process.env.OPENROUTER_OPPORTUNITIES_MODEL || 'google/gemini-3.8-flash';
 const FALLBACK_MODEL = 'openai/gpt-4o-mini';
@@ -8,18 +9,7 @@ const OPENROUTER_MAX_OUTPUT_TOKENS = Math.min(
     Math.max(300, Number(import.meta.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS || process.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS) || 1200),
 );
 
-export const getExtractionSystemPrompt = () => {
-    // Keep the extraction instructions out of source control and every public
-    // bundle. Vercel supplies this only to server-side API functions.
-    const prompt = (
-        import.meta.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT
-        || process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT
-    )?.trim();
-    if (!prompt) {
-        throw new Error('Server Configuration Error: Missing OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT');
-    }
-    return prompt;
-};
+export const getExtractionSystemPrompt = () => OPPORTUNITY_EXTRACTION_SYSTEM_PROMPT;
 
 export interface OpportunityExtractionContext {
     sourceUrl?: string;
@@ -498,8 +488,14 @@ export async function extractOpportunityWithLLM(
             });
 
             if (!response.ok) {
+                const requestId = response.headers.get('x-request-id') || response.headers.get('x-openrouter-request-id');
+                const errorPayload = await response.json().catch(() => null) as {
+                    error?: { code?: string | number; message?: string };
+                } | null;
                 await response.body?.cancel().catch(() => undefined);
-                throw new Error(`OpenRouter request failed with HTTP ${response.status}`);
+                const providerCode = errorPayload?.error?.code ? `, code ${errorPayload.error.code}` : '';
+                const trace = requestId ? `, request ${requestId}` : '';
+                throw new Error(`OpenRouter request failed with HTTP ${response.status}${providerCode}${trace}`);
             }
 
             const jsonResponse = await response.json();
@@ -529,6 +525,7 @@ export async function extractOpportunityWithLLM(
             console.warn('Opportunity extraction provider attempt failed', {
                 model,
                 error: err instanceof Error ? err.name : 'UnknownError',
+                message: err instanceof Error ? err.message.slice(0, 300) : 'Unknown provider failure',
             });
             // Continue to fallback model if available
         }

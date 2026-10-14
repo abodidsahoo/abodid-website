@@ -1,6 +1,7 @@
 import { completeSafariSignIn, extensionSupabase, signInWithGoogle } from './auth';
 import { extractPageText } from './capture';
 import { webext } from './browser';
+import { showOpportunityToast } from './toast';
 
 declare const __APP_ORIGIN__: string;
 
@@ -58,11 +59,35 @@ webext.runtime.onInstalled.addListener(() => {
 webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
     const url = info.linkUrl || info.pageUrl || tab?.url;
     if (!url) return;
+    const tabId = typeof tab?.id === 'number' ? tab.id : undefined;
+    const isCurrentPage = info.menuItemId === 'save-opportunity-page';
+
+    await showOpportunityToast(tabId, {
+        kind: 'working',
+        message: 'Extracting opportunity…',
+        detail: 'Reading the details and important dates.',
+    });
+
     try {
-        await saveUrl(url, tab?.title || '');
+        const pageText = isCurrentPage && tabId ? await extractPageText(tabId) : '';
+        const saved = await saveUrl(url, tab?.title || '', pageText);
+        const opportunityTitle = saved?.opportunity?.title
+            ? String(saved.opportunity.title)
+            : 'The opportunity';
+        await showOpportunityToast(tabId, {
+            kind: 'success',
+            message: saved?.is_duplicate ? 'Already in your tracker' : 'Added to your tracker',
+            detail: `${opportunityTitle} is ready in your opportunities table.`,
+        });
         await showActionFeedback('✓', '#caff48');
     } catch (error) {
-        console.warn('Context-menu opportunity save failed', error instanceof Error ? error.message : error);
+        const message = error instanceof Error ? error.message : 'Opportunity could not be saved';
+        console.warn('Context-menu opportunity save failed', message);
+        await showOpportunityToast(tabId, {
+            kind: 'error',
+            message: 'Couldn’t save this opportunity',
+            detail: message,
+        });
         await showActionFeedback('!', '#ff4d4d');
     }
 });

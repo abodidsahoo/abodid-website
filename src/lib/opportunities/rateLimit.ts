@@ -32,14 +32,7 @@ const consumeLimit = async (
 };
 
 export const consumeOpportunityAiLimit = async (serviceClient: SupabaseClient, userId: string) => {
-    const [minuteLimit, dailyLimit] = await Promise.all([
-        consumeLimit(serviceClient, `opportunity-minute:${userId}`, 10, 60),
-        consumeLimit(serviceClient, `opportunity-day:${userId}`, 100, 24 * 60 * 60),
-    ]);
-
-    return {
-        allowed: minuteLimit.allowed && dailyLimit.allowed,
-        retryAfter: Math.max(minuteLimit.retryAfter, dailyLimit.retryAfter),
-        unavailable: minuteLimit.unavailable || dailyLimit.unavailable,
-    };
+    // This is burst protection, not a product quota. Users can keep saving
+    // opportunities once the short window resets; there is no daily cap.
+    return consumeLimit(serviceClient, `opportunity-minute:${userId}`, 10, 60);
 };

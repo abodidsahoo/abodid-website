@@ -134,6 +134,7 @@ export const POST: APIRoute = async ({ request }) => {
                 userId: authorization.user.id,
                 canonicalUrl,
                 error: error instanceof Error ? error.name : 'UnknownError',
+                message: error instanceof Error ? error.message.slice(0, 300) : 'Unknown extraction failure',
             });
             return opportunityJson({
                 error: 'Extraction could not be completed. Add the opportunity manually or try again later.',

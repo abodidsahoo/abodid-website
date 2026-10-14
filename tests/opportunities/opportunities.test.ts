@@ -23,8 +23,89 @@ import { formatTimeRemaining } from '../../src/lib/opportunities/reminders';
 import { isOpportunityAttention, selectAttentionOpportunities } from '../../src/lib/opportunities/attention';
 import { normalizeOpportunityCaptureUrl, unwrapOpportunityRedirect } from '../../src/lib/opportunities/captureUrl';
 import { getFirstName } from '../../src/lib/opportunities/ui-helpers';
+import { getOpportunityMenuPosition } from '../../src/lib/opportunities/menuPosition';
+import {
+    getOpportunitySupportPromptStorageKey,
+    shouldShowOpportunitySupportPrompt,
+} from '../../src/lib/opportunities/supportPrompt';
 
 describe('Opportunity Assistant Core Functionality', () => {
+    describe('Settings menu positioning', () => {
+        it('keeps the menu inside narrow viewports', () => {
+            const position = getOpportunityMenuPosition({
+                triggerRect: { top: 120, right: 308, bottom: 164 },
+                menuWidth: 340,
+                menuHeight: 460,
+                viewportWidth: 320,
+                viewportHeight: 568,
+            });
+
+            expect(position.left).toBe(12);
+            expect(position.width).toBe(296);
+            expect(position.top).toBeGreaterThanOrEqual(12);
+            expect(position.top + position.maxHeight).toBeLessThanOrEqual(556);
+        });
+
+        it('flips above the trigger when there is more usable space there', () => {
+            const position = getOpportunityMenuPosition({
+                triggerRect: { top: 700, right: 1400, bottom: 744 },
+                menuWidth: 340,
+                menuHeight: 420,
+                viewportWidth: 1440,
+                viewportHeight: 900,
+            });
+
+            expect(position.top).toBeLessThan(700);
+            expect(position.left + position.width).toBeLessThanOrEqual(1428);
+        });
+    });
+
+    describe('Support milestone prompt', () => {
+        it('appears for the owner after ten saved opportunities without limiting further saves', () => {
+            expect(shouldShowOpportunitySupportPrompt({
+                opportunityCount: 10,
+                isOwner: true,
+                isLoading: false,
+                hasBeenDismissed: false,
+            })).toBe(true);
+
+            expect(shouldShowOpportunitySupportPrompt({
+                opportunityCount: 25,
+                isOwner: true,
+                isLoading: false,
+                hasBeenDismissed: false,
+            })).toBe(true);
+        });
+
+        it('stays hidden for visitors, during loading, or after dismissal', () => {
+            expect(shouldShowOpportunitySupportPrompt({
+                opportunityCount: 10,
+                isOwner: false,
+                isLoading: false,
+                hasBeenDismissed: false,
+            })).toBe(false);
+
+            expect(shouldShowOpportunitySupportPrompt({
+                opportunityCount: 10,
+                isOwner: true,
+                isLoading: true,
+                hasBeenDismissed: false,
+            })).toBe(false);
+
+            expect(shouldShowOpportunitySupportPrompt({
+                opportunityCount: 10,
+                isOwner: true,
+                isLoading: false,
+                hasBeenDismissed: true,
+            })).toBe(false);
+        });
+
+        it('uses a normalized per-user dismissal key', () => {
+            expect(getOpportunitySupportPromptStorageKey('  Yashaswinee1995  '))
+                .toBe('opportunity-support-prompt:v1:yashaswinee1995');
+        });
+    });
+
     describe('Profile personalization', () => {
         it('uses only the first display-name token in the dashboard greeting', () => {
             expect(getFirstName('  Yashaswinee Chandra  ')).toBe('Yashaswinee');
@@ -310,12 +391,11 @@ describe('Opportunity Assistant Core Functionality', () => {
     });
 
     describe('Zod Schema Validation for LLM Output', () => {
-        it('loads extraction instructions only from the server environment', () => {
-            const previous = process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT;
-            process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT = 'Private test extraction instructions';
-            expect(getExtractionSystemPrompt()).toBe('Private test extraction instructions');
-            if (previous === undefined) delete process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT;
-            else process.env.OPPORTUNITIES_EXTRACTION_SYSTEM_PROMPT = previous;
+        it('ships complete server-side extraction instructions with the application', () => {
+            const prompt = getExtractionSystemPrompt();
+            expect(prompt).toContain('TARGET-SELECTION RULES (HIGHEST PRIORITY)');
+            expect(prompt).toContain('Output strict JSON only.');
+            expect(prompt.length).toBeGreaterThan(2_000);
         });
 
         it('validates and normalizes categories', () => {

@@ -41,7 +41,7 @@ Save open calls, residencies, fellowships, grants and jobs to one organized priv
 
 FEATURES
 • Capture the opportunity in your current tab
-• Save a page or link from Chrome's right-click menu
+• Save a page or link from Chrome's right-click menu with visible extraction and completion feedback
 • Automatically summarize the opportunity, organisation, requirements and next action
 • Identify deadlines and other important dates
 • Open your private Opportunity Tracker dashboard from the toolbar popup
@@ -61,7 +61,7 @@ SUPPORT
 Questions, privacy requests or bug reports: hello@abodid.com
 Privacy policy: https://abodid.com/privacy
 
-Version 2.0.0 — Branded as Opportunity Tracker with personalized first-name greetings, explicit basic Google identity scopes, clearer privacy information and more reliable error feedback.
+Version 2.0.0 — Branded as Opportunity Tracker with personalized first-name greetings, instant current-page preview, clear toolbar and right-click progress feedback, explicit basic Google identity scopes and clearer privacy information.
 ```
 
 ## URLs and developer information
@@ -80,9 +80,9 @@ Version 2.0.0 — Branded as Opportunity Tracker with personalized first-name gr
 
 | Asset | Requirement | Current status | Source / next action |
 |---|---|---|---|
-| Store icon | 128×128 PNG | Ready | `extension/icons/icon-128.png`; verified as a real 128×128 RGBA PNG |
-| Toolbar icon | 16×16 PNG | Ready | `extension/icons/icon-16.png`; verified as 16×16 |
-| Extension-management icon | 48×48 PNG | Ready | `extension/icons/icon-48.png`; verified as 48×48 |
+| Store icon | 128×128 PNG | Ready | `extension/icons/icon-128.png`; solid Pop Editorial yellow with an optically centred bold black “O”, verified as a real 128×128 RGBA PNG |
+| Toolbar and context-menu icon | 16×16 PNG | Ready | `extension/icons/icon-16.png`; the optically centred “O” is explicitly assigned to the toolbar action and supplied through the manifest for Chrome’s right-click menu, verified as 16×16 |
+| Extension-management icon | 48×48 PNG | Ready | `extension/icons/icon-48.png`; matching optically centred yellow “O”, verified as 48×48 |
 | Screenshot 1 | 1280×800 or 640×400 | Missing | Capture the signed-out popup with the privacy disclosure visible |
 | Screenshot 2 | 1280×800 or 640×400 | Missing | Capture a successful save and extracted deadline/category |
 | Screenshot 3 | 1280×800 or 640×400 | Missing | Show the private dashboard with organized opportunities |
@@ -98,7 +98,7 @@ These entries must match the built `extension/dist/chrome/manifest.json`, not on
 | Permission | Type | Developer Dashboard justification |
 |---|---|---|
 | `activeTab` | API permission | Grants temporary access only to the tab the user explicitly invokes from the toolbar or right-click menu. It lets the popup display that page's title and URL and limits capture access to a deliberate user action instead of requesting permanent access to browsing activity. |
-| `scripting` | API permission | Runs the packaged capture function in the user-selected tab after Capture & Save. The function reads visible page text, relevant links and structured opportunity data so the service can identify the title, organisation, deadline, requirements and application link. It does not run automatically on every page. |
+| `scripting` | API permission | Runs packaged functions in the user-selected tab after Capture & Save or the Save page context-menu action. One function reads visible page text, relevant links and structured opportunity data so the service can identify the title, organisation, deadline, requirements and application link; another displays the context-menu action’s extraction and completion status. Neither runs automatically on ordinary browsing. |
 | `storage` | API permission | Stores the user's Supabase PKCE authentication session and refresh state in extension-local storage so sign-in persists across popup and service-worker restarts. It is not used for advertising, profiling or cross-device browsing-history sync. |
 | `contextMenus` | API permission | Adds “Save page” and “Save link” commands to Chrome's right-click menu so a user can deliberately send an opportunity to the same private tracker without first opening the popup. |
 | `identity` | API permission | Opens and completes the browser-controlled Google/Supabase OAuth flow using a `chromiumapp.org` redirect. It is used only when the user selects Continue with Google and requests the minimal `openid email profile` identity scopes so the tracker can receive the account identifier, primary email, display name and profile photo. It does not grant access to Gmail, Drive, Calendar or Contacts. |
@@ -132,7 +132,7 @@ These entries must match the built `extension/dist/chrome/manifest.json`, not on
 
 The popup displays this disclosure before the capture control can be used:
 
-> Google sign-in shares your name, email and profile photo only to create and personalize your account. Page content is not collected until you choose Capture & Save; it is then sent only to extract and save the opportunity.
+> Google sign-in shares your name, email and profile photo only to create and personalize your account. Page content is not collected until you choose Capture & Save or Save to Opportunity Tracker from the right-click menu; it is then sent only to extract and save the opportunity.
 
 The Chrome Web Store listing repeats the same disclosure. Capturing requires the user's affirmative toolbar-button or context-menu action. Google sign-in is separately initiated by the Continue with Google button and is limited to `openid`, `email` and `profile`; the extension does not request Gmail, Drive, Calendar or Contacts scopes.
 
@@ -189,13 +189,14 @@ Chrome runtime test matrix:
 
 | Test | Expected result | 2026-10-14 status |
 |---|---|---|
-| Load `extension/dist/chrome` unpacked | Extension installs with no manifest error | Current build completed and its manifest was verified; the earlier `2.0.0` build passed in Chrome 155 with ID `bikjdgkkefmflkanfmppnidfkdiblnpg`. Reload the unpacked extension before submission to test this exact build. |
-| Open popup while signed out | Branded sign-in UI and prominent privacy disclosure render; no console error | The earlier popup passed at 360×457 CSS pixels. The updated combined sign-in/capture disclosure is present in the current build; real-Chrome popup recheck is pending because the DevTools connection could not attach to the running Chrome profile. |
-| Google sign-in | OAuth completes and session persists after popup closes | Pending stable extension ID and Supabase redirect allow-list verification |
+| Load `extension/dist/chrome` unpacked | Extension installs with no manifest error | Current `2.0.0` build was reloaded and verified in Chrome on 2026-10-14 with ID `bikjdgkkefmflkanfmppnidfkdiblnpg`. |
+| Open popup while signed out | Current-page preview appears first; sign-in UI and prominent privacy disclosure render only after the signed-out state is confirmed; no console error | Built and passed a delayed-session headless Chromium UI-state test on 2026-10-14; real-extension signed-out recheck pending. |
+| Open popup while signed in | Current page title and URL appear without a sign-in-card flash; account and capture controls follow when the existing session resolves | Passed both a 1.6-second delayed-session headless Chromium test and a real signed-in Chrome test on 2026-10-14. The live popup showed the current page during “Checking tracker…” and then revealed the profile and Capture & Save control without displaying the login card. |
+| Google sign-in | OAuth completes and session persists after popup closes | The unpacked Chrome ID `bikjdgkkefmflkanfmppnidfkdiblnpg` and its exact `chromiumapp.org/supabase-auth` callback were verified and allow-listed in Supabase on 2026-10-14. A fresh end-to-end sign-in and sign-out retest is pending. |
 | Capture a public opportunity page | Page is extracted once, success details appear and the record is private | Pending authenticated real-Chrome test |
 | Capture a restricted/internal Chrome page | Control disables or capture fails safely without crashing | Pending real-Chrome test |
-| Save page/link from context menu | Success badge `✓`; failure badge `!`; no silent result | Pending authenticated real-Chrome test |
-| Duplicate capture | Reports Already saved and does not consume another extraction | Covered by opportunity API tests; browser confirmation pending |
+| Save page/link from context menu | An on-page toast immediately reports extraction, then confirms the saved/duplicate record or shows the backend error; toolbar badge remains a fallback | Passed an authenticated real-Chrome page-context test on 2026-10-14: the toast appeared immediately as “Extracting opportunity…” and changed to “Already in your tracker” with the saved title. Link-context and restricted-page fallbacks remain pending. No new permission was added. |
+| Duplicate capture | Reports Already saved and does not consume another extraction | Covered by opportunity API tests and confirmed in real Chrome on 2026-10-14. |
 | Quota/network failure | Human-readable error; button becomes usable again | Code-audited; browser confirmation pending |
 | Open dashboard | Opens the current user's tracker route | Pending signed-in real-Chrome test |
 | Log out and reopen popup | Local session is removed and sign-in panel returns | Pending signed-in real-Chrome test |
@@ -204,11 +205,11 @@ Chrome runtime test matrix:
 
 ### Performance evidence
 
-- The unpacked Chrome package is approximately 208 KB.
-- Release output is minified with source maps disabled: popup JavaScript 3.60 KB (1.51 KB gzip), popup CSS 3.76 KB (1.28 KB gzip), and background JavaScript 178.67 KB (47.80 KB gzip).
+- The unpacked Chrome package is approximately 224 KB.
+- Release output is minified with source maps disabled: popup JavaScript 4.47 KB (1.71 KB gzip), popup CSS 4.66 KB (1.53 KB gzip), and background JavaScript 184.62 KB (49.75 KB gzip).
 - The extension registers no always-on content script in Chrome. Page extraction is injected only after a user capture action, avoiding work on ordinary page loads.
-- The earlier real-Chrome signed-out popup loaded with no failed resource requests or runtime errors; the 2026-10-14 disclosure update still needs the runtime recheck listed above.
-- Network and AI work is deferred until sign-in or capture; the popup's signed-out state is resolved from extension-local auth state.
+- The updated signed-in popup was reloaded and visually verified in real Chrome on 2026-10-14; its first visible state contained the current page title and URL, not the Google sign-in card.
+- Current-tab lookup and session resolution start independently, so the page title and URL do not wait for the network-backed account check. Network and AI extraction remain deferred until sign-in or capture.
 
 ## Submission-readiness checklist
 
@@ -225,11 +226,12 @@ Chrome runtime test matrix:
 - [x] The updated public privacy policy is deployed at `https://abodid.com/privacy` and was rechecked in production on 2026-10-14.
 - [x] User-triggered data collection is prominently disclosed inside the popup.
 - [x] Context-menu save actions provide visible success and failure feedback.
+- [x] The exact OAuth callback for the current unpacked Chrome ID (`bikjdgkkefmflkanfmppnidfkdiblnpg`) is allow-listed and remotely verified in Supabase.
 
 ### Must complete before submission
 
 - [ ] Restart Codex so the newly configured Chrome DevTools MCP server is loaded, enable remote debugging for the Chrome session, and use it for the remaining authenticated and restricted-page rows above. The equivalent Chrome Extensions DevTools-domain load, popup, manifest and worker checks already pass in Chrome 155.
-- [ ] Establish the production Chrome Web Store extension ID, then add `https://<extension-id>.chromiumapp.org/supabase-auth` to the Supabase redirect allow-list.
+- [ ] After Chrome Web Store publication assigns the production extension ID, add `https://<production-extension-id>.chromiumapp.org/supabase-auth` to Supabase if it differs from the verified unpacked ID.
 - [ ] Complete a successful Google sign-in and sign-out test with the production/stable extension ID.
 - [ ] Confirm provider data-processing/retention settings, especially OpenRouter's policy for submitted page text.
 - [ ] Create at least one compliant 1280×800 or 640×400 screenshot; three current screenshots are recommended.
@@ -242,14 +244,14 @@ Chrome runtime test matrix:
 
 | Version | Date | Changes | Store status |
 |---|---|---|---|
-| 2.0.0 | 2026-10-14 | Branded as Opportunity Tracker; added first-name personalization, explicit minimal Google identity scopes, prominent sign-in/capture disclosures, resilient popup errors, and visible context-menu failure feedback. | Draft |
+| 2.0.0 | 2026-10-14 | Branded as Opportunity Tracker; corrected the yellow “O” icon’s optical centring across the store listing, toolbar and context menu; added first-name personalization, an instant current-page preview without authentication flash, yellow scanning feedback, explicit minimal Google identity scopes, prominent toolbar/right-click disclosures, resilient extraction diagnostics, and an on-page context-menu progress/completion toast. | Draft |
 
 ## Review notes
 
 ### Known limitations
 
 - AI extraction requires network access and may fail on inaccessible, script-heavy, paywalled or unsupported pages. The UI reports failures without silently saving incomplete data.
-- Google sign-in depends on the exact extension identity redirect being allow-listed in Supabase. The unpacked development ID may differ from the Chrome Web Store ID unless a stable key is used.
+- Google sign-in depends on the exact extension identity redirect being allow-listed in Supabase. The current unpacked ID is configured, but the Chrome Web Store ID may differ and must be added after publication unless a stable key is adopted.
 - The extension is intended for public opportunity pages. Users should not capture private messages, account portals, health information, payment information, or other sensitive page content.
 - A self-service full-account deletion flow is not currently documented; requests are handled through `hello@abodid.com`.
 

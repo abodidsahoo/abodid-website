@@ -13,6 +13,7 @@
     "backfill:media-variants": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/backfill-media-variants.mjs",
     "backfill:moodboard-variants": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/backfill-media-variants.mjs --prefix=photos/originals/moodboard",
     "backfill:moodboard-palettes": "node scripts/extract-moodboard-palettes.mjs --moodboard-only",
+    "backfill:moodboard-sources": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/backfill-moodboard-sources.mjs",
     "migrate:instagram-assets": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrate-instagram-assets.mjs",
     "install:moodboard-quick-action": "zsh scripts/install-moodboard-quick-action.sh",
     "ingest:vault": "node scripts/ingest-obsidian-vault.mjs",

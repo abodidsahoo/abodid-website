@@ -17,20 +17,26 @@ button { font: inherit; }
 .pop-brand-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 2px rgba(255, 228, 79, 0.28); }
 .pop-brand { color: var(--cream); font-size: 0.73rem; font-weight: 850; letter-spacing: 0.09em; }
 .icon-btn { width: 36px; height: 36px; border: 1px solid var(--ink); border-radius: 10px; background: var(--yellow); color: var(--ink); box-shadow: 2px 2px 0 var(--ink); cursor: pointer; font-weight: 850; }
+:where(button, a):focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+.pane :where(button, a):focus-visible { outline-color: var(--blue); }
 .pane { padding: 16px; border: 1.5px solid var(--ink); border-radius: 16px; background: var(--cream); box-shadow: 4px 4px 0 var(--ink); }
 .auth-pane { background: var(--pink); }
 .pane-kicker, .target-label { font-size: 0.68rem; font-weight: 850; letter-spacing: 0.09em; text-transform: uppercase; }
 .auth-pane h1 { margin: 12px 0 8px; font-size: 2rem; line-height: 0.95; letter-spacing: -0.055em; }
 .auth-pane p { margin: 0 0 16px; font-size: 0.9rem; line-height: 1.4; }
-.pop-btn { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--yellow); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); cursor: pointer; font-weight: 800; }
+.pop-btn { position: relative; isolation: isolate; overflow: hidden; width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--yellow); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); cursor: pointer; font-weight: 800; }
 .pop-btn:hover:not(:disabled), .icon-btn:hover { transform: translateY(-1px); }
 .pop-btn:disabled { opacity: 0.66; cursor: wait; }
+.pop-btn.is-scanning { opacity: 1; background: var(--cream); }
+.pop-btn.is-scanning::after { position: absolute; z-index: -1; inset: 0 auto 0 -46%; width: 46%; background: var(--yellow); content: ""; animation: scan-across 1.05s ease-in-out infinite; }
 .profile-row { display: flex; align-items: center; gap: 9px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid rgba(21, 19, 15, 0.24); }
 .profile-copy { min-width: 0; display: grid; flex: 1; }
 .profile-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.86rem; }
 .profile-copy small { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; }
 .text-btn { min-height: 36px; padding: 6px 8px; border: 0; background: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 0.72rem; font-weight: 750; }
-.target-card { margin-bottom: 12px; padding: 11px; border: 1px solid var(--ink); border-radius: 11px; background: #fff; }
+.target-card { position: relative; isolation: isolate; overflow: hidden; margin-bottom: 12px; padding: 11px; border: 1px solid var(--ink); border-radius: 11px; background: #fff; }
+.target-card > * { position: relative; z-index: 1; }
+.target-card.is-scanning::before { position: absolute; z-index: 0; inset: 0 auto 0 -44%; width: 44%; background: var(--yellow); opacity: 0.72; content: ""; animation: scan-across 1.05s ease-in-out infinite; }
 .target-label { margin-bottom: 7px; color: rgba(21, 19, 15, 0.66); }
 .target-title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 0.9rem; font-weight: 800; line-height: 1.25; }
 .target-url { margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(21, 19, 15, 0.64); font-size: 0.7rem; }
@@ -45,4 +51,11 @@ button { font: inherit; }
 .privacy-note a { width: fit-content; color: var(--ink); font-weight: 800; text-underline-offset: 2px; }
 .status-msg { min-height: 20px; padding: 10px 4px 0; color: var(--cream); font-size: 0.75rem; line-height: 1.35; }
 .status-msg.error { color: #fff; font-weight: 700; }
-@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; transform: none !important; } }
+@keyframes scan-across {
+  from { transform: translateX(0); }
+  to { transform: translateX(320%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; transform: none !important; }
+  .pop-btn.is-scanning::after, .target-card.is-scanning::before { inset-inline: 0; width: 100%; animation: none; opacity: 0.5; }
+}

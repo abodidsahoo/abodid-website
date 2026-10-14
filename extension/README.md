@@ -51,6 +51,8 @@ Google's OAuth client continues to use the Supabase project callback URL; extens
 3. Record the stable extension ID, allow-list its identity redirect in Supabase, then reload.
 4. Verify Google sign-in, session persistence, popup capture, context-menu capture, dashboard opening, logout, and a second account's isolation.
 
+The right-click page action immediately shows an in-page “Extracting opportunity…” toast, captures the current page text, and updates that toast when the saved record is ready. Right-clicking a link shows the same progress and completion feedback while the backend safely fetches the selected public URL. Restricted browser pages fall back to the toolbar badge because Chrome does not allow injected page UI there.
+
 ### Firefox
 
 1. Run `npm run extension:build:firefox`.
@@ -77,7 +79,7 @@ Google's OAuth client continues to use the Supabase project callback URL; extens
 ## Permission rationale
 
 - `activeTab`: read the current page only after a user action.
-- `scripting`: collect visible text and structured-data hints for the server-side extractor.
+- `scripting`: collect visible text and structured-data hints after a toolbar or right-click page capture, and show progress/completion feedback for the right-click action.
 - `storage`: persist the Supabase PKCE verifier/session and extension state.
 - `contextMenus`: save a page or link through right-click.
 - `identity` (Chrome and Firefox only): complete browser-controlled OAuth without exposing tokens to visited pages.
@@ -85,4 +87,4 @@ Google's OAuth client continues to use the Supabase project callback URL; extens
 
 The Safari callback content script runs only on `https://abodid.com/opportunities/extension/callback*` and relays a one-time authorization code plus anti-forgery state. It never receives an access token, refresh token, service-role key, or OpenRouter credential.
 
-The content script is injected only after explicit capture. It never receives access or refresh tokens; authenticated API calls are made by the extension background context.
+Page scripts are injected only after an explicit toolbar or context-menu action. They collect the selected page content or display the temporary capture-status toast, and never receive access or refresh tokens; authenticated API calls are made by the extension background context.

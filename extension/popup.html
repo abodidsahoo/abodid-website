@@ -16,26 +16,26 @@
       <button id="dashboard-btn" class="icon-btn" type="button" title="Open dashboard" aria-label="Open dashboard">↗</button>
     </header>
 
-    <section id="auth-panel" class="pane auth-pane">
+    <section id="auth-panel" class="pane auth-pane hidden">
       <span class="pane-kicker">ONE CLICK. EVERY OPPORTUNITY ORGANIZED.</span>
       <h1>Save opportunities. Stay on track.</h1>
       <p>AI organizes the key details and important dates. Sign in with Google to create or open your private tracker.</p>
       <button id="sign-in-btn" class="pop-btn" type="button">Continue with Google →</button>
     </section>
 
-    <section id="capture-panel" class="pane hidden">
-      <div class="profile-row">
+    <section id="capture-panel" class="pane">
+      <div id="profile-row" class="profile-row hidden">
         <span class="profile-copy"><strong id="profile-name"></strong><small id="profile-username"></small></span>
         <button id="logout-btn" class="text-btn" type="button">Log out</button>
       </div>
 
-      <div class="target-card">
+      <div id="target-card" class="target-card is-scanning">
         <div class="target-label">CURRENT PAGE</div>
-        <div id="page-title" class="target-title">Loading tab…</div>
-        <div id="page-url" class="target-url">…</div>
+        <div id="page-title" class="target-title">Scanning current page…</div>
+        <div id="page-url" class="target-url">Reading title and address</div>
       </div>
 
-      <button id="save-btn" class="pop-btn" type="button">Capture & Save →</button>
+      <button id="save-btn" class="pop-btn" type="button" disabled>Checking tracker…</button>
 
       <div id="result-box" class="result-box hidden">
         <span class="result-success-badge">SAVED ✓</span>
@@ -48,7 +48,7 @@
 
     <aside class="privacy-note" aria-label="Sign-in and capture privacy information">
       <strong>YOUR CHOICE, YOUR DATA</strong>
-      <span>Google sign-in shares your name, email and profile photo only to create and personalize your account. Page content is not collected until you choose Capture &amp; Save; it is then sent only to extract and save the opportunity.</span>
+      <span>Google sign-in shares your name, email and profile photo only to create and personalize your account. Page content is not collected until you choose Capture &amp; Save or Save to Opportunity Tracker from the right-click menu; it is then sent only to extract and save the opportunity.</span>
       <a href="https://abodid.com/privacy" target="_blank" rel="noreferrer">Privacy policy ↗</a>
     </aside>
 

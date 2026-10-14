@@ -6,17 +6,21 @@ import { OpportunityCard } from './OpportunityCard';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
 import { EditOpportunityModal } from './EditOpportunityModal';
 import { ManualCreateModal } from './ManualCreateModal';
+import {
+    OpportunityProfileDialog,
+    type OpportunityEditableProfile,
+} from './OpportunityProfileDialog';
+import { OpportunitySupportPrompt } from './OpportunitySupportPrompt';
+import { OpportunitySettingsMenu } from './OpportunitySettingsMenu';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
+import {
+    getOpportunitySupportPromptStorageKey,
+    shouldShowOpportunitySupportPrompt,
+} from '../../lib/opportunities/supportPrompt';
 
 type UrgencyRailFilter = 'attention' | 'this_week' | 'this_month' | 'later' | 'all';
 
-type ProfileSummary = {
-    username: string;
-    display_name: string;
-    avatar_url: string | null;
-    is_public: boolean;
-    role?: string;
-};
+type ProfileSummary = OpportunityEditableProfile;
 
 interface OpportunityDashboardProps {
     username: string;
@@ -32,11 +36,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     viewerProfile = null,
 }) => {
     const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+    const [activeViewerProfile, setActiveViewerProfile] = useState<ProfileSummary | null>(viewerProfile);
     const [collectionProfile, setCollectionProfile] = useState<ProfileSummary | null>(
         isOwner ? viewerProfile : null,
     );
+    const [profileVisibility, setProfileVisibility] = useState(Boolean(viewerProfile?.is_public));
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     // Capture bar state
     const [captureUrl, setCaptureUrl] = useState('');
@@ -55,6 +60,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [editingOpp, setEditingOpp] = useState<Opportunity | null>(null);
     const [isManualModalOpen, setIsManualModalOpen] = useState(false);
     const [manualInitialUrl, setManualInitialUrl] = useState('');
+    const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+    const [supportPromptSource, setSupportPromptSource] = useState<'automatic' | 'manual' | null>(null);
 
     // Toast
     const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -105,6 +112,77 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     useEffect(() => {
         fetchOpportunities();
     }, [username, accessToken, isOwner]);
+
+    useEffect(() => {
+        setProfileVisibility(Boolean(viewerProfile?.is_public));
+    }, [viewerProfile?.is_public]);
+
+    useEffect(() => {
+        setActiveViewerProfile(viewerProfile);
+    }, [viewerProfile]);
+
+    const supportPromptStorageKey = useMemo(
+        () => getOpportunitySupportPromptStorageKey(username),
+        [username],
+    );
+
+    useEffect(() => {
+        if (isManualModalOpen) return;
+        if (isProfileDialogOpen) return;
+        if (supportPromptSource) return;
+
+        let hasBeenDismissed = false;
+        try {
+            hasBeenDismissed = window.localStorage.getItem(supportPromptStorageKey) === 'dismissed';
+        } catch {
+            // The prompt can still work when browser storage is unavailable.
+        }
+
+        if (shouldShowOpportunitySupportPrompt({
+            opportunityCount: opportunities.length,
+            isOwner,
+            isLoading,
+            hasBeenDismissed,
+        })) {
+            setSupportPromptSource('automatic');
+        }
+    }, [isLoading, isManualModalOpen, isOwner, isProfileDialogOpen, opportunities.length, supportPromptStorageKey]);
+
+    const closeProfileDialog = () => {
+        setIsProfileDialogOpen(false);
+        window.requestAnimationFrame(() => {
+            document.querySelector<HTMLButtonElement>('#opportunity-settings-trigger')?.focus();
+        });
+    };
+
+    const handleProfileSaved = (nextProfile: OpportunityEditableProfile) => {
+        const previousUsername = activeViewerProfile?.username;
+        setActiveViewerProfile(nextProfile);
+        setProfileVisibility(nextProfile.is_public);
+        if (isOwner) setCollectionProfile(nextProfile);
+        showToast('Profile saved.');
+
+        if (previousUsername && previousUsername !== nextProfile.username) {
+            window.location.assign(`/opportunities/${encodeURIComponent(nextProfile.username)}`);
+        }
+    };
+
+    const dismissSupportPrompt = () => {
+        const shouldReturnToSettings = supportPromptSource === 'manual';
+        if (supportPromptSource === 'automatic') {
+            try {
+                window.localStorage.setItem(supportPromptStorageKey, 'dismissed');
+            } catch {
+                // Dismiss for this visit even when browser storage is unavailable.
+            }
+        }
+        setSupportPromptSource(null);
+        if (shouldReturnToSettings) {
+            window.requestAnimationFrame(() => {
+                document.querySelector<HTMLButtonElement>('#opportunity-settings-trigger')?.focus();
+            });
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -356,7 +434,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     const collectionOwnerName = collectionProfile?.display_name || username;
     const collectionTitle = `${collectionOwnerName.charAt(0).toUpperCase()}${collectionOwnerName.slice(1)}'s Opportunities`;
-    const viewerFirstName = getFirstName(viewerProfile?.display_name || viewerProfile?.username || username);
+    const viewerFirstName = getFirstName(activeViewerProfile?.display_name || activeViewerProfile?.username || username);
 
     return (
         <div className="opportunities-shell">
@@ -373,30 +451,17 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 {isOwner ? 'One Click. Every opportunity organized.' : 'An organized, shared opportunity collection.'}
                             </p>
                         </div>
-                        {viewerProfile ? (
-                            <div className="opp-user-menu">
-                                <button
-                                    type="button"
-                                    className="opp-user-menu-trigger"
-                                    onClick={() => setIsProfileMenuOpen((open) => !open)}
-                                    aria-expanded={isProfileMenuOpen}
-                                    aria-haspopup="menu"
-                                    aria-label="Open account menu"
-                                >
-                                    <span className="opp-user-menu-copy">
-                                        <small>ACCOUNT</small>
-                                        <strong>Settings</strong>
-                                    </span>
-                                    <span aria-hidden="true">{isProfileMenuOpen ? '↑' : '↓'}</span>
-                                </button>
-                                {isProfileMenuOpen && (
-                                    <div className="opp-user-menu-popover" role="menu">
-                                        <a role="menuitem" href={`/opportunities/${viewerProfile.username}`}>My Opportunities <span aria-hidden="true">→</span></a>
-                                        <a role="menuitem" href="/opportunities/settings">Collection settings <span aria-hidden="true">→</span></a>
-                                        <button type="button" role="menuitem" onClick={handleLogout}>Log Out</button>
-                                    </div>
-                                )}
-                            </div>
+                        {activeViewerProfile ? (
+                            <OpportunitySettingsMenu
+                                accessToken={accessToken}
+                                isPublic={profileVisibility}
+                                username={activeViewerProfile.username}
+                                onLogout={handleLogout}
+                                onEditProfile={() => setIsProfileDialogOpen(true)}
+                                onOpenSupport={() => setSupportPromptSource('manual')}
+                                onToast={showToast}
+                                onVisibilityChange={setProfileVisibility}
+                            />
                         ) : (
                             <a className="opp-google-signin-compact" href={`/opportunities?next=${encodeURIComponent(`/opportunities/${username}`)}`}>
                                 Sign in with Google <span aria-hidden="true">→</span>
@@ -709,7 +774,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             {/* Bottom ownership / sign-in action */}
             <footer className="opp-public-footer">
-                {!viewerProfile ? (
+                {!activeViewerProfile ? (
                     <div className="opp-curator-trigger-box">
                         <a className="opp-curator-login-btn" href="/opportunities">
                             Sign in to save opportunities →
@@ -718,18 +783,15 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 ) : !isOwner ? (
                     <div className="opp-curator-active-bar">
                         <span className="opp-curator-badge">Viewing @{username}</span>
-                        <a className="opp-curator-logout-btn" href={`/opportunities/${viewerProfile.username}`}>
+                        <a className="opp-curator-logout-btn" href={`/opportunities/${activeViewerProfile.username}`}>
                             Open My Opportunities →
                         </a>
                     </div>
                 ) : (
                     <div className="opp-curator-active-bar">
                         <span className="opp-curator-badge">
-                            {viewerProfile.is_public ? '● Public collection' : '● Private collection'}
+                            {profileVisibility ? '● Public collection' : '● Private collection'}
                         </span>
-                        <a className="opp-curator-logout-btn" href="/opportunities/settings">
-                            Sharing Settings →
-                        </a>
                     </div>
                 )}
             </footer>
@@ -791,8 +853,25 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 onCreate={handleManualCreate}
             />}
 
+            {activeViewerProfile && (
+                <OpportunityProfileDialog
+                    accessToken={accessToken}
+                    isOpen={isProfileDialogOpen}
+                    profile={activeViewerProfile}
+                    onClose={closeProfileDialog}
+                    onSaved={handleProfileSaved}
+                />
+            )}
+
+            {activeViewerProfile && (
+                <OpportunitySupportPrompt
+                    isOpen={supportPromptSource !== null}
+                    onDismiss={dismissSupportPrompt}
+                />
+            )}
+
             {/* Toast Notification */}
-            {toastMessage && <div className="opp-toast">{toastMessage}</div>}
+            {toastMessage && <div className="opp-toast" role="status" aria-live="polite">{toastMessage}</div>}
         </div>
     );
 };

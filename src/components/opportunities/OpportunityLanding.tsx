@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
+import { OPPORTUNITY_CURATED_COLLECTION_PATH } from '../../lib/opportunities/routes';
 
 const GOOGLE_IDENTITY_SCOPES = 'openid email profile';
 
@@ -82,7 +83,7 @@ export default function OpportunityLanding() {
                         <span>{checking ? 'Checking your session…' : signingIn ? 'Opening Google…' : 'Continue with Google'}</span>
                         <span aria-hidden="true">→</span>
                     </button>
-                    <a className="opp-public-collection-link" href="/opportunities/abodid">
+                    <a className="opp-public-collection-link" href={OPPORTUNITY_CURATED_COLLECTION_PATH}>
                         <span>Browse Abodid’s opportunities</span>
                         <span aria-hidden="true">→</span>
                     </a>

@@ -484,121 +484,96 @@ const NewsletterPopup = () => {
     useEffect(() => {
         if (!isVisible || typeof document === "undefined") return undefined;
 
-        const previouslyFocused = document.activeElement;
         const previousBodyOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
 
-        const focusTimer = window.setTimeout(() => {
-            dialogRef.current
-                ?.querySelector('button[aria-label="Close"]')
-                ?.focus();
-        }, 0);
+        const dialog = dialogRef.current;
+        if (dialog && !dialog.open) {
+            dialog.showModal();
+        }
 
-        const handleDialogKeyDown = (event) => {
-            if (event.key === "Escape") {
-                event.preventDefault();
-                handleClose();
-                return;
-            }
+        const handleBackdropFallback = (event) => {
+            if (event.target !== dialog) return;
 
-            if (event.key !== "Tab" || !dialogRef.current) return;
+            const bounds = dialog.getBoundingClientRect();
+            const clickedInside =
+                event.clientX >= bounds.left &&
+                event.clientX <= bounds.right &&
+                event.clientY >= bounds.top &&
+                event.clientY <= bounds.bottom;
 
-            const focusableElements = Array.from(
-                dialogRef.current.querySelectorAll(
-                    'button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
-                ),
-            );
-
-            if (focusableElements.length === 0) return;
-
-            const firstElement = focusableElements[0];
-            const lastElement = focusableElements[focusableElements.length - 1];
-
-            if (event.shiftKey && document.activeElement === firstElement) {
-                event.preventDefault();
-                lastElement.focus();
-            } else if (!event.shiftKey && document.activeElement === lastElement) {
-                event.preventDefault();
-                firstElement.focus();
-            }
+            if (!clickedInside) handleClose();
         };
 
-        document.addEventListener("keydown", handleDialogKeyDown);
+        if (
+            dialog &&
+            typeof HTMLDialogElement !== "undefined" &&
+            !("closedBy" in HTMLDialogElement.prototype)
+        ) {
+            dialog.addEventListener("click", handleBackdropFallback);
+        }
 
         return () => {
-            window.clearTimeout(focusTimer);
-            document.removeEventListener("keydown", handleDialogKeyDown);
+            dialog?.removeEventListener("click", handleBackdropFallback);
+            if (dialog?.open) dialog.close();
             document.body.style.overflow = previousBodyOverflow;
-
-            if (
-                previouslyFocused instanceof HTMLElement &&
-                document.contains(previouslyFocused)
-            ) {
-                previouslyFocused.focus();
-            }
         };
     }, [handleClose, isVisible]);
 
     return (
         <AnimatePresence>
             {isVisible && (
-                <>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="newsletter-backdrop"
-                        onClick={() => handleClose()}
-                    />
-
-                    <motion.div
-                        ref={dialogRef}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                        className="newsletter-popup-wrapper"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="newsletter-popup-title"
-                        aria-describedby="newsletter-popup-description"
-                    >
-                        <NewsletterForm onClose={handleClose} variant="popup" />
-                    </motion.div>
+                <motion.dialog
+                    ref={dialogRef}
+                    initial={{ opacity: 0, y: 18, scale: 0.975 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.985 }}
+                    transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+                    className="newsletter-popup-dialog"
+                    closedby="any"
+                    aria-labelledby="newsletter-popup-title"
+                    aria-describedby="newsletter-popup-description"
+                    onCancel={(event) => {
+                        event.preventDefault();
+                        handleClose();
+                    }}
+                    onClose={() => {
+                        if (isVisibleRef.current) handleClose();
+                    }}
+                >
+                    <NewsletterForm onClose={handleClose} variant="popup" />
 
                     <style>{`
-            .newsletter-backdrop {
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100vw;
-              height: 100vh;
-              background: rgba(0, 0, 0, 0.64);
-              backdrop-filter: blur(6px);
-              z-index: 99998;
-            }
+                        .newsletter-popup-dialog {
+                            width: min(760px, calc(100vw - 2rem));
+                            max-width: none;
+                            max-height: calc(100dvh - 2rem);
+                            margin: auto;
+                            padding: 0;
+                            border: 0;
+                            background: transparent;
+                            color: inherit;
+                            overflow: visible;
+                        }
 
-            html[data-theme="light"] .newsletter-backdrop {
-              background: rgba(24, 24, 22, 0.34);
-            }
-            
-            .newsletter-popup-wrapper {
-                 position: fixed;
-                 inset: 0;
-                 z-index: 99999;
-                 display: flex;
-                 align-items: center;
-                 justify-content: center;
-                 pointer-events: none;
-                 padding: 1rem;
-            }
-            
-            .newsletter-popup-wrapper > * {
-                pointer-events: auto;
-            }
-          `}</style>
-                </>
+                        .newsletter-popup-dialog::backdrop {
+                            background: rgba(36, 68, 202, 0.9);
+                        }
+
+                        @media (max-width: 720px) {
+                            .newsletter-popup-dialog {
+                                width: min(100% - 1rem, 34rem);
+                                max-height: calc(100dvh - 1rem);
+                            }
+                        }
+
+                        @media (prefers-reduced-motion: reduce) {
+                            .newsletter-popup-dialog {
+                                animation: none;
+                            }
+                        }
+                    `}</style>
+                </motion.dialog>
             )}
         </AnimatePresence>
     );
