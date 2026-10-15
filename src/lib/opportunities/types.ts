@@ -62,6 +62,7 @@ export interface Opportunity {
     event_date: string | null;
     location: string | null;
     requirements: string[];
+    completed_requirements: string[];
     next_action: string | null;
     application_url: string | null;
     meeting_url: string | null;

@@ -33,6 +33,8 @@ import '../../../styles/opportunities-editorial.css';
             ? requestedNext
             : null;
 
+        if (retry && safeNext) retry.href = safeNext;
+
         const showFailure = (message: string) => {
             if (status) status.textContent = message;
             if (retry) retry.hidden = false;

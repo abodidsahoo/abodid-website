@@ -20,9 +20,14 @@ import { isValidOpportunityUsername, normalizeOpportunityUsername } from '../../
 import { opportunityToSavedInsert, savedRowToOpportunity } from '../../src/lib/opportunities/saved';
 import { generateIcsFile, generateGoogleCalendarUrl } from '../../src/lib/opportunities/calendar';
 import { formatTimeRemaining } from '../../src/lib/opportunities/reminders';
-import { isOpportunityAttention, selectAttentionOpportunities } from '../../src/lib/opportunities/attention';
+import { isOpportunityAttention, opportunityAttentionScore, selectAttentionOpportunities } from '../../src/lib/opportunities/attention';
 import { normalizeOpportunityCaptureUrl, unwrapOpportunityRedirect } from '../../src/lib/opportunities/captureUrl';
-import { getFirstName } from '../../src/lib/opportunities/ui-helpers';
+import { formatDaysRemaining, formatStatusTitle, getFirstName } from '../../src/lib/opportunities/ui-helpers';
+import {
+    WORKFLOW_STATUSES,
+    normalizeOpportunityStatus,
+    opportunityMatchesTrackerStatus,
+} from '../../src/components/opportunities/OpportunityStatusPicker';
 import { getOpportunityMenuPosition } from '../../src/lib/opportunities/menuPosition';
 import {
     getOpportunitySupportPromptStorageKey,
@@ -118,6 +123,32 @@ describe('Opportunity Assistant Core Functionality', () => {
         });
     });
 
+    describe('Action-oriented workflow presentation', () => {
+        it('uses the five plain-language tracker stages while preserving legacy values', () => {
+            expect(WORKFLOW_STATUSES.map((status) => status.label)).toEqual([
+                'Saved', 'Reviewing', 'Applying', 'Submitted', 'Archived',
+            ]);
+            expect(normalizeOpportunityStatus('registered')).toBe('submitted');
+            expect(normalizeOpportunityStatus('attending')).toBe('submitted');
+            expect(normalizeOpportunityStatus('dismissed')).toBe('done');
+            expect(formatStatusTitle('preparing')).toBe('Applying');
+        });
+
+        it('keeps existing filter results aligned with the new tracker stages', () => {
+            expect(opportunityMatchesTrackerStatus('registered', 'submitted')).toBe(true);
+            expect(opportunityMatchesTrackerStatus('attending', 'submitted')).toBe(true);
+            expect(opportunityMatchesTrackerStatus('dismissed', 'done')).toBe(true);
+            expect(opportunityMatchesTrackerStatus('inbox', 'preparing')).toBe(false);
+        });
+
+        it('reserves red urgency for the final 48 hours', () => {
+            const inHours = (hours: number) => new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+            expect(formatDaysRemaining(inHours(47), 'exact').level).toBe('critical');
+            expect(formatDaysRemaining(inHours(72), 'exact').level).toBe('warning');
+            expect(formatDaysRemaining(inHours(40 * 24), 'exact').level).toBe('neutral');
+        });
+    });
+
     describe('Attention selection', () => {
         const now = new Date('2026-09-24T00:00:00.000Z').getTime();
         const opportunity = (overrides: Partial<Opportunity> = {}) => ({
@@ -148,6 +179,14 @@ describe('Opportunity Assistant Core Functionality', () => {
                 opportunity({ id: 'priority-soon', priority: 3, deadline_at: '2026-09-25T00:00:00.000Z' }),
             ], now);
             expect(selected.map((item) => item.id)).toEqual(['priority-soon', 'standard-soon']);
+        });
+
+        it('ranks active application work ahead of already submitted items', () => {
+            const applying = opportunity({ status: 'preparing', priority: 1 });
+            const submitted = opportunity({ status: 'submitted', priority: 3 });
+            expect(opportunityAttentionScore(applying, now)).toBeLessThan(
+                opportunityAttentionScore(submitted, now),
+            );
         });
     });
 
@@ -455,6 +494,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 event_date: null,
                 location: 'London',
                 requirements: ['Portfolio'],
+                completed_requirements: ['Portfolio'],
                 next_action: 'Draft proposal',
                 application_url: 'https://example.com/apply',
                 meeting_url: null,
@@ -483,6 +523,7 @@ describe('Opportunity Assistant Core Functionality', () => {
             expect(restored.organisation).toBe(source.organisation);
             expect(restored.notes).toBe('Private note');
             expect(restored.priority).toBe(3);
+            expect(restored.completed_requirements).toEqual(['Portfolio']);
         });
     });
 
@@ -501,6 +542,7 @@ describe('Opportunity Assistant Core Functionality', () => {
             event_date: null,
             location: 'Berlin',
             requirements: ['Portfolio PDF', 'Project Pitch'],
+            completed_requirements: [],
             next_action: 'Draft 500-word pitch',
             application_url: 'https://studiox.org/apply',
             meeting_url: null,
@@ -555,6 +597,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 event_date: null,
                 location: 'Singapore',
                 requirements: ['Hours: 10:00 - 19:00', 'Doc ref: 00-10', 'Portfolio of 10 works'],
+                completed_requirements: [],
                 next_action: null,
                 application_url: null,
                 meeting_url: null,
@@ -593,6 +636,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 event_date: null,
                 location: 'UK',
                 requirements: ['Applicants must be aged 18 to 35', 'Early-career artists only'],
+                completed_requirements: [],
                 next_action: null,
                 application_url: null,
                 meeting_url: null,

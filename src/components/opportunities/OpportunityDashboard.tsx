@@ -1,9 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Opportunity, OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
-import { formatCategoryTitle, getFirstName } from '../../lib/opportunities/ui-helpers';
+import {
+    formatCategoryTitle,
+    formatDaysRemaining,
+    formatOpportunityTitle,
+    formatStatusTitle,
+    getFirstName,
+} from '../../lib/opportunities/ui-helpers';
 import { isOpportunityAttention, opportunityAttentionScore } from '../../lib/opportunities/attention';
-import { OpportunityCard } from './OpportunityCard';
+import { OpportunityCard, type RadarSaveState } from './OpportunityCard';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
+import {
+    WORKFLOW_STATUSES,
+    opportunityMatchesTrackerStatus,
+    type TrackerStatus,
+} from './OpportunityStatusPicker';
 import { EditOpportunityModal } from './EditOpportunityModal';
 import { ManualCreateModal } from './ManualCreateModal';
 import {
@@ -11,12 +22,21 @@ import {
     type OpportunityEditableProfile,
 } from './OpportunityProfileDialog';
 import { OpportunitySupportPrompt } from './OpportunitySupportPrompt';
+import { OpportunityRadarSignInDialog } from './OpportunityRadarSignInDialog';
 import { OpportunitySettingsMenu } from './OpportunitySettingsMenu';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
 import {
     getOpportunitySupportPromptStorageKey,
     shouldShowOpportunitySupportPrompt,
 } from '../../lib/opportunities/supportPrompt';
+import {
+    RADAR_IMPORT_INTENT_STORAGE_KEY,
+    createRadarImportIntent,
+    getRadarImportNextPath,
+    parseRadarImportIntent,
+} from '../../lib/opportunities/importIntent';
+
+const GOOGLE_IDENTITY_SCOPES = 'openid email profile';
 
 type UrgencyRailFilter = 'attention' | 'this_week' | 'this_month' | 'later' | 'all';
 
@@ -42,10 +62,13 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     );
     const [profileVisibility, setProfileVisibility] = useState(Boolean(viewerProfile?.is_public));
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loadError, setLoadError] = useState('');
 
     // Capture bar state
     const [captureUrl, setCaptureUrl] = useState('');
     const [isCapturing, setIsCapturing] = useState(false);
+    const [captureResult, setCaptureResult] = useState<Opportunity | null>(null);
+    const [captureError, setCaptureError] = useState('');
 
     // Filters: Single clean Urgency Rail + Secondary Filter Tray Toggle
     const [urgencyFilter, setUrgencyFilter] = useState<UrgencyRailFilter>('all');
@@ -62,6 +85,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [manualInitialUrl, setManualInitialUrl] = useState('');
     const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
     const [supportPromptSource, setSupportPromptSource] = useState<'automatic' | 'manual' | null>(null);
+    const [radarStates, setRadarStates] = useState<Record<string, RadarSaveState>>({});
+    const [radarSignInOpportunity, setRadarSignInOpportunity] = useState<Opportunity | null>(null);
+    const [isStartingRadarSignIn, setIsStartingRadarSignIn] = useState(false);
+    const [radarSignInError, setRadarSignInError] = useState('');
 
     // Toast
     const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -73,19 +100,81 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         return () => clearInterval(timer);
     }, []);
 
-    const showToast = (msg: string) => {
+    const showToast = useCallback((msg: string) => {
         setToastMessage(msg);
         setTimeout(() => setToastMessage(null), 3000);
-    };
+    }, []);
 
     const authenticatedHeaders = (includeJson = false) => ({
         ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     });
 
+    const handleAddToRadar = useCallback(async (opportunity: Opportunity) => {
+        if (!accessToken) {
+            setRadarSignInError('');
+            setRadarSignInOpportunity(opportunity);
+            return;
+        }
+
+        setRadarStates((current) => ({ ...current, [opportunity.id]: 'adding' }));
+        try {
+            const response = await fetch('/api/opportunities/import', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({ source_opportunity_id: opportunity.id }),
+            });
+            const payload = await response.json().catch(() => ({}));
+
+            if (response.status === 401) {
+                setRadarStates((current) => ({ ...current, [opportunity.id]: 'idle' }));
+                setRadarSignInOpportunity(opportunity);
+                return;
+            }
+            if (!response.ok) throw new Error(payload.error || 'Could not add this opportunity');
+
+            const nextState: RadarSaveState = payload.status === 'added' ? 'added' : 'already';
+            setRadarStates((current) => ({ ...current, [opportunity.id]: nextState }));
+            showToast(nextState === 'added' ? '✓ Added to your radar' : '✓ Already on your radar');
+        } catch (error) {
+            setRadarStates((current) => ({ ...current, [opportunity.id]: 'error' }));
+            showToast(error instanceof Error ? `❌ ${error.message}` : '❌ Could not add this opportunity');
+        }
+    }, [accessToken, showToast]);
+
+    const beginRadarSignIn = async () => {
+        if (!radarSignInOpportunity) return;
+        setIsStartingRadarSignIn(true);
+        setRadarSignInError('');
+
+        try {
+            const intent = createRadarImportIntent(radarSignInOpportunity.id, username);
+            window.sessionStorage.setItem(RADAR_IMPORT_INTENT_STORAGE_KEY, JSON.stringify(intent));
+            const callback = new URL('/opportunities/auth/callback', window.location.origin);
+            callback.searchParams.set('next', getRadarImportNextPath(intent));
+
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    scopes: GOOGLE_IDENTITY_SCOPES,
+                    redirectTo: callback.toString(),
+                    queryParams: { prompt: 'select_account' },
+                },
+            });
+            if (error) throw error;
+        } catch {
+            setRadarSignInError('Google sign-in could not start. Try again.');
+            setIsStartingRadarSignIn(false);
+        }
+    };
+
     // 1. Fetch the owner's private rows, or a deliberately safe public projection.
     const fetchOpportunities = async () => {
         setIsLoading(true);
+        setLoadError('');
         try {
             const endpoint = isOwner
                 ? `/api/opportunities?refresh=${Date.now()}`
@@ -101,9 +190,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             } else if (res.status === 404) {
                 setOpportunities([]);
                 setCollectionProfile(null);
+            } else {
+                setLoadError('Your opportunities could not be loaded.');
             }
         } catch (err) {
             console.error('Failed to load opportunities:', err);
+            setLoadError('Your opportunities could not be loaded. Check your connection and try again.');
         } finally {
             setIsLoading(false);
         }
@@ -112,6 +204,56 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     useEffect(() => {
         fetchOpportunities();
     }, [username, accessToken, isOwner]);
+
+    useEffect(() => {
+        if (isLoading) return;
+
+        const url = new URL(window.location.href);
+        const sourceId = url.searchParams.get('add') || '';
+        const nonce = url.searchParams.get('intent') || '';
+        if (!sourceId && !nonce) return;
+
+        const cleanPendingUrl = () => {
+            url.searchParams.delete('add');
+            url.searchParams.delete('intent');
+            window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+        };
+
+        const pending = parseRadarImportIntent(
+            window.sessionStorage.getItem(RADAR_IMPORT_INTENT_STORAGE_KEY),
+            { sourceId, sourceUsername: username, nonce },
+        );
+        if (!pending) {
+            window.sessionStorage.removeItem(RADAR_IMPORT_INTENT_STORAGE_KEY);
+            cleanPendingUrl();
+            return;
+        }
+
+        const opportunity = opportunities.find((item) => item.id === sourceId);
+        if (!opportunity) {
+            window.sessionStorage.removeItem(RADAR_IMPORT_INTENT_STORAGE_KEY);
+            cleanPendingUrl();
+            showToast('This opportunity is no longer available');
+            return;
+        }
+
+        if (!accessToken) {
+            setRadarSignInOpportunity(opportunity);
+            return;
+        }
+
+        window.sessionStorage.removeItem(RADAR_IMPORT_INTENT_STORAGE_KEY);
+        cleanPendingUrl();
+        setRadarSignInOpportunity(null);
+
+        if (isOwner) {
+            setRadarStates((current) => ({ ...current, [opportunity.id]: 'already' }));
+            showToast('✓ Already on your radar');
+            return;
+        }
+
+        void handleAddToRadar(opportunity);
+    }, [accessToken, handleAddToRadar, isLoading, isOwner, opportunities, showToast, username]);
 
     useEffect(() => {
         setProfileVisibility(Boolean(viewerProfile?.is_public));
@@ -199,6 +341,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         if (!captureUrl.trim()) return;
 
         setIsCapturing(true);
+        setCaptureError('');
+        setCaptureResult(null);
         try {
             const res = await fetch('/api/opportunities/capture', {
                 method: 'POST',
@@ -208,21 +352,25 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             const data = await res.json();
             if (res.ok && data.opportunity) {
-                showToast(`✓ Captured "${data.opportunity.title}"`);
+                setCaptureResult(data.opportunity);
                 setCaptureUrl('');
                 setOpportunities((prev) => {
                     const filtered = prev.filter((o) => o.id !== data.opportunity.id);
                     return [data.opportunity, ...filtered];
                 });
             } else {
-                showToast(`❌ ${data.error || 'Failed to capture'}`);
+                const message = data.error || 'Failed to capture this opportunity';
+                setCaptureError(message);
+                showToast(`❌ ${message}`);
                 if (data.can_manual_create) {
                     setManualInitialUrl(data.canonical_url || captureUrl.trim());
                     setIsManualModalOpen(true);
                 }
             }
         } catch (err: any) {
-            showToast(`❌ Network error: ${err.message}`);
+            const message = `Network error: ${err.message}`;
+            setCaptureError(message);
+            showToast(`❌ ${message}`);
         } finally {
             setIsCapturing(false);
         }
@@ -230,6 +378,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     // 4. Update Status
     const handleUpdateStatus = async (id: string, newStatus: OpportunityStatus) => {
+        const previousStatus = opportunities.find((opportunity) => opportunity.id === id)?.status;
         setOpportunities((prev) =>
             prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
         );
@@ -241,35 +390,90 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 body: JSON.stringify({ status: newStatus }),
             });
             if (res.ok) {
-                const formatted = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-                showToast(`✓ Status updated to ${formatted}`);
+                showToast(`✓ Status updated to ${formatStatusTitle(newStatus)}`);
             } else {
+                if (previousStatus) {
+                    setOpportunities((prev) => prev.map((o) => (
+                        o.id === id ? { ...o, status: previousStatus } : o
+                    )));
+                }
                 showToast('❌ Failed to update status');
             }
         } catch {
+            if (previousStatus) {
+                setOpportunities((prev) => prev.map((o) => (
+                    o.id === id ? { ...o, status: previousStatus } : o
+                )));
+            }
             showToast('❌ Network error updating status');
         }
     };
 
+    const handleUpdateChecklist = async (id: string, completedRequirements: string[]) => {
+        const response = await fetch(`/api/opportunities/${id}`, {
+            method: 'PATCH',
+            headers: authenticatedHeaders(true),
+            body: JSON.stringify({ completed_requirements: completedRequirements }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.opportunity) {
+            throw new Error(data.error || 'Checklist progress could not be saved');
+        }
+
+        setOpportunities((current) => current.map((opportunity) => (
+            opportunity.id === id ? data.opportunity : opportunity
+        )));
+    };
+
+    const handleUpdateDeadline = async (id: string, deadline: string) => {
+        const response = await fetch(`/api/opportunities/${id}`, {
+            method: 'PATCH',
+            headers: authenticatedHeaders(true),
+            body: JSON.stringify({ deadline }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.opportunity) {
+            throw new Error(data.error || 'Deadline could not be saved');
+        }
+
+        setOpportunities((current) => current.map((opportunity) => (
+            opportunity.id === id ? data.opportunity : opportunity
+        )));
+        showToast('✓ Deadline saved');
+    };
+
     // 5. Update Priority
     const handleUpdatePriority = async (id: string, priority: number) => {
+        const previousPriority = opportunities.find((opportunity) => opportunity.id === id)?.priority || 1;
         setOpportunities((prev) =>
             prev.map((o) => (o.id === id ? { ...o, priority } : o))
         );
 
+        let res: Response;
         try {
-            const res = await fetch(`/api/opportunities/${id}`, {
+            res = await fetch(`/api/opportunities/${id}`, {
                 method: 'PATCH',
                 headers: authenticatedHeaders(true),
                 body: JSON.stringify({ priority }),
             });
-            if (res.ok) {
-                const label = priority === 3 ? 'High' : priority === 2 ? 'Medium' : 'Low';
-                showToast(`✓ Priority set to ${label}`);
-            }
         } catch {
+            setOpportunities((prev) => prev.map((o) => (
+                o.id === id ? { ...o, priority: previousPriority } : o
+            )));
             showToast('❌ Failed to update priority');
+            throw new Error('Failed to update priority');
         }
+
+        if (!res.ok) {
+            setOpportunities((prev) => prev.map((o) => (
+                o.id === id ? { ...o, priority: previousPriority } : o
+            )));
+            showToast('❌ Failed to update priority');
+            throw new Error('Failed to update priority');
+        }
+
+        const label = priority === 3 ? 'High' : priority === 2 ? 'Medium' : 'Low';
+        showToast(`✓ Priority set to ${label}`);
     };
 
     // 6. Save Edits from Modal
@@ -368,7 +572,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             }
 
             // Workflow Status Filter
-            if (statusFilter !== 'all' && o.status !== statusFilter) {
+            if (
+                statusFilter !== 'all'
+                && !opportunityMatchesTrackerStatus(o.status, statusFilter as TrackerStatus)
+            ) {
                 return false;
             }
 
@@ -435,6 +642,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const collectionOwnerName = collectionProfile?.display_name || username;
     const collectionTitle = `${collectionOwnerName.charAt(0).toUpperCase()}${collectionOwnerName.slice(1)}'s Opportunities`;
     const viewerFirstName = getFirstName(activeViewerProfile?.display_name || activeViewerProfile?.username || username);
+    const viewerDashboardPath = activeViewerProfile
+        ? `/opportunities/${encodeURIComponent(activeViewerProfile.username)}`
+        : '/opportunities';
 
     return (
         <div className="opportunities-shell">
@@ -448,20 +658,31 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 {isOwner ? `Hi, ${viewerFirstName}.` : collectionTitle}
                             </h1>
                             <p className="opp-hero-tagline">
-                                {isOwner ? 'One Click. Every opportunity organized.' : 'An organized, shared opportunity collection.'}
+                                {isOwner ? 'One Click. Every opportunity organized.' : 'Curated opportunities, ready to track.'}
                             </p>
                         </div>
                         {activeViewerProfile ? (
-                            <OpportunitySettingsMenu
-                                accessToken={accessToken}
-                                isPublic={profileVisibility}
-                                username={activeViewerProfile.username}
-                                onLogout={handleLogout}
-                                onEditProfile={() => setIsProfileDialogOpen(true)}
-                                onOpenSupport={() => setSupportPromptSource('manual')}
-                                onToast={showToast}
-                                onVisibilityChange={setProfileVisibility}
-                            />
+                            <div className="opp-hero-account-actions">
+                                {!isOwner && (
+                                    <a
+                                        className="opp-my-radar-link"
+                                        href={viewerDashboardPath}
+                                    >
+                                        <span aria-hidden="true">←</span>
+                                        <span>My Radar</span>
+                                    </a>
+                                )}
+                                <OpportunitySettingsMenu
+                                    accessToken={accessToken}
+                                    isPublic={profileVisibility}
+                                    username={activeViewerProfile.username}
+                                    onLogout={handleLogout}
+                                    onEditProfile={() => setIsProfileDialogOpen(true)}
+                                    onOpenSupport={() => setSupportPromptSource('manual')}
+                                    onToast={showToast}
+                                    onVisibilityChange={setProfileVisibility}
+                                />
+                            </div>
                         ) : (
                             <a className="opp-google-signin-compact" href={`/opportunities?next=${encodeURIComponent(`/opportunities/${username}`)}`}>
                                 Sign in with Google <span aria-hidden="true">→</span>
@@ -471,39 +692,88 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
                     {/* Capture Bar: Only the collection owner may mutate data. */}
                     {isOwner && (
-                        <form onSubmit={handleCapture} className="opp-hero-capture-bar">
-                            <input
-                                type="url"
-                                className="opp-hero-capture-input"
-                                placeholder="Paste opportunity URL (grant, residency, open call)..."
-                                value={captureUrl}
-                                onChange={(e) => setCaptureUrl(e.target.value)}
-                                required
-                            />
-                            <button
-                                type="submit"
-                                className="opp-btn opp-btn-primary opp-hero-btn"
-                                disabled={isCapturing}
-                            >
-                                {isCapturing ? '⚡ Scouting...' : 'Capture →'}
-                            </button>
-                            <button
-                                type="button"
-                                className="opp-btn opp-btn-secondary opp-hero-btn"
-                                onClick={() => {
-                                    setManualInitialUrl('');
-                                    setIsManualModalOpen(true);
-                                }}
-                            >
-                                + Add Manually
-                            </button>
-                        </form>
+                        <div className="opp-capture-workspace">
+                            <div className="opp-capture-heading">
+                                <label htmlFor="opportunity-capture-url">Save an opportunity</label>
+                                <p id="opportunity-capture-help">
+                                    Paste any opportunity link. We'll organize the deadline, requirements and next steps.
+                                </p>
+                            </div>
+                            <form onSubmit={handleCapture} className="opp-hero-capture-bar">
+                                <input
+                                    id="opportunity-capture-url"
+                                    type="url"
+                                    className="opp-hero-capture-input"
+                                    placeholder="https://example.org/opportunity"
+                                    value={captureUrl}
+                                    onChange={(e) => {
+                                        setCaptureUrl(e.target.value);
+                                        setCaptureError('');
+                                    }}
+                                    aria-describedby={`opportunity-capture-help${captureError ? ' opportunity-capture-error' : ''}`}
+                                    aria-invalid={Boolean(captureError)}
+                                    inputMode="url"
+                                    autoComplete="url"
+                                    required
+                                />
+                                <button
+                                    type="submit"
+                                    className="opp-btn opp-btn-primary opp-hero-btn"
+                                    disabled={isCapturing}
+                                >
+                                    {isCapturing ? 'Organizing…' : 'Save Opportunity →'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="opp-btn opp-btn-secondary opp-hero-btn"
+                                    onClick={() => {
+                                        setManualInitialUrl('');
+                                        setIsManualModalOpen(true);
+                                    }}
+                                >
+                                    Add manually
+                                </button>
+                            </form>
+                            {captureError && (
+                                <p id="opportunity-capture-error" className="opp-capture-error" role="alert">
+                                    {captureError}
+                                </p>
+                            )}
+                            {captureResult && (
+                                <div className="opp-capture-success" role="status" aria-live="polite">
+                                    <div>
+                                        <span className="opp-capture-success-label">Saved to your radar</span>
+                                        <strong>{formatOpportunityTitle(captureResult.title)}</strong>
+                                        <span>
+                                            {formatDaysRemaining(
+                                                captureResult.deadline_at,
+                                                captureResult.deadline_confidence,
+                                            ).label}
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="opp-btn opp-btn-secondary opp-capture-view-btn"
+                                        onClick={() => setSelectedDetailId(captureResult.id)}
+                                    >
+                                        View Opportunity →
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             </header>
 
             {/* Thin Divider Line */}
             <div className="opp-radar-divider" />
+
+            {!isOwner && collectionProfile && (
+                <aside className="opp-radar-intro" aria-label="Save opportunities">
+                    <strong>See something useful?</strong>
+                    <span>Add it to your private radar.</span>
+                </aside>
+            )}
 
             {/* Horizontal Urgency Rail & Filter Popover Toggle */}
             <div className="opp-rail-wrapper">
@@ -590,14 +860,14 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 <div className="opp-popover-section">
                                     <div className="opp-popover-section-label">Workflow Status</div>
                                     <div className="opp-popover-pills">
-                                        {['all', 'inbox', 'interested', 'preparing', 'submitted', 'registered', 'done'].map((st) => (
+                                        {[{ id: 'all', label: 'All' }, ...WORKFLOW_STATUSES].map((statusOption) => (
                                             <button
-                                                key={st}
+                                                key={statusOption.id}
                                                 type="button"
-                                                className={`opp-popover-pill ${statusFilter === st ? 'active' : ''}`}
-                                                onClick={() => setStatusFilter(st)}
+                                                className={`opp-popover-pill ${statusFilter === statusOption.id ? 'active' : ''}`}
+                                                onClick={() => setStatusFilter(statusOption.id)}
                                             >
-                                                {st === 'all' ? 'All' : st.charAt(0).toUpperCase() + st.slice(1)}
+                                                {statusOption.label}
                                             </button>
                                         ))}
                                     </div>
@@ -661,8 +931,15 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             {/* Opportunities Grid / Empty State */}
             {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--opp-cream)', fontSize: '1.1rem', fontWeight: 800 }}>
-                    ⚡ Loading opportunities...
+                <div className="opp-loading-state" role="status">
+                    Loading opportunities…
+                </div>
+            ) : loadError ? (
+                <div className="opp-load-error" role="alert">
+                    <strong>{loadError}</strong>
+                    <button type="button" className="opp-btn opp-btn-secondary" onClick={() => void fetchOpportunities()}>
+                        Try again
+                    </button>
                 </div>
             ) : !collectionProfile && !isOwner ? (
                 <div className="opp-empty-split-grid">
@@ -686,7 +963,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                             <div className="opp-empty-icon-sm">⚡</div>
                             <div>
                                 <h3 className="opp-empty-heading">{isOwner ? 'Start Tracking' : 'No Shared Opportunities Yet'}</h3>
-                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--opp-muted)' }}>
+                                <p className="opp-empty-kicker">
                                     {isOwner ? 'Quick capture workflow' : `@${username}'s public collection`}
                                 </p>
                             </div>
@@ -701,15 +978,21 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 type="button"
                                 className="opp-btn opp-btn-primary opp-btn-sm"
                                 onClick={() => {
+                                    document.querySelector<HTMLInputElement>('#opportunity-capture-url')?.focus();
+                                }}
+                            >
+                                Paste your first link ↑
+                            </button>
+                            <button
+                                type="button"
+                                className="opp-btn opp-btn-secondary opp-btn-sm"
+                                onClick={() => {
                                     setManualInitialUrl('');
                                     setIsManualModalOpen(true);
                                 }}
                             >
-                                + Add Manually
+                                Add manually
                             </button>
-                        </div>}
-                        {isOwner && <div style={{ fontSize: '0.8rem', color: 'var(--opp-muted)', background: 'rgba(21, 19, 15, 0.04)', padding: '8px 12px', borderRadius: '6px' }}>
-                            💡 <strong>Tip:</strong> Pinned Chrome extension captures in 1 click from any browser tab.
                         </div>}
                     </div>
 
@@ -717,19 +1000,20 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         <div className="opp-empty-block-header">
                             <div className="opp-empty-icon-sm">📡</div>
                             <div>
-                                <h3 className="opp-empty-heading">Radar is Clear</h3>
-                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--opp-muted)' }}>No pending deadlines</p>
+                                <h3 className="opp-empty-heading">What your first card will show</h3>
+                                <p className="opp-empty-kicker">Interactive example</p>
                             </div>
                         </div>
-                        <p className="opp-empty-text">
-                            Active opportunities appear as cards with real-time countdowns, priority stars, and automatic daily email digest checks.
-                        </p>
-                        <div className="opp-tag-cloud">
-                            <span className="opp-tag-pill">Grants</span>
-                            <span className="opp-tag-pill">Residencies</span>
-                            <span className="opp-tag-pill">Fellowships</span>
-                            <span className="opp-tag-pill">Open Calls</span>
-                            <span className="opp-tag-pill">Jobs</span>
+                        <div className="opp-empty-demo-card" aria-label="Example opportunity card">
+                            <div className="opp-empty-demo-meta">
+                                <span className="opp-days-remaining warning"><span className="opp-days-pulse-dot" />12 days left</span>
+                            </div>
+                            <strong>Creative Research Fellowship</strong>
+                            <span>Example Arts Foundation</span>
+                            <div className="opp-empty-demo-actions" aria-hidden="true">
+                                <span>Fellowship</span>
+                                <span>More details →</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -762,11 +1046,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         <OpportunityCard
                             key={opp.id}
                             opportunity={opp}
-                            isAuthenticated={isOwner}
                             onOpen={(o) => setSelectedDetailId(o.id)}
-                            onUpdateStatus={handleUpdateStatus}
-                            onUpdatePriority={handleUpdatePriority}
                             onSelectCategory={(cat) => setCategoryFilter(cat)}
+                            showRadarAction={!isOwner}
+                            radarState={radarStates[opp.id] || 'idle'}
+                            onAddToRadar={handleAddToRadar}
                         />
                     ))}
                 </div>
@@ -783,8 +1067,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 ) : !isOwner ? (
                     <div className="opp-curator-active-bar">
                         <span className="opp-curator-badge">Viewing @{username}</span>
-                        <a className="opp-curator-logout-btn" href={`/opportunities/${activeViewerProfile.username}`}>
-                            Open My Opportunities →
+                        <a className="opp-curator-logout-btn" href={viewerDashboardPath}>
+                            My Radar
                         </a>
                     </div>
                 ) : (
@@ -817,6 +1101,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         onClose={() => setSelectedDetailId(null)}
                         onUpdateStatus={handleUpdateStatus}
                         onUpdatePriority={handleUpdatePriority}
+                        onUpdateChecklist={handleUpdateChecklist}
+                        onUpdateDeadline={handleUpdateDeadline}
                         onSelectCategory={(cat) => setCategoryFilter(cat)}
                         onEdit={(o) => {
                             setSelectedDetailId(null);
@@ -831,9 +1117,24 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         onNavigatePrev={() => handleNavigate(-1)}
                         currentIndex={selectedIndex + 1}
                         totalCount={filteredOpportunities.length}
+                        showRadarAction={!isOwner}
+                        radarState={radarStates[selectedOpp.id] || 'idle'}
+                        onAddToRadar={handleAddToRadar}
                     />
                 );
             })()}
+
+            <OpportunityRadarSignInDialog
+                opportunity={radarSignInOpportunity}
+                isStarting={isStartingRadarSignIn}
+                error={radarSignInError}
+                onClose={() => {
+                    setRadarSignInOpportunity(null);
+                    setIsStartingRadarSignIn(false);
+                    setRadarSignInError('');
+                }}
+                onContinue={() => void beginRadarSignIn()}
+            />
 
             {/* Edit Modal */}
             {editingOpp && (

@@ -24,6 +24,11 @@ export const savedRowToOpportunity = (row: SavedOpportunityRow): Opportunity => 
     const requirements = Array.isArray(content.requirements)
         ? content.requirements.filter((value): value is string => typeof value === 'string')
         : [];
+    const completedRequirements = Array.isArray(content.completed_requirements)
+        ? content.completed_requirements.filter((value): value is string => (
+            typeof value === 'string' && requirements.includes(value)
+        ))
+        : [];
 
     return {
         id: row.id,
@@ -39,6 +44,7 @@ export const savedRowToOpportunity = (row: SavedOpportunityRow): Opportunity => 
         event_date: nullableString(content.event_date),
         location: nullableString(content.location),
         requirements,
+        completed_requirements: completedRequirements,
         next_action: nullableString(content.next_action),
         application_url: nullableString(content.application_url),
         meeting_url: nullableString(content.meeting_url),
@@ -76,6 +82,7 @@ export const opportunityToSavedInsert = (userId: string, opportunity: Partial<Op
         event_date: opportunity.event_date || null,
         location: opportunity.location || null,
         requirements: opportunity.requirements || [],
+        completed_requirements: opportunity.completed_requirements || [],
         next_action: opportunity.next_action || null,
         application_url: opportunity.application_url || null,
         meeting_url: opportunity.meeting_url || null,

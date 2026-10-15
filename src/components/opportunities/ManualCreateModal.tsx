@@ -163,13 +163,11 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
                                             value={status}
                                             onChange={(e) => setStatus(e.target.value as OpportunityStatus)}
                                         >
-                                            <option value="inbox">Inbox</option>
-                                            <option value="interested">Interested</option>
-                                            <option value="preparing">Preparing</option>
+                                            <option value="inbox">Saved</option>
+                                            <option value="interested">Reviewing</option>
+                                            <option value="preparing">Applying</option>
                                             <option value="submitted">Submitted</option>
-                                            <option value="registered">Registered</option>
-                                            <option value="attending">Attending</option>
-                                            <option value="done">Done</option>
+                                            <option value="done">Archived</option>
                                         </select>
                                     </div>
                                 </div>

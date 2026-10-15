@@ -56,6 +56,8 @@ export const GET: APIRoute = async ({ params }) => {
                 fee_or_funding: row.content?.fee_or_funding,
                 summary: row.content?.summary,
                 extracted_at: row.content?.extracted_at,
+                // Expose extraction provenance without leaking provider/model details.
+                llm_model: row.content?.llm_model ? 'ai-extracted' : null,
             },
         } as SavedOpportunityRow));
 

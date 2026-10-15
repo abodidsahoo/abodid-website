@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import OpportunityCardModalQa from '../components/opportunities/OpportunityCardModalQa';
+import '../styles/portfolio-pop-editorial.css';
+import '../styles/opportunities-editorial.css';
+---
+
+<BaseLayout title="Opportunity card and modal QA" fullWidth={true} showGlobalGrid={false} bodyClass="opportunities-editorial-page">
+    <main class="opp-route-canvas" style="padding: 48px 24px; min-height: 100dvh;">
+        <div class="opportunities-shell" style="max-width: 1080px; margin: 0 auto;">
+            <OpportunityCardModalQa client:load />
+        </div>
+    </main>
+</BaseLayout>

@@ -74,11 +74,30 @@ export const PATCH: APIRoute = async ({ params, request }) => {
     }
 
     if (body.requirements !== undefined) {
-        content.requirements = Array.isArray(body.requirements)
+        const requirements = Array.isArray(body.requirements)
             ? body.requirements.slice(0, 50).map((value: unknown) => String(value).slice(0, 500))
             : typeof body.requirements === 'string'
                 ? body.requirements.split(',').map((value: string) => value.trim()).filter(Boolean).slice(0, 50)
                 : [];
+        content.requirements = requirements;
+        content.completed_requirements = Array.isArray(content.completed_requirements)
+            ? content.completed_requirements.filter((value) => requirements.includes(value))
+            : [];
+    }
+
+    if (body.completed_requirements !== undefined) {
+        if (!Array.isArray(body.completed_requirements)) {
+            return opportunityJson({ error: 'Invalid checklist progress' }, 400);
+        }
+
+        const requirements = Array.isArray(content.requirements)
+            ? content.requirements.filter((value): value is string => typeof value === 'string')
+            : [];
+        const requested = body.completed_requirements
+            .slice(0, 50)
+            .map((value: unknown) => String(value).slice(0, 500));
+        content.completed_requirements = [...new Set(requested)]
+            .filter((value) => requirements.includes(value));
     }
 
     if (body.deadline !== undefined || body.deadline_at !== undefined) {

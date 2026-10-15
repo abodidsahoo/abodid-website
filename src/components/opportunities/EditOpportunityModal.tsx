@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import type { Opportunity, OpportunityCategory, OpportunityStatus, OpportunityOutcome } from '../../lib/opportunities/types';
 import { formatLiveDatePreview } from '../../lib/opportunities/ui-helpers';
+import { normalizeOpportunityStatus } from './OpportunityStatusPicker';
 
 interface EditOpportunityModalProps {
     opportunity: Opportunity;
@@ -22,7 +23,7 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
     const [title, setTitle] = useState(opp.title);
     const [organisation, setOrganisation] = useState(opp.organisation);
     const [category, setCategory] = useState<OpportunityCategory>(opp.category);
-    const [status, setStatus] = useState<OpportunityStatus>(opp.status);
+    const [status, setStatus] = useState<OpportunityStatus>(normalizeOpportunityStatus(opp.status));
     const [priority, setPriority] = useState<number>(opp.priority || 1);
     const [outcome, setOutcome] = useState<OpportunityOutcome>(opp.outcome);
     const [deadline, setDeadline] = useState(
@@ -169,14 +170,11 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
                                             value={status}
                                             onChange={(e) => setStatus(e.target.value as OpportunityStatus)}
                                         >
-                                            <option value="inbox">Inbox</option>
-                                            <option value="interested">Interested</option>
-                                            <option value="preparing">Preparing</option>
+                                            <option value="inbox">Saved</option>
+                                            <option value="interested">Reviewing</option>
+                                            <option value="preparing">Applying</option>
                                             <option value="submitted">Submitted</option>
-                                            <option value="registered">Registered</option>
-                                            <option value="attending">Attending</option>
-                                            <option value="done">Done</option>
-                                            <option value="dismissed">Dismissed</option>
+                                            <option value="done">Archived</option>
                                         </select>
                                     </div>
 

@@ -47,17 +47,11 @@ export function formatDaysRemaining(deadlineAt: string | null | undefined, confi
         const mins = Math.max(1, Math.floor(diffMs / (1000 * 60)));
         return { label: `${mins}m left`, level: 'critical' };
     }
-    if (diffHours <= 24) {
+    if (diffHours <= 48) {
         const hrs = Math.floor(diffHours);
         return { label: `${hrs} hours left`, level: 'critical' };
     }
-    if (diffDays === 1) {
-        return { label: 'Tomorrow', level: 'critical' };
-    }
-    if (diffDays <= 3) {
-        return { label: `${diffDays} days left`, level: 'critical' };
-    }
-    if (diffDays <= 7) {
+    if (diffDays <= 30) {
         return { label: `${diffDays} days left`, level: 'warning' };
     }
 
@@ -202,16 +196,45 @@ export function formatCategoryTitle(category: OpportunityCategory | string): str
  */
 export function formatStatusTitle(status: OpportunityStatus | string): string {
     switch (status) {
-        case 'inbox': return 'Inbox';
-        case 'interested': return 'Interested';
-        case 'preparing': return 'Preparing';
+        case 'inbox': return 'Saved';
+        case 'interested': return 'Reviewing';
+        case 'preparing': return 'Applying';
         case 'submitted': return 'Submitted';
-        case 'registered': return 'Registered';
-        case 'attending': return 'Attending';
-        case 'done': return 'Done';
-        case 'dismissed': return 'Dismissed';
-        default: return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Inbox';
+        case 'registered': return 'Submitted';
+        case 'attending': return 'Submitted';
+        case 'done': return 'Archived';
+        case 'dismissed': return 'Archived';
+        default: return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Saved';
     }
+}
+
+/**
+ * Gives every active card a concrete next step even when extraction did not
+ * produce one. Applying items surface their first unfinished requirement.
+ */
+export function getOpportunityNextAction(opportunity: Opportunity): string {
+    const extractedAction = opportunity.next_action?.trim();
+    if (extractedAction) return extractedAction;
+
+    if (opportunity.status === 'preparing') {
+        const completed = new Set(opportunity.completed_requirements || []);
+        const nextRequirement = opportunity.requirements?.find((item) => !completed.has(item));
+        return nextRequirement ? `Complete: ${nextRequirement}` : 'Finish and submit the application.';
+    }
+
+    if (opportunity.status === 'interested') {
+        return 'Confirm eligibility and gather the required materials.';
+    }
+    if (opportunity.status === 'submitted' || opportunity.status === 'registered') {
+        return 'Track the response and any follow-up date.';
+    }
+    if (opportunity.status === 'attending') {
+        return 'Confirm attendance details and prepare to take part.';
+    }
+    if (opportunity.status === 'done' || opportunity.status === 'dismissed') {
+        return 'No action needed.';
+    }
+    return 'Review the eligibility and decide whether to apply.';
 }
 
 const LOWERCASE_WORDS = new Set([

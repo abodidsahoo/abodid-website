@@ -1,24 +1,42 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useId, useState } from 'react';
 import type { OpportunityStatus } from '../../lib/opportunities/types';
 
 export interface StatusConfig {
     id: OpportunityStatus;
     label: string;
-    icon: string;
     description: string;
-    color: string;
 }
 
-export const WORKFLOW_STATUSES: StatusConfig[] = [
-    { id: 'inbox', label: 'Inbox', icon: '📥', description: 'New capture · Unsorted', color: '#f3f4f6' },
-    { id: 'interested', label: 'Interested', icon: '⭐', description: 'Bookmarked for consideration', color: '#ffe44f' },
-    { id: 'preparing', label: 'Preparing', icon: '📝', description: 'Drafting materials & portfolio', color: '#fde047' },
-    { id: 'submitted', label: 'Submitted', icon: '🚀', description: 'Application delivered', color: '#86efac' },
-    { id: 'registered', label: 'Registered', icon: '🎟️', description: 'Ticket / spot confirmed', color: '#a7f3d0' },
-    { id: 'attending', label: 'Attending', icon: '📍', description: 'In progress / participating', color: '#93c5fd' },
-    { id: 'done', label: 'Done', icon: '✅', description: 'Finished & outcome archived', color: '#c7d2fe' },
-    { id: 'dismissed', label: 'Dismissed', icon: '✕', description: 'Not applying / passed', color: '#e5e7eb' },
-];
+/**
+ * The database keeps the original workflow enum for backwards compatibility.
+ * The product UI deliberately presents the five stages people use while
+ * applying, and folds legacy event/archive values into their closest stage.
+ */
+export const WORKFLOW_STATUSES = [
+    { id: 'inbox', label: 'Saved', description: 'Captured and ready to review' },
+    { id: 'interested', label: 'Reviewing', description: 'Checking fit and eligibility' },
+    { id: 'preparing', label: 'Applying', description: 'Preparing the application' },
+    { id: 'submitted', label: 'Submitted', description: 'Application sent' },
+    { id: 'done', label: 'Archived', description: 'No further action needed' },
+] as const satisfies readonly StatusConfig[];
+
+export type TrackerStatus = typeof WORKFLOW_STATUSES[number]['id'];
+
+export const normalizeOpportunityStatus = (status: OpportunityStatus): TrackerStatus => {
+    if (status === 'registered' || status === 'attending') return 'submitted';
+    if (status === 'dismissed') return 'done';
+    return status;
+};
+
+export const opportunityMatchesTrackerStatus = (
+    status: OpportunityStatus,
+    trackerStatus: TrackerStatus,
+) => normalizeOpportunityStatus(status) === trackerStatus;
+
+export const getTrackerStatusConfig = (status: OpportunityStatus) => {
+    const normalized = normalizeOpportunityStatus(status);
+    return WORKFLOW_STATUSES.find((item) => item.id === normalized) || WORKFLOW_STATUSES[0];
+};
 
 interface OpportunityStatusPickerProps {
     status: OpportunityStatus;
@@ -26,126 +44,53 @@ interface OpportunityStatusPickerProps {
     disabled?: boolean;
     position?: 'top' | 'bottom' | 'auto';
     size?: 'sm' | 'md';
+    opportunityTitle?: string;
 }
 
 export const OpportunityStatusPicker: React.FC<OpportunityStatusPickerProps> = ({
     status,
     onChange,
     disabled = false,
-    position = 'top',
     size = 'sm',
+    opportunityTitle,
 }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
+    const selectId = useId();
+    const [isUpdating, setIsUpdating] = useState(false);
+    const currentStatus = normalizeOpportunityStatus(status);
 
-    const currentConfig = WORKFLOW_STATUSES.find((s) => s.id === status) || WORKFLOW_STATUSES[0];
+    const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const nextStatus = event.target.value as TrackerStatus;
+        if (nextStatus === currentStatus) return;
 
-    // Close on click outside or escape key
-    useEffect(() => {
-        if (!isOpen) return;
-
-        const handleClickOutside = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isOpen]);
-
-    const handleSelect = async (newStatus: OpportunityStatus, e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        setIsOpen(false);
-        if (newStatus !== status) {
-            await onChange(newStatus);
+        setIsUpdating(true);
+        try {
+            await onChange(nextStatus);
+        } finally {
+            setIsUpdating(false);
         }
     };
 
     return (
-        <div
-            className={`opp-status-picker ${size} ${isOpen ? 'open' : ''}`}
-            ref={containerRef}
-            onClick={(e) => e.stopPropagation()}
-        >
-            <button
-                type="button"
-                className={`opp-status-picker-trigger ${isOpen ? 'active' : ''}`}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if (!disabled) setIsOpen((prev) => !prev);
-                }}
-                disabled={disabled}
-                aria-haspopup="listbox"
-                aria-expanded={isOpen}
-                aria-label={`Change status (current: ${currentConfig.label})`}
-            >
-                <span className="opp-status-trigger-icon">{currentConfig.icon}</span>
-                <span className="opp-status-trigger-label">{currentConfig.label}</span>
-                <svg
-                    className={`opp-status-chevron ${isOpen ? 'rotated' : ''}`}
-                    width="11"
-                    height="11"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
+        <label className={`opp-status-picker ${size}`} htmlFor={selectId}>
+            <span className="opp-status-picker-label">Status</span>
+            <span className="opp-status-select-shell">
+                <select
+                    id={selectId}
+                    className="opp-status-select"
+                    value={currentStatus}
+                    onChange={handleChange}
+                    disabled={disabled || isUpdating}
+                    aria-label={opportunityTitle ? `Status for ${opportunityTitle}` : 'Opportunity status'}
                 >
-                    <polyline points="6 9 12 15 18 9" />
-                </svg>
-            </button>
-
-            {isOpen && (
-                <div
-                    className={`opp-status-popover pop-position-${position}`}
-                    role="listbox"
-                    aria-label="Select workflow status"
-                >
-                    <div className="opp-status-popover-header">
-                        <span className="opp-status-popover-title">WORKFLOW STATUS</span>
-                    </div>
-
-                    <div className="opp-status-list">
-                        {WORKFLOW_STATUSES.map((item) => {
-                            const isSelected = item.id === status;
-                            return (
-                                <button
-                                    key={item.id}
-                                    type="button"
-                                    className={`opp-status-option ${isSelected ? 'selected' : ''}`}
-                                    onClick={(e) => handleSelect(item.id, e)}
-                                    role="option"
-                                    aria-selected={isSelected}
-                                >
-                                    <span className="opp-status-option-icon">{item.icon}</span>
-                                    <div className="opp-status-option-info">
-                                        <div className="opp-status-option-label">{item.label}</div>
-                                        <div className="opp-status-option-desc">{item.description}</div>
-                                    </div>
-                                    {isSelected && (
-                                        <span className="opp-status-check-badge">✓</span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-        </div>
+                    {WORKFLOW_STATUSES.map((item) => (
+                        <option key={item.id} value={item.id}>
+                            {item.label}
+                        </option>
+                    ))}
+                </select>
+                <span className="opp-status-select-chevron" aria-hidden="true">⌄</span>
+            </span>
+            {isUpdating && <span className="opp-status-saving" role="status">Saving…</span>}
+        </label>
     );
 };

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import type { Opportunity, OpportunityStatus } from '../../lib/opportunities/types';
+import React from 'react';
+import type { Opportunity } from '../../lib/opportunities/types';
 import {
     formatDaysRemaining,
     formatCategoryTitle,
@@ -8,24 +8,31 @@ import {
 
 interface OpportunityCardProps {
     opportunity: Opportunity;
-    isAuthenticated?: boolean;
     onOpen: (opp: Opportunity) => void;
-    onUpdateStatus: (id: string, status: OpportunityStatus) => Promise<void>;
-    onUpdatePriority?: (id: string, priority: number) => Promise<void>;
     onSelectCategory?: (category: string) => void;
+    showRadarAction?: boolean;
+    radarState?: RadarSaveState;
+    onAddToRadar?: (opp: Opportunity) => void;
 }
+
+export type RadarSaveState = 'idle' | 'adding' | 'added' | 'already' | 'error';
+
+export const getRadarButtonLabel = (state: RadarSaveState) => {
+    if (state === 'adding') return 'Adding…';
+    if (state === 'added') return '✓ On your radar';
+    if (state === 'already') return '✓ Already saved';
+    if (state === 'error') return 'Try again';
+    return '+ Add to radar';
+};
 
 export const OpportunityCard: React.FC<OpportunityCardProps> = ({
     opportunity: opp,
-    isAuthenticated = false,
     onOpen,
-    onUpdateStatus,
-    onUpdatePriority,
     onSelectCategory,
+    showRadarAction = false,
+    radarState = 'idle',
+    onAddToRadar,
 }) => {
-    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-    const [priority, setPriority] = useState<number>(opp.priority || 1);
-
     const usesEventDate = !opp.deadline_at && Boolean(opp.event_date);
     const urgency = formatDaysRemaining(
         opp.deadline_at || opp.event_date,
@@ -39,97 +46,52 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
     const categoryLabel = formatCategoryTitle(opp.category);
     const displayTitle = formatOpportunityTitle(opp.title);
 
-    const handlePriorityClick = async (e: React.MouseEvent, newLevel: number) => {
-        e.stopPropagation();
-        if (!isAuthenticated) return;
-        setPriority(newLevel);
-        if (onUpdatePriority) {
-            await onUpdatePriority(opp.id, newLevel);
-        }
-    };
-
     return (
-        <div
+        <article
             className={`opp-card ${urgency.level === 'critical' ? 'urgent' : ''}`}
-            onClick={() => onOpen(opp)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onOpen(opp);
-                }
+            onClick={(event) => {
+                const target = event.target as HTMLElement;
+                if (!target.closest('button, a, input, select, textarea, summary')) onOpen(opp);
             }}
         >
-                {/* Top Row: Only Days Remaining (Clean & Prominent) */}
+                {/* The whole non-interactive card surface opens the compact detail dialog. */}
                 <div className="opp-card-top-row">
                     <div className={`opp-days-remaining ${urgency.level}`}>
-                        <span className="opp-days-pulse-dot" />
+                        <span className="opp-days-pulse-dot" aria-hidden="true" />
                         {urgencyLabel}
                     </div>
                 </div>
 
-                {/* Title & Organisation */}
                 <div className="opp-card-identity">
                     <h3 className="opp-card-title">{displayTitle}</h3>
                     <div className="opp-card-org">{opp.organisation}</div>
                 </div>
 
-                {/* Card Footer: Below the thin line - Stars & Category on Left, Open on Right */}
-                <div className="opp-card-footer" onClick={(e) => e.stopPropagation()}>
-                    <div className="opp-card-footer-left">
-                        {/* Priority Circles */}
-                        {isAuthenticated && (
-                            <div
-                                className="opp-priority-circles"
-                                onClick={(e) => e.stopPropagation()}
-                                title={`Priority: ${priority === 3 ? 'High' : priority === 2 ? 'Medium' : 'Low'}`}
-                            >
-                                {[1, 2, 3].map((lvl) => (
-                                    <button
-                                        key={lvl}
-                                        type="button"
-                                        className={`opp-circle-btn ${lvl <= priority ? 'active' : ''}`}
-                                        onClick={(e) => handlePriorityClick(e, lvl)}
-                                        aria-label={`Set priority ${lvl}`}
-                                    >
-                                        <svg
-                                            width="12"
-                                            height="12"
-                                            viewBox="0 0 24 24"
-                                            className="opp-circle-svg"
-                                        >
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="8.5"
-                                                fill={lvl <= priority ? "#ffe44f" : "#ffffff"}
-                                                stroke="#15130f"
-                                                strokeWidth="2.5"
-                                            />
-                                        </svg>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Category (Simple Clean Underlined Text - Clickable to filter) */}
-                        <button
-                            type="button"
-                            className={`opp-category-text ${opp.category || 'other'}`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onSelectCategory) {
-                                    onSelectCategory(opp.category || 'other');
-                                }
-                            }}
-                            title={`Filter all ${categoryLabel} listings`}
-                        >
-                            {categoryLabel}
-                        </button>
-                    </div>
+                <div className="opp-card-footer">
+                    <button
+                        type="button"
+                        className={`opp-category-text ${opp.category || 'other'}`}
+                        onClick={() => onSelectCategory?.(opp.category || 'other')}
+                        title={`Filter all ${categoryLabel} listings`}
+                    >
+                        {categoryLabel}
+                    </button>
 
                     <div className="opp-card-links">
+                        {showRadarAction && (
+                            <button
+                                type="button"
+                                className={`opp-radar-add-btn is-${radarState}`}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    onAddToRadar?.(opp);
+                                }}
+                                disabled={radarState === 'adding' || radarState === 'added' || radarState === 'already'}
+                                aria-label={`${getRadarButtonLabel(radarState)}: ${displayTitle}`}
+                            >
+                                {getRadarButtonLabel(radarState)}
+                            </button>
+                        )}
                         <button
                             type="button"
                             className="opp-card-open-btn"
@@ -138,11 +100,11 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                                 onOpen(opp);
                             }}
                         >
-                            Open ↗
+                            <span>More details</span><span aria-hidden="true">→</span>
                         </button>
                     </div>
                 </div>
-            </div>
+            </article>
     );
 };
 

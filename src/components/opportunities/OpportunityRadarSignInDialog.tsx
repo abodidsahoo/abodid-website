@@ -1,0 +1,73 @@
+import React, { useEffect, useRef } from 'react';
+import type { Opportunity } from '../../lib/opportunities/types';
+import { formatOpportunityTitle } from '../../lib/opportunities/ui-helpers';
+
+interface OpportunityRadarSignInDialogProps {
+    opportunity: Opportunity | null;
+    isStarting: boolean;
+    error: string;
+    onClose: () => void;
+    onContinue: () => void;
+}
+
+export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialogProps> = ({
+    opportunity,
+    isStarting,
+    error,
+    onClose,
+    onContinue,
+}) => {
+    const dialogRef = useRef<HTMLDialogElement>(null);
+
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+        if (opportunity && !dialog.open) dialog.showModal();
+        if (!opportunity && dialog.open) dialog.close();
+    }, [opportunity]);
+
+    const closeDialog = () => {
+        if (!isStarting) dialogRef.current?.close();
+    };
+
+    return (
+        <dialog
+            ref={dialogRef}
+            className="opp-radar-auth-dialog"
+            aria-labelledby="opp-radar-auth-title"
+            aria-describedby="opp-radar-auth-description"
+            onClose={onClose}
+            onCancel={(event) => {
+                event.preventDefault();
+                closeDialog();
+            }}
+        >
+            <div className="opp-radar-auth-accent" aria-hidden="true" />
+            <p className="opp-radar-auth-label">YOUR PRIVATE RADAR</p>
+            <h2 id="opp-radar-auth-title">Keep this opportunity</h2>
+            <p id="opp-radar-auth-description">
+                Sign in to add <strong>{formatOpportunityTitle(opportunity?.title || 'this opportunity')}</strong>. We’ll finish automatically.
+            </p>
+            {error && <p className="opp-radar-auth-error" role="alert">{error}</p>}
+            <div className="opp-radar-auth-actions">
+                <button
+                    type="button"
+                    className="opp-google-signin opp-radar-auth-google"
+                    onClick={onContinue}
+                    disabled={isStarting}
+                    autoFocus
+                >
+                    <span className="opp-google-mark" aria-hidden="true">G</span>
+                    <span>{isStarting ? 'Opening Google…' : 'Continue with Google'}</span>
+                    <span aria-hidden="true">→</span>
+                </button>
+                <button type="button" className="opp-radar-auth-cancel" onClick={closeDialog} disabled={isStarting}>
+                    Not now
+                </button>
+            </div>
+            <p className="opp-radar-auth-privacy">Only your basic Google profile is used to create your tracker.</p>
+        </dialog>
+    );
+};
+
+export default OpportunityRadarSignInDialog;
