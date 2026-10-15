@@ -1,6 +1,6 @@
 import { completeSafariSignIn, extensionSupabase, signInWithGoogle } from './auth';
 import { extractPageText } from './capture';
-import { webext } from './browser';
+import { EXTENSION_CAPTURE_TIMEOUT_MS, webext } from './browser';
 import { showOpportunityToast } from './toast';
 
 declare const __APP_ORIGIN__: string;
@@ -18,14 +18,24 @@ const getSessionState = async () => {
 };
 
 const saveUrl = async (url: string, title = '', pageText = '') => {
-    const { data: { session } } = await extensionSupabase.auth.getSession();
-    if (!session?.access_token) throw new Error('Sign in before saving an opportunity');
+    const controller = new AbortController();
+    let timedOut = false;
+    let rejectTimeout: ((reason: Error) => void) | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+        rejectTimeout = reject;
+    });
+    const timeoutId = globalThis.setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+        rejectTimeout?.(new Error('This extraction took too long. Please try the link again.'));
+    }, EXTENSION_CAPTURE_TIMEOUT_MS);
 
-    const response = await fetch(`${__APP_ORIGIN__}/api/opportunities/capture`, {
+    const send = (accessToken: string) => fetch(`${__APP_ORIGIN__}/api/opportunities/capture`, {
         method: 'POST',
+        signal: controller.signal,
         headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
             url,
@@ -35,9 +45,34 @@ const saveUrl = async (url: string, title = '', pageText = '') => {
             capture_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
     });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || 'Opportunity could not be saved');
-    return payload;
+
+    const execute = async () => {
+        const { data: { session } } = await extensionSupabase.auth.getSession();
+        if (!session?.access_token) throw new Error('Sign in before saving an opportunity');
+
+        let response = await send(session.access_token);
+        if (response.status === 401 && !controller.signal.aborted) {
+            const { data, error } = await extensionSupabase.auth.refreshSession();
+            if (!error && data.session?.access_token && !controller.signal.aborted) {
+                response = await send(data.session.access_token);
+            }
+        }
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || 'Opportunity could not be saved');
+        return payload;
+    };
+
+    try {
+        return await Promise.race([execute(), timeout]);
+    } catch (error) {
+        if (timedOut) {
+            throw new Error('This extraction took too long. Please try the link again.');
+        }
+        throw error;
+    } finally {
+        globalThis.clearTimeout(timeoutId);
+    }
 };
 
 const showActionFeedback = async (text: string, color: string) => {
@@ -61,9 +96,11 @@ webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
     if (!url) return;
     const tabId = typeof tab?.id === 'number' ? tab.id : undefined;
     const isCurrentPage = info.menuItemId === 'save-opportunity-page';
+    const requestId = globalThis.crypto.randomUUID();
 
     await showOpportunityToast(tabId, {
         kind: 'working',
+        requestId,
         message: 'Extracting opportunity…',
         detail: 'Reading the details and important dates.',
     });
@@ -76,6 +113,7 @@ webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
             : 'The opportunity';
         await showOpportunityToast(tabId, {
             kind: 'success',
+            requestId,
             message: saved?.is_duplicate ? 'Already in your tracker' : 'Added to your tracker',
             detail: `${opportunityTitle} is ready in your opportunities table.`,
         });
@@ -85,6 +123,7 @@ webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
         console.warn('Context-menu opportunity save failed', message);
         await showOpportunityToast(tabId, {
             kind: 'error',
+            requestId,
             message: 'Couldn’t save this opportunity',
             detail: message,
         });

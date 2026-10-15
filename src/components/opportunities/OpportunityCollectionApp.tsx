@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
 import OpportunityDashboard from './OpportunityDashboard';
 
@@ -17,10 +18,14 @@ export default function OpportunityCollectionApp({ username }: { username: strin
 
     useEffect(() => {
         let active = true;
+        let sessionLoadId = 0;
 
-        const loadSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!active) return;
+        const loadSession = async (providedSession?: Session | null) => {
+            const currentLoadId = ++sessionLoadId;
+            const session = providedSession === undefined
+                ? (await supabase.auth.getSession()).data.session
+                : providedSession;
+            if (!active || currentLoadId !== sessionLoadId) return;
 
             if (!session?.access_token || session.user.is_anonymous) {
                 setAccessToken(null);
@@ -33,7 +38,7 @@ export default function OpportunityCollectionApp({ username }: { username: strin
                 headers: { Authorization: `Bearer ${session.access_token}` },
                 cache: 'no-store',
             });
-            if (!active) return;
+            if (!active || currentLoadId !== sessionLoadId) return;
 
             if (!response.ok) {
                 setAccessToken(null);
@@ -43,14 +48,15 @@ export default function OpportunityCollectionApp({ username }: { username: strin
             }
 
             const data = await response.json();
+            if (!active || currentLoadId !== sessionLoadId) return;
             setAccessToken(session.access_token);
             setViewerProfile(data.profile || null);
             setLoading(false);
         };
 
         void loadSession();
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-            void loadSession();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            void loadSession(session);
         });
 
         return () => {

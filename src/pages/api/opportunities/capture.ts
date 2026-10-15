@@ -18,6 +18,7 @@ import { consumeOpportunityAiLimit } from '../../../lib/opportunities/rateLimit'
 import { normalizeOpportunityCaptureUrl } from '../../../lib/opportunities/captureUrl';
 
 export const prerender = false;
+export const maxDuration = 90;
 
 export const POST: APIRoute = async ({ request }) => {
     const authorization = await authorizeOpportunityRequest(request);

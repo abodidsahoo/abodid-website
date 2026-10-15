@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import type { Opportunity, OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
 import {
     formatCategoryTitle,
@@ -35,6 +35,11 @@ import {
     getRadarImportNextPath,
     parseRadarImportIntent,
 } from '../../lib/opportunities/importIntent';
+import {
+    clearSubmittedCaptureUrl,
+    OpportunityCaptureTimeoutError,
+    requestOpportunityCapture,
+} from '../../lib/opportunities/captureClient';
 
 const GOOGLE_IDENTITY_SCOPES = 'openid email profile';
 
@@ -69,6 +74,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [isCapturing, setIsCapturing] = useState(false);
     const [captureResult, setCaptureResult] = useState<Opportunity | null>(null);
     const [captureError, setCaptureError] = useState('');
+    const captureAbortRef = useRef<AbortController | null>(null);
 
     // Filters: Single clean Urgency Rail + Secondary Filter Tray Toggle
     const [urgencyFilter, setUrgencyFilter] = useState<UrgencyRailFilter>('all');
@@ -98,6 +104,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     useEffect(() => {
         const timer = setInterval(() => setNow(Date.now()), 60000);
         return () => clearInterval(timer);
+    }, []);
+
+    useEffect(() => () => {
+        captureAbortRef.current?.abort();
+        captureAbortRef.current = null;
     }, []);
 
     const showToast = useCallback((msg: string) => {
@@ -338,41 +349,56 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     // 3. Capture URL Handler
     const handleCapture = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!captureUrl.trim()) return;
+        const submittedUrl = captureUrl.trim();
+        if (!submittedUrl || captureAbortRef.current) return;
+
+        const controller = new AbortController();
+        captureAbortRef.current = controller;
 
         setIsCapturing(true);
         setCaptureError('');
         setCaptureResult(null);
         try {
-            const res = await fetch('/api/opportunities/capture', {
-                method: 'POST',
-                headers: authenticatedHeaders(true),
-                body: JSON.stringify({ url: captureUrl }),
+            const { response: res, payload: data } = await requestOpportunityCapture({
+                url: submittedUrl,
+                accessToken,
+                signal: controller.signal,
+                refreshAccessToken: async () => {
+                    const { data, error } = await supabase.auth.refreshSession();
+                    if (error) return null;
+                    return data.session?.access_token || null;
+                },
             });
 
-            const data = await res.json();
             if (res.ok && data.opportunity) {
-                setCaptureResult(data.opportunity);
-                setCaptureUrl('');
+                const capturedOpportunity = data.opportunity as Opportunity;
+                setCaptureResult(capturedOpportunity);
+                setCaptureUrl((currentUrl) => clearSubmittedCaptureUrl(currentUrl, submittedUrl));
                 setOpportunities((prev) => {
-                    const filtered = prev.filter((o) => o.id !== data.opportunity.id);
-                    return [data.opportunity, ...filtered];
+                    const filtered = prev.filter((o) => o.id !== capturedOpportunity.id);
+                    return [capturedOpportunity, ...filtered];
                 });
             } else {
                 const message = data.error || 'Failed to capture this opportunity';
                 setCaptureError(message);
                 showToast(`❌ ${message}`);
                 if (data.can_manual_create) {
-                    setManualInitialUrl(data.canonical_url || captureUrl.trim());
+                    setManualInitialUrl(data.canonical_url || submittedUrl);
                     setIsManualModalOpen(true);
                 }
             }
-        } catch (err: any) {
-            const message = `Network error: ${err.message}`;
+        } catch (error) {
+            if (controller.signal.aborted && !(error instanceof OpportunityCaptureTimeoutError)) return;
+            const message = error instanceof OpportunityCaptureTimeoutError
+                ? error.message
+                : `Network error: ${error instanceof Error ? error.message : 'Request failed'}`;
             setCaptureError(message);
             showToast(`❌ ${message}`);
         } finally {
-            setIsCapturing(false);
+            if (captureAbortRef.current === controller) {
+                captureAbortRef.current = null;
+                setIsCapturing(false);
+            }
         }
     };
 
@@ -702,6 +728,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                             <form onSubmit={handleCapture} className="opp-hero-capture-bar">
                                 <input
                                     id="opportunity-capture-url"
+                                    name="url"
                                     type="url"
                                     className="opp-hero-capture-input"
                                     placeholder="https://example.org/opportunity"
@@ -714,6 +741,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     aria-invalid={Boolean(captureError)}
                                     inputMode="url"
                                     autoComplete="url"
+                                    autoCapitalize="off"
+                                    autoCorrect="off"
+                                    spellCheck={false}
                                     required
                                 />
                                 <button

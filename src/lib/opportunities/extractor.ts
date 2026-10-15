@@ -3,7 +3,10 @@ import { OPPORTUNITY_EXTRACTION_SYSTEM_PROMPT } from './extractionPrompt';
 
 const DEFAULT_MODEL = import.meta.env.OPENROUTER_OPPORTUNITIES_MODEL || process.env.OPENROUTER_OPPORTUNITIES_MODEL || 'google/gemini-3.8-flash';
 const FALLBACK_MODEL = 'openai/gpt-4o-mini';
-const OPENROUTER_TIMEOUT_MS = 30_000;
+const OPENROUTER_TIMEOUT_MS = 28_000;
+const OPENROUTER_MAX_ATTEMPTS = 2;
+const OPENROUTER_MAX_RETRY_DELAY_MS = 4_000;
+const OPENROUTER_RETRYABLE_STATUSES = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
 const OPENROUTER_MAX_OUTPUT_TOKENS = Math.min(
     2000,
     Math.max(300, Number(import.meta.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS || process.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS) || 1200),
@@ -23,6 +26,37 @@ export interface ParsedDeadline {
     deadline_timezone: string | null;
     deadline_confidence: DeadlineConfidence;
 }
+
+class OpenRouterRequestError extends Error {
+    constructor(
+        message: string,
+        readonly status: number,
+        readonly retryAfterMs: number | null,
+    ) {
+        super(message);
+        this.name = 'OpenRouterRequestError';
+    }
+}
+
+const parseRetryAfterMs = (value: string | null): number | null => {
+    if (!value) return null;
+    const seconds = Number(value);
+    if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+
+    const retryAt = Date.parse(value);
+    if (Number.isNaN(retryAt)) return null;
+    return Math.max(0, retryAt - Date.now());
+};
+
+const waitBeforeOpenRouterRetry = async (attempt: number, retryAfterMs: number | null) => {
+    const exponentialDelay = 250 * (2 ** attempt);
+    const requestedDelay = retryAfterMs ?? exponentialDelay;
+    const boundedDelay = Math.min(OPENROUTER_MAX_RETRY_DELAY_MS, Math.max(0, requestedDelay));
+    // Spread a simultaneous burst across the retry window instead of sending
+    // every throttled request back to OpenRouter at the same instant.
+    const jitter = Math.floor(Math.random() * 1_000);
+    await new Promise((resolve) => globalThis.setTimeout(resolve, boundedDelay + jitter));
+};
 
 const MONTHS: Record<string, number> = {
     january: 1,
@@ -439,7 +473,8 @@ function zonedDateTimeToIso(
 }
 
 /**
- * Executes ONE OpenRouter extraction call.
+ * Executes an OpenRouter extraction with provider-side model failover and one
+ * bounded retry for transient throttling, network, or malformed-output errors.
  * This is the ONLY place where LLM extraction happens.
  */
 export async function extractOpportunityWithLLM(
@@ -453,7 +488,7 @@ export async function extractOpportunityWithLLM(
     }
     const systemPrompt = getExtractionSystemPrompt();
 
-    const modelsToTry = [DEFAULT_MODEL, FALLBACK_MODEL];
+    const modelsToTry = Array.from(new Set([DEFAULT_MODEL, FALLBACK_MODEL]));
     let lastError: Error | null = null;
 
     const contextLines = [
@@ -464,7 +499,7 @@ export async function extractOpportunityWithLLM(
     ].filter(Boolean);
     const userPrompt = `${contextLines.length ? `CAPTURE CONTEXT:\n${contextLines.join('\n')}\n\n` : ''}PAGE:\n${cleanPageText}`;
 
-    for (const model of modelsToTry) {
+    for (let attempt = 0; attempt < OPENROUTER_MAX_ATTEMPTS; attempt += 1) {
         try {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
@@ -476,7 +511,9 @@ export async function extractOpportunityWithLLM(
                     'X-Title': 'Abodid Opportunity Assistant',
                 },
                 body: JSON.stringify({
-                    model,
+                    // OpenRouter performs the model/provider failover within one
+                    // request, including when a provider is unavailable or rate-limited.
+                    models: modelsToTry,
                     response_format: { type: 'json_object' },
                     messages: [
                         { role: 'system', content: systemPrompt },
@@ -495,10 +532,17 @@ export async function extractOpportunityWithLLM(
                 await response.body?.cancel().catch(() => undefined);
                 const providerCode = errorPayload?.error?.code ? `, code ${errorPayload.error.code}` : '';
                 const trace = requestId ? `, request ${requestId}` : '';
-                throw new Error(`OpenRouter request failed with HTTP ${response.status}${providerCode}${trace}`);
+                throw new OpenRouterRequestError(
+                    `OpenRouter request failed with HTTP ${response.status}${providerCode}${trace}`,
+                    response.status,
+                    parseRetryAfterMs(response.headers.get('retry-after')),
+                );
             }
 
-            const jsonResponse = await response.json();
+            const jsonResponse = await response.json() as {
+                model?: string;
+                choices?: Array<{ message?: { content?: string } }>;
+            };
             const content = jsonResponse.choices?.[0]?.message?.content;
 
             if (!content) {
@@ -518,16 +562,25 @@ export async function extractOpportunityWithLLM(
 
             return {
                 data: validated,
-                model,
+                model: jsonResponse.model || modelsToTry[0],
             };
-        } catch (err: any) {
-            lastError = err;
+        } catch (error) {
+            lastError = error instanceof Error ? error : new Error('Unknown provider failure');
+            const isRetryable = error instanceof OpenRouterRequestError
+                ? OPENROUTER_RETRYABLE_STATUSES.has(error.status)
+                : true;
             console.warn('Opportunity extraction provider attempt failed', {
-                model,
-                error: err instanceof Error ? err.name : 'UnknownError',
-                message: err instanceof Error ? err.message.slice(0, 300) : 'Unknown provider failure',
+                attempt: attempt + 1,
+                models: modelsToTry,
+                error: lastError.name,
+                message: lastError.message.slice(0, 300),
             });
-            // Continue to fallback model if available
+
+            if (!isRetryable || attempt === OPENROUTER_MAX_ATTEMPTS - 1) break;
+            await waitBeforeOpenRouterRetry(
+                attempt,
+                error instanceof OpenRouterRequestError ? error.retryAfterMs : null,
+            );
         }
     }
 

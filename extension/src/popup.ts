@@ -1,4 +1,4 @@
-import { getActiveTab, sendRuntimeMessage } from './browser';
+import { getActiveTab, sendRuntimeMessage, sendRuntimeMessageWithTimeout } from './browser';
 
 const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const authPanel = byId<HTMLDivElement>('auth-panel');
@@ -124,6 +124,7 @@ const loadActiveTab = async () => {
         pageUrl.textContent = 'Open a normal webpage and try again.';
     }
     syncSaveButton();
+    return activeTab;
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -183,7 +184,6 @@ dashboardButton.addEventListener('click', openDashboard);
 resultDashboardButton.addEventListener('click', openDashboard);
 
 saveButton.addEventListener('click', async () => {
-    if (!activeTab?.url) return;
     saveButton.disabled = true;
     saveButton.classList.add('is-scanning');
     saveButton.setAttribute('aria-busy', 'true');
@@ -192,11 +192,16 @@ saveButton.addEventListener('click', async () => {
     result.classList.add('hidden');
 
     try {
-        const response = await sendRuntimeMessage<any>({
+        // Re-read immediately before capture so a persistent browser popup can
+        // never pair a newly navigated page with a stale URL or title.
+        const captureTab = await loadActiveTab();
+        if (!captureTab?.url) throw new Error('Open a normal webpage and try again.');
+
+        const response = await sendRuntimeMessageWithTimeout<any>({
             type: 'CAPTURE_TAB',
-            tabId: activeTab.id,
-            url: activeTab.url,
-            title: activeTab.title || '',
+            tabId: captureTab.id,
+            url: captureTab.url,
+            title: captureTab.title || '',
         });
 
         if (!response?.ok) {

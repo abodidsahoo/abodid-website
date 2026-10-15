@@ -4,6 +4,7 @@ export type OpportunityToastKind = 'working' | 'success' | 'error';
 
 export type OpportunityToastPayload = {
     kind: OpportunityToastKind;
+    requestId?: string;
     message: string;
     detail?: string;
 };
@@ -119,6 +120,23 @@ export const showOpportunityToast = async (
                 const detail = root?.querySelector<HTMLElement>('.toast__detail');
                 const progress = root?.querySelector<HTMLElement>('.toast__progress');
                 if (!toast || !message || !detail || !progress) return false;
+
+                // The isolated extension world survives individual script injections,
+                // so this guard still works after a dismissed toast host is removed.
+                const requestStateKey = '__opportunityTrackerLatestRequestId';
+                const currentRequestId = String(Reflect.get(globalThis, requestStateKey) || '');
+                if (
+                    nextToast.kind !== 'working'
+                    && nextToast.requestId
+                    && currentRequestId
+                    && currentRequestId !== nextToast.requestId
+                ) {
+                    return false;
+                }
+                if (nextToast.requestId) {
+                    Reflect.set(globalThis, requestStateKey, nextToast.requestId);
+                    host.dataset.requestId = nextToast.requestId;
+                }
 
                 toast.className = `toast toast--${nextToast.kind}`;
                 message.textContent = nextToast.message;

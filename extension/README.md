@@ -49,9 +49,11 @@ Google's OAuth client continues to use the Supabase project callback URL; extens
 1. Run `npm run extension:build:chrome`.
 2. Open `chrome://extensions`, enable Developer mode, and load `extension/dist/chrome`.
 3. Record the stable extension ID, allow-list its identity redirect in Supabase, then reload.
-4. Verify Google sign-in, session persistence, popup capture, context-menu capture, dashboard opening, logout, and a second account's isolation.
+4. Verify Google sign-in, session persistence, two consecutive popup captures, overlapping context-menu captures, dashboard opening, logout, and a second account's isolation.
 
 The right-click page action immediately shows an in-page “Extracting opportunity…” toast, captures the current page text, and updates that toast when the saved record is ready. Right-clicking a link shows the same progress and completion feedback while the backend safely fetches the selected public URL. Restricted browser pages fall back to the toolbar badge because Chrome does not allow injected page UI there.
+
+Each capture has a bounded wait so a provider or network stall returns the popup to a usable retry state. The popup re-reads the active tab immediately before capture, and context-menu feedback carries a request identity so an older completion cannot overwrite a newer extraction's progress.
 
 ### Firefox
 
@@ -79,6 +81,7 @@ The right-click page action immediately shows an in-page “Extracting opportuni
 ## Permission rationale
 
 - `activeTab`: read the current page only after a user action.
+- `tabs`: read the active tab's current URL and title when the popup opens and immediately before capture, so a navigation cannot pair new page content with a stale address. The extension does not enumerate or retain browsing history.
 - `scripting`: collect visible text and structured-data hints after a toolbar or right-click page capture, and show progress/completion feedback for the right-click action.
 - `storage`: persist the Supabase PKCE verifier/session and extension state.
 - `contextMenus`: save a page or link through right-click.
