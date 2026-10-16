@@ -38,7 +38,8 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
     const [nextAction, setNextAction] = useState(opp.next_action || '');
     const [applicationUrl, setApplicationUrl] = useState(opp.application_url || '');
     const [meetingUrl, setMeetingUrl] = useState(opp.meeting_url || '');
-    const [feeOrFunding, setFeeOrFunding] = useState(opp.fee_or_funding || '');
+    const [funding, setFunding] = useState(opp.fee_or_funding || '');
+    const [applicationFee, setApplicationFee] = useState(opp.application_fee || '');
     const [summary, setSummary] = useState(opp.summary || '');
     const [notes, setNotes] = useState(opp.notes || '');
     const [isSaving, setIsSaving] = useState(false);
@@ -80,7 +81,8 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
                 next_action: nextAction || null,
                 application_url: applicationUrl || null,
                 meeting_url: meetingUrl || null,
-                fee_or_funding: feeOrFunding || null,
+                fee_or_funding: funding || null,
+                application_fee: applicationFee || null,
                 summary: summary || null,
                 notes: notes || null,
             });
@@ -322,13 +324,24 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
                                     </div>
 
                                     <div className="opp-form-group">
-                                        <label className="opp-form-label">Fee / Funding</label>
+                                        <label className="opp-form-label">Funding / Award</label>
                                         <input
                                             type="text"
                                             className="opp-form-input"
-                                            placeholder="e.g. £10,000 / Free"
-                                            value={feeOrFunding}
-                                            onChange={(e) => setFeeOrFunding(e.target.value)}
+                                            placeholder="e.g. £10,000 stipend"
+                                            value={funding}
+                                            onChange={(e) => setFunding(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="opp-form-group">
+                                        <label className="opp-form-label">Application Fee</label>
+                                        <input
+                                            type="text"
+                                            className="opp-form-input"
+                                            placeholder="e.g. £15 / No application fee"
+                                            value={applicationFee}
+                                            onChange={(e) => setApplicationFee(e.target.value)}
                                         />
                                     </div>
 

@@ -67,7 +67,8 @@ export const PATCH: APIRoute = async ({ params, request }) => {
 
     const contentStringFields: Array<[string, number]> = [
         ['organisation', 240], ['next_action', 1000], ['application_url', 4096],
-        ['meeting_url', 4096], ['fee_or_funding', 1000], ['summary', 10000], ['location', 1000],
+        ['meeting_url', 4096], ['fee_or_funding', 1000], ['application_fee', 1000],
+        ['summary', 10000], ['location', 1000],
     ];
     for (const [field, max] of contentStringFields) {
         if (body[field] !== undefined) content[field] = boundedNullableString(body[field], max);

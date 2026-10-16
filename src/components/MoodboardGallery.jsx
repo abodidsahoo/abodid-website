@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import MoodboardPolaroidViewer from './MoodboardPolaroidViewer.jsx';
 import { getClosestNamedColor } from '../lib/colorNaming.js';
+import { matchesMoodboardQuery } from '../lib/moodboardDiscovery.js';
 
 // --- COLOR SPACE MATH & CONVERSIONS ---
 function parseColorToRgb(str) {
@@ -145,22 +146,22 @@ function deltaE(lab1, lab2) {
     return colorDistance(lab1, lab2);
 }
 
-// Curated Multi-Stop Gradient Spectrum for seamless Photoshop-style color exploration
+// Curated Multi-Stop Vibrant Spectrum for seamless color exploration
 const GRADIENT_STOPS = [
-    { hex: '#881b24', pos: 0.00, name: 'Ruby Rouge' },
-    { hex: '#b24a2b', pos: 0.08, name: 'Terracotta' },
-    { hex: '#cb7436', pos: 0.16, name: 'Warm Copper' },
-    { hex: '#d28a22', pos: 0.24, name: 'Ochre Amber' },
-    { hex: '#deb038', pos: 0.32, name: 'Warm Gold' },
-    { hex: '#727c44', pos: 0.40, name: 'Moss Olive' },
-    { hex: '#3d7156', pos: 0.48, name: 'Emerald Sage' },
-    { hex: '#2c5963', pos: 0.56, name: 'Aegean Teal' },
-    { hex: '#22385e', pos: 0.64, name: 'Deep Cobalt' },
-    { hex: '#4e2a42', pos: 0.72, name: 'Plum Noir' },
-    { hex: '#b97a78', pos: 0.80, name: 'Dusty Rose' },
-    { hex: '#d9cdb8', pos: 0.88, name: 'Sand Cream' },
-    { hex: '#4a4b50', pos: 0.94, name: 'Slate Graphite' },
-    { hex: '#262629', pos: 1.00, name: 'Charcoal Noir' },
+    { hex: '#ef233c', pos: 0.00, name: 'Crimson Red' },
+    { hex: '#f95738', pos: 0.08, name: 'Flame Coral' },
+    { hex: '#f77f00', pos: 0.16, name: 'Bright Orange' },
+    { hex: '#fcbf49', pos: 0.24, name: 'Sun Yellow' },
+    { hex: '#e9d758', pos: 0.32, name: 'Goldenrod' },
+    { hex: '#70e000', pos: 0.40, name: 'Electric Lime' },
+    { hex: '#10b981', pos: 0.48, name: 'Lush Emerald' },
+    { hex: '#06b6d4', pos: 0.56, name: 'Vibrant Cyan' },
+    { hex: '#2563eb', pos: 0.64, name: 'Cobalt Blue' },
+    { hex: '#7c3aed', pos: 0.72, name: 'Vivid Violet' },
+    { hex: '#ec4899', pos: 0.80, name: 'Hot Pink' },
+    { hex: '#ff7eb5', pos: 0.88, name: 'Pop Blossom' },
+    { hex: '#fdf6e2', pos: 0.94, name: 'Pure Linen' },
+    { hex: '#18181b', pos: 1.00, name: 'Deep Onyx' },
 ];
 
 function sampleGradientColor(t) {
@@ -331,6 +332,7 @@ export default function MoodboardGallery({
 
     const [activeId, setActiveId] = useState(null);
     const [selectedSwatch, setSelectedSwatch] = useState(null); // { hex, name, lab, hsl }
+    const [searchQuery, setSearchQuery] = useState('');
     const [scrubbingColor, setScrubbingColor] = useState(null); // live preview during drag
     const [loadedImages, setLoadedImages] = useState(() => new Set());
     const [resolvedAspectRatios, setResolvedAspectRatios] = useState(() => ({}));
@@ -340,7 +342,9 @@ export default function MoodboardGallery({
     const [bounceKey, setBounceKey] = useState(0);
     const [isBouncing, setIsBouncing] = useState(false);
     const [bounceDirection, setBounceDirection] = useState('right');
-    
+    const [placeholderIdx, setPlaceholderIdx] = useState(0);
+    const [placeholderExiting, setPlaceholderExiting] = useState(false);
+
     const assetCacheRef = useRef({});
     const gradientRef = useRef(null);
     const trackRectRef = useRef(null);
@@ -351,6 +355,37 @@ export default function MoodboardGallery({
     const bounceTimerRef = useRef(null);
     const lastPosRef = useRef(0.5);
     const pendingColorRef = useRef(null);
+    const gridStageRef = useRef(null);
+    const deferredSearchQuery = useDeferredValue(searchQuery);
+
+    const PLACEHOLDER_PHRASES = [
+        'moody love',
+        'editorial fashion',
+        'abstract architecture',
+        'monochrome portrait',
+        'vintage typography',
+        'warm interior',
+        'colorful illustration',
+        'cinematic shadows',
+        'soft silhouette',
+        'conceptual design',
+        'slow shutter grain',
+        'quiet nostalgia',
+    ];
+
+    // Cycle placeholder phrases with a slide-out/in animation
+    useEffect(() => {
+        const CYCLE_MS = 5600;
+        const EXIT_MS = 350;
+        const id = setInterval(() => {
+            setPlaceholderExiting(true);
+            setTimeout(() => {
+                setPlaceholderIdx((i) => (i + 1) % PLACEHOLDER_PHRASES.length);
+                setPlaceholderExiting(false);
+            }, EXIT_MS);
+        }, CYCLE_MS);
+        return () => clearInterval(id);
+    }, []);
 
     const triggerElasticBounce = useCallback((dir = null) => {
         if (dir) setBounceDirection(dir);
@@ -376,16 +411,39 @@ export default function MoodboardGallery({
     }, []);
 
     const handleImageReady = useCallback((item, image) => {
-        if (!image?.complete || image.naturalWidth <= 0 || image.naturalHeight <= 0) return;
+        if (!image) return;
 
+        // Always mark as loaded so the fade-in works regardless of decode timing.
         markImageLoaded(item.id);
 
-        const naturalRatio = getUsableAspectRatio(image.naturalWidth / image.naturalHeight) || 1;
-        setResolvedAspectRatios((prev) => {
-            if (prev[item.id] === naturalRatio) return prev;
-            return { ...prev, [item.id]: naturalRatio };
-        });
+        const tryResolveRatio = () => {
+            if (!image.naturalWidth || !image.naturalHeight) return;
+            const naturalRatio = getUsableAspectRatio(image.naturalWidth / image.naturalHeight) || 1;
+            setResolvedAspectRatios((prev) => {
+                if (prev[item.id] === naturalRatio) return prev;
+                return { ...prev, [item.id]: naturalRatio };
+            });
+        };
+
+        // Dimensions may not be available yet when decoding="async"; retry on next frame.
+        if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+            tryResolveRatio();
+        } else {
+            requestAnimationFrame(tryResolveRatio);
+        }
     }, [markImageLoaded]);
+
+    // Returns a ref callback for <img> nodes.
+    // Browsers do NOT re-fire onLoad for cached images — the event fires before React
+    // attaches its synthetic listener. This ref callback runs synchronously when React
+    // mounts the DOM node, so if the image is already complete (cached) we call
+    // handleImageReady immediately and skip waiting for onLoad.
+    const makeImgRef = useCallback((item) => (node) => {
+        if (!node) return;
+        if (node.complete && node.naturalWidth > 0) {
+            handleImageReady(item, node);
+        }
+    }, [handleImageReady]);
 
     const syncUrl = useCallback((id) => {
         if (typeof window === 'undefined' || !deepLinkParam) return;
@@ -438,6 +496,11 @@ export default function MoodboardGallery({
         interactionSourceRef.current = 'none';
     }, []);
 
+    const clearDiscoveryFilters = useCallback(() => {
+        setSearchQuery('');
+        clearColorFilter();
+    }, [clearColorFilter]);
+
     // Sync thumb position only when selectedSwatch is changed externally (e.g. Polaroid card swatch click)
     useEffect(() => {
         if (selectedSwatch) {
@@ -461,23 +524,23 @@ export default function MoodboardGallery({
         const t = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         const sampled = sampleGradientColor(t);
         const dir = t >= (lastPosRef.current ?? 0.5) ? 'right' : 'left';
-        
+
         isPointerDownRef.current = true;
         startXRef.current = e.clientX;
         isDraggingRef.current = false;
         setIsDragging(false);
         setHoverInfo(null);
-        
+
         lastPosRef.current = t;
         pendingColorRef.current = sampled;
         interactionSourceRef.current = 'gradient';
-        
+
         setThumbPos(t);
         setBounceDirection(dir);
-        
+
         try {
             e.currentTarget.setPointerCapture(e.pointerId);
-        } catch (err) {}
+        } catch (err) { }
     };
 
     const handlePointerMove = (e) => {
@@ -515,8 +578,8 @@ export default function MoodboardGallery({
             trackRectRef.current = null;
             try {
                 e.currentTarget.releasePointerCapture(e.pointerId);
-            } catch (err) {}
-            
+            } catch (err) { }
+
             if (pendingColorRef.current) {
                 handleSelectColorFilter(pendingColorRef.current.hex, pendingColorRef.current.name, true);
             }
@@ -560,8 +623,8 @@ export default function MoodboardGallery({
         handleSelectColorFilter(sampled.hex, sampled.name, false);
     };
 
-    // Filter by expanded similarity and sort sequentially: closest match at the top
-    const filteredPhotos = useMemo(() => {
+    // Filter by expanded similarity and sort sequentially: closest match at the top.
+    const colorFilteredPhotos = useMemo(() => {
         if (!selectedSwatch) return photos;
 
         const targetLab = selectedSwatch.lab;
@@ -579,6 +642,35 @@ export default function MoodboardGallery({
         matches.sort((a, b) => a.dist - b.dist);
         return matches.map((m) => m.item);
     }, [photos, selectedSwatch, getPhotoPalette]);
+
+    // Search and colour filtering form one intersection.
+    // Preserve the colour-similarity order when a swatch is active.
+    const filteredPhotos = useMemo(
+        () => colorFilteredPhotos.filter(
+            (item) => matchesMoodboardQuery(item, deferredSearchQuery),
+        ),
+        [colorFilteredPhotos, deferredSearchQuery],
+    );
+
+    const filterSignature = [
+        deferredSearchQuery.trim().toLocaleLowerCase(),
+        selectedSwatch?.hex || '',
+    ].join('|');
+
+    useEffect(() => {
+        const stage = gridStageRef.current;
+        if (!stage || typeof window === 'undefined') return undefined;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+
+        const animation = stage.animate(
+            [
+                { opacity: 0.62, transform: 'translateY(3px)' },
+                { opacity: 1, transform: 'translateY(0)' },
+            ],
+            { duration: 150, easing: 'ease-out' },
+        );
+        return () => animation.cancel();
+    }, [filterSignature]);
 
     const preloadViewerImage = useCallback((item) => {
         if (typeof window === 'undefined' || !item?.imageUrl) return;
@@ -615,13 +707,86 @@ export default function MoodboardGallery({
 
     return (
         <div className="boudoir-moodboard-wrapper">
-            {/* --- SEAMLESS EDITORIAL GRADIENT DISCOVERY BAR --- */}
-            <div className="pop-discovery-bar">
-                <div className="pop-strip-left">
-                    <span className="pop-strip-label">EXPLORE BY COLOR:</span>
-                </div>
+            {/* --- MOODBOARD CONTROLS: 50% SEARCH (LEFT) + 50% COLOR BOX (RIGHT) --- */}
+            <div className="moodboard-controls-strip">
+                <form
+                    className="moodboard-search"
+                    role="search"
+                    onSubmit={(event) => event.preventDefault()}
+                >
+                    <div className="moodboard-search-field">
+                        <label className="visually-hidden" htmlFor="moodboard-search">
+                            Search the mood board
+                        </label>
+                        {/* Clean thin-stroke SVG magnifying glass, optically centred */}
+                        <svg
+                            className="moodboard-search-icon"
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <circle cx="10.5" cy="10.5" r="6.5" />
+                            <line x1="15.5" y1="15.5" x2="21" y2="21" />
+                        </svg>
+                        <div className="moodboard-search-input-wrap">
+                            <input
+                                id="moodboard-search"
+                                name="q"
+                                type="search"
+                                value={searchQuery}
+                                onChange={(event) => setSearchQuery(event.target.value)}
+                                placeholder=""
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck="false"
+                                aria-describedby="moodboard-search-status"
+                            />
+                            {/* Animated placeholder: visible only when input is empty */}
+                            {!searchQuery && (
+                                <div className="moodboard-animated-placeholder" aria-hidden="true">
+                                    <span className="map-lead">Try</span>
+                                    <span
+                                        key={placeholderIdx}
+                                        className={`map-phrase ${placeholderExiting ? 'map-phrase--exit' : 'map-phrase--enter'}`}
+                                    >
+                                        &lsquo;{PLACEHOLDER_PHRASES[placeholderIdx]}&rsquo;
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                className="moodboard-search-clear"
+                                onClick={() => setSearchQuery('')}
+                                aria-label="Clear search"
+                            >
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        )}
+                    </div>
+                    <p
+                        id="moodboard-search-status"
+                        className="visually-hidden"
+                        role="status"
+                        aria-live="polite"
+                        aria-atomic="true"
+                    >
+                        {searchQuery !== deferredSearchQuery
+                            ? 'Searching the mood board.'
+                            : searchQuery.trim()
+                                ? 'Search results updated.'
+                                : ''}
+                    </p>
+                </form>
 
-                <div className="pop-gradient-container">
+                {/* --- SEAMLESS FLAT RECTANGLE COLOR BOX (NO OUTLINE, FLAT CORNERS, NO TEXT) --- */}
+                <div className="moodboard-color-discovery">
                     <div
                         ref={gradientRef}
                         className="pop-gradient-track"
@@ -663,135 +828,138 @@ export default function MoodboardGallery({
                                 <span className="pop-hover-name">{hoverInfo.name}</span>
                             </div>
                         )}
-                    </div>
-
-                    {selectedSwatch && (
-                        <button
-                            type="button"
-                            className="pop-strip-clear"
-                            onClick={clearColorFilter}
-                            title="Reset color filter"
-                            aria-label="Reset color filter"
-                        >
-                            ✕ Reset
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* --- MASONRY GRID --- */}
-            <div className="boudoir-static-grid">
-                {/* 1. FIRST ITEM: COLOR SWATCH HERO CARD (WHEN ACTIVE) */}
-                {selectedSwatch && (() => {
-                    const textColor = getContrastTextColor(selectedSwatch.hex);
-                    const words = (selectedSwatch.name || 'Color Mood').trim().split(/\s+/);
-                    const maxWordLen = Math.max(...words.map((w) => w.length));
-                    
-                    let fontSizeClamp = 'clamp(1.6rem, 3.8vw, 3.2rem)';
-                    if (words.length >= 2 || maxWordLen > 8) {
-                        fontSizeClamp = maxWordLen > 10 ? 'clamp(1.2rem, 2.5vw, 2.2rem)' : 'clamp(1.4rem, 3.0vw, 2.6rem)';
-                    }
-
-                    return (
-                        <figure
-                            className="boudoir-static-card pop-swatch-hero-card"
-                            style={{ backgroundColor: selectedSwatch.hex }}
-                        >
-                            <div className="swatch-hero-canvas">
-                                <button
-                                    type="button"
-                                    className="swatch-hero-dismiss-btn"
-                                    onClick={clearColorFilter}
-                                    title="Clear color filter"
-                                    aria-label="Clear color filter"
-                                    style={{ color: textColor }}
-                                >
-                                    ✕
-                                </button>
-
-                                <div
-                                    className="swatch-hero-title"
-                                    style={{
-                                        color: textColor,
-                                        fontSize: fontSizeClamp,
-                                    }}
-                                >
-                                    {words.map((word, idx) => (
-                                        <span key={idx} className="swatch-hero-word">
-                                            {word}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                <span
-                                    className="swatch-hero-hex-tag"
-                                    style={{ color: textColor }}
-                                >
-                                    {selectedSwatch.hex.toLowerCase()}
-                                </span>
-                            </div>
-                        </figure>
-                    );
-                })()}
-
-                {/* 2. MATCHING PHOTOS WITH PRE-RESERVED ASPECT RATIO & SMOOTH FADE */}
-                {filteredPhotos.map((item, index) => {
-                    const palette = getPhotoPalette(item);
-                    const dominantBg = palette?.dominantHex || '#eadfce';
-                    const aspectRatio = resolvedAspectRatios[item.id] || getItemAspectRatio(item);
-                    const isLoaded = loadedImages.has(item.id);
-
-                    return (
-                        <figure
-                            className="boudoir-static-card"
-                            key={item.id}
-                            style={{
-                                backgroundColor: dominantBg,
-                                ...(aspectRatio ? { aspectRatio: String(aspectRatio) } : {}),
-                            }}
-                        >
-                            <div
-                                className="card-image-wrap"
-                                style={aspectRatio ? { aspectRatio: String(aspectRatio) } : undefined}
+                        {selectedSwatch && (
+                            <button
+                                type="button"
+                                className="pop-strip-clear"
+                                onClick={clearColorFilter}
+                                title="Reset color filter"
+                                aria-label="Reset color filter"
                             >
-                                <button
-                                    type="button"
-                                    data-photo-id={item.id}
-                                    className="boudoir-photo-button"
-                                    onClick={() => openPhoto(item)}
-                                    onPointerEnter={() => preloadViewerImage(item)}
-                                    onFocus={() => preloadViewerImage(item)}
-                                    aria-label={`Open ${item.title}`}
-                                >
-                                    <img
-                                        ref={(image) => {
-                                            handleImageReady(item, image);
-                                        }}
-                                        src={item.thumbnailUrl}
-                                        alt={item.title}
-                                        loading={index < 8 ? 'eager' : 'lazy'}
-                                        fetchpriority={index < 4 ? 'high' : 'low'}
-                                        decoding="async"
-                                        onLoad={(event) => handleImageReady(item, event.currentTarget)}
-                                        className={`boudoir-photo-img ${isLoaded ? 'is-loaded' : ''}`}
-                                        style={aspectRatio ? { aspectRatio: String(aspectRatio) } : undefined}
-                                    />
-                                </button>
-                            </div>
-                        </figure>
-                    );
-                })}
+                                ✕
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            {filteredPhotos.length === 0 && (
-                <div className="boudoir-empty-state">
-                    <span className="pop-empty-box" style={{ backgroundColor: selectedSwatch?.hex || '#999' }}></span>
-                    <p className="pop-empty-title">No photos found with this overall atmosphere.</p>
-                    <button type="button" className="pop-empty-btn" onClick={clearColorFilter}>
-                        Show All Photos
-                    </button>
+            <div
+                className="boudoir-grid-stage"
+                ref={gridStageRef}
+                aria-busy={searchQuery !== deferredSearchQuery}
+            >
+                {/* --- MASONRY GRID --- */}
+                <div className="boudoir-static-grid">
+                    {/* 1. FIRST ITEM: COLOR SWATCH HERO CARD (WHEN ACTIVE) */}
+                    {selectedSwatch && (() => {
+                        const textColor = getContrastTextColor(selectedSwatch.hex);
+                        const words = (selectedSwatch.name || 'Color Mood').trim().split(/\s+/);
+                        const maxWordLen = Math.max(...words.map((w) => w.length));
+
+                        let fontSizeClamp = 'clamp(1.6rem, 3.8vw, 3.2rem)';
+                        if (words.length >= 2 || maxWordLen > 8) {
+                            fontSizeClamp = maxWordLen > 10 ? 'clamp(1.2rem, 2.5vw, 2.2rem)' : 'clamp(1.4rem, 3.0vw, 2.6rem)';
+                        }
+
+                        return (
+                            <figure
+                                className="boudoir-static-card pop-swatch-hero-card"
+                                style={{ backgroundColor: selectedSwatch.hex }}
+                            >
+                                <div className="swatch-hero-canvas">
+                                    <button
+                                        type="button"
+                                        className="swatch-hero-dismiss-btn"
+                                        onClick={clearColorFilter}
+                                        title="Clear color filter"
+                                        aria-label="Clear color filter"
+                                        style={{ color: textColor }}
+                                    >
+                                        ✕
+                                    </button>
+
+                                    <div
+                                        className="swatch-hero-title"
+                                        style={{
+                                            color: textColor,
+                                            fontSize: fontSizeClamp,
+                                        }}
+                                    >
+                                        {words.map((word, idx) => (
+                                            <span key={idx} className="swatch-hero-word">
+                                                {word}
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    <span
+                                        className="swatch-hero-hex-tag"
+                                        style={{ color: textColor }}
+                                    >
+                                        {selectedSwatch.hex.toLowerCase()}
+                                    </span>
+                                </div>
+                            </figure>
+                        );
+                    })()}
+
+                    {/* 2. MATCHING PHOTOS WITH PRE-RESERVED ASPECT RATIO & SMOOTH FADE */}
+                    {filteredPhotos.map((item, index) => {
+                        const palette = getPhotoPalette(item);
+                        const dominantBg = palette?.dominantHex || '#eadfce';
+                        const aspectRatio = resolvedAspectRatios[item.id] || getItemAspectRatio(item);
+                        const isLoaded = loadedImages.has(item.id);
+
+                        return (
+                            <figure
+                                className="boudoir-static-card"
+                                key={item.id}
+                                style={{
+                                    backgroundColor: dominantBg,
+                                    ...(aspectRatio ? { aspectRatio: String(aspectRatio) } : {}),
+                                }}
+                            >
+                                <div
+                                    className="card-image-wrap"
+                                    style={aspectRatio ? { aspectRatio: String(aspectRatio) } : undefined}
+                                >
+                                    <button
+                                        type="button"
+                                        data-photo-id={item.id}
+                                        className="boudoir-photo-button"
+                                        onClick={() => openPhoto(item)}
+                                        onPointerEnter={() => preloadViewerImage(item)}
+                                        onFocus={() => preloadViewerImage(item)}
+                                        aria-label={`Open ${item.title}`}
+                                    >
+                                        <img
+                                            ref={makeImgRef(item)}
+                                            src={item.thumbnailUrl}
+                                            alt={item.title}
+                                            loading={index < 8 ? 'eager' : 'lazy'}
+                                            fetchpriority={index < 4 ? 'high' : 'low'}
+                                            decoding={index < 8 ? 'sync' : 'async'}
+                                            onLoad={(event) => handleImageReady(item, event.currentTarget)}
+                                            className={`boudoir-photo-img ${isLoaded ? 'is-loaded' : ''}`}
+                                            style={aspectRatio ? { aspectRatio: String(aspectRatio) } : undefined}
+                                        />
+                                    </button>
+                                </div>
+                            </figure>
+                        );
+                    })}
                 </div>
-            )}
+
+                {filteredPhotos.length === 0 && (
+                    <div className="boudoir-empty-state">
+                        <span className="pop-empty-box" style={{ backgroundColor: selectedSwatch?.hex || '#999' }}></span>
+                        <p className="pop-empty-title">No references sit at this intersection yet.</p>
+                        <button type="button" className="pop-empty-btn" onClick={clearDiscoveryFilters}>
+                            Reset discovery
+                        </button>
+                    </div>
+                )}
+            </div>
 
             {activeId && (
                 <MoodboardPolaroidViewer
@@ -806,96 +974,254 @@ export default function MoodboardGallery({
                 />
             )}
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .boudoir-moodboard-wrapper {
                     width: 100%;
                 }
 
-                /* --- SEAMLESS POP EDITORIAL GRADIENT DISCOVERY STRIP --- */
-                .pop-discovery-bar {
+                .visually-hidden {
+                    position: absolute !important;
+                    width: 1px !important;
+                    height: 1px !important;
+                    padding: 0 !important;
+                    margin: -1px !important;
+                    overflow: hidden !important;
+                    clip-path: inset(50%) !important;
+                    white-space: nowrap !important;
+                    border: 0 !important;
+                }
+
+                /* --- MOODBOARD CONTROLS STRIP (SEARCH 50% + COLOR BOX 50%) --- */
+                .moodboard-controls-strip {
+                    width: 100%;
+                    box-sizing: border-box;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 1.25rem;
+                    align-items: center;
                     margin-bottom: 2rem;
-                    position: sticky;
-                    top: 72px;
-                    z-index: 50;
-                    background: var(--pop-cream);
-                    border: 2px solid var(--pop-ink);
-                    border-radius: 12px;
-                    padding: 0.65rem 1rem;
-                    box-shadow: 3px 3px 0px var(--pop-ink);
-                    display: flex;
-                    align-items: center;
-                    gap: 1.15rem;
                 }
 
-                .pop-strip-left {
-                    display: flex;
-                    align-items: center;
-                    flex-shrink: 0;
+                .moodboard-search {
+                    width: 100%;
+                    max-width: none;
+                    margin: 0;
                 }
 
-                .pop-strip-label {
-                    font-family: var(--font-mono, "Space Mono", monospace);
-                    font-size: 0.76rem;
-                    font-weight: 700;
-                    letter-spacing: 0.06em;
-                    color: var(--pop-ink);
-                    white-space: nowrap;
-                    flex-shrink: 0;
-                }
-
-                .pop-gradient-container {
-                    flex: 1;
+                .moodboard-search-field {
+                    min-width: 0;
+                    min-height: 56px;
                     display: flex;
+                    flex-direction: row;
                     align-items: center;
                     gap: 0.75rem;
+                    padding-inline: 1rem;
+                    border: 1.5px solid var(--pop-ink);
+                    border-radius: 14px;
+                    background: var(--pop-cream);
+                    color: var(--pop-ink);
+                    outline: 2.5px solid transparent;
+                    outline-offset: 3px;
+                    transition: border-color 150ms ease, outline-color 150ms ease;
+                }
+
+                .moodboard-search-field:focus-within {
+                    border-color: var(--pop-ink);
+                    outline-color: var(--pop-pink);
+                }
+
+                .moodboard-search-icon {
+                    width: 20px;
+                    height: 20px;
+                    flex-shrink: 0;
+                    color: rgba(21, 19, 15, 0.52);
+                    /* Optical centering: shift slightly up so circle reads centred against cap-height */
+                    transform: translateY(-0.5px);
+                    transition: color 150ms ease;
+                }
+
+                .moodboard-search-field:focus-within .moodboard-search-icon {
+                    color: var(--pop-ink);
+                }
+
+                /* Wrapper that stacks the real input and animated placeholder */
+                .moodboard-search-input-wrap {
                     position: relative;
+                    flex: 1;
                     min-width: 0;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .moodboard-search-field input {
+                    width: 100%;
+                    min-width: 0;
+                    height: 54px;
+                    padding: 0;
+                    border: 0;
+                    outline: 0;
+                    background: transparent;
+                    color: var(--pop-ink);
+                    font: 560 1rem/1.2 var(--font-display, sans-serif);
+                    letter-spacing: -0.01em;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .moodboard-search-field input::placeholder {
+                    color: transparent; /* placeholder handled by overlay */
+                }
+
+                .moodboard-search-field input::-webkit-search-cancel-button {
+                    appearance: none;
+                }
+
+                /* --- ANIMATED PLACEHOLDER OVERLAY --- */
+                .moodboard-animated-placeholder {
+                    position: absolute;
+                    inset: 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.35rem;
+                    pointer-events: none;
+                    overflow: visible;
+                    z-index: 0;
+                    user-select: none;
+                }
+
+                .map-lead {
+                    font: 450 0.95rem/1.35 var(--font-display, sans-serif);
+                    color: rgba(21, 19, 15, 0.44);
+                    letter-spacing: -0.01em;
+                    flex-shrink: 0;
+                }
+
+                /* Moonlight shimmer: sweeps left-to-right solely across text glyphs via background-clip: text,
+                   with bottom padding expansion so descenders ('y', 'g', 'p', 'q') render fully unclipped */
+                .map-phrase {
+                    font: 450 0.95rem/1.35 var(--font-display, sans-serif);
+                    letter-spacing: -0.01em;
+                    display: inline-block;
+                    white-space: nowrap;
+                    padding-bottom: 0.28em;
+                    margin-bottom: -0.28em;
+                    color: rgba(21, 19, 15, 0.44);
+                    background: linear-gradient(
+                        90deg,
+                        rgba(21, 19, 15, 0.44) 0%,
+                        rgba(21, 19, 15, 0.44) 28%,
+                        rgba(12, 16, 56, 0.96) 48%,
+                        rgba(8, 10, 44, 1) 52%,
+                        rgba(21, 19, 15, 0.44) 72%,
+                        rgba(21, 19, 15, 0.44) 100%
+                    );
+                    background-size: 260% 100%;
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                /* Slide-up enter: new phrase arrives from below */
+                @keyframes phraseEnter {
+                    from { opacity: 0; transform: translateY(6px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+
+                /* Slide-up exit: old phrase leaves upward */
+                @keyframes phraseExit {
+                    from { opacity: 1; transform: translateY(0); }
+                    to   { opacity: 0; transform: translateY(-6px); }
+                }
+
+                .map-phrase--enter {
+                    animation: phraseEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                               moonSweep 5.6s cubic-bezier(0.35, 0, 0.25, 1) infinite;
+                }
+
+                .map-phrase--exit {
+                    animation: phraseExit 0.32s cubic-bezier(0.4, 0, 1, 1) forwards,
+                               moonSweep 5.6s cubic-bezier(0.35, 0, 0.25, 1) infinite;
+                }
+
+                /* Moonlight sweep: dark spotlight drifts softly from left to right across the text */
+                @keyframes moonSweep {
+                    0%   { background-position: 160% 0; }
+                    68%  { background-position: -50% 0; }
+                    100% { background-position: -50% 0; }
+                }
+
+                .moodboard-search-clear {
+                    width: 48px;
+                    height: 48px;
+                    display: inline-grid;
+                    place-items: center;
+                    padding: 0;
+                    border: 0;
+                    border-radius: 50%;
+                    background: transparent;
+                    color: var(--pop-ink);
+                    cursor: pointer;
+                    font: 400 1.75rem/1 var(--font-display, sans-serif);
+                    transition: background-color 150ms ease;
+                }
+
+                .moodboard-search-clear:hover {
+                    background: var(--pop-pink);
+                }
+
+                .moodboard-search-clear:focus-visible {
+                    outline: 3px solid var(--pop-purple);
+                    outline-offset: 2px;
+                }
+
+                /* --- SEAMLESS FLAT RECTANGLE COLOR BOX (NO OUTLINE, FLAT CORNERS, NO TEXT) --- */
+                .moodboard-color-discovery {
+                    width: 100%;
+                    height: 56px;
+                    display: flex;
+                    align-items: center;
+                    position: relative;
                 }
 
                 .pop-gradient-track {
-                    flex: 1;
-                    height: 24px;
-                    border-radius: 6px;
-                    border: 1.5px solid var(--pop-ink);
-                    box-shadow: 1.5px 1.5px 0px var(--pop-ink);
-                    background: linear-gradient(
-                        to right,
-                        #881b24 0%,
-                        #b24a2b 8%,
-                        #cb7436 16%,
-                        #d28a22 24%,
-                        #deb038 32%,
-                        #727c44 40%,
-                        #3d7156 48%,
-                        #2c5963 56%,
-                        #22385e 64%,
-                        #4e2a42 72%,
-                        #b97a78 80%,
-                        #d9cdb8 88%,
-                        #4a4b50 94%,
-                        #262629 100%
-                    );
+                    width: 100%;
+                    height: 56px;
+                    border-radius: 0;
+                    border: none;
+                    outline: none;
+                    box-shadow: none;
                     position: relative;
                     cursor: crosshair;
                     user-select: none;
                     touch-action: none;
-                    outline: none;
-                    transition: box-shadow 0.15s ease;
-                }
-
-                .pop-gradient-track:hover,
-                .pop-gradient-track:focus-visible {
-                    box-shadow: 2px 2px 0px var(--pop-ink);
+                    background: linear-gradient(
+                        to right,
+                        #ef233c 0%,
+                        #f95738 8%,
+                        #f77f00 16%,
+                        #fcbf49 24%,
+                        #e9d758 32%,
+                        #70e000 40%,
+                        #10b981 48%,
+                        #06b6d4 56%,
+                        #2563eb 64%,
+                        #7c3aed 72%,
+                        #ec4899 80%,
+                        #ff7eb5 88%,
+                        #fdf6e2 94%,
+                        #18181b 100%
+                    );
                 }
 
                 .pop-gradient-thumb {
                     position: absolute;
                     top: 50%;
-                    width: 22px;
-                    height: 22px;
+                    width: 26px;
+                    height: 26px;
                     border-radius: 50%;
-                    border: 2.5px solid #ffffff;
-                    box-shadow: 0 0 0 1.5px var(--pop-ink), 0 2px 6px rgba(0, 0, 0, 0.35);
+                    border: 3px solid #ffffff;
+                    box-shadow: 0 0 0 1.5px var(--pop-ink), 0 3px 8px rgba(0, 0, 0, 0.4);
                     transform: translate(-50%, -50%) scale(1);
                     pointer-events: none;
                     transition: left 0.38s cubic-bezier(0.18, 1.25, 0.4, 1), transform 0.12s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease-out, opacity 0.2s ease;
@@ -904,7 +1230,7 @@ export default function MoodboardGallery({
                 }
 
                 .pop-gradient-thumb.is-idle {
-                    opacity: 0.6;
+                    opacity: 0.7;
                 }
 
                 .pop-gradient-thumb.is-active {
@@ -913,8 +1239,8 @@ export default function MoodboardGallery({
 
                 .pop-gradient-thumb.is-dragging {
                     transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease-out, left 0s !important;
-                    transform: translate(-50%, -50%) scale(1.18);
-                    box-shadow: 0 0 0 2px var(--pop-ink), 0 4px 12px rgba(0, 0, 0, 0.4);
+                    transform: translate(-50%, -50%) scale(1.15);
+                    box-shadow: 0 0 0 2px var(--pop-ink), 0 4px 12px rgba(0, 0, 0, 0.45);
                     opacity: 1;
                 }
 
@@ -925,12 +1251,12 @@ export default function MoodboardGallery({
                     display: inline-flex;
                     align-items: center;
                     gap: 5px;
-                    padding: 2px 7px;
+                    padding: 3px 8px;
                     background: var(--pop-ink);
                     color: #ffffff;
                     border-radius: 4px;
                     font-family: var(--font-mono, "Space Mono", monospace);
-                    font-size: 0.62rem;
+                    font-size: 0.64rem;
                     font-weight: 700;
                     letter-spacing: 0.04em;
                     text-transform: uppercase;
@@ -961,67 +1287,45 @@ export default function MoodboardGallery({
                 }
 
                 .pop-strip-clear {
+                    position: absolute;
+                    right: 12px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 4px;
                     border: 1.5px solid var(--pop-ink);
                     background: #ffffff;
                     color: var(--pop-ink);
                     font-family: var(--font-mono, "Space Mono", monospace);
-                    font-size: 0.72rem;
+                    font-size: 0.85rem;
                     font-weight: 700;
-                    padding: 0.25rem 0.6rem;
-                    height: 24px;
-                    border-radius: 4px;
                     cursor: pointer;
+                    display: inline-grid;
+                    place-items: center;
                     box-shadow: 1.5px 1.5px 0px var(--pop-ink);
-                    transition: all 0.1s ease;
-                    white-space: nowrap;
-                    flex-shrink: 0;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
+                    z-index: 10;
+                    transition: transform 0.1s ease, background 0.1s ease;
                 }
 
                 .pop-strip-clear:hover {
-                    background: var(--pop-ink);
-                    color: var(--pop-cream);
+                    background: var(--pop-pink);
+                    transform: translateY(-50%) scale(1.05);
                 }
 
-                @media (max-width: 768px) {
-                    .pop-discovery-bar {
-                        position: sticky;
-                        top: 64px;
-                        flex-direction: column;
-                        align-items: stretch;
-                        gap: 0.55rem;
-                        padding: 0.6rem 0.75rem;
-                        border-radius: 10px;
-                    }
-
-                    .pop-strip-left {
-                        width: 100%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                    }
-
-                    .pop-strip-label {
-                        font-size: 0.70rem;
-                    }
-
-                    .pop-gradient-container {
-                        width: 100%;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                    }
-
-                    .pop-strip-clear {
-                        font-size: 0.68rem;
-                        padding: 0.2rem 0.5rem;
-                        height: 22px;
+                @media (max-width: 860px) {
+                    .moodboard-controls-strip {
+                        grid-template-columns: 1fr;
+                        gap: 1rem;
+                        margin-bottom: 1.5rem;
                     }
                 }
 
                 /* --- MASONRY GRID & CARDS --- */
+                .boudoir-grid-stage {
+                    will-change: opacity, transform;
+                }
+
                 .boudoir-static-grid {
                     columns: 4;
                     column-gap: 25px;
@@ -1247,12 +1551,32 @@ export default function MoodboardGallery({
                 @media (max-width: 1100px) {
                     .boudoir-static-grid { columns: 3; }
                 }
+
                 @media (max-width: 760px) {
                     .boudoir-static-grid { columns: 2; }
-                    .pop-discovery-bar { top: 60px; }
                 }
+
                 @media (max-width: 480px) {
                     .boudoir-static-grid { columns: 1; }
+
+                    .moodboard-search-field {
+                        gap: 0.55rem;
+                        padding-inline: 0.75rem;
+                    }
+
+                    .moodboard-search-icon {
+                        font-size: 1.35rem;
+                    }
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                    .boudoir-grid-stage,
+                    .moodboard-search-field,
+                    .moodboard-search-clear {
+                        animation-duration: 0.01ms !important;
+                        transition-duration: 0.01ms !important;
+                        transform: none !important;
+                    }
                 }
             ` }} />
         </div>

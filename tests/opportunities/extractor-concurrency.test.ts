@@ -15,6 +15,7 @@ const extractionPayload = (title: string) => ({
     application_url: null,
     meeting_url: null,
     fee_or_funding: null,
+    application_fee: null,
     summary: null,
 });
 

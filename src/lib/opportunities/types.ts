@@ -67,6 +67,7 @@ export interface Opportunity {
     application_url: string | null;
     meeting_url: string | null;
     fee_or_funding: string | null;
+    application_fee: string | null;
     summary: string | null;
     status: OpportunityStatus;
     outcome: OpportunityOutcome;
@@ -99,6 +100,7 @@ export const LLMExtractionOutputSchema = z.object({
     application_url: z.string().nullable().optional(),
     meeting_url: z.string().nullable().optional(),
     fee_or_funding: z.string().nullable().optional(),
+    application_fee: z.string().nullable().optional(),
     summary: z.string().nullable().optional(),
 });
 

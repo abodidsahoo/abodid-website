@@ -62,6 +62,7 @@ export const BenchmarkExtractionSchema = z.object({
     timezone: NullableTextSchema,
     eligibility: StringListSchema,
     funding: NullableTextSchema,
+    application_fee: NullableTextSchema,
     requirements: StringListSchema,
     application_url: NullableHttpUrlSchema,
     location: NullableTextSchema,
@@ -103,6 +104,7 @@ export const BENCHMARK_JSON_SCHEMA = {
         timezone: { type: ['string', 'null'] },
         eligibility: { type: 'array', items: { type: 'string' } },
         funding: { type: ['string', 'null'] },
+        application_fee: { type: ['string', 'null'] },
         requirements: { type: 'array', items: { type: 'string' } },
         application_url: {
             type: ['string', 'null'],
@@ -119,6 +121,7 @@ export const BENCHMARK_JSON_SCHEMA = {
         'timezone',
         'eligibility',
         'funding',
+        'application_fee',
         'requirements',
         'application_url',
         'location',
@@ -138,7 +141,8 @@ Return exactly one JSON object with these keys:
 - deadline: the published application deadline, preserving relevant date and time detail, or null
 - timezone: the deadline's stated timezone, preferably an IANA timezone when clear, or null
 - eligibility: concise eligibility conditions as an array; [] when absent
-- funding: fees, stipend, award, funding, or costs in one concise string, or null
+- funding: only funding, stipend, bursary, award, salary, or support the successful applicant receives, or null
+- application_fee: only a fee the applicant pays to submit; use "No application fee" only when explicitly stated, otherwise null
 - requirements: application materials and submission requirements as an array; [] when absent
 - application_url: the direct absolute http(s) application link, or null
 - location: physical location, remote status, or both, or null
@@ -299,7 +303,8 @@ export const BENCHMARK_FIELDS: readonly BenchmarkFieldMetadata[] = [
     { key: 'deadline', label: 'Deadline', kind: 'text' },
     { key: 'timezone', label: 'Timezone', kind: 'text' },
     { key: 'eligibility', label: 'Eligibility', kind: 'list' },
-    { key: 'funding', label: 'Funding / fees', kind: 'text' },
+    { key: 'funding', label: 'Funding / award', kind: 'text' },
+    { key: 'application_fee', label: 'Application fee', kind: 'text' },
     { key: 'requirements', label: 'Requirements', kind: 'list' },
     { key: 'application_url', label: 'Application link', kind: 'url' },
     { key: 'location', label: 'Location', kind: 'text' },

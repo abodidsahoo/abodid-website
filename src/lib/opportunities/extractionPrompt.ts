@@ -62,9 +62,17 @@ FIELD EXTRACTION GUIDELINES:
     - Direct URL to the online event, webinar, video call, or registration page when present in the supplied link targets.
 
 12. fee_or_funding (string | null):
-    - Clean financial summary (e.g. "SGD 5,000/month stipend + studio + housing provided", "USD 10,000 production grant", "Free application").
+    - Only the funding, award, bursary, salary, stipend, expenses, accommodation, or other financial support the successful applicant receives.
+    - Examples: "SGD 5,000/month stipend + studio + housing provided", "USD 10,000 production grant", "£32,000 annual salary".
+    - Never put an application fee or submission charge in this field.
 
-13. summary (string, required):
+13. application_fee (string | null):
+    - Only money the applicant must pay to submit or enter the application.
+    - Preserve the amount, currency, and any waiver or concession details (e.g. "USD 25", "£15; waived for students").
+    - If the page explicitly says applying is free or there is no fee, return "No application fee".
+    - If no application-fee information is stated, use null. Do not infer that a missing fee means the application is free.
+
+14. summary (string, required):
     - Concise 1-2 sentence overview (max 30 words) summarizing who this is for and what benefits are provided.
 
 When the PAGE TITLE, CURRENT SECTION, main heading, or URL fragment explicitly identifies a specific event or information session, extract that event—not the broader programme it discusses elsewhere.

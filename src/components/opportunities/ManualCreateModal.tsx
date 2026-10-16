@@ -1,30 +1,63 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
 import { formatLiveDatePreview } from '../../lib/opportunities/ui-helpers';
+
+type CreateInputMode = 'manual' | 'text' | 'file';
+
+export interface OpportunityExtractionDraft {
+    title?: string;
+    organisation?: string;
+    category?: OpportunityCategory;
+    deadline?: string;
+    timezone?: string;
+    event_date?: string | null;
+    location?: string;
+    requirements?: string[];
+    next_action?: string;
+    application_url?: string;
+    fee_or_funding?: string;
+    application_fee?: string;
+    summary?: string;
+}
 
 interface ManualCreateModalProps {
     isOpen: boolean;
     initialUrl?: string;
     onClose: () => void;
-    onCreate: (data: any) => Promise<void>;
+    onCreate: (data: Record<string, unknown>) => Promise<void>;
+    onExtract: (input: { mode: 'text' | 'file'; text?: string; file?: File }) => Promise<OpportunityExtractionDraft>;
 }
+
+const MODE_INDEX: Record<CreateInputMode, number> = { manual: 0, text: 1, file: 2 };
+
+const toLocalDateTimeInput = (value?: string | null) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+    return localDate.toISOString().slice(0, 16);
+};
 
 export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
     isOpen,
     initialUrl = '',
     onClose,
     onCreate,
+    onExtract,
 }) => {
-    if (!isOpen) return null;
+    const detailsRef = useRef<HTMLDetailsElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const dialogRef = useRef<HTMLDivElement>(null);
+    const wasOpenRef = useRef(false);
 
-    const deadlineInputRef = useRef<HTMLInputElement>(null);
-
+    const [mode, setMode] = useState<CreateInputMode>('manual');
     const [title, setTitle] = useState('');
     const [organisation, setOrganisation] = useState('');
     const [category, setCategory] = useState<OpportunityCategory>('grant');
     const [sourceUrl, setSourceUrl] = useState(initialUrl);
     const [status, setStatus] = useState<OpportunityStatus>('inbox');
-    const [priority, setPriority] = useState<number>(2); // 1 = low, 2 = medium, 3 = high
+    const [priority, setPriority] = useState(2);
     const [deadline, setDeadline] = useState('');
     const [timezone, setTimezone] = useState('');
     const [eventDate, setEventDate] = useState('');
@@ -32,32 +65,159 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
     const [requirements, setRequirements] = useState('');
     const [nextAction, setNextAction] = useState('');
     const [applicationUrl, setApplicationUrl] = useState('');
-    const [feeOrFunding, setFeeOrFunding] = useState('');
+    const [funding, setFunding] = useState('');
+    const [applicationFee, setApplicationFee] = useState('');
     const [summary, setSummary] = useState('');
     const [notes, setNotes] = useState('');
+    const [pastedText, setPastedText] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [processingLabel, setProcessingLabel] = useState('');
+    const [formError, setFormError] = useState('');
+    const [extractionNotice, setExtractionNotice] = useState('');
+
+    const resetForm = (nextInitialUrl: string) => {
+        setMode('manual');
+        setTitle('');
+        setOrganisation('');
+        setCategory('grant');
+        setSourceUrl(nextInitialUrl);
+        setStatus('inbox');
+        setPriority(2);
+        setDeadline('');
+        setTimezone('');
+        setEventDate('');
+        setLocation('');
+        setRequirements('');
+        setNextAction('');
+        setApplicationUrl('');
+        setFunding('');
+        setApplicationFee('');
+        setSummary('');
+        setNotes('');
+        setPastedText('');
+        setSelectedFile(null);
+        setFormError('');
+        setExtractionNotice('');
+    };
+
+    useEffect(() => {
+        if (isOpen && !wasOpenRef.current) resetForm(initialUrl);
+        wasOpenRef.current = isOpen;
+    }, [initialUrl, isOpen]);
 
     const deadlinePreview = formatLiveDatePreview(deadline);
     const eventDatePreview = formatLiveDatePreview(eventDate);
+    const isBusy = isSaving || isProcessing;
 
-    const openDatePicker = () => {
-        if (deadlineInputRef.current) {
-            if ('showPicker' in HTMLInputElement.prototype) {
-                try {
-                    deadlineInputRef.current.showPicker();
-                    return;
-                } catch {}
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        const handleDialogKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && !isBusy) {
+                event.preventDefault();
+                onClose();
+                return;
             }
-            deadlineInputRef.current.focus();
-            deadlineInputRef.current.click();
+
+            if (event.key !== 'Tab' || !dialogRef.current) return;
+            const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [href], [tabindex]:not([tabindex="-1"])',
+            )).filter((element) => element.offsetParent !== null);
+            if (focusable.length === 0) return;
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+
+        document.addEventListener('keydown', handleDialogKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener('keydown', handleDialogKeyDown);
+        };
+    }, [isBusy, isOpen, onClose]);
+
+    const chooseMode = (nextMode: CreateInputMode) => {
+        if (isBusy) return;
+        setMode(nextMode);
+        setFormError('');
+        setExtractionNotice('');
+    };
+
+    const applyExtraction = (draft: OpportunityExtractionDraft) => {
+        setTitle(draft.title || '');
+        setOrganisation(draft.organisation || '');
+        setCategory(draft.category || 'other');
+        setDeadline(draft.deadline || '');
+        setTimezone(draft.timezone || '');
+        setEventDate(toLocalDateTimeInput(draft.event_date));
+        setLocation(draft.location || '');
+        setRequirements((draft.requirements || []).join('\n'));
+        setNextAction(draft.next_action || '');
+        setApplicationUrl(draft.application_url || '');
+        setFunding(draft.fee_or_funding || '');
+        setApplicationFee(draft.application_fee || '');
+        setSummary(draft.summary || '');
+        setMode('manual');
+        setExtractionNotice('Details added. Please review them before saving.');
+        window.requestAnimationFrame(() => {
+            if (detailsRef.current) detailsRef.current.open = true;
+        });
+    };
+
+    const analyzeInput = async () => {
+        if (mode === 'text' && pastedText.trim().length < 50) {
+            setFormError('Paste a little more opportunity text before analysing it.');
+            return;
+        }
+        if (mode === 'file' && !selectedFile) {
+            setFormError('Choose a PDF, image, or text file first.');
+            return;
+        }
+
+        setIsProcessing(true);
+        setFormError('');
+        setProcessingLabel(mode === 'file' ? 'Reading the uploaded file…' : 'Reading the pasted text…');
+        const stageTimer = window.setTimeout(() => setProcessingLabel('Extracting the opportunity details…'), 700);
+
+        try {
+            const draft = await onExtract({
+                mode,
+                text: mode === 'text' ? pastedText : undefined,
+                file: mode === 'file' ? selectedFile || undefined : undefined,
+            });
+            applyExtraction(draft);
+        } catch (error) {
+            setFormError(error instanceof Error ? error.message : 'The details could not be extracted.');
+        } finally {
+            window.clearTimeout(stageTimer);
+            setIsProcessing(false);
+            setProcessingLabel('');
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (mode !== 'manual') {
+            await analyzeInput();
+            return;
+        }
+
         setIsSaving(true);
+        setFormError('');
         try {
-            const reqsArray = requirements.split(',').map(s => s.trim()).filter(Boolean);
+            const reqsArray = requirements.split(/\n|,\s*/).map((value) => value.trim()).filter(Boolean);
             await onCreate({
                 title,
                 organisation,
@@ -72,288 +232,186 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
                 requirements: reqsArray,
                 next_action: nextAction,
                 application_url: applicationUrl,
-                fee_or_funding: feeOrFunding,
+                fee_or_funding: funding,
+                application_fee: applicationFee,
                 summary,
                 notes,
             });
             onClose();
+        } catch (error) {
+            setFormError(error instanceof Error ? error.message : 'The opportunity could not be saved.');
         } finally {
             setIsSaving(false);
         }
     };
 
-    return (
-        <div className="opp-modal-overlay" onClick={onClose}>
-            <div className="opp-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="opp-modal-header">
-                    <h2 className="opp-modal-title">+ Add Opportunity</h2>
-                    <button type="button" className="opp-btn opp-btn-secondary opp-btn-sm" onClick={onClose}>
-                        ✕
+    if (!isOpen) return null;
+
+    return createPortal(
+        <div
+            className="opp-modal-overlay"
+            role="presentation"
+            onMouseDown={(event) => {
+                if (event.target === event.currentTarget && !isBusy) onClose();
+            }}
+        >
+            <div ref={dialogRef} className="opp-modal opp-create-modal" role="dialog" aria-modal="true" aria-labelledby="opp-create-title">
+                <div className="opp-modal-header opp-create-modal-header">
+                    <div>
+                        <span className="opp-create-kicker">Opportunity tracker</span>
+                        <h2 id="opp-create-title" className="opp-modal-title">Add Opportunity</h2>
+                    </div>
+                    <button type="button" className="opp-create-close" onClick={onClose} disabled={isBusy} aria-label="Close add opportunity">
+                        <span aria-hidden="true">×</span>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-                    <div className="opp-modal-body">
-                        <div className="opp-form-sections-wrap">
-                            {/* Card 1: Core Details */}
-                            <div className="opp-form-card">
-                                <div className="opp-form-card-title">📌 Core Details</div>
+                <form className="opp-create-form" onSubmit={handleSubmit}>
+                    <fieldset
+                        className="opp-create-mode-switch"
+                        style={{ '--opp-create-mode-index': MODE_INDEX[mode] } as React.CSSProperties}
+                        disabled={isBusy}
+                    >
+                        <legend className="sr-only">How would you like to add this opportunity?</legend>
+                        {([
+                            { id: 'manual', label: 'Add manually' },
+                            { id: 'text', label: 'Paste text' },
+                            { id: 'file', label: 'PDF / image' },
+                        ] as const).map((option) => (
+                            <React.Fragment key={option.id}>
+                                <input className="sr-only" type="radio" id={`opp-create-mode-${option.id}`} name="create-mode" value={option.id} checked={mode === option.id} onChange={() => chooseMode(option.id)} />
+                                <label htmlFor={`opp-create-mode-${option.id}`}>{option.label}</label>
+                            </React.Fragment>
+                        ))}
+                    </fieldset>
 
-                                <div className="opp-form-grid-2">
-                                    <div className="opp-form-group opp-form-col-span-full">
-                                        <label className="opp-form-label">Opportunity Title *</label>
-                                        <input
-                                            type="text"
-                                            className="opp-form-input"
-                                            placeholder="e.g. Arts Council Project Grant"
-                                            value={title}
-                                            onChange={(e) => setTitle(e.target.value)}
-                                            required
-                                            autoFocus
-                                        />
-                                    </div>
-
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Organisation / Host *</label>
-                                        <input
-                                            type="text"
-                                            className="opp-form-input"
-                                            placeholder="e.g. British Council"
-                                            value={organisation}
-                                            onChange={(e) => setOrganisation(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Category</label>
-                                        <select
-                                            className="opp-form-select"
-                                            value={category}
-                                            onChange={(e) => setCategory(e.target.value as OpportunityCategory)}
-                                        >
-                                            <option value="grant">Grant</option>
-                                            <option value="residency">Residency</option>
-                                            <option value="fellowship">Fellowship</option>
-                                            <option value="open_call">Open Call</option>
-                                            <option value="job">Job</option>
-                                            <option value="conference">Conference</option>
-                                            <option value="event">Event</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Priority</label>
-                                        <select
-                                            className="opp-form-select"
-                                            value={priority}
-                                            onChange={(e) => setPriority(Number(e.target.value))}
-                                        >
-                                            <option value={1}>★ Low Priority</option>
-                                            <option value={2}>★★ Medium Priority</option>
-                                            <option value={3}>★★★ High Priority</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Workflow Status</label>
-                                        <select
-                                            className="opp-form-select"
-                                            value={status}
-                                            onChange={(e) => setStatus(e.target.value as OpportunityStatus)}
-                                        >
-                                            <option value="inbox">Saved</option>
-                                            <option value="interested">Reviewing</option>
-                                            <option value="preparing">Applying</option>
-                                            <option value="submitted">Submitted</option>
-                                            <option value="done">Archived</option>
-                                        </select>
+                    <div className="opp-modal-body opp-create-modal-body">
+                        {mode === 'text' && (
+                            <section className="opp-create-source-panel" aria-labelledby="opp-paste-text-title">
+                                <div className="opp-create-source-heading">
+                                    <span>01</span>
+                                    <div>
+                                        <h3 id="opp-paste-text-title">Paste opportunity text</h3>
+                                        <p>Copy the listing, call text, or email. The tracker will organise it into the form.</p>
                                     </div>
                                 </div>
-                            </div>
+                                <label className="opp-form-label" htmlFor="opp-create-pasted-text">Opportunity text</label>
+                                <textarea id="opp-create-pasted-text" name="opportunity_text" className="opp-form-textarea opp-create-paste-area" value={pastedText} onChange={(event) => { setPastedText(event.target.value); setFormError(''); }} placeholder="Paste the full opportunity description here…" autoFocus required />
+                                <span className="opp-create-input-note">At least 50 characters. Nothing is saved until you review the extracted details.</span>
+                            </section>
+                        )}
 
-                            {/* Card 2: Timeline & Deadlines */}
-                            <div className="opp-form-card">
-                                <div className="opp-form-card-title">📅 Timeline & Deadlines</div>
+                        {mode === 'file' && (
+                            <section className="opp-create-source-panel" aria-labelledby="opp-upload-title">
+                                <div className="opp-create-source-heading">
+                                    <span>01</span>
+                                    <div>
+                                        <h3 id="opp-upload-title">Upload PDF, image, or text</h3>
+                                        <p>PDF text is read from the first six pages. JPG, PNG, and WebP screenshots use AI vision.</p>
+                                    </div>
+                                </div>
+                                <input ref={fileInputRef} id="opp-create-file" name="opportunity_file" className="sr-only" type="file" accept="application/pdf,text/plain,text/markdown,image/jpeg,image/png,image/webp,.pdf,.txt,.md,.jpg,.jpeg,.png,.webp" onChange={(event) => { setSelectedFile(event.target.files?.[0] || null); setFormError(''); }} />
+                                <label className="opp-create-file-picker" htmlFor="opp-create-file">
+                                    <span className="opp-create-file-mark" aria-hidden="true">↥</span>
+                                    <span>
+                                        <strong>{selectedFile ? selectedFile.name : 'Choose a file'}</strong>
+                                        <small>{selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB selected` : 'PDF, TXT, JPG, PNG or WebP · maximum 10 MB'}</small>
+                                    </span>
+                                </label>
+                                {selectedFile && <button type="button" className="opp-create-remove-file" onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>Remove file</button>}
+                            </section>
+                        )}
 
-                                <div className="opp-form-grid-2">
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Deadline Date</label>
-                                        <div className="opp-form-date-row">
-                                            <button
-                                                type="button"
-                                                className="opp-form-date-trigger-btn"
-                                                onClick={openDatePicker}
-                                                title="Click to pick or set deadline date"
-                                            >
-                                                <span className="opp-form-date-trigger-icon">📅</span>
-                                                <span className="opp-form-date-trigger-val">
-                                                    {deadline ? (
-                                                        new Date(deadline + 'T12:00:00Z').toLocaleDateString('en-GB', {
-                                                            weekday: 'short',
-                                                            day: 'numeric',
-                                                            month: 'short',
-                                                            year: 'numeric',
-                                                        })
-                                                    ) : (
-                                                        <span className="opp-date-empty-hint">Click to set date...</span>
-                                                    )}
-                                                </span>
-                                                <span className="opp-form-date-trigger-action">Pick Date ✎</span>
-                                            </button>
+                        {mode === 'manual' && (
+                            <div className="opp-form-sections-wrap">
+                                {extractionNotice && <div className="opp-create-success" role="status"><span aria-hidden="true">✓</span>{extractionNotice}</div>}
 
-                                            <input
-                                                ref={deadlineInputRef}
-                                                type="date"
-                                                className="opp-form-hidden-date-input"
-                                                value={deadline}
-                                                onChange={(e) => setDeadline(e.target.value)}
-                                                tabIndex={-1}
-                                                aria-hidden="true"
-                                            />
-
-                                            {deadline && (
-                                                <button
-                                                    type="button"
-                                                    className="opp-form-date-clear-btn"
-                                                    onClick={() => setDeadline('')}
-                                                    title="Clear deadline date"
-                                                >
-                                                    ✕
-                                                </button>
-                                            )}
+                                <section className="opp-form-card opp-create-core" aria-labelledby="opp-core-details-title">
+                                    <div className="opp-create-section-heading">
+                                        <span>01</span>
+                                        <div><h3 id="opp-core-details-title">Core details</h3><p>Start with the information needed to recognise and track it.</p></div>
+                                    </div>
+                                    <div className="opp-form-grid-2">
+                                        <div className="opp-form-group opp-form-col-span-full">
+                                            <label className="opp-form-label" htmlFor="opp-create-opportunity-title">Opportunity title *</label>
+                                            <input id="opp-create-opportunity-title" name="title" type="text" className="opp-form-input" placeholder="e.g. Arts Council Project Grant" value={title} onChange={(event) => setTitle(event.target.value)} required autoFocus />
                                         </div>
+                                        <div className="opp-form-group">
+                                            <label className="opp-form-label" htmlFor="opp-create-organisation">Organisation / host *</label>
+                                            <input id="opp-create-organisation" name="organisation" type="text" className="opp-form-input" placeholder="e.g. British Council" value={organisation} onChange={(event) => setOrganisation(event.target.value)} required />
+                                        </div>
+                                        <div className="opp-form-group">
+                                            <label className="opp-form-label" htmlFor="opp-create-category">Category</label>
+                                            <select id="opp-create-category" name="category" className="opp-form-select" value={category} onChange={(event) => setCategory(event.target.value as OpportunityCategory)}>
+                                                <option value="grant">Grant</option><option value="residency">Residency</option><option value="fellowship">Fellowship</option><option value="open_call">Open Call</option><option value="job">Job</option><option value="conference">Conference</option><option value="event">Event</option><option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="opp-form-group opp-form-col-span-full">
+                                            <label className="opp-form-label" htmlFor="opp-create-deadline">Deadline date</label>
+                                            <input id="opp-create-deadline" name="deadline" type="date" className="opp-form-input" value={deadline} onChange={(event) => setDeadline(event.target.value)} />
+                                            {deadlinePreview && <span className="opp-date-live-preview">{deadlinePreview}</span>}
+                                        </div>
+                                    </div>
+                                </section>
 
-                                        {deadlinePreview && (
-                                            <div className="opp-date-live-preview">
-                                                ✨ {deadlinePreview}
+                                <details ref={detailsRef} className="opp-create-details">
+                                    <summary>
+                                        <span className="opp-create-details-icon" aria-hidden="true">+</span>
+                                        <span><strong>More details</strong><small>Dates, location, funding, links, requirements and notes</small></span>
+                                    </summary>
+                                    <div className="opp-create-details-content">
+                                        <section className="opp-create-detail-section" aria-labelledby="opp-schedule-title">
+                                            <div className="opp-create-section-heading"><span>02</span><h3 id="opp-schedule-title">Schedule &amp; place</h3></div>
+                                            <div className="opp-form-grid-2">
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-timezone">Time zone</label><input id="opp-create-timezone" name="timezone" type="text" className="opp-form-input" placeholder="e.g. Europe/London" value={timezone} onChange={(event) => setTimezone(event.target.value)} /></div>
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-location">Location</label><input id="opp-create-location" name="location" type="text" className="opp-form-input" placeholder="e.g. Online or Cambridge, UK" value={location} onChange={(event) => setLocation(event.target.value)} /></div>
+                                                <div className="opp-form-group opp-form-col-span-full"><label className="opp-form-label" htmlFor="opp-create-event-date">Event date &amp; time</label><input id="opp-create-event-date" name="event_date" type="datetime-local" className="opp-form-input" value={eventDate} onChange={(event) => setEventDate(event.target.value)} />{eventDatePreview && <span className="opp-date-live-preview">{eventDatePreview}</span>}</div>
                                             </div>
-                                        )}
-                                    </div>
+                                        </section>
 
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Timezone (Optional)</label>
-                                        <input
-                                            type="text"
-                                            className="opp-form-input"
-                                            placeholder="e.g. UTC, BST, EST, IST"
-                                            value={timezone}
-                                            onChange={(e) => setTimezone(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Event Date & Time</label>
-                                        <input
-                                            type="datetime-local"
-                                            className="opp-form-input"
-                                            value={eventDate}
-                                            onChange={(e) => setEventDate(e.target.value)}
-                                        />
-                                        {eventDatePreview && (
-                                            <div className="opp-date-live-preview">
-                                                ✨ {eventDatePreview}
+                                        <section className="opp-create-detail-section" aria-labelledby="opp-financial-title">
+                                            <div className="opp-create-section-heading"><span>03</span><h3 id="opp-financial-title">Funding &amp; fees</h3></div>
+                                            <div className="opp-create-financial-grid">
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-funding">Funding / award</label><input id="opp-create-funding" name="fee_or_funding" type="text" className="opp-form-input" placeholder="e.g. £5,000 award" value={funding} onChange={(event) => setFunding(event.target.value)} /></div>
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-fee">Application fee</label><input id="opp-create-fee" name="application_fee" type="text" className="opp-form-input" placeholder="e.g. £15 / No fee" value={applicationFee} onChange={(event) => setApplicationFee(event.target.value)} /></div>
                                             </div>
-                                        )}
-                                    </div>
+                                        </section>
 
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Location</label>
-                                        <input
-                                            type="text"
-                                            className="opp-form-input"
-                                            placeholder="e.g. Online or Cambridge, UK"
-                                            value={location}
-                                            onChange={(e) => setLocation(e.target.value)}
-                                        />
+                                        <section className="opp-create-detail-section" aria-labelledby="opp-source-title">
+                                            <div className="opp-create-section-heading"><span>04</span><h3 id="opp-source-title">Application source</h3></div>
+                                            <div className="opp-form-grid-2">
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-source-url">Official source URL</label><input id="opp-create-source-url" name="source_url" type="url" inputMode="url" className="opp-form-input" placeholder="https://…" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} autoCapitalize="off" autoCorrect="off" spellCheck={false} /></div>
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-application-url">Application URL</label><input id="opp-create-application-url" name="application_url" type="url" inputMode="url" className="opp-form-input" placeholder="https://…" value={applicationUrl} onChange={(event) => setApplicationUrl(event.target.value)} autoCapitalize="off" autoCorrect="off" spellCheck={false} /></div>
+                                            </div>
+                                        </section>
+
+                                        <section className="opp-create-detail-section" aria-labelledby="opp-planning-title">
+                                            <div className="opp-create-section-heading"><span>05</span><h3 id="opp-planning-title">Planning notes</h3></div>
+                                            <div className="opp-form-grid-2">
+                                                <div className="opp-form-group opp-form-col-span-full"><label className="opp-form-label" htmlFor="opp-create-next-action">Immediate next action</label><input id="opp-create-next-action" name="next_action" type="text" className="opp-form-input" placeholder="e.g. Draft 500-word proposal" value={nextAction} onChange={(event) => setNextAction(event.target.value)} /></div>
+                                                <div className="opp-form-group opp-form-col-span-full"><label className="opp-form-label" htmlFor="opp-create-requirements">Requirements</label><textarea id="opp-create-requirements" name="requirements" className="opp-form-textarea" placeholder="One requirement per line" value={requirements} onChange={(event) => setRequirements(event.target.value)} /></div>
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-summary">Summary</label><textarea id="opp-create-summary" name="summary" className="opp-form-textarea" placeholder="Short description of the opportunity…" value={summary} onChange={(event) => setSummary(event.target.value)} /></div>
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-notes">Personal notes</label><textarea id="opp-create-notes" name="notes" className="opp-form-textarea" placeholder="Ideas, pitch angles, collaborators…" value={notes} onChange={(event) => setNotes(event.target.value)} /></div>
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-status">Status</label><select id="opp-create-status" name="status" className="opp-form-select" value={status} onChange={(event) => setStatus(event.target.value as OpportunityStatus)}><option value="inbox">Saved</option><option value="interested">Reviewing</option><option value="preparing">Applying</option><option value="submitted">Submitted</option><option value="done">Archived</option></select></div>
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-priority">Priority</label><select id="opp-create-priority" name="priority" className="opp-form-select" value={priority} onChange={(event) => setPriority(Number(event.target.value))}><option value={1}>Low</option><option value={2}>Medium</option><option value={3}>High</option></select></div>
+                                            </div>
+                                        </section>
                                     </div>
-                                </div>
+                                </details>
                             </div>
+                        )}
 
-                            {/* Card 3: Action, Links & Notes */}
-                            <div className="opp-form-card">
-                                <div className="opp-form-card-title">🎯 Action & Notes</div>
-
-                                <div className="opp-form-grid-2">
-                                    <div className="opp-form-group opp-form-col-span-full">
-                                        <label className="opp-form-label">Immediate Next Action</label>
-                                        <input
-                                            type="text"
-                                            className="opp-form-input"
-                                            placeholder="e.g. Draft 500-word proposal"
-                                            value={nextAction}
-                                            onChange={(e) => setNextAction(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Application / Source URL</label>
-                                        <input
-                                            type="url"
-                                            className="opp-form-input"
-                                            placeholder="https://..."
-                                            value={sourceUrl}
-                                            onChange={(e) => setSourceUrl(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="opp-form-group">
-                                        <label className="opp-form-label">Funding / Award</label>
-                                        <input
-                                            type="text"
-                                            className="opp-form-input"
-                                            placeholder="e.g. £5,000 stipend"
-                                            value={feeOrFunding}
-                                            onChange={(e) => setFeeOrFunding(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="opp-form-group opp-form-col-span-full">
-                                        <label className="opp-form-label">Eligibility & Needs (comma separated)</label>
-                                        <input
-                                            type="text"
-                                            className="opp-form-input"
-                                            placeholder="e.g. Age 18–35, UK residents, Portfolio PDF"
-                                            value={requirements}
-                                            onChange={(e) => setRequirements(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="opp-form-group opp-form-col-span-full">
-                                        <label className="opp-form-label">Personal Notes</label>
-                                        <textarea
-                                            className="opp-form-textarea"
-                                            placeholder="Thoughts, pitch angles, collaborators..."
-                                            value={notes}
-                                            onChange={(e) => setNotes(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="opp-form-group opp-form-col-span-full">
-                                        <label className="opp-form-label">Summary</label>
-                                        <textarea
-                                            className="opp-form-textarea"
-                                            placeholder="Short description of the opportunity or event..."
-                                            value={summary}
-                                            onChange={(e) => setSummary(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {isProcessing && <div className="opp-create-processing" role="status" aria-live="polite"><span className="opp-create-processing-mark" aria-hidden="true" /><div><strong>It’s processing now.</strong><span>{processingLabel}</span></div></div>}
+                        {formError && <p className="opp-create-error" role="alert">{formError}</p>}
                     </div>
 
-                    <div className="opp-modal-footer">
-                        <button type="button" className="opp-btn opp-btn-secondary" onClick={onClose}>
-                            Cancel
-                        </button>
-                        <button type="submit" className="opp-btn opp-btn-save" disabled={isSaving}>
-                            {isSaving ? 'Saving...' : 'Save Opportunity'}
-                        </button>
+                    <div className="opp-modal-footer opp-create-modal-footer">
+                        <button type="button" className="opp-btn opp-btn-secondary" onClick={onClose} disabled={isBusy}>Cancel</button>
+                        <button type="submit" className="opp-btn opp-btn-save" disabled={isBusy}>{isProcessing ? 'Processing…' : isSaving ? 'Saving…' : 'Save Opportunity'}</button>
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 };

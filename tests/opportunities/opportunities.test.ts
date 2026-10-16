@@ -433,6 +433,8 @@ describe('Opportunity Assistant Core Functionality', () => {
         it('ships complete server-side extraction instructions with the application', () => {
             const prompt = getExtractionSystemPrompt();
             expect(prompt).toContain('TARGET-SELECTION RULES (HIGHEST PRIORITY)');
+            expect(prompt).toContain('Never put an application fee or submission charge in this field.');
+            expect(prompt).toContain('If no application-fee information is stated, use null.');
             expect(prompt).toContain('Output strict JSON only.');
             expect(prompt.length).toBeGreaterThan(2_000);
         });
@@ -451,6 +453,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 application_url: 'https://example.com/apply',
                 meeting_url: null,
                 fee_or_funding: '£65,000/year',
+                application_fee: null,
                 summary: 'Full-time creative tech role building interactive installations.',
             };
 
@@ -499,6 +502,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 application_url: 'https://example.com/apply',
                 meeting_url: null,
                 fee_or_funding: 'Funded',
+                application_fee: '£20',
                 summary: 'A residency.',
                 status: 'interested',
                 outcome: null,
@@ -524,6 +528,7 @@ describe('Opportunity Assistant Core Functionality', () => {
             expect(restored.notes).toBe('Private note');
             expect(restored.priority).toBe(3);
             expect(restored.completed_requirements).toEqual(['Portfolio']);
+            expect(restored.application_fee).toBe('£20');
         });
     });
 
@@ -547,6 +552,7 @@ describe('Opportunity Assistant Core Functionality', () => {
             application_url: 'https://studiox.org/apply',
             meeting_url: null,
             fee_or_funding: '€3,000 stipend',
+            application_fee: 'No application fee',
             summary: 'Two-month residency in Berlin for media artists.',
             status: 'interested',
             outcome: null,
@@ -602,6 +608,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 application_url: null,
                 meeting_url: null,
                 fee_or_funding: null,
+                application_fee: null,
                 summary: 'Residency cycle 00-10 at SAM studios.',
                 status: 'inbox',
                 outcome: null,
@@ -641,6 +648,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 application_url: null,
                 meeting_url: null,
                 fee_or_funding: null,
+                application_fee: null,
                 summary: 'Grant for early career filmmakers.',
                 status: 'inbox',
                 outcome: null,

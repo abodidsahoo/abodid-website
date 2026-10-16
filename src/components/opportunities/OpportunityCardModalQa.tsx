@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Opportunity, OpportunityStatus } from '../../lib/opportunities/types';
 import { OpportunityCard } from './OpportunityCard';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
+import { ManualCreateModal } from './ManualCreateModal';
 
 const base: Opportunity = {
     id: 'qa-long',
@@ -22,6 +23,7 @@ const base: Opportunity = {
     application_url: 'https://apply.example.org/fellowship',
     meeting_url: null,
     fee_or_funding: 'Fully funded with a £2,000 stipend',
+    application_fee: '£20 submission fee; waivers available',
     summary: 'A supported research fellowship for emerging practitioners.',
     status: 'preparing',
     outcome: null,
@@ -50,14 +52,25 @@ const initialOpportunities: Opportunity[] = [
 export default function OpportunityCardModalQa() {
     const [opportunities, setOpportunities] = useState(initialOpportunities);
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
     const selected = opportunities.find((opportunity) => opportunity.id === selectedId) || null;
+    const selectedIndex = opportunities.findIndex((opportunity) => opportunity.id === selectedId);
 
     const update = (id: string, changes: Partial<Opportunity>) => {
         setOpportunities((current) => current.map((item) => item.id === id ? { ...item, ...changes } : item));
     };
 
+    const navigate = (direction: 1 | -1) => {
+        if (selectedIndex < 0) return;
+        const nextIndex = (selectedIndex + direction + opportunities.length) % opportunities.length;
+        setSelectedId(opportunities[nextIndex].id);
+    };
+
     return (
         <>
+            <button type="button" className="opp-btn opp-btn-primary" onClick={() => setIsCreateOpen(true)}>
+                Add opportunity
+            </button>
             <div className="opp-grid">
                 {opportunities.map((opportunity) => (
                     <OpportunityCard
@@ -80,8 +93,32 @@ export default function OpportunityCardModalQa() {
                     onEdit={() => undefined}
                     onReExtract={async () => undefined}
                     onDelete={async () => undefined}
+                    onNavigatePrev={() => navigate(-1)}
+                    onNavigateNext={() => navigate(1)}
+                    currentIndex={selectedIndex + 1}
+                    totalCount={opportunities.length}
                 />
             )}
+            <ManualCreateModal
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
+                onCreate={async () => undefined}
+                onExtract={async () => ({
+                    title: base.title,
+                    organisation: base.organisation,
+                    category: base.category,
+                    deadline: base.deadline_at?.slice(0, 10) || '',
+                    timezone: base.deadline_timezone || '',
+                    event_date: base.event_date,
+                    location: base.location || '',
+                    requirements: base.requirements,
+                    next_action: base.next_action || '',
+                    application_url: base.application_url || '',
+                    fee_or_funding: base.fee_or_funding || '',
+                    application_fee: base.application_fee || '',
+                    summary: base.summary || '',
+                })}
+            />
         </>
     );
 }

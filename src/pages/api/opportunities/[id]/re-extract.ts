@@ -71,6 +71,7 @@ export const POST: APIRoute = async ({ params, request }) => {
             application_url: extracted.application_url || current.application_url,
             meeting_url: extracted.meeting_url || current.meeting_url,
             fee_or_funding: extracted.fee_or_funding || current.fee_or_funding,
+            application_fee: extracted.application_fee || current.application_fee,
             summary: extracted.summary || current.summary,
             source_hash: computeContentHash(fetched.text),
             llm_model: model,

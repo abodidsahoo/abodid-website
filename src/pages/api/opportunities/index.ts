@@ -44,6 +44,10 @@ export const GET: APIRoute = async ({ request }) => {
     const { data, error } = await authorization.userClient
         .from('saved_opportunities')
         .select(PRIVATE_SAVED_SELECT)
+        // Defense in depth: RLS already restricts this client to auth.uid(),
+        // while the explicit predicate guarantees this response can only seed
+        // the signed-in user's local search index.
+        .eq('user_id', authorization.user.id)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -110,6 +114,7 @@ export const POST: APIRoute = async ({ request }) => {
             application_url: typeof body.application_url === 'string' ? body.application_url.trim().slice(0, 4096) || null : null,
             meeting_url: typeof body.meeting_url === 'string' ? body.meeting_url.trim().slice(0, 4096) || null : null,
             fee_or_funding: typeof body.fee_or_funding === 'string' ? body.fee_or_funding.trim().slice(0, 1000) || null : null,
+            application_fee: typeof body.application_fee === 'string' ? body.application_fee.trim().slice(0, 1000) || null : null,
             summary: typeof body.summary === 'string' ? body.summary.trim().slice(0, 10000) || null : null,
             status: status.data,
             priority: Math.min(3, Math.max(1, Number(body.priority) || 1)),

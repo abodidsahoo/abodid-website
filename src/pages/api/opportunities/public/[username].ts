@@ -54,6 +54,7 @@ export const GET: APIRoute = async ({ params }) => {
                 requirements: row.content?.requirements,
                 application_url: row.content?.application_url,
                 fee_or_funding: row.content?.fee_or_funding,
+                application_fee: row.content?.application_fee,
                 summary: row.content?.summary,
                 extracted_at: row.content?.extracted_at,
                 // Expose extraction provenance without leaking provider/model details.

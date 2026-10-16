@@ -167,6 +167,7 @@ export const POST: APIRoute = async ({ request }) => {
             application_url: extracted.application_url || null,
             meeting_url: extracted.meeting_url || null,
             fee_or_funding: extracted.fee_or_funding || null,
+            application_fee: extracted.application_fee || null,
             summary: extracted.summary || null,
             status: 'inbox',
             priority: 1,

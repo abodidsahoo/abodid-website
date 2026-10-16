@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { Opportunity, OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
 import {
     formatCategoryTitle,
@@ -7,7 +8,15 @@ import {
     formatStatusTitle,
     getFirstName,
 } from '../../lib/opportunities/ui-helpers';
-import { isOpportunityAttention, opportunityAttentionScore } from '../../lib/opportunities/attention';
+import { isOpportunityAttention } from '../../lib/opportunities/attention';
+import {
+    sortRadarOpportunities,
+    type OpportunitySortMode,
+} from '../../lib/opportunities/sorting';
+import {
+    buildOpportunitySearchIndex,
+    rankOpportunitySearch,
+} from '../../lib/opportunities/search';
 import { OpportunityCard, type RadarSaveState } from './OpportunityCard';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
 import {
@@ -16,7 +25,10 @@ import {
     type TrackerStatus,
 } from './OpportunityStatusPicker';
 import { EditOpportunityModal } from './EditOpportunityModal';
-import { ManualCreateModal } from './ManualCreateModal';
+import {
+    ManualCreateModal,
+    type OpportunityExtractionDraft,
+} from './ManualCreateModal';
 import {
     OpportunityProfileDialog,
     type OpportunityEditableProfile,
@@ -44,6 +56,7 @@ import {
 const GOOGLE_IDENTITY_SCOPES = 'openid email profile';
 
 type UrgencyRailFilter = 'attention' | 'this_week' | 'this_month' | 'later' | 'all';
+const FILTER_EASE = [0.2, 0.8, 0.2, 1] as const;
 
 type ProfileSummary = OpportunityEditableProfile;
 
@@ -83,6 +96,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortMode, setSortMode] = useState<OpportunitySortMode>('date_added');
+    const [resultsAnnouncement, setResultsAnnouncement] = useState('');
+    const prefersReducedMotion = Boolean(useReducedMotion());
 
     // Modals
     const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null);
@@ -527,22 +543,51 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     // 7. Manual Create
     const handleManualCreate = async (payload: any) => {
+        let res: Response;
         try {
-            const res = await fetch('/api/opportunities', {
+            res = await fetch('/api/opportunities', {
                 method: 'POST',
                 headers: authenticatedHeaders(true),
                 body: JSON.stringify(payload),
             });
-            const data = await res.json();
-            if (res.ok && data.opportunity) {
-                showToast(`✓ Created "${data.opportunity.title}"`);
-                setOpportunities((prev) => [data.opportunity, ...prev]);
-            } else {
-                showToast(`❌ ${data.error || 'Failed to create'}`);
-            }
         } catch {
             showToast('❌ Error creating opportunity');
+            throw new Error('Error creating opportunity');
         }
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.opportunity) {
+            const message = data.error || 'Failed to create';
+            showToast(`❌ ${message}`);
+            throw new Error(message);
+        }
+
+        showToast(`✓ Created "${data.opportunity.title}"`);
+        setOpportunities((prev) => [data.opportunity, ...prev]);
+    };
+
+    const handleExtractManualInput = async (input: {
+        mode: 'text' | 'file';
+        text?: string;
+        file?: File;
+    }): Promise<OpportunityExtractionDraft> => {
+        const formData = new FormData();
+        formData.set('mode', input.mode);
+        formData.set('captured_at', new Date().toISOString());
+        formData.set('capture_timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+        if (input.text) formData.set('text', input.text);
+        if (input.file) formData.set('file', input.file);
+
+        const res = await fetch('/api/opportunities/extract-input', {
+            method: 'POST',
+            headers: authenticatedHeaders(),
+            body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.extraction) {
+            throw new Error(data.error || 'The opportunity details could not be extracted.');
+        }
+        return data.extraction as OpportunityExtractionDraft;
     };
 
     // 8. Re-extract
@@ -589,7 +634,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         return opportunities.filter((opportunity) => isOpportunityAttention(opportunity, now)).length;
     }, [opportunities, now]);
 
-    // Filter & Smart Sort Opportunities
+    const opportunitySearchIndex = useMemo(
+        () => buildOpportunitySearchIndex(opportunities),
+        [opportunities],
+    );
+
+    // Filter, rank fuzzy-search matches, and sort opportunities.
     const filteredOpportunities = useMemo(() => {
         const filtered = opportunities.filter((o) => {
             // Category Filter
@@ -608,19 +658,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             // Priority Star Rating Filter
             if (priorityFilter !== 'all' && (o.priority || 1) !== Number(priorityFilter)) {
                 return false;
-            }
-
-            // Search Query
-            if (searchQuery.trim()) {
-                const q = searchQuery.toLowerCase();
-                const matchTitle = o.title?.toLowerCase().includes(q);
-                const matchOrg = o.organisation?.toLowerCase().includes(q);
-                const matchSummary = o.summary?.toLowerCase().includes(q);
-                const matchNotes = o.notes?.toLowerCase().includes(q);
-                const matchReqs = o.requirements?.some((r) => r.toLowerCase().includes(q));
-                if (!matchTitle && !matchOrg && !matchSummary && !matchNotes && !matchReqs) {
-                    return false;
-                }
             }
 
             // Urgency Rail Filters: 'attention' | 'this_week' | 'this_month' | 'later' | 'all'
@@ -652,18 +689,42 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             return true;
         });
 
-        // Smart Sort: High priority opportunities nearing deadline automatically surface first
-        return filtered.sort((a, b) => {
-            return opportunityAttentionScore(a, now) - opportunityAttentionScore(b, now);
-        });
-    }, [opportunities, urgencyFilter, categoryFilter, statusFilter, priorityFilter, searchQuery, now]);
+        const sorted = sortRadarOpportunities(filtered, sortMode, now);
+        return rankOpportunitySearch(sorted, searchQuery, opportunitySearchIndex);
+    }, [opportunities, opportunitySearchIndex, urgencyFilter, categoryFilter, statusFilter, priorityFilter, searchQuery, sortMode, now]);
+
+    useEffect(() => {
+        if (isLoading || loadError) return undefined;
+        const timer = window.setTimeout(() => {
+            setResultsAnnouncement(
+                `${filteredOpportunities.length} ${filteredOpportunities.length === 1 ? 'opportunity' : 'opportunities'} shown.`,
+            );
+        }, 250);
+        return () => window.clearTimeout(timer);
+    }, [filteredOpportunities.length, isLoading, loadError]);
 
     // Active secondary filters count for badge
     const activeSecondaryFiltersCount =
         (categoryFilter !== 'all' ? 1 : 0) +
         (statusFilter !== 'all' ? 1 : 0) +
         (priorityFilter !== 'all' ? 1 : 0) +
-        (searchQuery.trim() ? 1 : 0);
+        (sortMode !== 'date_added' ? 1 : 0);
+
+    const activeFiltersCount =
+        (categoryFilter !== 'all' ? 1 : 0) +
+        (statusFilter !== 'all' ? 1 : 0) +
+        (priorityFilter !== 'all' ? 1 : 0) +
+        (searchQuery.trim() ? 1 : 0) +
+        (urgencyFilter !== 'all' ? 1 : 0);
+
+    const resetFilters = useCallback(() => {
+        setUrgencyFilter('all');
+        setCategoryFilter('all');
+        setStatusFilter('all');
+        setPriorityFilter('all');
+        setSearchQuery('');
+        setSortMode('date_added');
+    }, []);
 
     const collectionOwnerName = collectionProfile?.display_name || username;
     const collectionTitle = `${collectionOwnerName.charAt(0).toUpperCase()}${collectionOwnerName.slice(1)}'s Opportunities`;
@@ -821,6 +882,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                             key={r.id}
                             type="button"
                             className={`opp-rail-pill ${urgencyFilter === r.id ? 'active' : ''}`}
+                            aria-pressed={urgencyFilter === r.id}
                             onClick={() => setUrgencyFilter(r.id)}
                         >
                             {r.label}
@@ -828,8 +890,37 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     ))}
                 </div>
 
-                {/* Filter Button with Badge and Dropdown Anchor */}
-                <div className="opp-filter-anchor-wrap">
+                <div className="opp-rail-actions">
+                    <div className="opp-search-control" role="search" aria-label="Search opportunities">
+                        <label className="sr-only" htmlFor="opp-radar-search">Search opportunities</label>
+                        <input
+                            id="opp-radar-search"
+                            name="opportunity-search"
+                            type="search"
+                            className="opp-search-input"
+                            placeholder="Search"
+                            value={searchQuery}
+                            onChange={(event) => setSearchQuery(event.target.value)}
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            enterKeyHint="search"
+                        />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                className="opp-search-clear"
+                                onClick={() => setSearchQuery('')}
+                                aria-label="Clear opportunity search"
+                            >
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Filter Button with Badge and Dropdown Anchor */}
+                    <div className="opp-filter-anchor-wrap">
                     <button
                         type="button"
                         className={`opp-filter-toggle-btn ${isFilterTrayOpen || activeSecondaryFiltersCount > 0 ? 'active' : ''}`}
@@ -857,12 +948,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                         <button
                                             type="button"
                                             className="opp-reset-filters-link"
-                                            onClick={() => {
-                                                setCategoryFilter('all');
-                                                setStatusFilter('all');
-                                                setPriorityFilter('all');
-                                                setSearchQuery('');
-                                            }}
+                                            onClick={resetFilters}
                                         >
                                             Reset All ↺
                                         </button>
@@ -878,6 +964,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                                 key={cat}
                                                 type="button"
                                                 className={`opp-popover-pill ${categoryFilter === cat ? 'active' : ''}`}
+                                                aria-pressed={categoryFilter === cat}
                                                 onClick={() => setCategoryFilter(cat)}
                                             >
                                                 {cat === 'all' ? 'All' : cat === 'open_call' ? 'Open Call' : cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -895,6 +982,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                                 key={statusOption.id}
                                                 type="button"
                                                 className={`opp-popover-pill ${statusFilter === statusOption.id ? 'active' : ''}`}
+                                                aria-pressed={statusFilter === statusOption.id}
                                                 onClick={() => setStatusFilter(statusOption.id)}
                                             >
                                                 {statusOption.label}
@@ -917,6 +1005,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                                 key={p.id}
                                                 type="button"
                                                 className={`opp-popover-pill ${priorityFilter === p.id ? 'active' : ''}`}
+                                                aria-pressed={priorityFilter === p.id}
                                                 onClick={() => setPriorityFilter(p.id)}
                                             >
                                                 {p.label}
@@ -925,22 +1014,57 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     </div>
                                 </div>
 
-                                {/* Box 4: Live Search Box */}
-                                <div className="opp-popover-search-box">
-                                    <input
-                                        type="text"
-                                        className="opp-popover-search-input"
-                                        placeholder="🔍 Search title, org, eligibility..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        autoFocus
-                                    />
+                                {/* Box 4: Sort Selection */}
+                                <div
+                                    className="opp-popover-section"
+                                    role="group"
+                                    aria-labelledby="opp-sort-options-label"
+                                >
+                                    <div
+                                        id="opp-sort-options-label"
+                                        className="opp-popover-section-label"
+                                    >
+                                        Sort by
+                                    </div>
+                                    <div className="opp-popover-pills">
+                                        {[
+                                            { id: 'date_added', label: 'Date Added' },
+                                            { id: 'deadline', label: 'Deadline' },
+                                        ].map((sortOption) => (
+                                            <button
+                                                key={sortOption.id}
+                                                type="button"
+                                                className={`opp-popover-pill ${sortMode === sortOption.id ? 'active' : ''}`}
+                                                aria-pressed={sortMode === sortOption.id}
+                                                onClick={() => setSortMode(sortOption.id as OpportunitySortMode)}
+                                            >
+                                                {sortOption.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+
                             </div>
                         </>
                     )}
+                    </div>
                 </div>
             </div>
+
+            {!isLoading && !loadError && opportunities.length > 0 && (
+                <div className="opp-results-summary">
+                    <output>
+                        <strong>{filteredOpportunities.length}</strong>{' '}
+                        {filteredOpportunities.length === 1 ? 'opportunity' : 'opportunities'}
+                    </output>
+                    {activeFiltersCount > 0 && (
+                        <span>{activeFiltersCount} active {activeFiltersCount === 1 ? 'filter' : 'filters'}</span>
+                    )}
+                </div>
+            )}
+            <span className="sr-only" aria-live="polite" aria-atomic="true">
+                {resultsAnnouncement}
+            </span>
 
             {/* Category Filter Title Heading (e.g. "Residency Listings", "Job Listings", "Open Call Listings") */}
             {categoryFilter !== 'all' && (
@@ -952,9 +1076,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         type="button"
                         className="opp-category-header-clear"
                         onClick={() => setCategoryFilter('all')}
-                        title="Show all listings"
+                        aria-label={`Remove ${formatCategoryTitle(categoryFilter)} filter`}
+                        title="Remove current filter"
                     >
-                        Show All Listings ✕
+                        <span aria-hidden="true">×</span>
                     </button>
                 </div>
             )}
@@ -1047,43 +1172,76 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         </div>
                     </div>
                 </div>
-            ) : filteredOpportunities.length === 0 ? (
-                /* Compact alert when search/filters return 0 items */
-                <div className="opp-no-filter-alert">
-                    <div>
-                        <strong>No opportunities match this filter.</strong>
-                        <span style={{ color: 'var(--opp-muted)', marginLeft: '8px' }}>
-                            Try adjusting your urgency horizon or clearing secondary filters.
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        className="opp-btn opp-btn-secondary opp-btn-sm"
-                        onClick={() => {
-                            setUrgencyFilter('all');
-                            setCategoryFilter('all');
-                            setStatusFilter('all');
-                            setSearchQuery('');
-                        }}
-                    >
-                        Reset Filters ↺
-                    </button>
-                </div>
             ) : (
-                /* Opportunities Cards Grid */
-                <div className="opp-grid">
-                    {filteredOpportunities.map((opp) => (
-                        <OpportunityCard
-                            key={opp.id}
-                            opportunity={opp}
-                            onOpen={(o) => setSelectedDetailId(o.id)}
-                            onSelectCategory={(cat) => setCategoryFilter(cat)}
-                            showRadarAction={!isOwner}
-                            radarState={radarStates[opp.id] || 'idle'}
-                            onAddToRadar={handleAddToRadar}
-                        />
-                    ))}
-                </div>
+                <>
+                    <AnimatePresence initial={false}>
+                        {filteredOpportunities.length === 0 && (
+                            <motion.div
+                                key="opportunity-filter-empty"
+                                className="opp-no-filter-alert"
+                                initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                transition={prefersReducedMotion
+                                    ? { duration: 0 }
+                                    : { duration: 0.2, ease: FILTER_EASE }}
+                            >
+                                <div>
+                                    <strong>No opportunities match your search and filters.</strong>
+                                    <span style={{ color: 'var(--opp-muted)', marginLeft: '8px' }}>
+                                        Try another keyword, category, deadline period, or attention status.
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="opp-btn opp-btn-secondary opp-btn-sm"
+                                    onClick={resetFilters}
+                                >
+                                    Reset filters ↺
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Stable keyed cards let Motion project each surviving card into its new grid position. */}
+                    <div className="opp-grid">
+                        <AnimatePresence initial={false} mode="popLayout">
+                            {filteredOpportunities.map((opp) => (
+                                <motion.div
+                                    key={opp.id}
+                                    className="opp-card-motion"
+                                    layout={!prefersReducedMotion}
+                                    initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={prefersReducedMotion
+                                        ? { opacity: 0, transition: { duration: 0 } }
+                                        : {
+                                            opacity: 0,
+                                            scale: 0.97,
+                                            transition: { duration: 0.135, ease: 'easeOut' },
+                                        }}
+                                    transition={prefersReducedMotion
+                                        ? { duration: 0 }
+                                        : {
+                                            layout: { duration: 0.27, ease: FILTER_EASE },
+                                            opacity: { duration: 0.2, ease: 'easeOut' },
+                                            y: { duration: 0.2, ease: FILTER_EASE },
+                                            scale: { duration: 0.135, ease: 'easeOut' },
+                                        }}
+                                >
+                                    <OpportunityCard
+                                        opportunity={opp}
+                                        onOpen={(o) => setSelectedDetailId(o.id)}
+                                        onSelectCategory={(cat) => setCategoryFilter(cat)}
+                                        showRadarAction={!isOwner}
+                                        radarState={radarStates[opp.id] || 'idle'}
+                                        onAddToRadar={handleAddToRadar}
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                </>
             )}
 
             {/* Bottom ownership / sign-in action */}
@@ -1112,13 +1270,18 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             {/* Opportunity Detail Modal with Keyboard Arrow Navigation */}
             {(() => {
+                // Keep the open modal anchored to the full collection. A status change may
+                // remove its card from the current filtered grid, but it should not unmount
+                // the modal or leave a selected ID that reappears when filters are reset.
+                const selectedOpp = opportunities.find((o) => o.id === selectedDetailId) || null;
                 const selectedIndex = filteredOpportunities.findIndex((o) => o.id === selectedDetailId);
-                const selectedOpp = selectedIndex >= 0 ? filteredOpportunities[selectedIndex] : null;
 
                 if (!selectedOpp) return null;
 
+                const canNavigateFilteredResults = selectedIndex >= 0 && filteredOpportunities.length > 1;
+
                 const handleNavigate = (direction: 1 | -1) => {
-                    if (filteredOpportunities.length === 0) return;
+                    if (!canNavigateFilteredResults) return;
                     const nextIdx = (selectedIndex + direction + filteredOpportunities.length) % filteredOpportunities.length;
                     setSelectedDetailId(filteredOpportunities[nextIdx].id);
                 };
@@ -1143,10 +1306,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                             setSelectedDetailId(null);
                             await handleDelete(id);
                         }}
-                        onNavigateNext={() => handleNavigate(1)}
-                        onNavigatePrev={() => handleNavigate(-1)}
-                        currentIndex={selectedIndex + 1}
-                        totalCount={filteredOpportunities.length}
+                        onNavigateNext={canNavigateFilteredResults ? () => handleNavigate(1) : undefined}
+                        onNavigatePrev={canNavigateFilteredResults ? () => handleNavigate(-1) : undefined}
+                        currentIndex={selectedIndex >= 0 ? selectedIndex + 1 : undefined}
+                        totalCount={selectedIndex >= 0 ? filteredOpportunities.length : undefined}
                         showRadarAction={!isOwner}
                         radarState={radarStates[selectedOpp.id] || 'idle'}
                         onAddToRadar={handleAddToRadar}
@@ -1182,6 +1345,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 initialUrl={manualInitialUrl}
                 onClose={() => setIsManualModalOpen(false)}
                 onCreate={handleManualCreate}
+                onExtract={handleExtractManualInput}
             />}
 
             {activeViewerProfile && (

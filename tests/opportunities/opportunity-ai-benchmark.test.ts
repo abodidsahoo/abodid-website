@@ -23,6 +23,7 @@ const completeExtraction: BenchmarkExtraction = {
     timezone: 'Europe/London',
     eligibility: ['Emerging visual artists', 'Applicants aged 18 or over'],
     funding: '£2,000 stipend and accommodation',
+    application_fee: '£20',
     requirements: ['Portfolio', 'Artist statement'],
     application_url: 'https://example.org/residency/apply',
     location: 'London, United Kingdom',
@@ -54,6 +55,7 @@ describe('opportunity AI benchmark contract', () => {
             timezone: null,
             eligibility: [],
             funding: null,
+            application_fee: null,
             requirements: [],
             application_url: null,
             location: null,
@@ -150,6 +152,7 @@ describe('opportunity AI benchmark output parsing', () => {
 describe('opportunity AI benchmark display and agreement helpers', () => {
     it('formats missing, list, and category values consistently', () => {
         expect(formatBenchmarkValue('funding', null)).toBe('Not found');
+        expect(formatBenchmarkValue('application_fee', '£20')).toBe('£20');
         expect(formatBenchmarkValue('requirements', ['Portfolio', 'CV'])).toBe('Portfolio • CV');
         expect(formatBenchmarkValue('category', 'open_call')).toBe('Open Call');
     });
@@ -161,9 +164,9 @@ describe('opportunity AI benchmark display and agreement helpers', () => {
             requirements: [],
         });
 
-        expect(result.populated).toBe(9);
-        expect(result.total).toBe(11);
-        expect(result.score).toBeCloseTo(9 / 11);
+        expect(result.populated).toBe(10);
+        expect(result.total).toBe(12);
+        expect(result.score).toBeCloseTo(10 / 12);
         expect(result.missing).toEqual(['funding', 'requirements']);
     });
 
@@ -178,7 +181,7 @@ describe('opportunity AI benchmark display and agreement helpers', () => {
         const comparison = compareBenchmarkExtractions(completeExtraction, alternative);
 
         expect(comparison.score).toBe(1);
-        expect(comparison.exactMatches).toBe(11);
+        expect(comparison.exactMatches).toBe(12);
         expect(comparison.fields.find(({ field }) => field === 'application_url')?.exact).toBe(true);
     });
 

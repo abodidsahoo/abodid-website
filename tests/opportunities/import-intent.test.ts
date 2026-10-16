@@ -41,7 +41,7 @@ describe('Opportunity radar import intent', () => {
 describe('Opportunity public copy SQL contract', () => {
     it('keeps personal fields private and uses the authenticated user as destination', async () => {
         const sql = await readFile(new URL(
-            '../../supabase/migrations/20261015120000_opportunities_public_import.sql',
+            '../../supabase/migrations/20261016130000_copy_opportunity_application_fee.sql',
             import.meta.url,
         ), 'utf8');
 
@@ -51,6 +51,7 @@ describe('Opportunity public copy SQL contract', () => {
         expect(sql).toMatch(/\n\s+1,\n\s+null,\n\s+jsonb_strip_nulls/);
         expect(sql).not.toContain("source_row.content->'meeting_url'");
         expect(sql).not.toContain("source_row.content->'next_action'");
+        expect(sql).toContain("'application_fee', source_row.content->'application_fee'");
         expect(sql).toContain('on conflict (user_id, canonical_url) do nothing');
         expect(sql).toContain('grant execute on function public.copy_public_opportunity(uuid) to authenticated');
     });

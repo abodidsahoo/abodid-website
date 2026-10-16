@@ -18,6 +18,7 @@ export interface OpportunityExtractionContext {
     sourceUrl?: string;
     capturedAt?: string;
     timezone?: string;
+    imageDataUrls?: string[];
 }
 
 export interface ParsedDeadline {
@@ -498,6 +499,13 @@ export async function extractOpportunityWithLLM(
         context.timezone ? `BROWSER TIMEZONE: ${context.timezone}` : '',
     ].filter(Boolean);
     const userPrompt = `${contextLines.length ? `CAPTURE CONTEXT:\n${contextLines.join('\n')}\n\n` : ''}PAGE:\n${cleanPageText}`;
+    const imageDataUrls = (context.imageDataUrls || []).slice(0, 4);
+    const userContent = imageDataUrls.length > 0
+        ? [
+            { type: 'text', text: userPrompt },
+            ...imageDataUrls.map((url) => ({ type: 'image_url', image_url: { url } })),
+        ]
+        : userPrompt;
 
     for (let attempt = 0; attempt < OPENROUTER_MAX_ATTEMPTS; attempt += 1) {
         try {
@@ -517,7 +525,7 @@ export async function extractOpportunityWithLLM(
                     response_format: { type: 'json_object' },
                     messages: [
                         { role: 'system', content: systemPrompt },
-                        { role: 'user', content: userPrompt },
+                        { role: 'user', content: userContent },
                     ],
                     temperature: 0.1,
                     max_tokens: OPENROUTER_MAX_OUTPUT_TOKENS,

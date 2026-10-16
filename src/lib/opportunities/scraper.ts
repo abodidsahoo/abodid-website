@@ -414,7 +414,7 @@ export function prioritizeOpportunityText(text: string, maxChars = MAX_PAGE_TEXT
 
     const middleText = text.slice(topSize, -bottomSize);
     const middleParagraphs = middleText.split(/\n{2,}/);
-    const priorityKeywords = /\b(application deadline|submission deadline|closing date|applications? close|apply by|submit by|deadline|how to apply|eligibility|requirements|submission|stipend|funding|grant amount|timeline|schedule)\b/i;
+    const priorityKeywords = /\b(application deadline|submission deadline|closing date|applications? close|apply by|submit by|deadline|how to apply|eligibility|requirements|submission|application fee|entry fee|submission fee|fee waiver|stipend|funding|grant amount|timeline|schedule)\b/i;
 
     const criticalMiddleBlocks: string[] = [];
     let middleCharCount = 0;

@@ -184,6 +184,7 @@ const normalizeProductionExtraction = (
     // requirements array inside the benchmark adapter.
     eligibility: [],
     funding: extraction.fee_or_funding || null,
+    application_fee: extraction.application_fee || null,
     requirements: extraction.requirements || [],
     application_url: applicationUrl,
     location: extraction.location || null,

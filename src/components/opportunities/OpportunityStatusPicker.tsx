@@ -42,7 +42,6 @@ interface OpportunityStatusPickerProps {
     status: OpportunityStatus;
     onChange: (status: OpportunityStatus) => Promise<void> | void;
     disabled?: boolean;
-    position?: 'top' | 'bottom' | 'auto';
     size?: 'sm' | 'md';
     opportunityTitle?: string;
 }
@@ -58,8 +57,7 @@ export const OpportunityStatusPicker: React.FC<OpportunityStatusPickerProps> = (
     const [isUpdating, setIsUpdating] = useState(false);
     const currentStatus = normalizeOpportunityStatus(status);
 
-    const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const nextStatus = event.target.value as TrackerStatus;
+    const updateStatus = async (nextStatus: TrackerStatus) => {
         if (nextStatus === currentStatus) return;
 
         setIsUpdating(true);
@@ -70,12 +68,21 @@ export const OpportunityStatusPicker: React.FC<OpportunityStatusPickerProps> = (
         }
     };
 
+    const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+        await updateStatus(event.target.value as TrackerStatus);
+    };
+
     return (
-        <label className={`opp-status-picker ${size}`} htmlFor={selectId}>
-            <span className="opp-status-picker-label">Status</span>
+        <fieldset
+            className={`opp-status-picker ${size} is-${currentStatus}`}
+            disabled={disabled || isUpdating}
+            aria-busy={isUpdating}
+        >
+            <legend className="opp-status-picker-label">Status</legend>
             <span className="opp-status-select-shell">
                 <select
                     id={selectId}
+                    name="opportunity-status"
                     className="opp-status-select"
                     value={currentStatus}
                     onChange={handleChange}
@@ -88,9 +95,8 @@ export const OpportunityStatusPicker: React.FC<OpportunityStatusPickerProps> = (
                         </option>
                     ))}
                 </select>
-                <span className="opp-status-select-chevron" aria-hidden="true">⌄</span>
             </span>
             {isUpdating && <span className="opp-status-saving" role="status">Saving…</span>}
-        </label>
+        </fieldset>
     );
 };

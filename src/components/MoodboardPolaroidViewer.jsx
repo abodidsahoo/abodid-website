@@ -444,20 +444,19 @@ export default function MoodboardPolaroidViewer({
                             </div>
 
                         </div>
-
-                        {(currentItem.sourceUrl || currentItem.projectHref) && !showTitles && (
-                            <a
-                                className="project-link"
-                                href={currentItem.sourceUrl || currentItem.projectHref}
-                                target={currentItem.sourceUrl ? '_blank' : undefined}
-                                rel={currentItem.sourceUrl ? 'noopener noreferrer' : undefined}
-                            >
-                                {currentItem.sourceUrl
-                                    ? (currentItem.artistName ? `Credit: ${currentItem.artistName}` : 'View original source')
-                                    : 'Open Project'}
-                            </a>
-                        )}
                     </div>
+
+                    {(currentItem.sourceUrl || currentItem.projectHref) && (
+                        <a
+                            className="palette-source-link"
+                            href={currentItem.sourceUrl || currentItem.projectHref}
+                            target={currentItem.sourceUrl ? '_blank' : undefined}
+                            rel={currentItem.sourceUrl ? 'noopener noreferrer' : undefined}
+                            title="Source"
+                        >
+                            Source <span className="source-arrow" aria-hidden="true">↗</span>
+                        </a>
+                    )}
                 </motion.div>
 
                 <div className="global-counter-external">
@@ -482,6 +481,7 @@ export default function MoodboardPolaroidViewer({
                     }
 
                     .lightbox-polaroid {
+                        position: relative;
                         background: #fdfdfd;
                         padding: 24px;
                         padding-bottom: 64px;
@@ -654,19 +654,41 @@ export default function MoodboardPolaroidViewer({
                         border-bottom-color: currentColor;
                     }
 
-                    .project-link {
-                        margin-top: 0.85rem;
-                        font-family: var(--font-ui);
-                        font-size: 0.68rem;
-                        text-transform: uppercase;
-                        letter-spacing: 0.08em;
-                        color: #1d1d1d;
+                    .palette-source-link {
+                        position: absolute;
+                        bottom: 18px;
+                        right: 24px;
+                        font-family: var(--font-mono, "Space Mono", monospace);
+                        font-size: 0.62rem;
+                        font-weight: 500;
+                        color: rgba(30, 30, 30, 0.35);
+                        letter-spacing: 0.04em;
                         text-decoration: none;
-                        border-bottom: 1px solid rgba(29, 29, 29, 0.45);
+                        border-bottom: 0.75px solid rgba(30, 30, 30, 0.25);
+                        padding-bottom: 1px;
+                        line-height: 1;
+                        white-space: nowrap;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 3px;
+                        transition: color 150ms ease, border-color 150ms ease;
+                        z-index: 5;
                     }
 
-                    .project-link:hover {
-                        border-bottom-color: rgba(29, 29, 29, 0.9);
+                    .palette-source-link .source-arrow {
+                        font-size: 0.65rem;
+                        line-height: 1;
+                        display: inline-block;
+                        transition: transform 150ms ease;
+                    }
+
+                    .palette-source-link:hover {
+                        color: rgba(30, 30, 30, 0.85);
+                        border-bottom-color: rgba(30, 30, 30, 0.75);
+                    }
+
+                    .palette-source-link:hover .source-arrow {
+                        transform: translate(1px, -1px);
                     }
 
                     .global-counter-external {
