@@ -1,5 +1,5 @@
 // Abodid Sahoo — PWA Service Worker
-const CACHE_VERSION = 'abodid-pwa-v2';
+const CACHE_VERSION = 'abodid-pwa-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -17,6 +17,7 @@ const PRECACHE_ASSETS = [
 const BYPASS_PATTERNS = [
   /\/api\//i,
   /\/admin\//i,
+  /\/land(?:\/|$)/i,
   /\/_vercel\//i,
   /supabase\.co/i,
   /googletagmanager\.com/i,

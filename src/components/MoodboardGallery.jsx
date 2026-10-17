@@ -244,6 +244,7 @@ const DISCOVERY_PALETTES = [
 
 // Balanced middle-ground similarity cutoff (strict enough to prevent cross-hue bleed, wide enough for rich galleries)
 const MOOD_SIMILARITY_CUTOFF = 21;
+const FUZZY_COLOR_RESULT_FLOOR = 24;
 const MIN_DISPLAY_ASPECT_RATIO = 0.35;
 const MAX_DISPLAY_ASPECT_RATIO = 3.5;
 
@@ -628,18 +629,24 @@ export default function MoodboardGallery({
         if (!selectedSwatch) return photos;
 
         const targetLab = selectedSwatch.lab;
-        const matches = [];
+        const rankedMatches = [];
 
         for (const item of photos) {
             const palette = getPhotoPalette(item);
             const dist = getPhotoMatchDistance(targetLab, palette);
-            if (dist <= MOOD_SIMILARITY_CUTOFF) {
-                matches.push({ item, dist });
-            }
+            if (Number.isFinite(dist)) rankedMatches.push({ item, dist });
         }
 
-        // Sequential sorting: closest match at top, softer matches towards the bottom
-        matches.sort((a, b) => a.dist - b.dist);
+        // Keep strict matches when the archive has enough of them. For sparse colours
+        // such as lime, fall back to the nearest palette neighbours instead of an empty grid.
+        rankedMatches.sort((a, b) => a.dist - b.dist);
+        const strictMatches = rankedMatches.filter(
+            ({ dist }) => dist <= MOOD_SIMILARITY_CUTOFF,
+        );
+        const matches = strictMatches.length >= FUZZY_COLOR_RESULT_FLOOR
+            ? strictMatches
+            : rankedMatches.slice(0, FUZZY_COLOR_RESULT_FLOOR);
+
         return matches.map((m) => m.item);
     }, [photos, selectedSwatch, getPhotoPalette]);
 
@@ -828,18 +835,18 @@ export default function MoodboardGallery({
                                 <span className="pop-hover-name">{hoverInfo.name}</span>
                             </div>
                         )}
-                        {selectedSwatch && (
-                            <button
-                                type="button"
-                                className="pop-strip-clear"
-                                onClick={clearColorFilter}
-                                title="Reset color filter"
-                                aria-label="Reset color filter"
-                            >
-                                ✕
-                            </button>
-                        )}
                     </div>
+                    {selectedSwatch && (
+                        <button
+                            type="button"
+                            className="pop-strip-clear"
+                            onClick={clearColorFilter}
+                            title="Reset color filter"
+                            aria-label="Reset color filter"
+                        >
+                            ✕
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -997,7 +1004,7 @@ export default function MoodboardGallery({
                     width: 100%;
                     box-sizing: border-box;
                     display: grid;
-                    grid-template-columns: 1fr 1fr;
+                    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
                     gap: 1.25rem;
                     align-items: center;
                     margin-bottom: 2rem;
@@ -1067,13 +1074,19 @@ export default function MoodboardGallery({
                     letter-spacing: -0.01em;
                     position: relative;
                     z-index: 1;
+                    -webkit-appearance: none;
+                    appearance: none;
                 }
 
                 .moodboard-search-field input::placeholder {
                     color: transparent; /* placeholder handled by overlay */
                 }
 
-                .moodboard-search-field input::-webkit-search-cancel-button {
+                .moodboard-search-field input::-webkit-search-decoration,
+                .moodboard-search-field input::-webkit-search-cancel-button,
+                .moodboard-search-field input::-webkit-search-results-button,
+                .moodboard-search-field input::-webkit-search-results-decoration {
+                    -webkit-appearance: none;
                     appearance: none;
                 }
 
@@ -1181,13 +1194,16 @@ export default function MoodboardGallery({
                     height: 56px;
                     display: flex;
                     align-items: center;
+                    gap: 0.65rem;
                     position: relative;
                 }
 
                 .pop-gradient-track {
-                    width: 100%;
+                    width: auto;
+                    min-width: 0;
+                    flex: 1 1 auto;
                     height: 56px;
-                    border-radius: 0;
+                    border-radius: 14px;
                     border: none;
                     outline: none;
                     box-shadow: none;
@@ -1287,13 +1303,11 @@ export default function MoodboardGallery({
                 }
 
                 .pop-strip-clear {
-                    position: absolute;
-                    right: 12px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 4px;
+                    position: static;
+                    flex: 0 0 44px;
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 14px;
                     border: 1.5px solid var(--pop-ink);
                     background: #ffffff;
                     color: var(--pop-ink);
@@ -1304,13 +1318,17 @@ export default function MoodboardGallery({
                     display: inline-grid;
                     place-items: center;
                     box-shadow: 1.5px 1.5px 0px var(--pop-ink);
-                    z-index: 10;
                     transition: transform 0.1s ease, background 0.1s ease;
                 }
 
                 .pop-strip-clear:hover {
                     background: var(--pop-pink);
-                    transform: translateY(-50%) scale(1.05);
+                    transform: translateY(-1px);
+                }
+
+                .pop-strip-clear:focus-visible {
+                    outline: 3px solid var(--pop-purple);
+                    outline-offset: 2px;
                 }
 
                 @media (max-width: 860px) {

@@ -26,6 +26,8 @@
     "test:punctum": "vitest run tests/punctum",
     "test:glyph-loom": "vitest run src/components/glyph-loom/tests",
     "test:opportunities": "vitest run tests/opportunities",
+    "test:land": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --test tests/land/*.test.mjs",
+    "import:land": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/import-family-land-register.mjs",
     "extension:build:chrome": "BROWSER_TARGET=chrome vite build --config extension/vite.config.mjs",
     "extension:build:firefox": "BROWSER_TARGET=firefox vite build --config extension/vite.config.mjs",
     "extension:build:safari": "BROWSER_TARGET=safari vite build --config extension/vite.config.mjs",

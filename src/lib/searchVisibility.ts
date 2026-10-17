@@ -3,6 +3,7 @@
  */
 
 export const EXCLUDED_PATH_PATTERNS: RegExp[] = [
+  /^\/land(?:\/|$)/,
   /^\/admin(?:\/|$)/,
   /^\/api(?:\/|$)/,
   /^\/login\/?$/,

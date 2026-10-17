@@ -23,6 +23,8 @@ import {
 } from './lib/photography/routing.mjs';
 
 const privatePagePatterns = [
+    /^\/land(?:\/|$)/,
+    /^\/api\/land(?:\/|$)/,
     /^\/admin(?:\/|$)/,
     /^\/api\/admin(?:\/|$)/,
     /^\/api\/analytics(?:\/|$)/,

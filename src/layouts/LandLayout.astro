@@ -1,0 +1,27 @@
+---
+import '../styles/global.css';
+import '../styles/design-system.css';
+import '../styles/land-register.css';
+
+const { title = 'ପରିବାର ଜମି ରେକର୍ଡ / Family Land Register', lang = 'or' } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang} data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#fff8e8" />
+    <meta name="color-scheme" content="light" />
+    <title>{title}</title>
+  </head>
+  <body class="land-body" data-pop-surface="cream">
+    <a class="land-skip-link" href="#land-main">ମୁଖ୍ୟ ଅଂଶକୁ ଯାଆନ୍ତୁ / Skip to content</a>
+    <main id="land-main" tabindex="-1">
+      <slot />
+    </main>
+  </body>
+</html>
+

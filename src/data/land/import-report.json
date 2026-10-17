@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-10-17T07:31:25.830Z",
+  "source_type": "encrypted server-only import",
+  "khatas": 11,
+  "plots": 28,
+  "total_listed_acres": 6.1649,
+  "duplicate_khata_keys": 0,
+  "duplicate_plot_keys": 0,
+  "source_documents": 11,
+  "known_discrepancy_checks": {
+    "khata_97": true,
+    "khata_147_564": true,
+    "khata_474_7010": true,
+    "khata_67": true
+  }
+}

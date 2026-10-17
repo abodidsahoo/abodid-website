@@ -1,0 +1,14 @@
+---
+export const prerender = false;
+import LandLayout from '../../layouts/LandLayout.astro';
+import LandAdminApp from '../../components/land/LandAdminApp';
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+Astro.response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+---
+
+<LandLayout title="Land register administration · Abodid" lang="en">
+  <LandAdminApp client:load />
+</LandLayout>
+

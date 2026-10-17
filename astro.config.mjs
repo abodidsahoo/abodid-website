@@ -8,11 +8,20 @@ import vercel from '@astrojs/vercel';
 import sitemap from '@astrojs/sitemap';
 
 import { loadEnv } from 'vite';
+import { readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { shouldIncludeInSitemap } from './src/lib/searchVisibility.ts';
 
 const isDevelopmentServer = process.argv.includes('dev');
 const env = loadEnv(isDevelopmentServer ? 'development' : 'production', process.cwd(), '');
 const siteUrl = env.PUBLIC_SITE_URL || 'https://abodid.com';
+const secureLandRoot = join(process.cwd(), 'src/data/land/secure');
+/** @param {string} directory @returns {string[]} */
+const listFiles = (directory) => readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+  const target = join(directory, entry.name);
+  return entry.isDirectory() ? listFiles(target) : [relative(process.cwd(), target)];
+});
+const secureLandFiles = listFiles(secureLandRoot);
 
 // https://astro.build/config
 export default defineConfig({
@@ -23,7 +32,11 @@ export default defineConfig({
   // Node rendering request: edge middleware adds a second HTTP request through
   // a shared /_render URL, which can make CDN-cached responses bleed between
   // unrelated pages and APIs.
-  adapter: vercel(),
+  adapter: vercel({
+    // These files are encrypted at rest and are available only to server-side
+    // routes. They must never be copied into public/ or emitted as static URLs.
+    includeFiles: secureLandFiles,
+  }),
   // In development, accept the alternate form long enough for project
   // middleware to issue the same 308 redirect generated for production.
   trailingSlash: isDevelopmentServer ? 'ignore' : 'never',

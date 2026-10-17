@@ -1,0 +1,43 @@
+---
+export const prerender = false;
+import LandLayout from '../../layouts/LandLayout.astro';
+import LandLogin from '../../components/land/LandLogin';
+import LandRegisterApp from '../../components/land/LandRegisterApp';
+import { loadLandBundle } from '../../lib/land/privateData.mjs';
+import { LAND_COOKIE_NAME, verifyViewerSessionToken } from '../../lib/land/session.mjs';
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+Astro.response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+Astro.response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+Astro.response.headers.set('Referrer-Policy', 'no-referrer');
+
+const authenticated = verifyViewerSessionToken(Astro.cookies.get(LAND_COOKIE_NAME)?.value);
+let bundle = null;
+let dataError = false;
+if (authenticated) {
+  try {
+    bundle = await loadLandBundle();
+  } catch {
+    dataError = true;
+  }
+}
+---
+
+<LandLayout>
+  {authenticated && bundle ? (
+    <LandRegisterApp client:load bundle={bundle} />
+  ) : authenticated && dataError ? (
+    <section class="land-login-shell" aria-labelledby="land-data-error">
+      <div class="land-login-card">
+        <p class="land-kicker">ABODID · FAMILY LAND REGISTER</p>
+        <h1 id="land-data-error">ରେକର୍ଡ ଖୋଲିପାରିଲା ନାହିଁ</h1>
+        <p>The private records are temporarily unavailable. Check the server configuration, then retry.</p>
+        <a class="land-button land-button--primary" href="/land">ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ / Retry</a>
+      </div>
+    </section>
+  ) : (
+    <LandLogin client:load />
+  )}
+</LandLayout>
+

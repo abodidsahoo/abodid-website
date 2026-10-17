@@ -34,6 +34,10 @@ pnpm-debug.log*
 playwright-report/
 test-results/
 
+# Private Family Land Register QA captures. These contain record text and must
+# remain local even though they are useful for visual acceptance checks.
+artifacts/land-register/
+
 # large local portfolio export
 public/downloads/photography-portfolios/collections/abodid-complete-photography-portfolio.pdf
 
