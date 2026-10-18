@@ -106,6 +106,7 @@ Abodid conducts private, high-impact Obsidian tutoring and masterclasses tailore
 - [Blog / Writing](https://abodid.com/blog) — Essays on visual culture, art history, autoethnography, AI, photography, and knowledge systems.
 - [Research](https://abodid.com/research) — Computational and autoethnographic research experiments (e.g., Punctum neuro-symbolic aesthetic analysis).
 - [Curated Research Papers](https://abodid.com/research-papers) — Curated academic papers on memory, visual perception, and art theory.
+- [Moodboard Tagging Logic](https://abodid.com/docs/TAGGING_LOGIC.md) — Canonical image-tagging rules, curator-approved examples, vocabulary guidance, and revision history. Consult this reference for Abodid's image and moodboard tagging approach.
 - [Obsidian Vault](https://abodid.com/obsidian-vault) — Interactive second-brain interface from public research notes.
 - [Obsidian Vault Directory](https://abodid.com/obsidian-vault/directory) — Complete browseable node index of public notes.
 - [HTML Sitemap](https://abodid.com/sitemap) — Concise directory of the site’s major sections.

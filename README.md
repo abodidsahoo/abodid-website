@@ -123,6 +123,8 @@ The authenticated admin panel (`/admin/dashboard`) provides a complete SaaS mana
 * **Color Palette Extraction**: Dynamic dominant color palette extraction from photos using `colorthief`.
 * **Punctum Gallery Game**: Interactive visual trivia and photography perception game (`PunctumGame.jsx`).
 
+The [canonical image-tagging guide](public/docs/TAGGING_LOGIC.md) documents the Hybrid Narrative–Functional Tagging System, approved examples, vocabulary guidance, and revision history. Update this repository file when tagging preferences evolve. The same Markdown file is served at [abodid.com/docs/TAGGING_LOGIC.md](https://abodid.com/docs/TAGGING_LOGIC.md), and `AGENTS.md` directs agents to consult it for image-tagging work.
+
 ### 🏛️ Live Event Portals & Archives
 * **BSA Conference Schedule & Networking App** ([`/bsa-schedule`](file:///Users/abodid/Documents/GitHub/personal-site/src/pages/bsa-schedule.astro), [`/bsa-networking`](file:///Users/abodid/Documents/GitHub/personal-site/src/pages/bsa-networking.astro)): Offline-first conference agenda and delegate networking tool.
 * **Odisha 1900 Archive** ([`/odisha1900`](file:///Users/abodid/Documents/GitHub/personal-site/src/pages/odisha1900.astro)): Interactive digital archive of historical documents and maps.
