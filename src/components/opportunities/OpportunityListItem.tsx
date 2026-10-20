@@ -4,6 +4,7 @@ import {
     formatCategoryTitle,
     formatDaysRemaining,
     formatOpportunityTitle,
+    getOpportunityCategoryIconUrl,
 } from '../../lib/opportunities/ui-helpers';
 import { getRadarButtonLabel, type RadarSaveState } from './OpportunityCard';
 
@@ -70,6 +71,7 @@ export const OpportunityListItem: React.FC<OpportunityListItemProps> = ({
     const displayTitle = formatOpportunityTitle(opportunity.title);
     const categoryLabel = formatCategoryTitle(opportunity.category);
     const countdown = getCountdownParts(opportunity);
+    const iconUrl = getOpportunityCategoryIconUrl(opportunity.category);
 
     const openFromSurface = (target: EventTarget | null) => {
         if (!(target instanceof HTMLElement) || !target.closest('button, a, input, select, textarea, summary')) {
@@ -92,6 +94,29 @@ export const OpportunityListItem: React.FC<OpportunityListItemProps> = ({
 
             <div className="opp-list-main">
                 <div className="opp-list-identity">
+                    <button
+                        type="button"
+                        className={`opp-list-category-mark ${opportunity.category || 'other'}`}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onSelectCategory?.(opportunity.category || 'other');
+                        }}
+                        aria-label={`Show ${categoryLabel} opportunities`}
+                        title={`Filter all ${categoryLabel} listings`}
+                    >
+                        <span className="opp-list-category-icon-box" aria-hidden="true">
+                            <img
+                                src={iconUrl}
+                                alt=""
+                                className="opp-list-category-icon"
+                                loading="lazy"
+                                decoding="async"
+                                width="24"
+                                height="24"
+                            />
+                        </span>
+                        <span className="opp-list-category-label">{categoryLabel}</span>
+                    </button>
                     <h3>
                         <button
                             type="button"
@@ -131,18 +156,6 @@ export const OpportunityListItem: React.FC<OpportunityListItemProps> = ({
                             {getRadarButtonLabel(radarState)}
                         </button>
                     )}
-                    <button
-                        type="button"
-                        className={`opp-list-category-mark ${opportunity.category || 'other'}`}
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            onSelectCategory?.(opportunity.category || 'other');
-                        }}
-                        aria-label={`Show ${categoryLabel} opportunities`}
-                        title={categoryLabel}
-                    >
-                        <span aria-hidden="true">{categoryLabel.charAt(0)}</span>
-                    </button>
                 </div>
             </div>
         </article>

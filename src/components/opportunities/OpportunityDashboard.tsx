@@ -712,6 +712,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     // Filter, rank fuzzy-search matches, and sort opportunities.
     const filteredOpportunities = useMemo(() => {
         const filtered = opportunities.filter((o) => {
+            const hasExplicitStatusFilter = statusFilter !== 'all';
+            const isAppliedFilter = statusFilter === 'applied';
+
             // Category Filter
             if (categoryFilter !== 'all' && o.category !== categoryFilter) {
                 return false;
@@ -725,9 +728,16 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 return false;
             }
 
-            if (!showPastDeadlines && isOpportunityPastDeadline(o, now)) {
+            // An explicit Applied view is the completed archive, so it must include
+            // finished items even when their original deadline has passed.
+            if (!isAppliedFilter && !showPastDeadlines && isOpportunityPastDeadline(o, now)) {
                 return false;
             }
+
+            // Workflow filters intentionally override the Apply ASAP attention view.
+            // Otherwise the Applied filter can never return results because completed
+            // opportunities no longer require action.
+            if (hasExplicitStatusFilter) return true;
 
             if (urgencyFilter !== 'apply_asap') return true;
 
@@ -852,7 +862,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                         id="opportunity-capture-input"
                                         name="opportunity_input"
                                         className="opp-hero-capture-input"
-                                        placeholder="Paste a link or description, or write a note…"
+                                        placeholder="Paste here"
                                         value={captureUrl}
                                         onChange={(event) => {
                                             setCaptureUrl(event.target.value);

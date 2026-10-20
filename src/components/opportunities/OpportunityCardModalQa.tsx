@@ -1,30 +1,42 @@
 import React, { useState } from 'react';
-import type { Opportunity, OpportunityStatus } from '../../lib/opportunities/types';
+import type { Opportunity, OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
 import { OpportunityCard } from './OpportunityCard';
+import { OpportunityListItem } from './OpportunityListItem';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
 import { ManualCreateModal } from './ManualCreateModal';
 
-const base: Opportunity = {
-    id: 'qa-long',
-    title: 'International Creative Technology Fellowship for Emerging Researchers and Artists Working Across Multiple Disciplines',
-    organisation: 'Example Arts Foundation With A Very Long Organisation Name',
-    category: 'fellowship',
-    source_url: 'https://example.org/fellowship',
-    canonical_url: 'https://example.org/fellowship',
-    deadline_at: '2026-10-21T19:00:00.000Z',
-    deadline_raw: 'Tomorrow',
+const categories: OpportunityCategory[] = [
+    'grant',
+    'fellowship',
+    'job',
+    'open_call',
+    'residency',
+    'conference',
+    'event',
+    'other',
+];
+
+const initialOpportunities: Opportunity[] = categories.map((cat, idx) => ({
+    id: `qa-${cat}`,
+    title: `${cat === 'open_call' ? 'Open Call' : cat.charAt(0).toUpperCase() + cat.slice(1)} Opportunity for Creative Technologists & Artists`,
+    organisation: `Organisation for ${cat.toUpperCase()}`,
+    category: cat,
+    source_url: `https://example.org/${cat}`,
+    canonical_url: `https://example.org/${cat}`,
+    deadline_at: new Date(Date.now() + (idx + 1) * 86400000 * 3).toISOString(),
+    deadline_raw: `${(idx + 1) * 3} days left`,
     deadline_timezone: 'Asia/Kolkata',
     deadline_confidence: 'exact',
     event_date: null,
-    location: 'Worldwide',
-    requirements: ['Portfolio PDF', 'Project statement', 'Reference letter'],
+    location: 'Worldwide / Remote',
+    requirements: ['Portfolio PDF', 'Project statement'],
     completed_requirements: ['Portfolio PDF'],
-    next_action: 'Finish the project statement and ask your referee for a letter.',
-    application_url: 'https://apply.example.org/fellowship',
+    next_action: 'Complete proposal and submit online form.',
+    application_url: `https://apply.example.org/${cat}`,
     meeting_url: null,
-    fee_or_funding: 'Fully funded with a £2,000 stipend',
-    application_fee: '£20 submission fee; waivers available',
-    summary: 'A supported research fellowship for emerging practitioners.',
+    fee_or_funding: 'Funded (£3,500 stipend)',
+    application_fee: 'Free',
+    summary: `Curated ${cat} opportunity description with details.`,
     status: 'reviewing',
     outcome: null,
     created_at: new Date().toISOString(),
@@ -33,35 +45,17 @@ const base: Opportunity = {
     source_hash: null,
     llm_model: 'qa',
     llm_extraction_count: 1,
-    notes: 'Request the recommendation at least one week early.',
-    is_high_priority: false,
-};
+    notes: 'Important deadline note.',
+    is_high_priority: idx === 0,
+}));
 
-const initialOpportunities: Opportunity[] = [
-    base,
-    {
-        ...base,
-        id: 'qa-short',
-        title: 'Short Grant',
-        organisation: 'Studio X',
-        category: 'grant',
-        deadline_at: '2026-10-28T19:00:00.000Z',
-    },
-    {
-        ...base,
-        id: 'qa-undated',
-        title: 'Rolling Opportunity Without A Fixed Deadline',
-        organisation: 'Open Studio Network',
-        deadline_at: null,
-        deadline_raw: null,
-        deadline_confidence: 'rolling',
-    },
-];
+const base = initialOpportunities[0];
 
 export default function OpportunityCardModalQa() {
     const [opportunities, setOpportunities] = useState(initialOpportunities);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
     const selected = opportunities.find((opportunity) => opportunity.id === selectedId) || null;
     const selectedIndex = opportunities.findIndex((opportunity) => opportunity.id === selectedId);
 
@@ -77,18 +71,51 @@ export default function OpportunityCardModalQa() {
 
     return (
         <>
-            <button type="button" className="opp-btn opp-btn-primary" onClick={() => setIsCreateOpen(true)}>
-                Add opportunity
-            </button>
-            <div className="opp-grid">
-                {opportunities.map((opportunity) => (
-                    <OpportunityCard
-                        key={opportunity.id}
-                        opportunity={opportunity}
-                        onOpen={(item) => setSelectedId(item.id)}
-                    />
-                ))}
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px' }}>
+                <button type="button" className="opp-btn opp-btn-primary" onClick={() => setIsCreateOpen(true)}>
+                    Add opportunity
+                </button>
+                <button
+                    type="button"
+                    className={`opp-btn ${viewMode === 'list' ? 'opp-btn-primary' : 'opp-btn-secondary'}`}
+                    onClick={() => setViewMode('list')}
+                >
+                    List view
+                </button>
+                <button
+                    type="button"
+                    className={`opp-btn ${viewMode === 'grid' ? 'opp-btn-primary' : 'opp-btn-secondary'}`}
+                    onClick={() => setViewMode('grid')}
+                >
+                    Grid view
+                </button>
             </div>
+
+            {viewMode === 'list' ? (
+                <div className="opp-list">
+                    {opportunities.map((opportunity) => (
+                        <OpportunityListItem
+                            key={opportunity.id}
+                            opportunity={opportunity}
+                            onOpen={(item) => setSelectedId(item.id)}
+                            showPriorityToggle={true}
+                            onToggleHighPriority={(isHigh) => update(opportunity.id, { is_high_priority: isHigh })}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="opp-grid">
+                    {opportunities.map((opportunity) => (
+                        <OpportunityCard
+                            key={opportunity.id}
+                            opportunity={opportunity}
+                            onOpen={(item) => setSelectedId(item.id)}
+                            showPriorityToggle={true}
+                            onToggleHighPriority={(isHigh) => update(opportunity.id, { is_high_priority: isHigh })}
+                        />
+                    ))}
+                </div>
+            )}
             {selected && (
                 <OpportunityDetailModal
                     opportunity={selected}

@@ -16,6 +16,7 @@ import {
     formatCategoryTitle,
     formatDaysRemaining,
     formatOpportunityTitle,
+    getOpportunityCategoryIconUrl,
     getOpportunityNextAction,
 } from '../../lib/opportunities/ui-helpers';
 import { getRadarButtonLabel, type RadarSaveState } from './OpportunityCard';
@@ -181,6 +182,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
     }, [opp.requirements]);
     const displayTitle = formatOpportunityTitle(opp.title);
     const categoryLabel = formatCategoryTitle(opp.category);
+    const categoryIconUrl = getOpportunityCategoryIconUrl(opp.category);
     const nextAction = getOpportunityNextAction(opp);
     const urgency = formatDaysRemaining(opp.deadline_at, opp.deadline_confidence);
     const formattedDeadline = opp.deadline_at
@@ -356,11 +358,11 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
         }
     };
 
-    const handleMarkDone = async () => {
-        if (!isAuthenticated || opp.status === 'applied' || isMarkingDone) return;
+    const handleToggleDone = async () => {
+        if (!isAuthenticated || isMarkingDone) return;
         setIsMarkingDone(true);
         try {
-            await onUpdateStatus(opp.id, 'applied');
+            await onUpdateStatus(opp.id, opp.status === 'applied' ? 'reviewing' : 'applied');
         } finally {
             setIsMarkingDone(false);
         }
@@ -412,7 +414,17 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                 >
                     <div className="opp-focus-scroll">
                         <div className="opp-focus-topbar">
-                            <p className="opp-focus-category">{categoryLabel}</p>
+                            <p className="opp-focus-category">
+                                <img
+                                    src={categoryIconUrl}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="opp-focus-category-icon"
+                                    width="34"
+                                    height="34"
+                                />
+                                <span>{categoryLabel}</span>
+                            </p>
                             <button
                                 ref={closeButtonRef}
                                 type="button"
@@ -571,11 +583,11 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                             <button
                                 type="button"
                                 className={`opp-focus-action ${opp.status === 'applied' ? 'is-complete' : ''}`}
-                                onClick={() => void handleMarkDone()}
-                                disabled={!isAuthenticated || isMarkingDone || opp.status === 'applied'}
+                                onClick={() => void handleToggleDone()}
+                                disabled={!isAuthenticated || isMarkingDone}
                             >
                                 <span className="opp-focus-action-icon"><Check aria-hidden="true" /></span>
-                                <span>{isMarkingDone ? 'Saving…' : opp.status === 'applied' ? 'Done' : 'Mark as done'}</span>
+                                <span>{isMarkingDone ? 'Saving…' : opp.status === 'applied' ? 'Undo done' : 'Mark as done'}</span>
                             </button>
                         )}
                     </footer>

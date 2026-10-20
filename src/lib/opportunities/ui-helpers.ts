@@ -191,6 +191,27 @@ export function formatCategoryTitle(category: OpportunityCategory | string): str
     }
 }
 
+export const OPPORTUNITY_CATEGORY_ICONS: Record<string, string> = {
+    job: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/job.png',
+    open_call: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/open-call.png',
+    'open-call': 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/open-call.png',
+    residency: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/residency.png',
+    conference: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/conference.png',
+    event: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/event.png',
+    grant: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/grant.png',
+    fellowship: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/fellowship.png',
+    all: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/all.png',
+    other: 'https://assets.abodid.com/web-assets/apps/opportunity-tracker/all.png',
+};
+
+/**
+ * Returns the public PNG icon asset URL for an opportunity category from Cloudflare R2 storage.
+ */
+export function getOpportunityCategoryIconUrl(category: OpportunityCategory | string | null | undefined): string {
+    const key = (category || 'other').toLowerCase().trim().replace(/[- ]+/g, '_');
+    return OPPORTUNITY_CATEGORY_ICONS[key] || OPPORTUNITY_CATEGORY_ICONS[key.replace('_', '-')] || OPPORTUNITY_CATEGORY_ICONS.all;
+}
+
 /**
  * Natural sentence/title capitalization for workflow statuses
  */

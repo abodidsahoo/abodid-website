@@ -5134,6 +5134,16 @@ ul.opp-eligibility-row,
     flex: 0 0 auto;
   }
 
+  .opp-capture-workspace .opp-hero-capture-input {
+    height: 56px;
+    min-block-size: 56px;
+    max-block-size: 56px;
+    field-sizing: fixed;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+
   .opp-capture-workspace .opp-hero-capture-bar {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -5239,7 +5249,10 @@ ul.opp-eligibility-row,
 
 .opp-card-top-row {
   min-width: 0;
-  align-items: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
   flex-wrap: nowrap;
 }
 
@@ -5306,9 +5319,79 @@ ul.opp-eligibility-row,
 
 .opp-card-footer {
   min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
   padding-top: 10px;
   border-top: 1px solid var(--opp-line);
+}
+
+.opp-card-footer-spacer {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.opp-card-category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-block-size: 36px;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--opp-ink);
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.opp-card-category-icon-box {
+  inline-size: 34px;
+  block-size: 34px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex: none;
+}
+
+.opp-card-category-icon {
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  display: block;
+  transform: scale(1.25);
+}
+
+.opp-card-category-badge:focus-visible {
+  outline: 2px solid var(--opp-border);
+  outline-offset: 2px;
+}
+
+.opp-card-category-label {
+  font: 750 0.72rem/1.2 var(--opp-font);
+  color: inherit;
+  letter-spacing: -0.01em;
+  text-align: left;
+  white-space: nowrap;
+  translate: 0 1px;
+  transition: color 0.12s ease;
+}
+
+.opp-card-category-badge:hover .opp-card-category-label,
+.opp-card-category-badge:focus-visible .opp-card-category-label {
+  color: var(--opp-ink);
+}
+
+.opp-high-priority-toggle.is-card {
+  margin-inline-start: auto;
+  min-block-size: 32px;
+  padding: 4px 6px;
 }
 
 .opp-card-minimal-spacer {
@@ -6012,49 +6095,62 @@ ul.opp-eligibility-row,
 }
 
 .opp-list-category-mark {
-  --opp-list-category-color: var(--opp-orange);
-  inline-size: 56px;
-  block-size: 56px;
-  flex: 0 0 56px;
-  display: grid;
-  place-items: center;
-  padding: 0;
+  inline-size: fit-content;
+  min-block-size: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  padding: 2px 0;
   border: 0;
-  border-radius: 10px;
-  background: var(--opp-list-category-color);
-  color: var(--opp-ink);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--opp-muted);
+  opacity: 0.78;
   cursor: pointer;
+  transition: color 140ms ease, opacity 140ms ease;
 }
 
-.opp-list-category-mark span {
-  font: 700 2rem/1 "Didot", "Bodoni MT", Georgia, serif;
-  transform: translateY(-1px);
+.opp-list-category-icon-box {
+  inline-size: 24px;
+  block-size: 24px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+}
+
+.opp-list-category-icon {
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  display: block;
+  transform: scale(1.25);
+}
+
+.opp-list-category-label {
+  font: 750 0.72rem/1.2 var(--opp-font);
+  letter-spacing: -0.01em;
+  text-align: left;
+  white-space: nowrap;
+  text-box: trim-both cap alphabetic;
 }
 
 .opp-list-category-mark:hover,
+.opp-list-category-mark:active {
+  color: var(--opp-ink);
+  opacity: 1;
+}
+
 .opp-list-category-mark:focus-visible {
-  background: var(--opp-yellow);
-  outline: 3px solid var(--opp-purple);
+  color: var(--opp-ink);
+  opacity: 1;
+  outline: 2px solid var(--opp-border);
   outline-offset: 2px;
-}
-
-.opp-list-category-mark.job,
-.opp-list-category-mark.fellowship {
-  --opp-list-category-color: var(--opp-pink);
-}
-
-.opp-list-category-mark.event,
-.opp-list-category-mark.open_call {
-  --opp-list-category-color: var(--opp-lime);
-}
-
-.opp-list-category-mark.conference,
-.opp-list-category-mark.grant {
-  --opp-list-category-color: var(--opp-yellow);
-}
-
-.opp-list-category-mark.residency {
-  --opp-list-category-color: var(--opp-cyan);
 }
 
 @media (max-width: 900px) {
@@ -6121,11 +6217,6 @@ ul.opp-eligibility-row,
     font-size: 0.65rem;
   }
 
-  .opp-list-category-mark {
-    inline-size: 48px;
-    block-size: 48px;
-    flex-basis: 48px;
-  }
 }
 
 @media (max-width: 380px) {
@@ -7813,6 +7904,26 @@ button.opp-detail-deadline-card,
   font: 820 0.72rem/1.2 var(--opp-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.opp-focus-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opp-focus-category > span {
+  text-box: trim-both cap alphabetic;
+}
+
+.opp-focus-category-icon {
+  inline-size: 34px;
+  block-size: 34px;
+  flex: none;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  transform: scale(1.25);
 }
 
 .opp-focus-identity h2 {
