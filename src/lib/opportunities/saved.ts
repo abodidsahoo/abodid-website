@@ -8,7 +8,7 @@ export type SavedOpportunityRow = {
     canonical_url: string;
     deadline_at: string | null;
     status: Opportunity['status'];
-    priority: number;
+    is_high_priority: boolean;
     outcome: Opportunity['outcome'];
     content: Record<string, unknown> | null;
     notes: string | null;
@@ -60,7 +60,7 @@ export const savedRowToOpportunity = (row: SavedOpportunityRow): Opportunity => 
         llm_model: nullableString(content.llm_model),
         llm_extraction_count: Number(content.llm_extraction_count) || 0,
         notes: row.notes,
-        priority: row.priority,
+        is_high_priority: row.is_high_priority,
     };
 };
 
@@ -70,8 +70,8 @@ export const opportunityToSavedInsert = (userId: string, opportunity: Partial<Op
     source_url: opportunity.source_url,
     canonical_url: opportunity.canonical_url,
     deadline_at: opportunity.deadline_at || null,
-    status: opportunity.status || 'inbox',
-    priority: Math.min(3, Math.max(1, Number(opportunity.priority) || 1)),
+    status: opportunity.status || 'reviewing',
+    is_high_priority: Boolean(opportunity.is_high_priority),
     outcome: opportunity.outcome || null,
     notes: opportunity.notes || null,
     content: {
@@ -98,4 +98,4 @@ export const opportunityToSavedInsert = (userId: string, opportunity: Partial<Op
 });
 
 export const PUBLIC_SAVED_SELECT = 'id, title, source_url, canonical_url, deadline_at, content, created_at, updated_at';
-export const PRIVATE_SAVED_SELECT = 'id, user_id, title, source_url, canonical_url, deadline_at, status, priority, outcome, content, notes, created_at, updated_at';
+export const PRIVATE_SAVED_SELECT = 'id, user_id, title, source_url, canonical_url, deadline_at, status, is_high_priority, outcome, content, notes, created_at, updated_at';

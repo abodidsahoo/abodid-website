@@ -7,26 +7,14 @@ export interface StatusConfig {
     description: string;
 }
 
-/**
- * The database keeps the original workflow enum for backwards compatibility.
- * The product UI deliberately presents the five stages people use while
- * applying, and folds legacy event/archive values into their closest stage.
- */
 export const WORKFLOW_STATUSES = [
-    { id: 'inbox', label: 'Saved', description: 'Captured and ready to review' },
-    { id: 'interested', label: 'Reviewing', description: 'Checking fit and eligibility' },
-    { id: 'preparing', label: 'Applying', description: 'Preparing the application' },
-    { id: 'submitted', label: 'Submitted', description: 'Application sent' },
-    { id: 'done', label: 'Archived', description: 'No further action needed' },
+    { id: 'reviewing', label: 'Reviewing', description: 'Working on it' },
+    { id: 'applied', label: 'Applied', description: 'Already worked on it and applied' },
 ] as const satisfies readonly StatusConfig[];
 
 export type TrackerStatus = typeof WORKFLOW_STATUSES[number]['id'];
 
-export const normalizeOpportunityStatus = (status: OpportunityStatus): TrackerStatus => {
-    if (status === 'registered' || status === 'attending') return 'submitted';
-    if (status === 'dismissed') return 'done';
-    return status;
-};
+export const normalizeOpportunityStatus = (status: OpportunityStatus): TrackerStatus => status;
 
 export const opportunityMatchesTrackerStatus = (
     status: OpportunityStatus,

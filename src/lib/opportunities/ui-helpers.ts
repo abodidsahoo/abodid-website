@@ -196,15 +196,9 @@ export function formatCategoryTitle(category: OpportunityCategory | string): str
  */
 export function formatStatusTitle(status: OpportunityStatus | string): string {
     switch (status) {
-        case 'inbox': return 'Saved';
-        case 'interested': return 'Reviewing';
-        case 'preparing': return 'Applying';
-        case 'submitted': return 'Submitted';
-        case 'registered': return 'Submitted';
-        case 'attending': return 'Submitted';
-        case 'done': return 'Archived';
-        case 'dismissed': return 'Archived';
-        default: return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Saved';
+        case 'reviewing': return 'Reviewing';
+        case 'applied': return 'Applied';
+        default: return 'Reviewing';
     }
 }
 
@@ -216,25 +210,11 @@ export function getOpportunityNextAction(opportunity: Opportunity): string {
     const extractedAction = opportunity.next_action?.trim();
     if (extractedAction) return extractedAction;
 
-    if (opportunity.status === 'preparing') {
-        const completed = new Set(opportunity.completed_requirements || []);
-        const nextRequirement = opportunity.requirements?.find((item) => !completed.has(item));
-        return nextRequirement ? `Complete: ${nextRequirement}` : 'Finish and submit the application.';
-    }
+    if (opportunity.status === 'applied') return 'Application submitted; track the response and any follow-up date.';
 
-    if (opportunity.status === 'interested') {
-        return 'Confirm eligibility and gather the required materials.';
-    }
-    if (opportunity.status === 'submitted' || opportunity.status === 'registered') {
-        return 'Track the response and any follow-up date.';
-    }
-    if (opportunity.status === 'attending') {
-        return 'Confirm attendance details and prepare to take part.';
-    }
-    if (opportunity.status === 'done' || opportunity.status === 'dismissed') {
-        return 'No action needed.';
-    }
-    return 'Review the eligibility and decide whether to apply.';
+    const completed = new Set(opportunity.completed_requirements || []);
+    const nextRequirement = opportunity.requirements?.find((item) => !completed.has(item));
+    return nextRequirement ? `Complete: ${nextRequirement}` : 'Review the eligibility and prepare the application.';
 }
 
 const LOWERCASE_WORDS = new Set([

@@ -40,7 +40,7 @@ const loadFounderOpportunities = async (supabase: NonNullable<ReturnType<typeof 
         .from('saved_opportunities')
         .select(PRIVATE_SAVED_SELECT)
         .eq('user_id', profile.id)
-        .in('status', ['inbox', 'interested', 'preparing', 'registered', 'attending']);
+        .eq('status', 'reviewing');
 
     return {
         userId: profile.id as string,

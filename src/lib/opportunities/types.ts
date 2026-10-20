@@ -14,14 +14,8 @@ export const OpportunityCategorySchema = z.enum([
 export type OpportunityCategory = z.infer<typeof OpportunityCategorySchema>;
 
 export const OpportunityStatusSchema = z.enum([
-    'inbox',
-    'interested',
-    'preparing',
-    'submitted',
-    'registered',
-    'attending',
-    'done',
-    'dismissed',
+    'reviewing',
+    'applied',
 ]);
 
 export type OpportunityStatus = z.infer<typeof OpportunityStatusSchema>;
@@ -78,7 +72,7 @@ export interface Opportunity {
     llm_model: string | null;
     llm_extraction_count: number;
     notes: string | null;
-    priority?: number; // 1 = low, 2 = medium, 3 = high
+    is_high_priority: boolean;
 }
 
 export const LLMExtractionOutputSchema = z.object({

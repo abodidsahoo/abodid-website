@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowUpRight, Check, CornerDownLeft, Eye, EyeOff, Loader2, RotateCw, X } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, Check, CornerDownLeft, Eye, EyeOff, Loader2, RotateCw, Sparkles, X } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { extractMoodboardPaletteInBrowser } from '../../lib/moodboard/paletteBrowser';
 import AdminPageHeader from './AdminPageHeader';
@@ -116,10 +116,12 @@ export default function MoodboardManager({
     onInitialFilesConsumed,
 }) {
     const fileInputRef = useRef(null);
+    const tagInputRefs = useRef(new Map());
 
     const [loading, setLoading] = useState(true);
     const [isDragOver, setIsDragOver] = useState(false);
     const [savingTagItemIds, setSavingTagItemIds] = useState([]);
+    const [analyzingTagItemIds, setAnalyzingTagItemIds] = useState([]);
     const [errorMsg, setErrorMsg] = useState('');
     const [notice, setNotice] = useState('');
     const [libraryFilter, setLibraryFilter] = useState('');
@@ -486,6 +488,42 @@ export default function MoodboardManager({
         setLibraryTagDrafts((previous) => ({ ...previous, [itemId]: value }));
     };
 
+    const focusTagInput = (itemId) => {
+        window.requestAnimationFrame(() => tagInputRefs.current.get(itemId)?.focus());
+    };
+
+    const persistLatestTags = async (item, transform) => {
+        let latest = item;
+
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            const currentTags = normalizeTagArray(latest.tags);
+            const nextTags = transform(currentTags);
+            const unchanged = nextTags.length === currentTags.length
+                && nextTags.every((tag, index) => tag === currentTags[index]);
+            if (unchanged) return latest;
+
+            const { data: updated, error: updateError } = await supabase
+                .from('moodboard_items')
+                .update({ tags: nextTags })
+                .eq('id', item.id)
+                .eq('updated_at', latest.updated_at)
+                .select(MOODBOARD_SELECT_FIELDS)
+                .maybeSingle();
+            if (updateError) throw updateError;
+            if (updated) return updated;
+
+            const { data: refreshed, error: refreshError } = await supabase
+                .from('moodboard_items')
+                .select(MOODBOARD_SELECT_FIELDS)
+                .eq('id', item.id)
+                .single();
+            if (refreshError || !refreshed) throw refreshError || new Error('The image no longer exists.');
+            latest = refreshed;
+        }
+
+        throw new Error('Tags changed in another session. Retry your edit.');
+    };
+
     // Auto-save tag addition on Enter or button click
     const addLibraryTag = async (item) => {
         const draft = libraryTagDrafts[item.id] || '';
@@ -500,40 +538,45 @@ export default function MoodboardManager({
         if (!enteredTags.length) return;
 
         const currentTags = normalizeTagArray(item.tags);
-        const newTagsToAdd = enteredTags.filter(
-            (t) => !currentTags.some((existing) => existing.toLowerCase() === t),
-        );
+        const appendEnteredTags = (storedTags) => {
+            const nextTags = [...storedTags];
+            enteredTags.forEach((tag) => {
+                if (!nextTags.some((existing) => existing.toLowerCase() === tag)) nextTags.push(tag);
+            });
+            return nextTags;
+        };
+        const newTagsToAdd = appendEnteredTags(currentTags).slice(currentTags.length);
 
         if (newTagsToAdd.length === 0) {
             setLibraryTagDrafts((previous) => ({ ...previous, [item.id]: '' }));
+            focusTagInput(item.id);
             return;
         }
 
-        const nextTags = [...currentTags, ...newTagsToAdd];
+        const nextTags = appendEnteredTags(currentTags);
 
         // Optimistic update
         setSavingTagItemIds((previous) => [...previous, item.id]);
         setItems((previous) =>
             previous.map((entry) => (entry.id === item.id ? { ...entry, tags: nextTags } : entry)),
         );
-        setLibraryTagDrafts((previous) => ({ ...previous, [item.id]: '' }));
-
-        const { error } = await supabase
-            .from('moodboard_items')
-            .update({ tags: nextTags })
-            .eq('id', item.id);
-
-        if (error) {
+        try {
+            const updated = await persistLatestTags(item, appendEnteredTags);
+            setItems((previous) =>
+                previous.map((entry) => (entry.id === item.id ? updated : entry)),
+            );
+            setLibraryTagDrafts((previous) => ({ ...previous, [item.id]: '' }));
+            setErrorMsg('');
+        } catch (error) {
             console.error('Failed to add tag:', error);
             setItems((previous) =>
                 previous.map((entry) => (entry.id === item.id ? { ...entry, tags: currentTags } : entry)),
             );
-            setErrorMsg(error.message || 'Failed to add tag.');
-        } else {
-            setErrorMsg('');
+            setErrorMsg(`${error.message || 'Failed to add tag.'} Your text is preserved; press Enter to retry.`);
         }
 
         setSavingTagItemIds((previous) => previous.filter((id) => id !== item.id));
+        focusTagInput(item.id);
     };
 
     // Auto-save tag removal on tag pill cross click
@@ -546,22 +589,58 @@ export default function MoodboardManager({
             previous.map((entry) => (entry.id === item.id ? { ...entry, tags: nextTags } : entry)),
         );
 
-        const { error } = await supabase
-            .from('moodboard_items')
-            .update({ tags: nextTags })
-            .eq('id', item.id);
-
-        if (error) {
+        try {
+            const updated = await persistLatestTags(
+                item,
+                (storedTags) => storedTags.filter((tag) => tag.toLowerCase() !== tagToRemove.toLowerCase()),
+            );
+            setItems((previous) =>
+                previous.map((entry) => (entry.id === item.id ? updated : entry)),
+            );
+            setErrorMsg('');
+        } catch (error) {
             console.error('Failed to remove tag:', error);
             setItems((previous) =>
                 previous.map((entry) => (entry.id === item.id ? { ...entry, tags: currentTags } : entry)),
             );
             setErrorMsg(error.message || 'Failed to remove tag.');
-        } else {
-            setErrorMsg('');
         }
 
         setSavingTagItemIds((previous) => previous.filter((id) => id !== item.id));
+    };
+
+    const buildMasterTags = async (item) => {
+        setAnalyzingTagItemIds((previous) => [...new Set([...previous, item.id])]);
+        setErrorMsg('');
+
+        try {
+            const token = accessToken || (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Your admin session has expired. Sign in again before tagging.');
+
+            const response = await fetch('/api/admin/moodboard/tag', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ itemId: item.id }),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload?.error || 'Could not build tags.');
+
+            setItems((previous) => previous.map((entry) => (
+                entry.id === item.id ? { ...entry, ...payload.item } : entry
+            )));
+            const count = Array.isArray(payload.appended) ? payload.appended.length : 0;
+            setNotice(count > 0
+                ? `Master Tag Builder added ${count} tag${count === 1 ? '' : 's'}.`
+                : 'The existing tags already covered the model suggestions.');
+        } catch (error) {
+            console.error('Master Tag Builder failed:', error);
+            setErrorMsg(error.message || 'Could not build tags. Retry when ready.');
+        } finally {
+            setAnalyzingTagItemIds((previous) => previous.filter((id) => id !== item.id));
+        }
     };
 
     // Progress computation
@@ -855,12 +934,16 @@ export default function MoodboardManager({
                                         {/* Clean, compact tag input pill at top of card meta */}
                                         <div className="library-tag-input-pill">
                                             <input
+                                                ref={(node) => {
+                                                    if (node) tagInputRefs.current.set(item.id, node);
+                                                    else tagInputRefs.current.delete(item.id);
+                                                }}
                                                 className="library-tag-input"
                                                 value={libraryTagDrafts[item.id] || ''}
                                                 placeholder="Add tag..."
                                                 onChange={(event) => updateLibraryTagDraft(item.id, event.target.value)}
                                                 onKeyDown={(event) => {
-                                                    if (event.key === 'Enter') {
+                                                    if (event.key === 'Enter' && !event.isComposing) {
                                                         event.preventDefault();
                                                         addLibraryTag(item);
                                                     }
@@ -881,6 +964,24 @@ export default function MoodboardManager({
                                                 </kbd>
                                             )}
                                         </div>
+
+                                        <button
+                                            type="button"
+                                            className="library-master-tag-btn"
+                                            onClick={() => buildMasterTags(item)}
+                                            disabled={
+                                                analyzingTagItemIds.includes(item.id)
+                                                || savingTagItemIds.includes(item.id)
+                                            }
+                                            aria-label={`Build Master tags for ${item.title || 'this image'}`}
+                                        >
+                                            {analyzingTagItemIds.includes(item.id) ? (
+                                                <Loader2 size={12} className="tag-save-spin" aria-hidden="true" />
+                                            ) : (
+                                                <Sparkles size={12} aria-hidden="true" />
+                                            )}
+                                            <span>{analyzingTagItemIds.includes(item.id) ? 'Building tags…' : 'Build Master tags'}</span>
+                                        </button>
 
                                         {/* Tag chips below input in uniform container */}
                                         <div className="library-tag-list" aria-label="Image tags">
@@ -1652,6 +1753,53 @@ export default function MoodboardManager({
                     animation: spin 0.85s linear infinite;
                     color: #ea2a10;
                     flex-shrink: 0;
+                }
+
+                .library-master-tag-btn {
+                    min-height: 30px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.35rem;
+                    padding: 0.35rem 0.55rem;
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 6px;
+                    background: var(--bg-canvas);
+                    color: var(--text-secondary);
+                    font: inherit;
+                    font-size: 0.68rem;
+                    font-weight: 650;
+                    cursor: pointer;
+                }
+
+                .library-master-tag-btn:hover:not(:disabled) {
+                    border-color: rgba(234, 42, 16, 0.45);
+                    color: #ea2a10;
+                }
+
+                .library-master-tag-btn:focus-visible {
+                    outline: 2px solid #ea2a10;
+                    outline-offset: 2px;
+                }
+
+                .library-master-tag-btn:disabled {
+                    cursor: wait;
+                    opacity: 0.62;
+                }
+
+                @media (pointer: coarse) {
+                    .library-tag-input-pill {
+                        min-height: 48px;
+                        height: auto;
+                    }
+
+                    .library-tag-input {
+                        font-size: 1rem;
+                    }
+
+                    .library-master-tag-btn {
+                        min-height: 48px;
+                    }
                 }
 
                 /* Fixed-height Tags Container: 1 or 2 lines both fit cleanly without altering card size */

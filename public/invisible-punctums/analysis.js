@@ -1,14 +1,6 @@
 (() => {
     "use strict";
 
-    // [DEV] UNCOMMENT TO TEST LOCALLY
-    window.USE_LOCAL_ANALYSIS_URL = true;
-
-    let ENDPOINT = "https://kybjzwqfoljgniyxmbts.supabase.co/functions/v1/analyze-image";
-    if (window.USE_LOCAL_ANALYSIS_URL) {
-        ENDPOINT = "http://localhost:54321/";
-    }
-
     /* ===========================
        CONFIG
     ============================ */
@@ -178,7 +170,7 @@
             }
         }
 
-        async function runAnalysis(forceLocal = false) {
+        async function runAnalysis() {
             isLoading = true;
 
             // Log Container (Clean List View)
@@ -206,7 +198,7 @@
             initMsg.className = "um-log-item";
             initMsg.style.cssText = "font-size: 11px; color: #333; font-weight: 600; opacity: 0.8;";
             const time = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            initMsg.innerText = `[${time}] ${forceLocal ? "Initializing Local AI..." : "Initializing analysis engine..."}`;
+            initMsg.innerText = `[${time}] Initializing analysis engine...`;
             logContainer.appendChild(initMsg);
 
             panel.innerHTML = `
@@ -256,7 +248,7 @@
 
                     // Auto scroll
                     item.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                }, { force_local: forceLocal, signal: controller.signal });
+                }, { signal: controller.signal });
 
                 hasLoaded = true;
                 renderResults(panel, data);
@@ -299,7 +291,7 @@
                     renderBusyUI(panel, true);
                     // AUTO-RETRY IN 3.5s
                     setTimeout(() => {
-                        if (isOpen) runAnalysis(forceLocal);
+                        if (isOpen) runAnalysis();
                     }, 3500);
                 }
                 // 2. Check for PARTIAL DATA (Comments available)
@@ -313,8 +305,7 @@
                             trainability_score: "--",
                             gemini: { model_used: "Failure (Partial Data)" }
                         },
-                        model_used: "Partial Data",
-                        force_local: forceLocal
+                        model_used: "Partial Data"
                     };
                     renderResults(panel, partialPayload);
 
@@ -356,14 +347,13 @@
                             trainability_score: "--",
                             gemini: { model_used: "Failure (Raw Comments Only)" }
                         },
-                        model_used: "Raw Comments Only",
-                        force_local: forceLocal
+                        model_used: "Raw Comments Only"
                     };
                     renderResults(panel, rawPayload);
                 }
                 // 4. Standard Error Fallback
                 else {
-                    renderErrorUI(panel, err, forceLocal);
+                    renderErrorUI(panel, err);
                 }
             } finally {
                 isLoading = false;
@@ -380,63 +370,27 @@
             `;
         }
 
-        function renderErrorUI(container, error, isLocalRun) {
+        function renderErrorUI(container, error) {
             const errorMsg = error.message || "Unknown error occurred.";
-            const uniqueBtnId = "um-retry-local-" + Math.floor(Math.random() * 1000);
             const sampleBtnId = "um-sample-" + Math.floor(Math.random() * 1000);
 
-            let html = `
+            const html = `
                 <div class="um-error-view" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 32px; text-align:center; height: 100%;">
                     <div style="font-size: 32px; margin-bottom: 16px;">⚠️</div>
                     <h4 style="margin:0 0 8px 0; font-size: 16px; font-weight:700; color:#d93025;">Analysis Failed</h4>
                     <p style="font-size:13px; color:#555; line-height:1.5; margin: 0 0 24px 0; max-width: 500px;">
                         ${errorMsg}
                     </p>
-            `;
-
-            if (!isLocalRun) {
-                // Cloud Failed -> Offer Local + Sample
-                html += `
-                    <p style="font-size:11px; opacity:0.6; margin-bottom: 12px;">Cloud analysis unreachable.</p>
-                    <button type="button" id="${uniqueBtnId}" class="um-matte-btn" style="min-width:auto; padding: 10px 16px; font-size:12px; margin-bottom: 10px;">
-                        Try using a local model
-                    </button>
-                    ${renderSampleButton(sampleBtnId)}
-                `;
-            } else {
-                // Local Failed -> Offer Cloud + Sample
-                html += `
-                    <p style="font-size:11px; opacity:0.6; margin-bottom: 12px;">Local analysis failed.</p>
-                    <button type="button" id="${uniqueBtnId}" class="um-matte-btn" style="min-width:auto; padding: 10px 16px; font-size:12px; margin-bottom: 10px;">
-                        Try using a cloud model
-                    </button>
-                    ${renderSampleButton(sampleBtnId)}
-                `;
-            }
-
-            // Helper for sample button
-            function renderSampleButton(id) {
-                return `
-                    <button type="button" id="${id}" class="um-matte-btn" style="min-width:auto; padding: 10px 16px; font-size:12px;">
+                    <p style="font-size:11px; opacity:0.6; margin-bottom: 12px;">Cloud analysis is currently unavailable.</p>
+                    <button type="button" id="${sampleBtnId}" class="um-matte-btn" style="min-width:auto; padding: 10px 16px; font-size:12px;">
                         View Sample Analysis
                     </button>
-                `;
-            }
-
-            html += `</div>`;
+                </div>
+            `;
             container.innerHTML = html;
 
-            // Wire up buttons with toggle behavior
             setTimeout(() => {
-                const retryBtn = document.getElementById(uniqueBtnId);
                 const sampleBtn = document.getElementById(sampleBtnId);
-
-                if (retryBtn) {
-                    retryBtn.onclick = () => {
-                        // Toggle local/cloud based on current state
-                        runAnalysis(!isLocalRun);
-                    };
-                }
 
                 if (sampleBtn) {
                     let sampleVisible = false;
@@ -628,7 +582,8 @@
             const visionRes = await fetch('/api/analyze-vision', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imageUrl: imgUrl })
+                body: JSON.stringify({ imageUrl: imgUrl }),
+                signal: options.signal
             });
 
             if (!visionRes.ok) throw new Error("Vision analysis failed");
@@ -647,7 +602,8 @@
                 body: JSON.stringify({
                     aiAnalysis: visionData,
                     humanComments: comments
-                })
+                }),
+                signal: options.signal
             });
 
             if (!consensusRes.ok) throw new Error("Consensus analysis failed");
@@ -816,9 +772,7 @@
             let displayModelName = "Unknown Source";
             const rawModel = (data.model_used || data.analytics?.gemini?.model_used || "Unknown").toLowerCase();
 
-            if (rawModel.includes("gemma")) {
-                displayModelName = "Local Model (Gemma)";
-            } else if (rawModel.includes("gemini")) {
+            if (rawModel.includes("gemini")) {
                 displayModelName = "Google Gemini 1.5 Pro";
             } else {
                 displayModelName = rawModel.replace("two - step - ", "").trim();
@@ -1015,19 +969,6 @@
                     Source: <span id="um-model-source">${displayModelName}</span>
                 </div>
                     
-                    ${!hideButtons ? `
-                    <!-- CONTEXT AWARE MODEL SWITCH (Zero Dead-End) -->
-                    <div style="margin-top: 24px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px; display: flex; gap: 10px; justify-content: flex-start;">
-                        <button type="button" id="um-manual-local-retry-${uniqueId}" class="um-matte-btn" style="
-                            min-width: auto; 
-                            padding: 10px 18px; 
-                            font-size: 11px; 
-                            background: #222; 
-                        </button>
-                    </div>
-                    ` : ''
-                }
-
               </div >
                 `;
 
@@ -1041,7 +982,6 @@
                 const btnAna = document.getElementById(btnAnalysisId);
                 const btnCom = document.getElementById(btnCommentsId);
                 const contentBox = document.getElementById(contentId);
-                const btnLocal = document.getElementById(`um-manual-local-retry-${uniqueId}`);
                 const btnSample = document.getElementById(`um-sample-results-${uniqueId}`);
 
                 // If critical elements missing, retry
@@ -1051,21 +991,6 @@
                 }
 
                 console.log("[Analysis] Elements found. Binding events...");
-
-                if (btnLocal) {
-                    btnLocal.onclick = () => {
-                        const isSwitchingToLocal = btnLocal.innerText.toLowerCase().includes("local");
-                        const newModeText = isSwitchingToLocal ? "Local Model..." : "Cloud Model...";
-
-                        // Instant feedback
-                        btnLocal.innerText = `Switching to ${newModeText}`;
-                        btnLocal.style.opacity = "0.7";
-                        btnLocal.style.pointerEvents = "none";
-
-                        // Restart analysis with toggled mode
-                        setTimeout(() => runAnalysis(isSwitchingToLocal), 50);
-                    };
-                }
 
                 if (btnSample) {
                     let sampleVisible = false;
@@ -1477,58 +1402,6 @@
 
         `;
     document.head.appendChild(style);
-
-    /* ===========================
-       EXPORT
-    ============================ */
-    async function fetchAnalysis(imgUrl, onProgress) {
-        // Check if local dev or prod
-        const res = await fetch(ENDPOINT, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image_url: imgUrl, mode: "full" })
-        });
-
-        if (!res.ok) throw new Error("Backend Error: " + res.status);
-
-        // STREAM READER (NDJSON)
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-        let finalData = null;
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-
-            // Process all complete lines
-            buffer = lines.pop(); // Keep the last incomplete chunk
-
-            for (const line of lines) {
-                if (!line.trim()) continue;
-                try {
-                    const msg = JSON.parse(line);
-                    if (msg.type === "progress") {
-                        if (onProgress) onProgress(msg.message || `Step: ${msg.step} `);
-                    } else if (msg.type === "result") {
-                        finalData = msg.data;
-                    } else if (msg.type === "error") {
-                        // CRITICAL: Throw explicit error to break loop and fail fetchAnalysis
-                        throw new Error("Backend Error: " + msg.error);
-                    }
-                } catch (e) {
-                    if (e.message.startsWith("Backend Error:")) throw e; // Propagate up
-                    console.warn("[Stream Parse Error]", e);
-                }
-            }
-        }
-
-        if (!finalData) throw new Error("Stream ended without final result.");
-        return finalData;
-    }
 
     /* ===========================
        EXPORT

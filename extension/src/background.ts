@@ -5,16 +5,83 @@ import { showOpportunityToast } from './toast';
 
 declare const __APP_ORIGIN__: string;
 
+const AUTH_CACHE_KEY = 'opportunity-auth-cache-v1';
+const CAPTURE_STATE_KEY = 'opportunity-capture-state-v1';
+const CAPTURE_STATE_MAX_AGE_MS = 15 * 60 * 1000;
+const CAPTURE_NOTIFICATION_PREFIX = 'opportunity-capture:';
+const captureStorage = webext.storage.session || webext.storage.local;
+
+type CaptureState = {
+    id: string;
+    status: 'capturing' | 'success' | 'error';
+    startedAt: number;
+    tabId?: number;
+    result?: any;
+    error?: string;
+};
+
+const profileFromUser = (user: any) => {
+    const metadata = user?.user_metadata || {};
+    const emailName = typeof user?.email === 'string' ? user.email.split('@')[0] : '';
+    const username = metadata.user_name || metadata.preferred_username || emailName;
+    return {
+        display_name: metadata.full_name || metadata.name || username || 'Opportunity tracker',
+        username: username || null,
+    };
+};
+
+const refreshProfileCache = async (accessToken: string) => {
+    try {
+        const response = await fetch(`${__APP_ORIGIN__}/api/opportunities/session`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!response.ok) return;
+        const payload = await response.json();
+        const { data: { session } } = await extensionSupabase.auth.getSession();
+        if (session?.access_token !== accessToken) return;
+        await webext.storage.local.set({
+            [AUTH_CACHE_KEY]: { signedIn: true, profile: payload.profile, updatedAt: Date.now() },
+        });
+    } catch (error) {
+        console.warn('Opportunity profile refresh failed', error instanceof Error ? error.message : error);
+    }
+};
+
 const getSessionState = async () => {
     const { data: { session } } = await extensionSupabase.auth.getSession();
-    if (!session?.access_token) return { signedIn: false, profile: null };
+    if (!session?.access_token) {
+        await webext.storage.local.remove(AUTH_CACHE_KEY);
+        return { signedIn: false, profile: null };
+    }
 
-    const response = await fetch(`${__APP_ORIGIN__}/api/opportunities/session`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-    });
-    if (!response.ok) return { signedIn: false, profile: null };
-    const payload = await response.json();
-    return { signedIn: true, profile: payload.profile };
+    const cached = await webext.storage.local.get(AUTH_CACHE_KEY);
+    const profile = cached?.[AUTH_CACHE_KEY]?.profile || profileFromUser(session.user);
+    void refreshProfileCache(session.access_token);
+    return { signedIn: true, profile };
+};
+
+const openDashboardTab = async () => {
+    const state = await getSessionState();
+    const url = state.profile?.username
+        ? `${__APP_ORIGIN__}/opportunities/${state.profile.username}`
+        : `${__APP_ORIGIN__}/opportunities`;
+    await webext.tabs.create({ url });
+};
+
+const getCaptureState = async (): Promise<CaptureState | null> => {
+    const stored = await captureStorage.get(CAPTURE_STATE_KEY);
+    const state = stored?.[CAPTURE_STATE_KEY] as CaptureState | undefined;
+    if (!state) return null;
+    if (Date.now() - state.startedAt > CAPTURE_STATE_MAX_AGE_MS) {
+        await captureStorage.remove(CAPTURE_STATE_KEY);
+        return null;
+    }
+    return state;
+};
+
+const setCaptureState = async (state: CaptureState) => {
+    await captureStorage.set({ [CAPTURE_STATE_KEY]: state });
+    return state;
 };
 
 const saveUrl = async (url: string, title = '', pageText = '') => {
@@ -81,6 +148,87 @@ const showActionFeedback = async (text: string, color: string) => {
     setTimeout(() => { void webext.action?.setBadgeText({ text: '' }); }, 2500);
 };
 
+const showCaptureNotification = async (state: CaptureState, title: string, message: string) => {
+    if (!webext.notifications?.create) return false;
+    try {
+        await webext.notifications.create(`${CAPTURE_NOTIFICATION_PREFIX}${state.status}:${state.id}`, {
+            type: 'basic',
+            iconUrl: webext.runtime.getURL('icons/icon-128.png'),
+            title,
+            message,
+        });
+        return true;
+    } catch (error) {
+        console.warn('Capture notification could not be shown', error instanceof Error ? error.message : error);
+        return false;
+    }
+};
+
+const keepCaptureWorkerAlive = () => {
+    let keepAliveTimer: ReturnType<typeof setTimeout> | undefined;
+    const pulse = () => {
+        keepAliveTimer = globalThis.setTimeout(() => {
+            void captureStorage.get(CAPTURE_STATE_KEY).finally(pulse);
+        }, 20_000);
+    };
+    pulse();
+    return () => {
+        if (keepAliveTimer) globalThis.clearTimeout(keepAliveTimer);
+    };
+};
+
+const runCaptureOperation = async (state: CaptureState, url: string, title: string, pageText: string) => {
+    const stopKeepingAlive = keepCaptureWorkerAlive();
+    try {
+        const saved = await saveUrl(url, title, pageText);
+        const completedState: CaptureState = { ...state, status: 'success', result: saved };
+        await setCaptureState(completedState);
+        const opportunityTitle = saved?.opportunity?.title
+            ? String(saved.opportunity.title)
+            : 'Your opportunity';
+        const notified = await showCaptureNotification(
+            completedState,
+            'Captured successfully',
+            saved?.is_duplicate
+                ? `${opportunityTitle} was already in your tracker.`
+                : `${opportunityTitle} is ready in your dashboard.`,
+        );
+        if (!notified) {
+            await showOpportunityToast(state.tabId, {
+                kind: 'success',
+                requestId: state.id,
+                message: 'Captured successfully.',
+                detail: saved?.is_duplicate ? 'This opportunity was already in your tracker.' : 'The opportunity is ready in your dashboard.',
+            });
+        }
+        await showActionFeedback('✓', '#caff48');
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Opportunity could not be saved';
+        const failedState: CaptureState = { ...state, status: 'error', error: message };
+        await setCaptureState(failedState);
+        const notified = await showCaptureNotification(failedState, 'Capture failed', message);
+        if (!notified) {
+            await showOpportunityToast(state.tabId, {
+                kind: 'error',
+                requestId: state.id,
+                message: 'Couldn’t capture this opportunity',
+                detail: message,
+            });
+        }
+        await showActionFeedback('!', '#ff4d4d');
+    } finally {
+        stopKeepingAlive();
+    }
+};
+
+webext.notifications?.onClicked?.addListener((notificationId: string) => {
+    if (!notificationId.startsWith(`${CAPTURE_NOTIFICATION_PREFIX}success:`)) return;
+    void (async () => {
+        await webext.notifications.clear(notificationId);
+        await openDashboardTab();
+    })();
+});
+
 webext.runtime.onInstalled.addListener(() => {
     void (async () => {
         await webext.contextMenus.removeAll();
@@ -142,10 +290,27 @@ webext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (
                     : { signedIn: false, profile: null, pending: true };
             case 'AUTH_LOGOUT':
                 await extensionSupabase.auth.signOut();
+                await webext.storage.local.remove(AUTH_CACHE_KEY);
+                await captureStorage.remove(CAPTURE_STATE_KEY);
                 return { signedIn: false, profile: null };
-            case 'CAPTURE_TAB': {
-                const pageText = message.tabId ? await extractPageText(message.tabId) : '';
-                return saveUrl(message.url, message.title || '', pageText);
+            case 'GET_CAPTURE_STATE':
+                return getCaptureState();
+            case 'START_CAPTURE': {
+                const existing = await getCaptureState();
+                if (existing?.status === 'capturing') return existing;
+
+                const state: CaptureState = {
+                    id: globalThis.crypto.randomUUID(),
+                    status: 'capturing',
+                    startedAt: Date.now(),
+                    tabId: typeof message.tabId === 'number' ? message.tabId : undefined,
+                };
+                await setCaptureState(state);
+                const pageText = state.tabId
+                    ? await extractPageText(state.tabId).catch(() => '')
+                    : '';
+                void runCaptureOperation(state, message.url, message.title || '', pageText);
+                return state;
             }
             case 'SAFARI_OAUTH_CALLBACK': {
                 const callbackUrl = String(message.url || '');
@@ -160,11 +325,7 @@ webext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (
                 return state;
             }
             case 'OPEN_DASHBOARD': {
-                const state = await getSessionState();
-                const url = state.profile?.username
-                    ? `${__APP_ORIGIN__}/opportunities/${state.profile.username}`
-                    : `${__APP_ORIGIN__}/opportunities`;
-                await webext.tabs.create({ url });
+                await openDashboardTab();
                 return { ok: true };
             }
             default:

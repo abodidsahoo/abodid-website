@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ params }) => {
         .from('saved_opportunities')
         .select(PUBLIC_SELECT)
         .eq('user_id', profile.id)
-        .neq('status', 'dismissed')
+        .eq('status', 'reviewing')
         .order('created_at', { ascending: false });
 
     if (error) return opportunityJson({ error: 'Could not load this collection' }, 500);
@@ -39,8 +39,8 @@ export const GET: APIRoute = async ({ params }) => {
             ...row,
             user_id: profile.id,
             deadline_at: row.deadline_at || null,
-            status: 'inbox',
-            priority: 1,
+            status: 'reviewing',
+            is_high_priority: false,
             outcome: null,
             notes: null,
             content: {

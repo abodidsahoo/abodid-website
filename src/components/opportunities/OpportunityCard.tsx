@@ -13,6 +13,8 @@ interface OpportunityCardProps {
     showRadarAction?: boolean;
     radarState?: RadarSaveState;
     onAddToRadar?: (opp: Opportunity) => void;
+    showPriorityToggle?: boolean;
+    onToggleHighPriority?: (isHighPriority: boolean) => Promise<void> | void;
 }
 
 export type RadarSaveState = 'idle' | 'adding' | 'added' | 'already' | 'error';
@@ -32,6 +34,8 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
     showRadarAction = false,
     radarState = 'idle',
     onAddToRadar,
+    showPriorityToggle = false,
+    onToggleHighPriority,
 }) => {
     const usesEventDate = !opp.deadline_at && Boolean(opp.event_date);
     const urgency = formatDaysRemaining(
@@ -60,10 +64,31 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                         <span className="opp-days-pulse-dot" aria-hidden="true" />
                         {urgencyLabel}
                     </div>
+                    {showPriorityToggle && (
+                        <label className={`opp-high-priority-toggle ${opp.is_high_priority ? 'is-active' : ''}`} onClick={(event) => event.stopPropagation()}>
+                            <input
+                                type="checkbox"
+                                checked={opp.is_high_priority}
+                                onChange={(event) => void onToggleHighPriority?.(event.target.checked)}
+                            />
+                            <span>High priority</span>
+                        </label>
+                    )}
                 </div>
 
                 <div className="opp-card-identity">
-                    <h3 className="opp-card-title">{displayTitle}</h3>
+                    <h3 className="opp-card-title">
+                        <button
+                            type="button"
+                            className="opp-card-title-button"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onOpen(opp);
+                            }}
+                        >
+                            {displayTitle}
+                        </button>
+                    </h3>
                     <div className="opp-card-org">{opp.organisation}</div>
                 </div>
 
@@ -77,8 +102,8 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                         {categoryLabel}
                     </button>
 
-                    <div className="opp-card-links">
-                        {showRadarAction && (
+                    {showRadarAction && (
+                        <div className="opp-card-links">
                             <button
                                 type="button"
                                 className={`opp-radar-add-btn is-${radarState}`}
@@ -91,18 +116,8 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                             >
                                 {getRadarButtonLabel(radarState)}
                             </button>
-                        )}
-                        <button
-                            type="button"
-                            className="opp-card-open-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onOpen(opp);
-                            }}
-                        >
-                            <span>More details</span><span aria-hidden="true">→</span>
-                        </button>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </article>
     );

@@ -1,4 +1,15 @@
-import { getActiveTab, sendRuntimeMessage, sendRuntimeMessageWithTimeout } from './browser';
+import { getActiveTab, sendRuntimeMessage, webext } from './browser';
+
+const AUTH_CACHE_KEY = 'opportunity-auth-cache-v1';
+const CAPTURE_STATE_KEY = 'opportunity-capture-state-v1';
+
+type CaptureState = {
+    id: string;
+    status: 'capturing' | 'success' | 'error';
+    startedAt: number;
+    result?: any;
+    error?: string;
+};
 
 const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const authPanel = byId<HTMLDivElement>('auth-panel');
@@ -8,8 +19,8 @@ const profileName = byId<HTMLSpanElement>('profile-name');
 const profileUsername = byId<HTMLSpanElement>('profile-username');
 const targetCard = byId<HTMLDivElement>('target-card');
 const pageTitle = byId<HTMLDivElement>('page-title');
-const pageUrl = byId<HTMLDivElement>('page-url');
 const status = byId<HTMLDivElement>('status-msg');
+const captureProgress = byId<HTMLElement>('capture-progress');
 const result = byId<HTMLDivElement>('result-box');
 const resultSuccessBadge = byId<HTMLSpanElement>('result-success-badge');
 const resultCategory = byId<HTMLElement>('result-category');
@@ -18,13 +29,21 @@ const saveButton = byId<HTMLButtonElement>('save-btn');
 const signInButton = byId<HTMLButtonElement>('sign-in-btn');
 const logoutButton = byId<HTMLButtonElement>('logout-btn');
 const dashboardButton = byId<HTMLButtonElement>('dashboard-btn');
-const resultDashboardButton = byId<HTMLButtonElement>('result-dashboard-btn');
+const closeProgressButton = byId<HTMLButtonElement>('close-progress-btn');
 
 let activeTab: any = null;
 let authResolved = false;
 let signedIn = false;
+let isCapturing = false;
+let currentCaptureState: CaptureState | null = null;
 
 const syncSaveButton = () => {
+    if (isCapturing) {
+        saveButton.classList.add('hidden');
+        return;
+    }
+
+    saveButton.classList.remove('hidden');
     if (!authResolved) {
         saveButton.disabled = true;
         saveButton.textContent = 'Checking tracker…';
@@ -41,7 +60,7 @@ const syncSaveButton = () => {
         return;
     }
     saveButton.disabled = false;
-    saveButton.textContent = 'Capture & Save →';
+    saveButton.textContent = 'Capture & Save';
 };
 
 const showError = (message: string) => {
@@ -54,12 +73,25 @@ const clearStatus = () => {
     status.className = 'status-msg';
 };
 
+const renderProfile = (profile: any) => {
+    profileName.textContent = profile?.display_name || 'Opportunity tracker';
+    profileUsername.textContent = profile?.username ? `@${profile.username}` : '';
+};
+
+const applyAuthState = (state: any) => {
+    signedIn = Boolean(state?.signedIn);
+    authResolved = true;
+    authPanel.classList.toggle('hidden', signedIn);
+    capturePanel.classList.toggle('hidden', !signedIn);
+    profileRow.classList.toggle('hidden', !signedIn);
+    if (signedIn) renderProfile(state.profile);
+    syncSaveButton();
+};
+
 const formatResultDeadline = (deadlineAt: unknown, deadlineRaw: unknown) => {
     if (typeof deadlineAt !== 'string' || !deadlineAt.trim()) {
         return {
-            label: typeof deadlineRaw === 'string' && deadlineRaw.trim()
-                ? deadlineRaw.trim()
-                : 'No deadline found',
+            label: typeof deadlineRaw === 'string' && deadlineRaw.trim() ? deadlineRaw.trim() : 'No deadline found',
             hasPassed: false,
         };
     }
@@ -67,9 +99,7 @@ const formatResultDeadline = (deadlineAt: unknown, deadlineRaw: unknown) => {
     const deadline = new Date(deadlineAt);
     if (Number.isNaN(deadline.getTime())) {
         return {
-            label: typeof deadlineRaw === 'string' && deadlineRaw.trim()
-                ? deadlineRaw.trim()
-                : 'No deadline found',
+            label: typeof deadlineRaw === 'string' && deadlineRaw.trim() ? deadlineRaw.trim() : 'No deadline found',
             hasPassed: false,
         };
     }
@@ -80,11 +110,41 @@ const formatResultDeadline = (deadlineAt: unknown, deadlineRaw: unknown) => {
         year: 'numeric',
     }).format(deadline);
     const hasPassed = deadline.getTime() < Date.now();
+    return { label: hasPassed ? `⚠ Deadline passed (${formattedDate})` : formattedDate, hasPassed };
+};
 
-    return {
-        label: hasPassed ? `⚠ Deadline passed (${formattedDate})` : formattedDate,
-        hasPassed,
-    };
+const applyCaptureState = (state: CaptureState | null) => {
+    if (
+        state?.status === 'capturing'
+        && currentCaptureState?.id === state.id
+        && currentCaptureState.status !== 'capturing'
+    ) return;
+    currentCaptureState = state;
+    isCapturing = state?.status === 'capturing';
+    captureProgress.classList.toggle('hidden', !isCapturing);
+    syncSaveButton();
+
+    if (!state || state.status === 'capturing') {
+        if (state?.status === 'capturing') result.classList.add('hidden');
+        return;
+    }
+
+    if (state.status === 'error') {
+        result.classList.add('hidden');
+        showError(state.error || 'Opportunity could not be saved');
+        saveButton.textContent = 'Try again';
+        return;
+    }
+
+    clearStatus();
+    const saved = state.result || {};
+    const opportunity = saved.opportunity || {};
+    const deadline = formatResultDeadline(opportunity.deadline_at, opportunity.deadline_raw);
+    resultSuccessBadge.textContent = saved.is_duplicate ? '✓ Already saved' : '✓ Captured successfully';
+    resultCategory.textContent = String(opportunity.category || 'other').replaceAll('_', ' ');
+    resultDeadline.textContent = deadline.label;
+    resultDeadline.classList.toggle('result-deadline-passed', deadline.hasPassed);
+    result.classList.remove('hidden');
 };
 
 const openDashboard = async () => {
@@ -97,54 +157,49 @@ const openDashboard = async () => {
     }
 };
 
+const renderCachedAuth = async () => {
+    const cached = await webext.storage.local.get(AUTH_CACHE_KEY);
+    if (cached?.[AUTH_CACHE_KEY]?.signedIn) applyAuthState(cached[AUTH_CACHE_KEY]);
+};
+
 const renderState = async () => {
     const response = await sendRuntimeMessage<any>({ type: 'AUTH_STATE' });
     if (!response?.ok) throw new Error(response?.error || 'Your tracker session could not be checked');
-    signedIn = Boolean(response.data?.signedIn);
-    authResolved = true;
-    authPanel.classList.toggle('hidden', signedIn);
-    capturePanel.classList.toggle('hidden', !signedIn);
-    profileRow.classList.toggle('hidden', !signedIn);
-    syncSaveButton();
-    if (!signedIn) return;
-
-    const profile = response.data.profile;
-    profileName.textContent = profile?.display_name || 'Opportunity tracker';
-    profileUsername.textContent = profile?.username ? `@${profile.username}` : '';
+    applyAuthState(response.data);
 };
 
 const loadActiveTab = async () => {
     activeTab = await getActiveTab();
     targetCard.classList.remove('is-scanning');
-    if (activeTab?.url) {
-        pageTitle.textContent = activeTab.title || 'Untitled page';
-        pageUrl.textContent = activeTab.url;
-    } else {
-        pageTitle.textContent = 'This tab cannot be captured';
-        pageUrl.textContent = 'Open a normal webpage and try again.';
-    }
+    pageTitle.textContent = activeTab?.url ? (activeTab.title || 'Untitled page') : 'This tab cannot be captured';
     syncSaveButton();
     return activeTab;
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Resolve these independently so the current page never waits for a network-backed session check.
+    void renderCachedAuth();
     void loadActiveTab().catch((error) => {
         targetCard.classList.remove('is-scanning');
         pageTitle.textContent = 'This tab cannot be captured';
-        pageUrl.textContent = 'Open a normal webpage and try again.';
-        showError(error instanceof Error ? error.message : 'The current page could not be read.');
+        showError(error instanceof Error ? error.message : 'The page could not be read.');
         syncSaveButton();
     });
-
     void renderState().catch((error) => {
-        authResolved = true;
-        signedIn = false;
-        capturePanel.classList.add('hidden');
-        authPanel.classList.remove('hidden');
+        if (!signedIn) applyAuthState({ signedIn: false, profile: null });
         showError(error instanceof Error ? error.message : 'Your tracker session could not be checked.');
-        syncSaveButton();
     });
+    void sendRuntimeMessage<any>({ type: 'GET_CAPTURE_STATE' }).then((response) => {
+        if (response?.ok) applyCaptureState(response.data);
+    });
+});
+
+webext.storage.onChanged.addListener((changes: any, areaName: string) => {
+    if ((areaName === 'session' || areaName === 'local') && changes[CAPTURE_STATE_KEY]) {
+        applyCaptureState(changes[CAPTURE_STATE_KEY].newValue || null);
+    }
+    if (areaName === 'local' && changes[AUTH_CACHE_KEY]?.newValue?.signedIn) {
+        applyAuthState(changes[AUTH_CACHE_KEY].newValue);
+    }
 });
 
 signInButton.addEventListener('click', async () => {
@@ -153,14 +208,12 @@ signInButton.addEventListener('click', async () => {
         signInButton.textContent = 'Opening Google…';
         clearStatus();
         const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGIN' });
-        if (!response?.ok) {
-            showError(response?.error || 'Sign in failed');
+        if (!response?.ok) throw new Error(response?.error || 'Sign in failed');
+        if (response.data?.pending) {
+            status.textContent = 'Finish Google sign-in in the Safari tab, then reopen this panel.';
             return;
         }
-        if (response?.data?.pending) {
-            status.textContent = 'Finish Google sign-in in the Safari tab, then reopen this panel.';
-        }
-        await renderState();
+        applyAuthState(response.data);
     } catch (error) {
         showError(error instanceof Error ? error.message : 'Sign in failed');
     } finally {
@@ -171,59 +224,45 @@ signInButton.addEventListener('click', async () => {
 
 logoutButton.addEventListener('click', async () => {
     clearStatus();
+    logoutButton.disabled = true;
+    logoutButton.textContent = 'Logging out…';
     try {
         const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGOUT' });
         if (!response?.ok) throw new Error(response?.error || 'Log out failed');
-        await renderState();
+        applyAuthState(response.data);
     } catch (error) {
         showError(error instanceof Error ? error.message : 'Log out failed');
+    } finally {
+        logoutButton.disabled = false;
+        logoutButton.textContent = 'Log out';
     }
 });
 
 dashboardButton.addEventListener('click', openDashboard);
-resultDashboardButton.addEventListener('click', openDashboard);
+closeProgressButton.addEventListener('click', () => window.close());
 
 saveButton.addEventListener('click', async () => {
-    saveButton.disabled = true;
-    saveButton.classList.add('is-scanning');
-    saveButton.setAttribute('aria-busy', 'true');
-    saveButton.textContent = 'Scanning text…';
     clearStatus();
     result.classList.add('hidden');
+    applyCaptureState({ id: 'pending', status: 'capturing', startedAt: Date.now() });
 
     try {
-        // Re-read immediately before capture so a persistent browser popup can
-        // never pair a newly navigated page with a stale URL or title.
         const captureTab = await loadActiveTab();
         if (!captureTab?.url) throw new Error('Open a normal webpage and try again.');
-
-        const response = await sendRuntimeMessageWithTimeout<any>({
-            type: 'CAPTURE_TAB',
+        const response = await sendRuntimeMessage<any>({
+            type: 'START_CAPTURE',
             tabId: captureTab.id,
             url: captureTab.url,
             title: captureTab.title || '',
         });
-
-        if (!response?.ok) {
-            showError(response?.error || 'Opportunity could not be saved');
-            saveButton.textContent = 'Try Again →';
-            return;
-        }
-
-        const opportunity = response.data.opportunity;
-        const deadline = formatResultDeadline(opportunity.deadline_at, opportunity.deadline_raw);
-        resultSuccessBadge.textContent = response.data.is_duplicate ? '✓ Already Saved' : '✓ Captured & Saved';
-        resultCategory.textContent = String(opportunity.category || 'other').replaceAll('_', ' ');
-        resultDeadline.textContent = deadline.label;
-        resultDeadline.classList.toggle('result-deadline-passed', deadline.hasPassed);
-        result.classList.remove('hidden');
-        saveButton.textContent = response.data.is_duplicate ? '✓ Already in Tracker' : '✓ Saved to Tracker';
+        if (!response?.ok) throw new Error(response?.error || 'Opportunity could not be captured');
+        applyCaptureState(response.data);
     } catch (error) {
-        showError(error instanceof Error ? error.message : 'Opportunity could not be saved');
-        saveButton.textContent = 'Try Again →';
-    } finally {
-        saveButton.classList.remove('is-scanning');
-        saveButton.removeAttribute('aria-busy');
-        saveButton.disabled = false;
+        applyCaptureState({
+            id: 'failed',
+            status: 'error',
+            startedAt: Date.now(),
+            error: error instanceof Error ? error.message : 'Opportunity could not be captured',
+        });
     }
 });

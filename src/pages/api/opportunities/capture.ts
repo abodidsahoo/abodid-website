@@ -20,6 +20,28 @@ import { normalizeOpportunityCaptureUrl } from '../../../lib/opportunities/captu
 export const prerender = false;
 export const maxDuration = 90;
 
+const opportunitySaveFailure = (
+    error: { code?: string; message?: string; details?: string; hint?: string } | null,
+    context: { userId: string; canonicalUrl: string; source: 'curated' | 'extracted' },
+) => {
+    const code = error?.code || 'UNKNOWN_SAVE_ERROR';
+    console.error('Opportunity database save failed', {
+        ...context,
+        code,
+        message: error?.message?.slice(0, 300) || 'No database error message',
+        details: error?.details?.slice(0, 300) || null,
+        hint: error?.hint?.slice(0, 300) || null,
+    });
+
+    const isSchemaMismatch = ['42P01', '42703', 'PGRST204', 'PGRST205'].includes(code);
+    return opportunityJson({
+        error: isSchemaMismatch
+            ? 'Opportunity storage was being updated. Please try capturing it again now.'
+            : 'The opportunity was extracted but could not be saved. Please try again.',
+        code: isSchemaMismatch ? 'OPPORTUNITY_STORAGE_UPDATING' : 'OPPORTUNITY_SAVE_FAILED',
+    }, isSchemaMismatch ? 503 : 500);
+};
+
 export const POST: APIRoute = async ({ request }) => {
     const authorization = await authorizeOpportunityRequest(request);
     if (!authorization.ok) return authorization.response;
@@ -66,7 +88,13 @@ export const POST: APIRoute = async ({ request }) => {
                 .upsert(insert, { onConflict: 'user_id,canonical_url', ignoreDuplicates: false })
                 .select(PRIVATE_SAVED_SELECT)
                 .single();
-            if (error || !data) return opportunityJson({ error: 'Could not save this curated opportunity' }, 500);
+            if (error || !data) {
+                return opportunitySaveFailure(error, {
+                    userId: authorization.user.id,
+                    canonicalUrl,
+                    source: 'curated',
+                });
+            }
             return opportunityJson({
                 success: true,
                 is_duplicate: false,
@@ -88,7 +116,7 @@ export const POST: APIRoute = async ({ request }) => {
                 pageTitle = pageTitle || fetched.title;
             } catch {
                 return opportunityJson({
-                    error: 'The page could not be fetched safely. Add it manually or try from the browser extension.',
+                    error: 'The page could not be fetched safely. Paste its description, attach a screenshot, or try from the browser extension.',
                     can_manual_create: true,
                     canonical_url: canonicalUrl,
                 }, 422);
@@ -97,7 +125,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         if (cleanText.length < 50) {
             return opportunityJson({
-                error: 'The page did not contain enough readable content. Add it manually instead.',
+                error: 'The page did not contain enough readable content. Paste its description or attach a screenshot instead.',
                 can_manual_create: true,
                 canonical_url: canonicalUrl,
             }, 422);
@@ -138,7 +166,7 @@ export const POST: APIRoute = async ({ request }) => {
                 message: error instanceof Error ? error.message.slice(0, 300) : 'Unknown extraction failure',
             });
             return opportunityJson({
-                error: 'Extraction could not be completed. Add the opportunity manually or try again later.',
+                error: 'Extraction could not be completed. Paste the description, attach a screenshot, or try again later.',
                 can_manual_create: true,
                 canonical_url: canonicalUrl,
             }, 502);
@@ -169,8 +197,8 @@ export const POST: APIRoute = async ({ request }) => {
             fee_or_funding: extracted.fee_or_funding || null,
             application_fee: extracted.application_fee || null,
             summary: extracted.summary || null,
-            status: 'inbox',
-            priority: 1,
+            status: 'reviewing',
+            is_high_priority: false,
             outcome: null,
             notes: null,
             source_hash: computeContentHash(cleanText),
@@ -186,7 +214,13 @@ export const POST: APIRoute = async ({ request }) => {
             .select(PRIVATE_SAVED_SELECT)
             .single();
 
-        if (error || !data) return opportunityJson({ error: 'The opportunity was extracted but could not be saved' }, 500);
+        if (error || !data) {
+            return opportunitySaveFailure(error, {
+                userId: authorization.user.id,
+                canonicalUrl,
+                source: 'extracted',
+            });
+        }
 
         return opportunityJson({
             success: true,

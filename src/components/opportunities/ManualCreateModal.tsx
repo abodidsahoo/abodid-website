@@ -56,8 +56,8 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
     const [organisation, setOrganisation] = useState('');
     const [category, setCategory] = useState<OpportunityCategory>('grant');
     const [sourceUrl, setSourceUrl] = useState(initialUrl);
-    const [status, setStatus] = useState<OpportunityStatus>('inbox');
-    const [priority, setPriority] = useState(2);
+    const [status, setStatus] = useState<OpportunityStatus>('reviewing');
+    const [isHighPriority, setIsHighPriority] = useState(false);
     const [deadline, setDeadline] = useState('');
     const [timezone, setTimezone] = useState('');
     const [eventDate, setEventDate] = useState('');
@@ -83,8 +83,8 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
         setOrganisation('');
         setCategory('grant');
         setSourceUrl(nextInitialUrl);
-        setStatus('inbox');
-        setPriority(2);
+        setStatus('reviewing');
+        setIsHighPriority(false);
         setDeadline('');
         setTimezone('');
         setEventDate('');
@@ -177,6 +177,7 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
     };
 
     const analyzeInput = async () => {
+        if (mode === 'manual') return;
         if (mode === 'text' && pastedText.trim().length < 50) {
             setFormError('Paste a little more opportunity text before analysing it.');
             return;
@@ -224,7 +225,7 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
                 category,
                 source_url: sourceUrl || 'https://direct.entry',
                 status,
-                priority,
+                is_high_priority: isHighPriority,
                 deadline,
                 timezone,
                 event_date: eventDate,
@@ -392,8 +393,8 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
                                                 <div className="opp-form-group opp-form-col-span-full"><label className="opp-form-label" htmlFor="opp-create-requirements">Requirements</label><textarea id="opp-create-requirements" name="requirements" className="opp-form-textarea" placeholder="One requirement per line" value={requirements} onChange={(event) => setRequirements(event.target.value)} /></div>
                                                 <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-summary">Summary</label><textarea id="opp-create-summary" name="summary" className="opp-form-textarea" placeholder="Short description of the opportunity…" value={summary} onChange={(event) => setSummary(event.target.value)} /></div>
                                                 <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-notes">Personal notes</label><textarea id="opp-create-notes" name="notes" className="opp-form-textarea" placeholder="Ideas, pitch angles, collaborators…" value={notes} onChange={(event) => setNotes(event.target.value)} /></div>
-                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-status">Status</label><select id="opp-create-status" name="status" className="opp-form-select" value={status} onChange={(event) => setStatus(event.target.value as OpportunityStatus)}><option value="inbox">Saved</option><option value="interested">Reviewing</option><option value="preparing">Applying</option><option value="submitted">Submitted</option><option value="done">Archived</option></select></div>
-                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-priority">Priority</label><select id="opp-create-priority" name="priority" className="opp-form-select" value={priority} onChange={(event) => setPriority(Number(event.target.value))}><option value={1}>Low</option><option value={2}>Medium</option><option value={3}>High</option></select></div>
+                                                <div className="opp-form-group"><label className="opp-form-label" htmlFor="opp-create-status">Status</label><select id="opp-create-status" name="status" className="opp-form-select" value={status} onChange={(event) => setStatus(event.target.value as OpportunityStatus)}><option value="reviewing">Reviewing</option><option value="applied">Applied</option></select></div>
+                                                <div className="opp-form-group"><span className="opp-form-label">Priority</span><label className="opp-popover-checkbox"><input type="checkbox" checked={isHighPriority} onChange={(event) => setIsHighPriority(event.target.checked)} /><span>High priority</span></label></div>
                                             </div>
                                         </section>
                                     </div>

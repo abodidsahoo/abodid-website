@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import type { Opportunity, OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
+import type { Opportunity, OpportunityStatus } from '../../lib/opportunities/types';
 import {
     formatCategoryTitle,
     formatDaysRemaining,
@@ -8,16 +8,20 @@ import {
     formatStatusTitle,
     getFirstName,
 } from '../../lib/opportunities/ui-helpers';
-import { isOpportunityAttention } from '../../lib/opportunities/attention';
+import {
+    doesOpportunityRequireAction,
+    getOpportunityActionAt,
+    isOpportunityPastDeadline,
+} from '../../lib/opportunities/attention';
 import {
     sortRadarOpportunities,
-    type OpportunitySortMode,
 } from '../../lib/opportunities/sorting';
 import {
     buildOpportunitySearchIndex,
     rankOpportunitySearch,
 } from '../../lib/opportunities/search';
 import { OpportunityCard, type RadarSaveState } from './OpportunityCard';
+import { OpportunityListItem } from './OpportunityListItem';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
 import {
     WORKFLOW_STATUSES,
@@ -25,10 +29,7 @@ import {
     type TrackerStatus,
 } from './OpportunityStatusPicker';
 import { EditOpportunityModal } from './EditOpportunityModal';
-import {
-    ManualCreateModal,
-    type OpportunityExtractionDraft,
-} from './ManualCreateModal';
+import type { OpportunityExtractionDraft } from './ManualCreateModal';
 import {
     OpportunityProfileDialog,
     type OpportunityEditableProfile,
@@ -48,17 +49,27 @@ import {
     parseRadarImportIntent,
 } from '../../lib/opportunities/importIntent';
 import {
-    clearSubmittedCaptureUrl,
     OpportunityCaptureTimeoutError,
     requestOpportunityCapture,
 } from '../../lib/opportunities/captureClient';
+import {
+    buildExtractedOpportunityPayload,
+    classifyUnifiedOpportunityInput,
+} from '../../lib/opportunities/unifiedInput';
 
 const GOOGLE_IDENTITY_SCOPES = 'openid email profile';
 
-type UrgencyRailFilter = 'attention' | 'this_week' | 'this_month' | 'later' | 'all';
+type UrgencyRailFilter = 'apply_asap' | 'newly_added';
+type OpportunityViewMode = 'grid' | 'list';
 const FILTER_EASE = [0.2, 0.8, 0.2, 1] as const;
 
 type ProfileSummary = OpportunityEditableProfile;
+
+type PendingDuplicate = {
+    existing: Opportunity;
+    proposedUpdates: Record<string, unknown> | null;
+    sourceKind: 'url' | 'extracted';
+};
 
 interface OpportunityDashboardProps {
     username: string;
@@ -84,27 +95,29 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     // Capture bar state
     const [captureUrl, setCaptureUrl] = useState('');
+    const [captureFiles, setCaptureFiles] = useState<File[]>([]);
     const [isCapturing, setIsCapturing] = useState(false);
     const [captureResult, setCaptureResult] = useState<Opportunity | null>(null);
     const [captureError, setCaptureError] = useState('');
+    const [captureProgress, setCaptureProgress] = useState('');
+    const [pendingDuplicate, setPendingDuplicate] = useState<PendingDuplicate | null>(null);
     const captureAbortRef = useRef<AbortController | null>(null);
+    const captureFileInputRef = useRef<HTMLInputElement | null>(null);
 
     // Filters: Single clean Urgency Rail + Secondary Filter Tray Toggle
-    const [urgencyFilter, setUrgencyFilter] = useState<UrgencyRailFilter>('all');
+    const [urgencyFilter, setUrgencyFilter] = useState<UrgencyRailFilter>('apply_asap');
     const [isFilterTrayOpen, setIsFilterTrayOpen] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [priorityFilter, setPriorityFilter] = useState<string>('all');
+    const [showPastDeadlines, setShowPastDeadlines] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortMode, setSortMode] = useState<OpportunitySortMode>('date_added');
+    const [viewMode, setViewMode] = useState<OpportunityViewMode>('grid');
     const [resultsAnnouncement, setResultsAnnouncement] = useState('');
     const prefersReducedMotion = Boolean(useReducedMotion());
 
     // Modals
     const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null);
     const [editingOpp, setEditingOpp] = useState<Opportunity | null>(null);
-    const [isManualModalOpen, setIsManualModalOpen] = useState(false);
-    const [manualInitialUrl, setManualInitialUrl] = useState('');
     const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
     const [supportPromptSource, setSupportPromptSource] = useState<'automatic' | 'manual' | null>(null);
     const [radarStates, setRadarStates] = useState<Record<string, RadarSaveState>>({});
@@ -296,7 +309,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     );
 
     useEffect(() => {
-        if (isManualModalOpen) return;
+        if (editingOpp) return;
         if (isProfileDialogOpen) return;
         if (supportPromptSource) return;
 
@@ -315,7 +328,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         })) {
             setSupportPromptSource('automatic');
         }
-    }, [isLoading, isManualModalOpen, isOwner, isProfileDialogOpen, opportunities.length, supportPromptStorageKey]);
+    }, [editingOpp, isLoading, isOwner, isProfileDialogOpen, opportunities.length, supportPromptStorageKey]);
 
     const closeProfileDialog = () => {
         setIsProfileDialogOpen(false);
@@ -362,11 +375,54 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         }
     };
 
-    // 3. Capture URL Handler
+    const clearCaptureAttachments = () => {
+        setCaptureFiles([]);
+        if (captureFileInputRef.current) captureFileInputRef.current.value = '';
+    };
+
+    const addSavedOpportunity = (opportunity: Opportunity) => {
+        setOpportunities((current) => [
+            opportunity,
+            ...current.filter((item) => item.id !== opportunity.id),
+        ]);
+        setCaptureResult(opportunity);
+        setCaptureUrl('');
+        clearCaptureAttachments();
+        setEditingOpp(opportunity);
+        showToast('✓ Opportunity saved');
+    };
+
+    const extractUnifiedInput = async (
+        text: string,
+        files: File[],
+        signal: AbortSignal,
+    ): Promise<OpportunityExtractionDraft> => {
+        const formData = new FormData();
+        formData.set('mode', text.trim().length < 50 ? 'note' : 'text');
+        formData.set('captured_at', new Date().toISOString());
+        formData.set('capture_timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+        if (text.trim()) formData.set('text', text);
+        files.forEach((file) => formData.append('files', file, file.name));
+
+        const response = await fetch('/api/opportunities/extract-input', {
+            method: 'POST',
+            headers: authenticatedHeaders(),
+            body: formData,
+            signal,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.extraction) {
+            throw new Error(data.error || 'The opportunity details could not be extracted.');
+        }
+        return data.extraction as OpportunityExtractionDraft;
+    };
+
+    // 3. Unified URL, text, note, and attachment handler
     const handleCapture = async (e: React.FormEvent) => {
         e.preventDefault();
-        const submittedUrl = captureUrl.trim();
-        if (!submittedUrl || captureAbortRef.current) return;
+        const submittedInput = captureUrl.trim();
+        const submittedFiles = [...captureFiles];
+        if ((!submittedInput && submittedFiles.length === 0) || captureAbortRef.current) return;
 
         const controller = new AbortController();
         captureAbortRef.current = controller;
@@ -374,47 +430,116 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         setIsCapturing(true);
         setCaptureError('');
         setCaptureResult(null);
+        setPendingDuplicate(null);
         try {
-            const { response: res, payload: data } = await requestOpportunityCapture({
-                url: submittedUrl,
-                accessToken,
-                signal: controller.signal,
-                refreshAccessToken: async () => {
-                    const { data, error } = await supabase.auth.refreshSession();
-                    if (error) return null;
-                    return data.session?.access_token || null;
-                },
-            });
-
-            if (res.ok && data.opportunity) {
-                const capturedOpportunity = data.opportunity as Opportunity;
-                setCaptureResult(capturedOpportunity);
-                setCaptureUrl((currentUrl) => clearSubmittedCaptureUrl(currentUrl, submittedUrl));
-                setOpportunities((prev) => {
-                    const filtered = prev.filter((o) => o.id !== capturedOpportunity.id);
-                    return [capturedOpportunity, ...filtered];
+            const inputKind = classifyUnifiedOpportunityInput(submittedInput, submittedFiles.length);
+            if (inputKind === 'url') {
+                setCaptureProgress('Reading the link and organizing the opportunity…');
+                const { response: res, payload: data } = await requestOpportunityCapture({
+                    url: submittedInput,
+                    accessToken,
+                    signal: controller.signal,
+                    refreshAccessToken: async () => {
+                        const { data, error } = await supabase.auth.refreshSession();
+                        if (error) return null;
+                        return data.session?.access_token || null;
+                    },
                 });
-            } else {
-                const message = data.error || 'Failed to capture this opportunity';
-                setCaptureError(message);
-                showToast(`❌ ${message}`);
-                if (data.can_manual_create) {
-                    setManualInitialUrl(data.canonical_url || submittedUrl);
-                    setIsManualModalOpen(true);
+
+                if (res.ok && data.opportunity) {
+                    const capturedOpportunity = data.opportunity as Opportunity;
+                    if (data.is_duplicate) {
+                        setPendingDuplicate({ existing: capturedOpportunity, proposedUpdates: null, sourceKind: 'url' });
+                        return;
+                    }
+                    addSavedOpportunity(capturedOpportunity);
+                    return;
                 }
+
+                throw new Error(data.error || 'Failed to capture this opportunity');
             }
+
+            setCaptureProgress(submittedFiles.length > 0
+                ? 'Reading your note and attachments…'
+                : 'Reading your note and organizing the details…');
+            const draft = await extractUnifiedInput(submittedInput, submittedFiles, controller.signal);
+            if (controller.signal.aborted) return;
+
+            setCaptureProgress('Saving the extracted opportunity…');
+            const payload = buildExtractedOpportunityPayload({
+                draft,
+                input: submittedInput,
+                directEntryId: crypto.randomUUID(),
+            });
+            const response = await fetch('/api/opportunities', {
+                method: 'POST',
+                headers: authenticatedHeaders(true),
+                body: JSON.stringify(payload),
+                signal: controller.signal,
+            });
+            const data = await response.json().catch(() => ({}));
+            if (response.status === 409 && data.is_duplicate && data.opportunity) {
+                const { source_url: _sourceUrl, ...proposedUpdates } = payload;
+                setPendingDuplicate({
+                    existing: data.opportunity as Opportunity,
+                    proposedUpdates,
+                    sourceKind: 'extracted',
+                });
+                return;
+            }
+            if (!response.ok || !data.opportunity) {
+                throw new Error(data.error || 'The opportunity could not be saved.');
+            }
+            addSavedOpportunity(data.opportunity as Opportunity);
         } catch (error) {
             if (controller.signal.aborted && !(error instanceof OpportunityCaptureTimeoutError)) return;
             const message = error instanceof OpportunityCaptureTimeoutError
                 ? error.message
-                : `Network error: ${error instanceof Error ? error.message : 'Request failed'}`;
+                : error instanceof Error ? error.message : 'The opportunity could not be saved.';
             setCaptureError(message);
             showToast(`❌ ${message}`);
         } finally {
             if (captureAbortRef.current === controller) {
                 captureAbortRef.current = null;
                 setIsCapturing(false);
+                setCaptureProgress('');
             }
+        }
+    };
+
+    const handleDuplicateOpen = () => {
+        if (!pendingDuplicate) return;
+        setSelectedDetailId(pendingDuplicate.existing.id);
+    };
+
+    const handleDuplicateUpdate = async () => {
+        if (!pendingDuplicate || isCapturing) return;
+        setIsCapturing(true);
+        setCaptureError('');
+        setCaptureProgress('Updating the existing opportunity…');
+        try {
+            const response = pendingDuplicate.sourceKind === 'url'
+                ? await fetch(`/api/opportunities/${pendingDuplicate.existing.id}/re-extract`, {
+                    method: 'POST',
+                    headers: authenticatedHeaders(),
+                })
+                : await fetch(`/api/opportunities/${pendingDuplicate.existing.id}`, {
+                    method: 'PATCH',
+                    headers: authenticatedHeaders(true),
+                    body: JSON.stringify(pendingDuplicate.proposedUpdates),
+                });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.opportunity) {
+                throw new Error(data.error || 'The existing opportunity could not be updated.');
+            }
+            setPendingDuplicate(null);
+            addSavedOpportunity(data.opportunity as Opportunity);
+            showToast('✓ Existing opportunity updated');
+        } catch (error) {
+            setCaptureError(error instanceof Error ? error.message : 'The existing opportunity could not be updated.');
+        } finally {
+            setIsCapturing(false);
+            setCaptureProgress('');
         }
     };
 
@@ -484,11 +609,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         showToast('✓ Deadline saved');
     };
 
-    // 5. Update Priority
-    const handleUpdatePriority = async (id: string, priority: number) => {
-        const previousPriority = opportunities.find((opportunity) => opportunity.id === id)?.priority || 1;
+    // 5. Toggle the only elevated priority tier.
+    const handleUpdateHighPriority = async (id: string, isHighPriority: boolean) => {
+        const previousPriority = Boolean(opportunities.find((opportunity) => opportunity.id === id)?.is_high_priority);
         setOpportunities((prev) =>
-            prev.map((o) => (o.id === id ? { ...o, priority } : o))
+            prev.map((o) => (o.id === id ? { ...o, is_high_priority: isHighPriority } : o))
         );
 
         let res: Response;
@@ -496,11 +621,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             res = await fetch(`/api/opportunities/${id}`, {
                 method: 'PATCH',
                 headers: authenticatedHeaders(true),
-                body: JSON.stringify({ priority }),
+                body: JSON.stringify({ is_high_priority: isHighPriority }),
             });
         } catch {
             setOpportunities((prev) => prev.map((o) => (
-                o.id === id ? { ...o, priority: previousPriority } : o
+                o.id === id ? { ...o, is_high_priority: previousPriority } : o
             )));
             showToast('❌ Failed to update priority');
             throw new Error('Failed to update priority');
@@ -508,14 +633,13 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
         if (!res.ok) {
             setOpportunities((prev) => prev.map((o) => (
-                o.id === id ? { ...o, priority: previousPriority } : o
+                o.id === id ? { ...o, is_high_priority: previousPriority } : o
             )));
             showToast('❌ Failed to update priority');
             throw new Error('Failed to update priority');
         }
 
-        const label = priority === 3 ? 'High' : priority === 2 ? 'Medium' : 'Low';
-        showToast(`✓ Priority set to ${label}`);
+        showToast(isHighPriority ? '✓ Added to high priority' : '✓ Returned to normal priority');
     };
 
     // 6. Save Edits from Modal
@@ -539,55 +663,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         } catch {
             showToast('❌ Network error saving changes');
         }
-    };
-
-    // 7. Manual Create
-    const handleManualCreate = async (payload: any) => {
-        let res: Response;
-        try {
-            res = await fetch('/api/opportunities', {
-                method: 'POST',
-                headers: authenticatedHeaders(true),
-                body: JSON.stringify(payload),
-            });
-        } catch {
-            showToast('❌ Error creating opportunity');
-            throw new Error('Error creating opportunity');
-        }
-
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.opportunity) {
-            const message = data.error || 'Failed to create';
-            showToast(`❌ ${message}`);
-            throw new Error(message);
-        }
-
-        showToast(`✓ Created "${data.opportunity.title}"`);
-        setOpportunities((prev) => [data.opportunity, ...prev]);
-    };
-
-    const handleExtractManualInput = async (input: {
-        mode: 'text' | 'file';
-        text?: string;
-        file?: File;
-    }): Promise<OpportunityExtractionDraft> => {
-        const formData = new FormData();
-        formData.set('mode', input.mode);
-        formData.set('captured_at', new Date().toISOString());
-        formData.set('capture_timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
-        if (input.text) formData.set('text', input.text);
-        if (input.file) formData.set('file', input.file);
-
-        const res = await fetch('/api/opportunities/extract-input', {
-            method: 'POST',
-            headers: authenticatedHeaders(),
-            body: formData,
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.extraction) {
-            throw new Error(data.error || 'The opportunity details could not be extracted.');
-        }
-        return data.extraction as OpportunityExtractionDraft;
     };
 
     // 8. Re-extract
@@ -629,11 +704,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         }
     };
 
-    // Count opportunities needing immediate attention (due within 7 days or priority 3)
-    const attentionCount = useMemo(() => {
-        return opportunities.filter((opportunity) => isOpportunityAttention(opportunity, now)).length;
-    }, [opportunities, now]);
-
     const opportunitySearchIndex = useMemo(
         () => buildOpportunitySearchIndex(opportunities),
         [opportunities],
@@ -655,43 +725,36 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 return false;
             }
 
-            // Priority Star Rating Filter
-            if (priorityFilter !== 'all' && (o.priority || 1) !== Number(priorityFilter)) {
+            if (!showPastDeadlines && isOpportunityPastDeadline(o, now)) {
                 return false;
             }
 
-            // Urgency Rail Filters: 'attention' | 'this_week' | 'this_month' | 'later' | 'all'
-            if (urgencyFilter === 'all') return true;
+            if (urgencyFilter !== 'apply_asap') return true;
 
-            const actionableAt = o.deadline_at || o.event_date;
-            const diffMs = actionableAt ? new Date(actionableAt).getTime() - now : null;
-            const diffHours = diffMs !== null ? diffMs / (1000 * 60 * 60) : null;
-            if (urgencyFilter === 'attention') {
-                return isOpportunityAttention(o, now);
-            }
+            if (!doesOpportunityRequireAction(o)) return false;
+            if (o.is_high_priority) return true;
 
-            if (urgencyFilter === 'this_week') {
-                if (diffHours === null) return false;
-                return diffHours > 0 && diffHours <= 7 * 24;
-            }
+            const actionableAt = getOpportunityActionAt(o);
+            if (!actionableAt) return false;
 
-            if (urgencyFilter === 'this_month') {
-                if (diffHours === null) return false;
-                return diffHours > 0 && diffHours <= 30 * 24;
-            }
-
-            if (urgencyFilter === 'later') {
-                if (o.deadline_confidence === 'rolling') return true;
-                if (diffHours === null) return true;
-                return diffHours > 30 * 24;
-            }
-
-            return true;
+            const actionableTimestamp = Date.parse(actionableAt);
+            return Number.isFinite(actionableTimestamp) && actionableTimestamp >= now;
         });
 
-        const sorted = sortRadarOpportunities(filtered, sortMode, now);
+        const sorted = urgencyFilter === 'apply_asap'
+            ? [...filtered].sort((first, second) => {
+                if (first.is_high_priority !== second.is_high_priority) return first.is_high_priority ? -1 : 1;
+                const firstDeadline = Date.parse(getOpportunityActionAt(first) || '9999-12-31');
+                const secondDeadline = Date.parse(getOpportunityActionAt(second) || '9999-12-31');
+                return firstDeadline - secondDeadline;
+            })
+            : sortRadarOpportunities(
+                filtered,
+                'date_added',
+                now,
+            );
         return rankOpportunitySearch(sorted, searchQuery, opportunitySearchIndex);
-    }, [opportunities, opportunitySearchIndex, urgencyFilter, categoryFilter, statusFilter, priorityFilter, searchQuery, sortMode, now]);
+    }, [opportunities, opportunitySearchIndex, urgencyFilter, categoryFilter, statusFilter, showPastDeadlines, searchQuery, now]);
 
     useEffect(() => {
         if (isLoading || loadError) return undefined;
@@ -707,23 +770,20 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const activeSecondaryFiltersCount =
         (categoryFilter !== 'all' ? 1 : 0) +
         (statusFilter !== 'all' ? 1 : 0) +
-        (priorityFilter !== 'all' ? 1 : 0) +
-        (sortMode !== 'date_added' ? 1 : 0);
+        (showPastDeadlines ? 1 : 0);
 
     const activeFiltersCount =
         (categoryFilter !== 'all' ? 1 : 0) +
         (statusFilter !== 'all' ? 1 : 0) +
-        (priorityFilter !== 'all' ? 1 : 0) +
-        (searchQuery.trim() ? 1 : 0) +
-        (urgencyFilter !== 'all' ? 1 : 0);
+        (showPastDeadlines ? 1 : 0) +
+        (searchQuery.trim() ? 1 : 0);
 
     const resetFilters = useCallback(() => {
-        setUrgencyFilter('all');
+        setUrgencyFilter('apply_asap');
         setCategoryFilter('all');
         setStatusFilter('all');
-        setPriorityFilter('all');
+        setShowPastDeadlines(false);
         setSearchQuery('');
-        setSortMode('date_added');
     }, []);
 
     const collectionOwnerName = collectionProfile?.display_name || username;
@@ -781,54 +841,104 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     {isOwner && (
                         <div className="opp-capture-workspace">
                             <div className="opp-capture-heading">
-                                <label htmlFor="opportunity-capture-url">Save an opportunity</label>
+                                <label htmlFor="opportunity-capture-input">Save an opportunity</label>
                                 <p id="opportunity-capture-help">
-                                    Paste any opportunity link. We'll organize the deadline, requirements and next steps.
+                                    Paste a link or description, write a quick note, or attach supporting files.
                                 </p>
                             </div>
                             <form onSubmit={handleCapture} className="opp-hero-capture-bar">
-                                <input
-                                    id="opportunity-capture-url"
-                                    name="url"
-                                    type="url"
-                                    className="opp-hero-capture-input"
-                                    placeholder="https://example.org/opportunity"
-                                    value={captureUrl}
-                                    onChange={(e) => {
-                                        setCaptureUrl(e.target.value);
-                                        setCaptureError('');
-                                    }}
-                                    aria-describedby={`opportunity-capture-help${captureError ? ' opportunity-capture-error' : ''}`}
-                                    aria-invalid={Boolean(captureError)}
-                                    inputMode="url"
-                                    autoComplete="url"
-                                    autoCapitalize="off"
-                                    autoCorrect="off"
-                                    spellCheck={false}
-                                    required
-                                />
+                                <div className="opp-capture-input-shell">
+                                    <textarea
+                                        id="opportunity-capture-input"
+                                        name="opportunity_input"
+                                        className="opp-hero-capture-input"
+                                        placeholder="Paste a link or description, or write a note…"
+                                        value={captureUrl}
+                                        onChange={(event) => {
+                                            setCaptureUrl(event.target.value);
+                                            setCaptureError('');
+                                            setPendingDuplicate(null);
+                                        }}
+                                        aria-describedby={`opportunity-capture-help${captureError ? ' opportunity-capture-error' : ''}`}
+                                        aria-invalid={Boolean(captureError)}
+                                        rows={1}
+                                        maxLength={100000}
+                                        disabled={isCapturing}
+                                    />
+                                    <input
+                                        ref={captureFileInputRef}
+                                        id="opportunity-capture-files"
+                                        name="opportunity_files"
+                                        type="file"
+                                        className="sr-only"
+                                        accept="application/pdf,text/plain,text/markdown,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.pdf,.txt,.md,.jpg,.jpeg,.png,.webp,.mp4,.webm,.mov"
+                                        multiple
+                                        onChange={(event) => {
+                                            const nextFiles = Array.from(event.target.files || []).slice(0, 4);
+                                            setCaptureFiles(nextFiles);
+                                            setCaptureError('');
+                                            setPendingDuplicate(null);
+                                        }}
+                                        disabled={isCapturing}
+                                    />
+                                    <label
+                                        htmlFor="opportunity-capture-files"
+                                        className="opp-capture-attach-button"
+                                        aria-label="Attach images, videos, or documents"
+                                        title="Attach images, videos, or documents"
+                                    >
+                                        <span aria-hidden="true">+</span>
+                                    </label>
+                                </div>
+                                {captureFiles.length > 0 && (
+                                    <div className="opp-capture-files" aria-label="Selected attachments">
+                                        {captureFiles.map((file, index) => (
+                                            <span className="opp-capture-file" key={`${file.name}-${file.size}-${index}`}>
+                                                <span>{file.name}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setCaptureFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
+                                                        if (captureFileInputRef.current) captureFileInputRef.current.value = '';
+                                                    }}
+                                                    aria-label={`Remove ${file.name}`}
+                                                    disabled={isCapturing}
+                                                >×</button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                                 <button
                                     type="submit"
                                     className="opp-btn opp-btn-primary opp-hero-btn"
                                     disabled={isCapturing}
                                 >
-                                    {isCapturing ? 'Organizing…' : 'Save Opportunity →'}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="opp-btn opp-btn-secondary opp-hero-btn"
-                                    onClick={() => {
-                                        setManualInitialUrl('');
-                                        setIsManualModalOpen(true);
-                                    }}
-                                >
-                                    Add manually
+                                    {isCapturing ? 'Saving…' : 'Save Opportunity'}
                                 </button>
                             </form>
+                            {captureProgress && (
+                                <div className="opp-capture-processing" role="status" aria-live="polite">
+                                    <span className="opp-create-processing-mark" aria-hidden="true" />
+                                    <span>{captureProgress}</span>
+                                </div>
+                            )}
                             {captureError && (
                                 <p id="opportunity-capture-error" className="opp-capture-error" role="alert">
                                     {captureError}
                                 </p>
+                            )}
+                            {pendingDuplicate && (
+                                <div className="opp-capture-duplicate" role="status" aria-live="polite">
+                                    <div>
+                                        <span className="opp-capture-success-label">Already on your radar</span>
+                                        <strong>{formatOpportunityTitle(pendingDuplicate.existing.title)}</strong>
+                                        <span>Choose whether to open it or replace its details with this submission.</span>
+                                    </div>
+                                    <div className="opp-capture-duplicate-actions">
+                                        <button type="button" className="opp-btn opp-btn-secondary" onClick={handleDuplicateOpen}>Open existing</button>
+                                        <button type="button" className="opp-btn opp-btn-primary" onClick={() => void handleDuplicateUpdate()} disabled={isCapturing}>Update existing</button>
+                                    </div>
+                                </div>
                             )}
                             {captureResult && (
                                 <div className="opp-capture-success" role="status" aria-live="polite">
@@ -866,16 +976,13 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 </aside>
             )}
 
-            {/* Horizontal Urgency Rail & Filter Popover Toggle */}
+            {/* Primary opportunity views & filter popover toggle */}
             <div className="opp-rail-wrapper">
                 <div className="opp-urgency-rail">
                     {(
                         [
-                            { id: 'all', label: 'All' },
-                            { id: 'attention', label: '⚡ Attention' },
-                            { id: 'this_week', label: 'This Week' },
-                            { id: 'this_month', label: 'This Month' },
-                            { id: 'later', label: 'Later' },
+                            { id: 'apply_asap', label: 'Apply ASAP' },
+                            { id: 'newly_added', label: 'Newly Added' },
                         ] as { id: UrgencyRailFilter; label: string }[]
                     ).map((r) => (
                         <button
@@ -973,6 +1080,18 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     </div>
                                 </div>
 
+                                <div className="opp-popover-section">
+                                    <div className="opp-popover-section-label">Past deadlines</div>
+                                    <label className="opp-popover-checkbox">
+                                        <input
+                                            type="checkbox"
+                                            checked={showPastDeadlines}
+                                            onChange={(event) => setShowPastDeadlines(event.target.checked)}
+                                        />
+                                        <span>Show Opportunities Past Deadline</span>
+                                    </label>
+                                </div>
+
                                 {/* Box 2: Workflow Status Selection */}
                                 <div className="opp-popover-section">
                                     <div className="opp-popover-section-label">Workflow Status</div>
@@ -991,62 +1110,39 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     </div>
                                 </div>
 
-                                {/* Box 3: Priority Rating Selection */}
-                                <div className="opp-popover-section">
-                                    <div className="opp-popover-section-label">Priority Rating</div>
-                                    <div className="opp-popover-pills">
-                                        {[
-                                            { id: 'all', label: 'All' },
-                                            { id: '3', label: '★★★ High' },
-                                            { id: '2', label: '★★ Medium' },
-                                            { id: '1', label: '★ Low' },
-                                        ].map((p) => (
-                                            <button
-                                                key={p.id}
-                                                type="button"
-                                                className={`opp-popover-pill ${priorityFilter === p.id ? 'active' : ''}`}
-                                                aria-pressed={priorityFilter === p.id}
-                                                onClick={() => setPriorityFilter(p.id)}
-                                            >
-                                                {p.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Box 4: Sort Selection */}
-                                <div
-                                    className="opp-popover-section"
-                                    role="group"
-                                    aria-labelledby="opp-sort-options-label"
-                                >
-                                    <div
-                                        id="opp-sort-options-label"
-                                        className="opp-popover-section-label"
-                                    >
-                                        Sort by
-                                    </div>
-                                    <div className="opp-popover-pills">
-                                        {[
-                                            { id: 'date_added', label: 'Date Added' },
-                                            { id: 'deadline', label: 'Deadline' },
-                                        ].map((sortOption) => (
-                                            <button
-                                                key={sortOption.id}
-                                                type="button"
-                                                className={`opp-popover-pill ${sortMode === sortOption.id ? 'active' : ''}`}
-                                                aria-pressed={sortMode === sortOption.id}
-                                                onClick={() => setSortMode(sortOption.id as OpportunitySortMode)}
-                                            >
-                                                {sortOption.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
                             </div>
                         </>
                     )}
+                    </div>
+
+                    <div className="opp-view-toggle" role="group" aria-label="Opportunity view">
+                        <button
+                            type="button"
+                            className={viewMode === 'list' ? 'active' : ''}
+                            aria-label="Show list view"
+                            aria-pressed={viewMode === 'list'}
+                            title="List view"
+                            onClick={() => setViewMode('list')}
+                        >
+                            <svg viewBox="0 0 20 20" aria-hidden="true">
+                                <path d="M3 5h14M3 10h14M3 15h14" />
+                            </svg>
+                        </button>
+                        <button
+                            type="button"
+                            className={viewMode === 'grid' ? 'active' : ''}
+                            aria-label="Show grid view"
+                            aria-pressed={viewMode === 'grid'}
+                            title="Grid view"
+                            onClick={() => setViewMode('grid')}
+                        >
+                            <svg viewBox="0 0 20 20" aria-hidden="true">
+                                <rect x="3" y="3" width="5" height="5" rx="0.8" />
+                                <rect x="12" y="3" width="5" height="5" rx="0.8" />
+                                <rect x="3" y="12" width="5" height="5" rx="0.8" />
+                                <rect x="12" y="12" width="5" height="5" rx="0.8" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1125,7 +1221,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         </div>
                         <p className="opp-empty-text">
                             {isOwner
-                                ? 'Paste any opportunity link into the bar above or add one manually to track its deadline.'
+                                ? 'Paste a link or description, write a note, or attach a file above to track the opportunity.'
                                 : 'This collection is public, but its owner has not shared any active opportunities yet.'}
                         </p>
                         {isOwner && <div className="opp-empty-block-actions">
@@ -1133,20 +1229,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 type="button"
                                 className="opp-btn opp-btn-primary opp-btn-sm"
                                 onClick={() => {
-                                    document.querySelector<HTMLInputElement>('#opportunity-capture-url')?.focus();
+                                    document.querySelector<HTMLTextAreaElement>('#opportunity-capture-input')?.focus();
                                 }}
                             >
-                                Paste your first link ↑
-                            </button>
-                            <button
-                                type="button"
-                                className="opp-btn opp-btn-secondary opp-btn-sm"
-                                onClick={() => {
-                                    setManualInitialUrl('');
-                                    setIsManualModalOpen(true);
-                                }}
-                            >
-                                Add manually
+                                Save your first opportunity ↑
                             </button>
                         </div>}
                     </div>
@@ -1167,7 +1253,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                             <span>Example Arts Foundation</span>
                             <div className="opp-empty-demo-actions" aria-hidden="true">
                                 <span>Fellowship</span>
-                                <span>More details →</span>
                             </div>
                         </div>
                     </div>
@@ -1203,13 +1288,13 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         )}
                     </AnimatePresence>
 
-                    {/* Stable keyed cards let Motion project each surviving card into its new grid position. */}
-                    <div className="opp-grid">
+                    {/* Stable keyed rows/cards let Motion project results into their filtered position. */}
+                    <div className={viewMode === 'grid' ? 'opp-grid' : 'opp-list'}>
                         <AnimatePresence initial={false} mode="popLayout">
                             {filteredOpportunities.map((opp) => (
                                 <motion.div
                                     key={opp.id}
-                                    className="opp-card-motion"
+                                    className={viewMode === 'grid' ? 'opp-card-motion' : 'opp-list-motion'}
                                     layout={!prefersReducedMotion}
                                     initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1229,14 +1314,29 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                             scale: { duration: 0.135, ease: 'easeOut' },
                                         }}
                                 >
-                                    <OpportunityCard
-                                        opportunity={opp}
-                                        onOpen={(o) => setSelectedDetailId(o.id)}
-                                        onSelectCategory={(cat) => setCategoryFilter(cat)}
-                                        showRadarAction={!isOwner}
-                                        radarState={radarStates[opp.id] || 'idle'}
-                                        onAddToRadar={handleAddToRadar}
-                                    />
+                                    {viewMode === 'grid' ? (
+                                        <OpportunityCard
+                                            opportunity={opp}
+                                            onOpen={(o) => setSelectedDetailId(o.id)}
+                                            onSelectCategory={(cat) => setCategoryFilter(cat)}
+                                            showRadarAction={!isOwner}
+                                            radarState={radarStates[opp.id] || 'idle'}
+                                            onAddToRadar={handleAddToRadar}
+                                            showPriorityToggle={isOwner}
+                                            onToggleHighPriority={(isHigh) => handleUpdateHighPriority(opp.id, isHigh)}
+                                        />
+                                    ) : (
+                                        <OpportunityListItem
+                                            opportunity={opp}
+                                            onOpen={(o) => setSelectedDetailId(o.id)}
+                                            onSelectCategory={(cat) => setCategoryFilter(cat)}
+                                            showRadarAction={!isOwner}
+                                            radarState={radarStates[opp.id] || 'idle'}
+                                            onAddToRadar={handleAddToRadar}
+                                            showPriorityToggle={isOwner}
+                                            onToggleHighPriority={(isHigh) => handleUpdateHighPriority(opp.id, isHigh)}
+                                        />
+                                    )}
                                 </motion.div>
                             ))}
                         </AnimatePresence>
@@ -1293,7 +1393,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         isOpen={Boolean(selectedOpp)}
                         onClose={() => setSelectedDetailId(null)}
                         onUpdateStatus={handleUpdateStatus}
-                        onUpdatePriority={handleUpdatePriority}
+                        onUpdateHighPriority={handleUpdateHighPriority}
                         onUpdateChecklist={handleUpdateChecklist}
                         onUpdateDeadline={handleUpdateDeadline}
                         onSelectCategory={(cat) => setCategoryFilter(cat)}
@@ -1338,15 +1438,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     onSave={handleSaveEdit}
                 />
             )}
-
-            {/* Manual Create Modal */}
-            {isOwner && <ManualCreateModal
-                isOpen={isManualModalOpen}
-                initialUrl={manualInitialUrl}
-                onClose={() => setIsManualModalOpen(false)}
-                onCreate={handleManualCreate}
-                onExtract={handleExtractManualInput}
-            />}
 
             {activeViewerProfile && (
                 <OpportunityProfileDialog

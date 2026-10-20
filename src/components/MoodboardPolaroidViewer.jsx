@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import PaletteExtractor, { analyzeImage } from './PaletteExtractor.jsx';
+import { getViewerIndex } from '../lib/moodboardViewerState.js';
 
 function resolveImageUrl(item) {
     return (
@@ -79,14 +80,13 @@ export default function MoodboardPolaroidViewer({
     );
 
 
-    const initialIndex = useMemo(() => {
-        if (!activeId || !normalizedItems.length) return 0;
-        const index = normalizedItems.findIndex((entry) => entry.id === activeId);
-        return index >= 0 ? index : 0;
-    }, [activeId, normalizedItems]);
+    const activeIndex = useMemo(
+        () => getViewerIndex(normalizedItems, activeId),
+        [activeId, normalizedItems],
+    );
 
     const [mounted, setMounted] = useState(false);
-    const [currentIndex, setCurrentIndex] = useState(initialIndex);
+    const [currentIndexState, setCurrentIndex] = useState(activeIndex);
     const [layoutWidth, setLayoutWidth] = useState('auto');
     const [isLayoutStable, setIsLayoutStable] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -99,6 +99,12 @@ export default function MoodboardPolaroidViewer({
     const localAssetCacheRef = useRef({});
     const assetCacheRef = sharedAssetCacheRef || localAssetCacheRef;
 
+    // Use the ID-derived index immediately when a filter changes the array.
+    // The effect below then catches the local state up without a one-frame jump
+    // to whichever photo inherited the previous numeric position.
+    const currentIndex = normalizedItems[currentIndexState]?.id === activeId
+        ? currentIndexState
+        : activeIndex;
     const currentItem = normalizedItems[currentIndex] || null;
     const imageUrl = currentItem?.imageUrl || '';
     const cachedData = imageUrl ? assetCacheRef.current[imageUrl] : null;
@@ -121,15 +127,19 @@ export default function MoodboardPolaroidViewer({
         };
     }, [mounted]);
 
+    // activeId is the source of truth. Filter changes can reorder or expand the
+    // item array, so synchronizing by the previous numeric index would briefly
+    // point at a different photo. Publishing that wrong photo back to the parent
+    // created an activeId/index feedback loop and React error #185.
     useEffect(() => {
         if (!normalizedItems.length) return;
-        setCurrentIndex(initialIndex);
-    }, [initialIndex, normalizedItems]);
+        setCurrentIndex((previous) => (previous === activeIndex ? previous : activeIndex));
 
-    useEffect(() => {
-        if (!currentItem?.id || typeof onChange !== 'function') return;
-        onChange(currentItem.id);
-    }, [currentItem?.id, onChange]);
+        const activeStillExists = normalizedItems.some((item) => item.id === activeId);
+        if (activeId && !activeStillExists && typeof onChange === 'function') {
+            onChange(normalizedItems[activeIndex].id);
+        }
+    }, [activeId, activeIndex, normalizedItems, onChange]);
 
     useEffect(() => {
         if (!cachedData?.bg) return;
@@ -263,6 +273,9 @@ export default function MoodboardPolaroidViewer({
         setPendingOffset(0);
 
         const nextItem = normalizedItems[nextIndex];
+        if (nextItem?.id && nextItem.id !== activeId && typeof onChange === 'function') {
+            onChange(nextItem.id);
+        }
         const nextUrl = nextItem?.imageUrl;
         const isCached = nextUrl && assetCacheRef.current[nextUrl]?.dimensions;
         if (isCached) {

@@ -11,7 +11,7 @@ const base: Opportunity = {
     category: 'fellowship',
     source_url: 'https://example.org/fellowship',
     canonical_url: 'https://example.org/fellowship',
-    deadline_at: new Date(Date.now() + 35 * 60 * 60 * 1000).toISOString(),
+    deadline_at: '2026-10-21T19:00:00.000Z',
     deadline_raw: 'Tomorrow',
     deadline_timezone: 'Asia/Kolkata',
     deadline_confidence: 'exact',
@@ -25,7 +25,7 @@ const base: Opportunity = {
     fee_or_funding: 'Fully funded with a £2,000 stipend',
     application_fee: '£20 submission fee; waivers available',
     summary: 'A supported research fellowship for emerging practitioners.',
-    status: 'preparing',
+    status: 'reviewing',
     outcome: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -34,7 +34,7 @@ const base: Opportunity = {
     llm_model: 'qa',
     llm_extraction_count: 1,
     notes: 'Request the recommendation at least one week early.',
-    priority: 2,
+    is_high_priority: false,
 };
 
 const initialOpportunities: Opportunity[] = [
@@ -45,7 +45,16 @@ const initialOpportunities: Opportunity[] = [
         title: 'Short Grant',
         organisation: 'Studio X',
         category: 'grant',
-        deadline_at: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(),
+        deadline_at: '2026-10-28T19:00:00.000Z',
+    },
+    {
+        ...base,
+        id: 'qa-undated',
+        title: 'Rolling Opportunity Without A Fixed Deadline',
+        organisation: 'Open Studio Network',
+        deadline_at: null,
+        deadline_raw: null,
+        deadline_confidence: 'rolling',
     },
 ];
 
@@ -87,7 +96,7 @@ export default function OpportunityCardModalQa() {
                     isAuthenticated
                     onClose={() => setSelectedId(null)}
                     onUpdateStatus={async (id: string, status: OpportunityStatus) => update(id, { status })}
-                    onUpdatePriority={async (id: string, priority: number) => update(id, { priority })}
+                    onUpdateHighPriority={async (id: string, is_high_priority: boolean) => update(id, { is_high_priority })}
                     onUpdateChecklist={async (id: string, completed_requirements: string[]) => update(id, { completed_requirements })}
                     onUpdateDeadline={async () => undefined}
                     onEdit={() => undefined}

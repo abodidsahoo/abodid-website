@@ -20,7 +20,12 @@ import { isValidOpportunityUsername, normalizeOpportunityUsername } from '../../
 import { opportunityToSavedInsert, savedRowToOpportunity } from '../../src/lib/opportunities/saved';
 import { generateIcsFile, generateGoogleCalendarUrl } from '../../src/lib/opportunities/calendar';
 import { formatTimeRemaining } from '../../src/lib/opportunities/reminders';
-import { isOpportunityAttention, opportunityAttentionScore, selectAttentionOpportunities } from '../../src/lib/opportunities/attention';
+import {
+    isOpportunityAttention,
+    isOpportunityPastDeadline,
+    opportunityAttentionScore,
+    selectAttentionOpportunities,
+} from '../../src/lib/opportunities/attention';
 import { normalizeOpportunityCaptureUrl, unwrapOpportunityRedirect } from '../../src/lib/opportunities/captureUrl';
 import { formatDaysRemaining, formatStatusTitle, getFirstName } from '../../src/lib/opportunities/ui-helpers';
 import {
@@ -124,21 +129,19 @@ describe('Opportunity Assistant Core Functionality', () => {
     });
 
     describe('Action-oriented workflow presentation', () => {
-        it('uses the five plain-language tracker stages while preserving legacy values', () => {
+        it('uses only the two plain-language workflow stages', () => {
             expect(WORKFLOW_STATUSES.map((status) => status.label)).toEqual([
-                'Saved', 'Reviewing', 'Applying', 'Submitted', 'Archived',
+                'Reviewing', 'Applied',
             ]);
-            expect(normalizeOpportunityStatus('registered')).toBe('submitted');
-            expect(normalizeOpportunityStatus('attending')).toBe('submitted');
-            expect(normalizeOpportunityStatus('dismissed')).toBe('done');
-            expect(formatStatusTitle('preparing')).toBe('Applying');
+            expect(normalizeOpportunityStatus('reviewing')).toBe('reviewing');
+            expect(normalizeOpportunityStatus('applied')).toBe('applied');
+            expect(formatStatusTitle('applied')).toBe('Applied');
         });
 
-        it('keeps existing filter results aligned with the new tracker stages', () => {
-            expect(opportunityMatchesTrackerStatus('registered', 'submitted')).toBe(true);
-            expect(opportunityMatchesTrackerStatus('attending', 'submitted')).toBe(true);
-            expect(opportunityMatchesTrackerStatus('dismissed', 'done')).toBe(true);
-            expect(opportunityMatchesTrackerStatus('inbox', 'preparing')).toBe(false);
+        it('keeps workflow filters exact and unambiguous', () => {
+            expect(opportunityMatchesTrackerStatus('reviewing', 'reviewing')).toBe(true);
+            expect(opportunityMatchesTrackerStatus('applied', 'applied')).toBe(true);
+            expect(opportunityMatchesTrackerStatus('reviewing', 'applied')).toBe(false);
         });
 
         it('reserves red urgency for the final 48 hours', () => {
@@ -154,8 +157,8 @@ describe('Opportunity Assistant Core Functionality', () => {
         const opportunity = (overrides: Partial<Opportunity> = {}) => ({
             id: 'attention-item',
             title: 'Opportunity',
-            status: 'inbox',
-            priority: 1,
+            status: 'reviewing',
+            is_high_priority: false,
             deadline_at: null,
             event_date: null,
             deadline_confidence: 'none',
@@ -167,25 +170,31 @@ describe('Opportunity Assistant Core Functionality', () => {
             expect(isOpportunityAttention(opportunity({ deadline_at: '2026-10-02T00:00:00.000Z' }), now)).toBe(false);
         });
 
-        it('includes three-star priorities while excluding finished items', () => {
-            expect(isOpportunityAttention(opportunity({ priority: 3 }), now)).toBe(true);
-            expect(isOpportunityAttention(opportunity({ priority: 3, status: 'done' }), now)).toBe(false);
-            expect(isOpportunityAttention(opportunity({ priority: 3, status: 'dismissed' }), now)).toBe(false);
+        it('includes high priorities while excluding applied items', () => {
+            expect(isOpportunityAttention(opportunity({ is_high_priority: true }), now)).toBe(true);
+            expect(isOpportunityAttention(opportunity({ is_high_priority: true, status: 'applied' }), now)).toBe(false);
+        });
+
+        it('identifies passed dates while preserving rolling and undated opportunities', () => {
+            expect(isOpportunityPastDeadline(opportunity({ deadline_at: '2026-09-23T00:00:00.000Z' }), now)).toBe(true);
+            expect(isOpportunityPastDeadline(opportunity({ deadline_at: '2026-09-25T00:00:00.000Z' }), now)).toBe(false);
+            expect(isOpportunityPastDeadline(opportunity({ deadline_confidence: 'rolling' }), now)).toBe(false);
+            expect(isOpportunityPastDeadline(opportunity(), now)).toBe(false);
         });
 
         it('puts the nearest high-priority work first', () => {
             const selected = selectAttentionOpportunities([
                 opportunity({ id: 'standard-soon', deadline_at: '2026-09-26T00:00:00.000Z' }),
-                opportunity({ id: 'priority-soon', priority: 3, deadline_at: '2026-09-25T00:00:00.000Z' }),
+                opportunity({ id: 'priority-soon', is_high_priority: true, deadline_at: '2026-09-25T00:00:00.000Z' }),
             ], now);
             expect(selected.map((item) => item.id)).toEqual(['priority-soon', 'standard-soon']);
         });
 
-        it('ranks active application work ahead of already submitted items', () => {
-            const applying = opportunity({ status: 'preparing', priority: 1 });
-            const submitted = opportunity({ status: 'submitted', priority: 3 });
-            expect(opportunityAttentionScore(applying, now)).toBeLessThan(
-                opportunityAttentionScore(submitted, now),
+        it('ranks reviewing work ahead of already applied items', () => {
+            const reviewing = opportunity({ status: 'reviewing' });
+            const applied = opportunity({ status: 'applied', is_high_priority: true });
+            expect(opportunityAttentionScore(reviewing, now)).toBeLessThan(
+                opportunityAttentionScore(applied, now),
             );
         });
     });
@@ -504,7 +513,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 fee_or_funding: 'Funded',
                 application_fee: '£20',
                 summary: 'A residency.',
-                status: 'interested',
+                status: 'reviewing',
                 outcome: null,
                 created_at: '2026-10-01T00:00:00.000Z',
                 updated_at: '2026-10-01T00:00:00.000Z',
@@ -513,7 +522,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 llm_model: 'model',
                 llm_extraction_count: 1,
                 notes: 'Private note',
-                priority: 3,
+                is_high_priority: true,
             } as Opportunity;
             const insert = opportunityToSavedInsert('user-a', source);
             const restored = savedRowToOpportunity({
@@ -526,7 +535,7 @@ describe('Opportunity Assistant Core Functionality', () => {
             expect(restored.title).toBe(source.title);
             expect(restored.organisation).toBe(source.organisation);
             expect(restored.notes).toBe('Private note');
-            expect(restored.priority).toBe(3);
+            expect(restored.is_high_priority).toBe(true);
             expect(restored.completed_requirements).toEqual(['Portfolio']);
             expect(restored.application_fee).toBe('£20');
         });
@@ -554,7 +563,7 @@ describe('Opportunity Assistant Core Functionality', () => {
             fee_or_funding: '€3,000 stipend',
             application_fee: 'No application fee',
             summary: 'Two-month residency in Berlin for media artists.',
-            status: 'interested',
+            status: 'reviewing',
             outcome: null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -563,6 +572,7 @@ describe('Opportunity Assistant Core Functionality', () => {
             llm_model: 'google/gemini-2.5-flash',
             llm_extraction_count: 1,
             notes: null,
+            is_high_priority: false,
         };
 
         it('generates valid RFC 5545 .ics file content', () => {
@@ -610,7 +620,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 fee_or_funding: null,
                 application_fee: null,
                 summary: 'Residency cycle 00-10 at SAM studios.',
-                status: 'inbox',
+                status: 'reviewing',
                 outcome: null,
                 created_at: '',
                 updated_at: '',
@@ -619,6 +629,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 llm_model: null,
                 llm_extraction_count: 0,
                 notes: null,
+                is_high_priority: false,
             };
 
             const tags = extractEligibility(oppWithJunk);
@@ -650,7 +661,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 fee_or_funding: null,
                 application_fee: null,
                 summary: 'Grant for early career filmmakers.',
-                status: 'inbox',
+                status: 'reviewing',
                 outcome: null,
                 created_at: '',
                 updated_at: '',
@@ -659,6 +670,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 llm_model: null,
                 llm_extraction_count: 0,
                 notes: null,
+                is_high_priority: false,
             };
 
             const tags = extractEligibility(opp);

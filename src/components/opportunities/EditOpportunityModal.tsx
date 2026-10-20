@@ -24,7 +24,7 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
     const [organisation, setOrganisation] = useState(opp.organisation);
     const [category, setCategory] = useState<OpportunityCategory>(opp.category);
     const [status, setStatus] = useState<OpportunityStatus>(normalizeOpportunityStatus(opp.status));
-    const [priority, setPriority] = useState<number>(opp.priority || 1);
+    const [isHighPriority, setIsHighPriority] = useState(opp.is_high_priority);
     const [outcome, setOutcome] = useState<OpportunityOutcome>(opp.outcome);
     const [deadline, setDeadline] = useState(
         opp.deadline_at ? new Date(opp.deadline_at).toISOString().slice(0, 10) : (opp.deadline_raw || '')
@@ -70,7 +70,7 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
                 organisation,
                 category,
                 status,
-                priority,
+                is_high_priority: isHighPriority,
                 outcome,
                 deadline_raw: deadline,
                 deadline_timezone: timezone || null,
@@ -154,15 +154,10 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
                                 <div className="opp-form-grid-3">
                                     <div className="opp-form-group">
                                         <label className="opp-form-label">Priority</label>
-                                        <select
-                                            className="opp-form-select"
-                                            value={priority}
-                                            onChange={(e) => setPriority(Number(e.target.value))}
-                                        >
-                                            <option value={1}>★ Low</option>
-                                            <option value={2}>★★ Medium</option>
-                                            <option value={3}>★★★ High</option>
-                                        </select>
+                                        <label className="opp-popover-checkbox">
+                                            <input type="checkbox" checked={isHighPriority} onChange={(e) => setIsHighPriority(e.target.checked)} />
+                                            <span>High priority</span>
+                                        </label>
                                     </div>
 
                                     <div className="opp-form-group">
@@ -172,11 +167,8 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
                                             value={status}
                                             onChange={(e) => setStatus(e.target.value as OpportunityStatus)}
                                         >
-                                            <option value="inbox">Saved</option>
-                                            <option value="interested">Reviewing</option>
-                                            <option value="preparing">Applying</option>
-                                            <option value="submitted">Submitted</option>
-                                            <option value="done">Archived</option>
+                                            <option value="reviewing">Reviewing</option>
+                                            <option value="applied">Applied</option>
                                         </select>
                                     </div>
 

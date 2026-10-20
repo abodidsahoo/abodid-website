@@ -13,7 +13,6 @@
         <span class="pop-brand-dot" aria-hidden="true"></span>
         <span class="pop-brand">OPPORTUNITY TRACKER</span>
       </div>
-      <button id="dashboard-btn" class="icon-btn" type="button" title="Open dashboard" aria-label="Open dashboard">↗</button>
     </header>
 
     <section id="auth-panel" class="pane auth-pane hidden">
@@ -23,19 +22,28 @@
       <button id="sign-in-btn" class="pop-btn" type="button">Continue with Google →</button>
     </section>
 
-    <section id="capture-panel" class="pane">
+    <section id="capture-panel" class="pane capture-pane">
       <div id="profile-row" class="profile-row hidden">
         <span class="profile-copy"><strong id="profile-name"></strong><small id="profile-username"></small></span>
         <button id="logout-btn" class="text-btn" type="button">Log out</button>
       </div>
 
-      <div id="target-card" class="target-card is-scanning">
-        <div class="target-label">CURRENT PAGE</div>
-        <div id="page-title" class="target-title">Scanning current page…</div>
-        <div id="page-url" class="target-url">Reading title and address</div>
+      <div id="target-card" class="target-card is-scanning" aria-live="polite">
+        <div id="page-title" class="target-title">Loading…</div>
       </div>
 
       <button id="save-btn" class="pop-btn" type="button" disabled>Checking tracker…</button>
+
+      <section id="capture-progress" class="capture-progress hidden" aria-labelledby="capture-progress-title">
+        <div class="capture-progress-copy" role="status" aria-live="polite" aria-atomic="true">
+          <strong id="capture-progress-title">Capturing opportunity</strong>
+          <span>Keep exploring while we read and organize it. We’ll notify you when it’s saved.</span>
+        </div>
+        <span class="capture-dots" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </span>
+        <button id="close-progress-btn" class="capture-close-btn" type="button">Keep exploring →</button>
+      </section>
 
       <div id="result-box" class="result-box hidden">
         <span id="result-success-badge" class="result-success-badge">✓ Captured &amp; Saved</span>
@@ -49,11 +57,9 @@
             <strong id="result-deadline">—</strong>
           </div>
         </div>
-        <button id="result-dashboard-btn" class="result-dashboard-btn" type="button">
-          <span>Open Dashboard</span>
-          <span aria-hidden="true">↗</span>
-        </button>
       </div>
+
+      <button id="dashboard-btn" class="dashboard-btn" type="button">Open dashboard</button>
     </section>
 
     <aside class="privacy-note" aria-label="Sign-in and capture privacy information">

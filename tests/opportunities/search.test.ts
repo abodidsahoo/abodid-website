@@ -26,7 +26,7 @@ const opportunity = (overrides: Partial<Opportunity>): Opportunity => ({
     fee_or_funding: null,
     application_fee: null,
     summary: null,
-    status: 'inbox',
+    status: 'reviewing',
     outcome: null,
     created_at: '2026-10-16T00:00:00.000Z',
     updated_at: '2026-10-16T00:00:00.000Z',
@@ -35,7 +35,7 @@ const opportunity = (overrides: Partial<Opportunity>): Opportunity => ({
     llm_model: null,
     llm_extraction_count: 0,
     notes: null,
-    priority: 1,
+    is_high_priority: false,
     ...overrides,
 });
 

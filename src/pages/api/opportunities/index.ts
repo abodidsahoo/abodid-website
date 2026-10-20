@@ -10,6 +10,7 @@ import {
     type SavedOpportunityRow,
 } from '../../../lib/opportunities/saved';
 import { OpportunityCategorySchema, OpportunityStatusSchema, type Opportunity } from '../../../lib/opportunities/types';
+import { findOpportunityDataDuplicate } from '../../../lib/opportunities/unifiedInput';
 
 export const prerender = false;
 
@@ -17,7 +18,7 @@ const sortOpportunities = (opportunities: Opportunity[]) => {
     const now = Date.now();
     return opportunities.sort((a, b) => {
         const getBucket = (opportunity: Opportunity) => {
-            if (opportunity.status === 'done' || opportunity.status === 'dismissed') return 99;
+            if (opportunity.status === 'applied') return 99;
             if (opportunity.deadline_at) {
                 return new Date(opportunity.deadline_at).getTime() >= now ? 1 : 5;
             }
@@ -27,6 +28,7 @@ const sortOpportunities = (opportunities: Opportunity[]) => {
             return 6;
         };
 
+        if (a.is_high_priority !== b.is_high_priority) return a.is_high_priority ? -1 : 1;
         const bucketA = getBucket(a);
         const bucketB = getBucket(b);
         if (bucketA !== bucketB) return bucketA - bucketB;
@@ -79,7 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         const category = OpportunityCategorySchema.safeParse(body.category || 'other');
-        const status = OpportunityStatusSchema.safeParse(body.status || 'inbox');
+        const status = OpportunityStatusSchema.safeParse(body.status || 'reviewing');
         if (!category.success || !status.success) {
             return opportunityJson({ error: 'Invalid category or status' }, 400);
         }
@@ -89,6 +91,24 @@ export const POST: APIRoute = async ({ request }) => {
             canonicalUrl = canonicalizeUrl(sourceUrl);
         } catch {
             return opportunityJson({ error: 'Enter a valid HTTP or HTTPS source URL' }, 400);
+        }
+
+        const { data: urlDuplicate, error: urlDuplicateError } = await authorization.userClient
+            .from('saved_opportunities')
+            .select(PRIVATE_SAVED_SELECT)
+            .eq('user_id', authorization.user.id)
+            .eq('canonical_url', canonicalUrl)
+            .maybeSingle();
+        if (urlDuplicateError) {
+            return opportunityJson({ error: 'Could not check for existing opportunities' }, 500);
+        }
+        if (urlDuplicate) {
+            return opportunityJson({
+                error: 'This opportunity is already on your radar.',
+                code: 'DUPLICATE_OPPORTUNITY',
+                is_duplicate: true,
+                opportunity: savedRowToOpportunity(urlDuplicate as unknown as SavedOpportunityRow),
+            }, 409);
         }
 
         const parsedDeadline = parseDeadline(body.deadline, body.timezone);
@@ -117,7 +137,7 @@ export const POST: APIRoute = async ({ request }) => {
             application_fee: typeof body.application_fee === 'string' ? body.application_fee.trim().slice(0, 1000) || null : null,
             summary: typeof body.summary === 'string' ? body.summary.trim().slice(0, 10000) || null : null,
             status: status.data,
-            priority: Math.min(3, Math.max(1, Number(body.priority) || 1)),
+            is_high_priority: Boolean(body.is_high_priority),
             outcome: null,
             notes: typeof body.notes === 'string' ? body.notes.trim().slice(0, 20000) || null : null,
             extracted_at: new Date().toISOString(),
@@ -126,14 +146,53 @@ export const POST: APIRoute = async ({ request }) => {
             llm_extraction_count: 0,
         } as Opportunity;
 
+        const { data: possibleDuplicates, error: duplicateLookupError } = await authorization.userClient
+            .from('saved_opportunities')
+            .select(PRIVATE_SAVED_SELECT)
+            .eq('user_id', authorization.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1000);
+        if (duplicateLookupError) {
+            return opportunityJson({ error: 'Could not check for existing opportunities' }, 500);
+        }
+
+        const existing = findOpportunityDataDuplicate(
+            ((possibleDuplicates || []) as unknown as SavedOpportunityRow[]).map(savedRowToOpportunity),
+            opportunity,
+        );
+        if (existing) {
+            return opportunityJson({
+                error: 'This opportunity may already be on your radar.',
+                code: 'DUPLICATE_OPPORTUNITY',
+                is_duplicate: true,
+                opportunity: existing,
+            }, 409);
+        }
+
         const insert = opportunityToSavedInsert(authorization.user.id, opportunity);
         const { data, error } = await authorization.userClient
             .from('saved_opportunities')
-            .upsert(insert, { onConflict: 'user_id,canonical_url', ignoreDuplicates: false })
+            .insert(insert)
             .select(PRIVATE_SAVED_SELECT)
             .single();
 
         if (error || !data) {
+            if (error?.code === '23505') {
+                const { data: duplicate } = await authorization.userClient
+                    .from('saved_opportunities')
+                    .select(PRIVATE_SAVED_SELECT)
+                    .eq('user_id', authorization.user.id)
+                    .eq('canonical_url', canonicalUrl)
+                    .maybeSingle();
+                if (duplicate) {
+                    return opportunityJson({
+                        error: 'This opportunity is already on your radar.',
+                        code: 'DUPLICATE_OPPORTUNITY',
+                        is_duplicate: true,
+                        opportunity: savedRowToOpportunity(duplicate as unknown as SavedOpportunityRow),
+                    }, 409);
+                }
+            }
             return opportunityJson({ error: 'Could not save this opportunity' }, 500);
         }
 

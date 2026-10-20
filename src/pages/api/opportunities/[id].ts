@@ -45,10 +45,11 @@ export const PATCH: APIRoute = async ({ params, request }) => {
         updates.status = status.data;
     }
 
-    if (body.priority !== undefined) {
-        const priority = Number(body.priority);
-        if (![1, 2, 3].includes(priority)) return opportunityJson({ error: 'Invalid priority' }, 400);
-        updates.priority = priority;
+    if (body.is_high_priority !== undefined) {
+        if (typeof body.is_high_priority !== 'boolean') {
+            return opportunityJson({ error: 'Invalid high-priority value' }, 400);
+        }
+        updates.is_high_priority = body.is_high_priority;
     }
 
     if (body.outcome !== undefined) {

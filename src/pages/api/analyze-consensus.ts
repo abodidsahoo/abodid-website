@@ -157,7 +157,7 @@ Compare.
             success: false,
             fallback_used: true,
             model_used: "fallback/heuristic",
-            model_tier: "local",
+            model_tier: "heuristic",
             ...fallback
         }), { status: 200 });
 

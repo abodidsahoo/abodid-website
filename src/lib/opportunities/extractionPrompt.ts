@@ -49,8 +49,10 @@ FIELD EXTRACTION GUIDELINES:
    - Host city and country (e.g. "Singapore", "Berlin, Germany", "Online / Remote").
 
 8. requirements (array of strings):
-   - Clean, actionable submission prerequisites (e.g. ["Portfolio (max 10 images/video links)", "Project proposal (500 words)", "CV / Artist Bio", "Artist statement"]).
-   - Filter out random numbers, time ranges, website navigation indices, or contact phone numbers.
+   - Return only 3-5 essential submission requirements as concise standalone points (e.g. ["Portfolio (max 10 images/video links)", "Project proposal (500 words)", "CV or artist bio"]).
+   - Summarize the important materials or eligibility conditions; do not turn the application into a numbered workflow, task plan, priority list, or completion checklist.
+   - Never prefix items with step numbers, checkbox markers, "to do", or completion language. The interface presents these values as simple informational bullet points only.
+   - Filter out generic actions (such as "open the form" or "submit the application"), random numbers, time ranges, website navigation indices, and contact phone numbers.
 
 9. next_action (string | null):
    - One short, concrete next step for the applicant (e.g. "Prepare 500-word proposal draft", "Review guidelines & download application PDF").
