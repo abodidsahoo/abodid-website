@@ -9,6 +9,8 @@ const AUTH_CACHE_KEY = 'opportunity-auth-cache-v1';
 const CAPTURE_STATE_KEY = 'opportunity-capture-state-v1';
 const CAPTURE_STATE_MAX_AGE_MS = 15 * 60 * 1000;
 const CAPTURE_NOTIFICATION_PREFIX = 'opportunity-capture:';
+const CAPTURE_STATUS_ALARM_PREFIX = 'opportunity-capture-status:';
+const CAPTURE_STATUS_POLL_MINUTES = 0.5;
 const captureStorage = webext.storage.local;
 
 type CaptureState = {
@@ -16,6 +18,8 @@ type CaptureState = {
     status: 'capturing' | 'queued' | 'success' | 'error';
     startedAt: number;
     tabId?: number;
+    url?: string;
+    title?: string;
     result?: any;
     error?: string;
 };
@@ -95,6 +99,31 @@ const getCaptureState = async (): Promise<CaptureState | null> => {
 const setCaptureState = async (state: CaptureState) => {
     await captureStorage.set({ [CAPTURE_STATE_KEY]: state });
     return state;
+};
+
+const scheduleCaptureStatusCheck = async (jobId: string) => {
+    if (!webext.alarms?.create) return;
+    await webext.alarms.create(`${CAPTURE_STATUS_ALARM_PREFIX}${jobId}`, {
+        delayInMinutes: CAPTURE_STATUS_POLL_MINUTES,
+    });
+};
+
+const fetchCaptureJob = async (jobId: string) => {
+    const send = (accessToken: string) => fetch(`${__APP_ORIGIN__}/api/opportunities/capture-jobs/${encodeURIComponent(jobId)}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: 'no-store',
+    });
+    const { data: { session } } = await extensionSupabase.auth.getSession();
+    if (!session?.access_token) throw new Error('Sign in to check this capture');
+
+    let response = await send(session.access_token);
+    if (response.status === 401) {
+        const { data, error } = await extensionSupabase.auth.refreshSession();
+        if (!error && data.session?.access_token) response = await send(data.session.access_token);
+    }
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.job) throw new Error(payload.error || 'Capture status could not be checked');
+    return payload.job;
 };
 
 const saveUrl = async (idempotencyKey: string, url: string, title = '', pageText = '') => {
@@ -185,6 +214,53 @@ const showCaptureNotification = async (state: CaptureState, title: string, messa
     }
 };
 
+const refreshQueuedCaptureState = async (state: CaptureState, notifyCompletion = false) => {
+    if (state.status !== 'queued') return state;
+    try {
+        const job = await fetchCaptureJob(state.id);
+        if (job.status === 'pending' || job.status === 'processing' || job.status === 'uploading') {
+            await scheduleCaptureStatusCheck(state.id);
+            return state;
+        }
+        if (job.status === 'failed') {
+            const failedState: CaptureState = {
+                ...state,
+                status: 'error',
+                error: job.error_message || 'This opportunity could not be saved.',
+            };
+            await setCaptureState(failedState);
+            if (notifyCompletion) await showCaptureNotification(failedState, 'Capture failed', failedState.error || 'Please try again.');
+            return failedState;
+        }
+
+        const completedState: CaptureState = {
+            ...state,
+            status: 'success',
+            result: {
+                backgroundCompleted: true,
+                is_duplicate: Boolean(job.is_duplicate),
+                job,
+            },
+        };
+        await setCaptureState(completedState);
+        if (notifyCompletion) {
+            await showCaptureNotification(
+                completedState,
+                job.is_duplicate ? 'Already in your tracker' : 'Saved successfully',
+                job.is_duplicate
+                    ? 'This opportunity was already saved. Nothing was duplicated.'
+                    : 'The opportunity is ready in your dashboard.',
+            );
+        }
+        await showActionFeedback('✓', '#caff48');
+        return completedState;
+    } catch (error) {
+        console.warn('Capture completion check failed', error instanceof Error ? error.message : error);
+        await scheduleCaptureStatusCheck(state.id);
+        return state;
+    }
+};
+
 const keepCaptureWorkerAlive = () => {
     let keepAliveTimer: ReturnType<typeof setTimeout> | undefined;
     const pulse = () => {
@@ -210,10 +286,11 @@ const runCaptureOperation = async (state: CaptureState, url: string, title: stri
                 result: saved,
             };
             await setCaptureState(queuedState);
+            await scheduleCaptureStatusCheck(queuedState.id);
             const notified = await showCaptureNotification(
                 queuedState,
                 'Capture received',
-                'It is safely processing in the background. You can close the tab or browser.',
+                'It is safely processing. You do not need to capture this page again.',
             );
             if (!notified) {
                 await showOpportunityToast(state.tabId, {
@@ -271,6 +348,16 @@ webext.notifications?.onClicked?.addListener((notificationId: string) => {
     void (async () => {
         await webext.notifications.clear(notificationId);
         await openDashboardTab();
+    })();
+});
+
+webext.alarms?.onAlarm?.addListener((alarm: { name?: string }) => {
+    if (!alarm.name?.startsWith(CAPTURE_STATUS_ALARM_PREFIX)) return;
+    void (async () => {
+        const state = await getCaptureState();
+        const jobId = alarm.name?.slice(CAPTURE_STATUS_ALARM_PREFIX.length);
+        if (!state || state.status !== 'queued' || state.id !== jobId) return;
+        await refreshQueuedCaptureState(state, true);
     })();
 });
 
@@ -354,7 +441,10 @@ webext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (
                 await captureStorage.remove(CAPTURE_STATE_KEY);
                 return { signedIn: false, profile: null };
             case 'GET_CAPTURE_STATE':
-                return getCaptureState();
+                return (async () => {
+                    const state = await getCaptureState();
+                    return state?.status === 'queued' ? refreshQueuedCaptureState(state) : state;
+                })();
             case 'START_CAPTURE': {
                 const existing = await getCaptureState();
                 if (existing?.status === 'capturing') return existing;
@@ -364,6 +454,8 @@ webext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (
                     status: 'capturing',
                     startedAt: Date.now(),
                     tabId: typeof message.tabId === 'number' ? message.tabId : undefined,
+                    url: String(message.url || ''),
+                    title: String(message.title || ''),
                 };
                 await setCaptureState(state);
                 const pageText = state.tabId

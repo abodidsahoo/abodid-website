@@ -7,6 +7,7 @@ type CaptureState = {
     id: string;
     status: 'capturing' | 'queued' | 'success' | 'error';
     startedAt: number;
+    url?: string;
     result?: any;
     error?: string;
 };
@@ -24,6 +25,9 @@ const captureProgress = byId<HTMLElement>('capture-progress');
 const result = byId<HTMLDivElement>('result-box');
 const resultSuccessBadge = byId<HTMLSpanElement>('result-success-badge');
 const resultProcessing = byId<HTMLDivElement>('result-processing');
+const resultProcessingTitle = byId<HTMLElement>('result-processing-title');
+const resultProcessingDetail = byId<HTMLElement>('result-processing-detail');
+const resultProcessingProgress = byId<HTMLProgressElement>('result-processing-progress');
 const resultDetails = byId<HTMLDivElement>('result-details');
 const resultCategory = byId<HTMLElement>('result-category');
 const resultDeadline = byId<HTMLElement>('result-deadline');
@@ -89,6 +93,17 @@ const formatPageTitle = (title: unknown) => {
     return simplified || 'Opportunity page';
 };
 
+const normalizePageUrl = (value: unknown) => {
+    if (typeof value !== 'string') return '';
+    try {
+        const url = new URL(value);
+        url.hash = '';
+        return url.toString();
+    } catch {
+        return value;
+    }
+};
+
 const applyAuthState = (state: any) => {
     signedIn = Boolean(state?.signedIn);
     authResolved = true;
@@ -152,6 +167,9 @@ const applyCaptureState = (state: CaptureState | null) => {
         clearStatus();
         result.classList.add('is-processing');
         resultSuccessBadge.textContent = '✓ Capture received';
+        resultProcessingTitle.textContent = 'Processing in the background';
+        resultProcessingDetail.textContent = 'Your capture is safe. You do not need to capture it again.';
+        resultProcessingProgress.classList.remove('hidden');
         resultProcessing.classList.remove('hidden');
         resultDetails.classList.add('hidden');
         result.classList.remove('hidden');
@@ -163,6 +181,17 @@ const applyCaptureState = (state: CaptureState | null) => {
     resultProcessing.classList.add('hidden');
     resultDetails.classList.remove('hidden');
     const saved = state.result || {};
+    if (saved.backgroundCompleted) {
+        result.classList.add('is-processing');
+        resultSuccessBadge.textContent = saved.is_duplicate ? '✓ Already in your tracker' : '✓ Saved successfully';
+        resultProcessingTitle.textContent = saved.is_duplicate ? 'Nothing was duplicated' : 'Added to your tracker';
+        resultProcessingDetail.textContent = 'This page is handled. You do not need to capture it again.';
+        resultProcessingProgress.classList.add('hidden');
+        resultProcessing.classList.remove('hidden');
+        resultDetails.classList.add('hidden');
+        result.classList.remove('hidden');
+        return;
+    }
     const opportunity = saved.opportunity || {};
     const deadline = formatResultDeadline(opportunity.deadline_at, opportunity.deadline_raw);
     resultSuccessBadge.textContent = saved.is_duplicate ? '✓ Already saved' : '✓ Captured successfully';
@@ -201,6 +230,14 @@ const loadActiveTab = async () => {
     return activeTab;
 };
 
+const restoreCaptureStateForActiveTab = async () => {
+    const response = await sendRuntimeMessage<any>({ type: 'GET_CAPTURE_STATE' });
+    const state = response?.ok ? response.data as CaptureState | null : null;
+    if (!state?.url || normalizePageUrl(state.url) !== normalizePageUrl(activeTab?.url)) return;
+    captureStartedInPopup = true;
+    applyCaptureState(state);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     void (async () => {
         try {
@@ -211,12 +248,14 @@ document.addEventListener('DOMContentLoaded', () => {
             showError(error instanceof Error ? error.message : 'Your tracker session could not be checked.');
         }
     })();
-    void loadActiveTab().catch((error) => {
-        targetCard.classList.remove('is-scanning');
-        pageTitle.textContent = 'This tab cannot be captured';
-        showError(error instanceof Error ? error.message : 'The page could not be read.');
-        syncSaveButton();
-    });
+    void loadActiveTab()
+        .then(() => restoreCaptureStateForActiveTab())
+        .catch((error) => {
+            targetCard.classList.remove('is-scanning');
+            pageTitle.textContent = 'This tab cannot be captured';
+            showError(error instanceof Error ? error.message : 'The page could not be read.');
+            syncSaveButton();
+        });
 });
 
 webext.storage.onChanged.addListener((changes: any, areaName: string) => {
