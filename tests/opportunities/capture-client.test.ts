@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
     clearSubmittedCaptureUrl,
+    finalizeOpportunityCaptureJob,
     OpportunityCaptureTimeoutError,
     requestOpportunityCapture,
     requestOpportunityCaptureJob,
     requestOpportunityCaptureJobStatus,
+    requestOpportunityInputCaptureJob,
 } from '../../src/lib/opportunities/captureClient';
 
 describe('Opportunity capture client lifecycle', () => {
@@ -126,6 +128,46 @@ describe('Opportunity capture client lifecycle', () => {
         expect(fetchImpl).toHaveBeenCalledWith(
             '/api/opportunities/capture-jobs/job%20with%20spaces',
             expect.objectContaining({ method: 'GET', cache: 'no-store' }),
+        );
+    });
+
+    it('records note and attachment metadata before direct upload', async () => {
+        const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            accepted: false,
+            job: { id: 'job-2', status: 'uploading' },
+            uploads: [{ path: 'user/job/file.pdf', token: 'signed-token' }],
+        }), { status: 202, headers: { 'Content-Type': 'application/json' } }));
+
+        await requestOpportunityInputCaptureJob({
+            text: 'A pasted note',
+            attachments: [{ name: 'brief.pdf', type: 'application/pdf', size: 2048 }],
+            accessToken: 'token',
+            idempotencyKey: '10000000-0000-4000-8000-000000000002',
+            fetchImpl,
+        });
+
+        const body = JSON.parse(String(fetchImpl.mock.calls[0][1]?.body));
+        expect(body).toMatchObject({
+            text: 'A pasted note',
+            attachments: [{ name: 'brief.pdf', type: 'application/pdf', size: 2048 }],
+        });
+    });
+
+    it('finalizes uploaded attachments through the receipt endpoint', async () => {
+        const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            accepted: true,
+            job: { id: 'job/with spaces', status: 'pending' },
+        }), { status: 202, headers: { 'Content-Type': 'application/json' } }));
+
+        await finalizeOpportunityCaptureJob({
+            jobId: 'job/with spaces',
+            accessToken: 'token',
+            fetchImpl,
+        });
+
+        expect(fetchImpl).toHaveBeenCalledWith(
+            '/api/opportunities/capture-jobs/job%2Fwith%20spaces/finalize',
+            expect.objectContaining({ method: 'POST', cache: 'no-store' }),
         );
     });
 });

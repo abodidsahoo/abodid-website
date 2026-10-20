@@ -116,6 +116,9 @@ const lastUpdatedDate = "14 October 2026";
                 <li>
                   <strong>Opportunity capture:</strong> When you choose Capture &amp; Save or Save to Opportunity Tracker from Chrome’s right-click menu, the extension sends the selected page URL, page title, visible page text, capture time, and browser timezone to abodid.com to identify and save opportunity details. No page is read or transmitted until you take one of these capture actions. A private capture receipt is recorded first so processing can continue after you close the page or browser.
                 </li>
+                <li>
+                  <strong>Opportunity notes &amp; attachments:</strong> When you submit pasted text, an image, video, PDF, or text document in the tracker, the source is used only to extract and save the opportunity you requested. Attachments upload to temporary private storage through a signed upload target. Once the tracker confirms “Safely captured,” processing may continue after you close the tab.
+                </li>
               </ul>
             </div>
           </article>
@@ -146,7 +149,7 @@ const lastUpdatedDate = "14 October 2026";
                 All data in transit is encrypted using industry-standard TLS / HTTPS encryption. Data records (such as newsletter subscribers and form submissions) are stored in secure Supabase databases with Row Level Security (RLS) policies enforced.
               </p>
               <p>
-                For Opportunity Tracker, Google provides account sign-in, Supabase provides authentication and durable capture-job storage, Vercel hosts the application endpoints and background processing, and OpenRouter processes the page text needed to extract opportunity details. Raw captured page text is not stored in the saved opportunity record. It is removed from a successful capture job immediately; after a final failure it is retained privately for retry recovery for no longer than 24 hours and then removed automatically. The derived title, organisation, dates, summary, requirements, links, and related fields are stored for the tracker. Data is not used for advertising, creditworthiness, or purposes unrelated to the tracker.
+                For Opportunity Tracker, Google provides account sign-in, Supabase provides authentication, durable capture-job records, and temporary private attachment storage, Vercel hosts the application endpoints and background processing, and OpenRouter processes submitted page text, notes, documents, images, or selected video frames needed to extract opportunity details. Raw page snapshots and attachment files are not stored in the saved opportunity record; text you intentionally paste may also be kept in that opportunity’s editable notes so you can review or delete it. Temporary source copies are removed from a successful capture job immediately; after a final failure they are retained privately for retry recovery for no longer than 24 hours and then removed automatically. An attachment upload that is never finalized expires after one hour. The derived title, organisation, dates, summary, requirements, links, and related fields are stored for the tracker. Data is not used for advertising, creditworthiness, or purposes unrelated to the tracker.
               </p>
               <p>
                 Basic Google profile details are not used to read or access other Google services. They are retained with the tracker account until the account is deleted or an erasure request is completed. Signing out removes the local session but does not delete the account or its saved opportunities.

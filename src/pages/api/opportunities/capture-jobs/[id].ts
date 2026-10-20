@@ -45,6 +45,12 @@ export const POST: APIRoute = async ({ request, params }) => {
     if (current.status !== 'failed') {
         return opportunityJson({ job: captureJobToPublic(current) });
     }
+    if (current.input_kind !== 'url' && current.source_cleaned_at) {
+        return opportunityJson({
+            error: 'The temporary note or attachment has expired. Submit it again to create a new capture.',
+            code: 'CAPTURE_SOURCE_EXPIRED',
+        }, 410);
+    }
 
     const { data, error } = await authorization.serviceClient
         .from('opportunity_capture_jobs')
@@ -56,6 +62,8 @@ export const POST: APIRoute = async ({ request, params }) => {
             locked_at: null,
             error_code: null,
             error_message: null,
+            source_cleanup_at: null,
+            source_cleaned_at: null,
         })
         .eq('id', jobId)
         .eq('user_id', authorization.user.id)

@@ -50,11 +50,14 @@ import {
 } from '../../lib/opportunities/importIntent';
 import {
     clearSubmittedCaptureUrl,
+    finalizeOpportunityCaptureJob,
     OpportunityCaptureTimeoutError,
     requestOpportunityCapture,
     requestOpportunityCaptureJob,
     requestOpportunityCaptureJobStatus,
+    requestOpportunityInputCaptureJob,
     type OpportunityCaptureJob,
+    type OpportunityCaptureUploadTarget,
 } from '../../lib/opportunities/captureClient';
 import {
     buildExtractedOpportunityPayload,
@@ -594,37 +597,99 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             }
 
             setCaptureProgress(submittedFiles.length > 0
-                ? 'Reading your note and attachments…'
-                : 'Reading your note and organizing the details…');
-            const draft = await extractUnifiedInput(submittedInput, submittedFiles, controller.signal);
-            if (controller.signal.aborted) return;
-
-            setCaptureProgress('Saving the extracted opportunity…');
-            const payload = buildExtractedOpportunityPayload({
-                draft,
-                input: submittedInput,
-                directEntryId: crypto.randomUUID(),
-            });
-            const response = await fetch('/api/opportunities', {
-                method: 'POST',
-                headers: authenticatedHeaders(true),
-                body: JSON.stringify(payload),
+                ? 'Preparing a secure attachment upload…'
+                : 'Safely recording your note…');
+            const { response: queuedResponse, payload: queuedPayload } = await requestOpportunityInputCaptureJob({
+                text: submittedInput,
+                attachments: submittedFiles,
+                accessToken,
+                channel: 'dashboard',
                 signal: controller.signal,
+                refreshAccessToken: refreshOpportunityAccessToken,
             });
-            const data = await response.json().catch(() => ({}));
-            if (response.status === 409 && data.is_duplicate && data.opportunity) {
-                const { source_url: _sourceUrl, ...proposedUpdates } = payload;
-                setPendingDuplicate({
-                    existing: data.opportunity as Opportunity,
-                    proposedUpdates,
-                    sourceKind: 'extracted',
-                });
+
+            if (queuedResponse.ok && queuedPayload.job) {
+                let job = queuedPayload.job as OpportunityCaptureJob;
+                const uploads = Array.isArray(queuedPayload.uploads)
+                    ? queuedPayload.uploads as OpportunityCaptureUploadTarget[]
+                    : [];
+
+                if (submittedFiles.length > 0) {
+                    if (job.status !== 'uploading' || uploads.length !== submittedFiles.length) {
+                        throw new Error('The secure attachment upload could not be prepared.');
+                    }
+                    setCaptureProgress('Uploading securely… Keep this tab open until the capture receipt is ready.');
+                    for (const [index, file] of submittedFiles.entries()) {
+                        const target = uploads[index];
+                        const { error: uploadError } = await supabase.storage
+                            .from('opportunity-capture-files')
+                            .uploadToSignedUrl(target.path, target.token, file, {
+                                contentType: file.type || undefined,
+                            });
+                        if (uploadError) throw new Error(`Could not upload ${file.name}. Try again.`);
+                    }
+
+                    setCaptureProgress('Finalizing the secure capture receipt…');
+                    const finalized = await finalizeOpportunityCaptureJob({
+                        jobId: job.id,
+                        accessToken,
+                        signal: controller.signal,
+                        refreshAccessToken: refreshOpportunityAccessToken,
+                    });
+                    if (!finalized.response.ok || !finalized.payload.job) {
+                        throw new Error(finalized.payload.error || 'The attachment capture could not be finalized.');
+                    }
+                    job = finalized.payload.job as OpportunityCaptureJob;
+                }
+
+                latestCaptureJobIdRef.current = job.id;
+                setCaptureUrl((current) => clearSubmittedCaptureUrl(current, submittedInput));
+                clearCaptureAttachments();
+                setCaptureProgress('Safely captured. Processing in the background — you can close this tab.');
+                showToast('✓ Capture received — processing in the background');
+                keepBackgroundProgress = true;
+                void watchCaptureJob(job.id);
                 return;
             }
-            if (!response.ok || !data.opportunity) {
-                throw new Error(data.error || 'The opportunity could not be saved.');
+
+            // Compatibility path while the additive migration is rolling out.
+            if (queuedResponse.status === 503 && queuedPayload.code === 'CAPTURE_JOBS_NOT_CONFIGURED') {
+                setCaptureProgress(submittedFiles.length > 0
+                    ? 'Reading your note and attachments…'
+                    : 'Reading your note and organizing the details…');
+                const draft = await extractUnifiedInput(submittedInput, submittedFiles, controller.signal);
+                if (controller.signal.aborted) return;
+
+                setCaptureProgress('Saving the extracted opportunity…');
+                const payload = buildExtractedOpportunityPayload({
+                    draft,
+                    input: submittedInput,
+                    directEntryId: crypto.randomUUID(),
+                });
+                const response = await fetch('/api/opportunities', {
+                    method: 'POST',
+                    headers: authenticatedHeaders(true),
+                    body: JSON.stringify(payload),
+                    signal: controller.signal,
+                });
+                const data = await response.json().catch(() => ({}));
+                if (response.status === 409 && data.is_duplicate && data.opportunity) {
+                    const { source_url: _sourceUrl, ...proposedUpdates } = payload;
+                    setPendingDuplicate({
+                        existing: data.opportunity as Opportunity,
+                        proposedUpdates,
+                        sourceKind: 'extracted',
+                    });
+                    return;
+                }
+                if (!response.ok || !data.opportunity) {
+                    throw new Error(data.error || 'The opportunity could not be saved.');
+                }
+                addSavedOpportunity(data.opportunity as Opportunity);
+                return;
             }
-            addSavedOpportunity(data.opportunity as Opportunity);
+
+            throw new Error(queuedPayload.error || 'Failed to safely record this capture');
         } catch (error) {
             if (controller.signal.aborted && !(error instanceof OpportunityCaptureTimeoutError)) return;
             const message = error instanceof OpportunityCaptureTimeoutError
@@ -990,7 +1055,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     Paste a link or description, write a quick note, or attach supporting files.
                                 </p>
                             </div>
-                            <form onSubmit={handleCapture} className="opp-hero-capture-bar">
+                            <form
+                                action="/api/opportunities/capture-jobs"
+                                method="post"
+                                onSubmit={handleCapture}
+                                className="opp-hero-capture-bar"
+                            >
                                 <div className="opp-capture-input-shell">
                                     <textarea
                                         id="opportunity-capture-input"

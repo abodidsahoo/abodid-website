@@ -1,16 +1,15 @@
 import type { APIRoute } from 'astro';
-import { canonicalizeUrl } from '../../../lib/opportunities/scraper';
-import { parseDeadline, parseEventDate } from '../../../lib/opportunities/extractor';
-import { formatOpportunityTitle } from '../../../lib/opportunities/ui-helpers';
 import { authorizeOpportunityRequest, opportunityJson } from '../../../lib/opportunities/userAuth';
 import {
     PRIVATE_SAVED_SELECT,
-    opportunityToSavedInsert,
     savedRowToOpportunity,
     type SavedOpportunityRow,
 } from '../../../lib/opportunities/saved';
-import { OpportunityCategorySchema, OpportunityStatusSchema, type Opportunity } from '../../../lib/opportunities/types';
-import { findOpportunityDataDuplicate } from '../../../lib/opportunities/unifiedInput';
+import type { Opportunity } from '../../../lib/opportunities/types';
+import {
+    createOpportunityFromPayload,
+    OpportunityCreateError,
+} from '../../../lib/opportunities/createOpportunityService';
 
 export const prerender = false;
 
@@ -73,134 +72,28 @@ export const POST: APIRoute = async ({ request }) => {
     if (!authorization.ok) return authorization.response;
 
     try {
-        const body = await request.json().catch(() => ({}));
-        const title = typeof body.title === 'string' ? body.title.trim() : '';
-        const sourceUrl = typeof body.source_url === 'string' ? body.source_url.trim() : '';
-        if (!title || !sourceUrl || sourceUrl.length > 4096) {
-            return opportunityJson({ error: 'Title and source URL are required' }, 400);
-        }
-
-        const category = OpportunityCategorySchema.safeParse(body.category || 'other');
-        const status = OpportunityStatusSchema.safeParse(body.status || 'reviewing');
-        if (!category.success || !status.success) {
-            return opportunityJson({ error: 'Invalid category or status' }, 400);
-        }
-
-        let canonicalUrl: string;
-        try {
-            canonicalUrl = canonicalizeUrl(sourceUrl);
-        } catch {
-            return opportunityJson({ error: 'Enter a valid HTTP or HTTPS source URL' }, 400);
-        }
-
-        const { data: urlDuplicate, error: urlDuplicateError } = await authorization.userClient
-            .from('saved_opportunities')
-            .select(PRIVATE_SAVED_SELECT)
-            .eq('user_id', authorization.user.id)
-            .eq('canonical_url', canonicalUrl)
-            .maybeSingle();
-        if (urlDuplicateError) {
-            return opportunityJson({ error: 'Could not check for existing opportunities' }, 500);
-        }
-        if (urlDuplicate) {
-            return opportunityJson({
-                error: 'This opportunity is already on your radar.',
-                code: 'DUPLICATE_OPPORTUNITY',
-                is_duplicate: true,
-                opportunity: savedRowToOpportunity(urlDuplicate as unknown as SavedOpportunityRow),
-            }, 409);
-        }
-
-        const parsedDeadline = parseDeadline(body.deadline, body.timezone);
-        const parsedEventDate = parseEventDate(body.event_date, undefined, body.timezone);
-        const opportunity = {
-            title: formatOpportunityTitle(title).slice(0, 240),
-            organisation: String(body.organisation || 'Independent / Direct').trim().slice(0, 240),
-            category: category.data,
-            source_url: sourceUrl,
-            canonical_url: canonicalUrl,
-            deadline_at: parsedDeadline.deadline_at,
-            deadline_raw: parsedDeadline.deadline_raw,
-            deadline_timezone: parsedDeadline.deadline_timezone,
-            deadline_confidence: parsedDeadline.deadline_confidence,
-            event_date: parsedEventDate,
-            location: typeof body.location === 'string' ? body.location.trim().slice(0, 1000) || null : null,
-            requirements: Array.isArray(body.requirements)
-                ? body.requirements.slice(0, 50).map((value: unknown) => String(value).slice(0, 500))
-                : typeof body.requirements === 'string'
-                    ? body.requirements.split(',').map((value: string) => value.trim()).filter(Boolean).slice(0, 50)
-                    : [],
-            next_action: typeof body.next_action === 'string' ? body.next_action.trim().slice(0, 1000) || null : null,
-            application_url: typeof body.application_url === 'string' ? body.application_url.trim().slice(0, 4096) || null : null,
-            meeting_url: typeof body.meeting_url === 'string' ? body.meeting_url.trim().slice(0, 4096) || null : null,
-            fee_or_funding: typeof body.fee_or_funding === 'string' ? body.fee_or_funding.trim().slice(0, 1000) || null : null,
-            application_fee: typeof body.application_fee === 'string' ? body.application_fee.trim().slice(0, 1000) || null : null,
-            summary: typeof body.summary === 'string' ? body.summary.trim().slice(0, 10000) || null : null,
-            status: status.data,
-            is_high_priority: Boolean(body.is_high_priority),
-            outcome: null,
-            notes: typeof body.notes === 'string' ? body.notes.trim().slice(0, 20000) || null : null,
-            extracted_at: new Date().toISOString(),
-            source_hash: null,
-            llm_model: 'manual',
-            llm_extraction_count: 0,
-        } as Opportunity;
-
-        const { data: possibleDuplicates, error: duplicateLookupError } = await authorization.userClient
-            .from('saved_opportunities')
-            .select(PRIVATE_SAVED_SELECT)
-            .eq('user_id', authorization.user.id)
-            .order('created_at', { ascending: false })
-            .limit(1000);
-        if (duplicateLookupError) {
-            return opportunityJson({ error: 'Could not check for existing opportunities' }, 500);
-        }
-
-        const existing = findOpportunityDataDuplicate(
-            ((possibleDuplicates || []) as unknown as SavedOpportunityRow[]).map(savedRowToOpportunity),
-            opportunity,
-        );
-        if (existing) {
+        const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+        const result = await createOpportunityFromPayload({
+            userId: authorization.user.id,
+            client: authorization.userClient,
+            body,
+        });
+        if (result.isDuplicate) {
             return opportunityJson({
                 error: 'This opportunity may already be on your radar.',
                 code: 'DUPLICATE_OPPORTUNITY',
                 is_duplicate: true,
-                opportunity: existing,
+                opportunity: result.opportunity,
             }, 409);
         }
-
-        const insert = opportunityToSavedInsert(authorization.user.id, opportunity);
-        const { data, error } = await authorization.userClient
-            .from('saved_opportunities')
-            .insert(insert)
-            .select(PRIVATE_SAVED_SELECT)
-            .single();
-
-        if (error || !data) {
-            if (error?.code === '23505') {
-                const { data: duplicate } = await authorization.userClient
-                    .from('saved_opportunities')
-                    .select(PRIVATE_SAVED_SELECT)
-                    .eq('user_id', authorization.user.id)
-                    .eq('canonical_url', canonicalUrl)
-                    .maybeSingle();
-                if (duplicate) {
-                    return opportunityJson({
-                        error: 'This opportunity is already on your radar.',
-                        code: 'DUPLICATE_OPPORTUNITY',
-                        is_duplicate: true,
-                        opportunity: savedRowToOpportunity(duplicate as unknown as SavedOpportunityRow),
-                    }, 409);
-                }
-            }
-            return opportunityJson({ error: 'Could not save this opportunity' }, 500);
-        }
-
         return opportunityJson({
             success: true,
-            opportunity: savedRowToOpportunity(data as unknown as SavedOpportunityRow),
+            opportunity: result.opportunity,
         }, 201);
-    } catch {
+    } catch (error) {
+        if (error instanceof OpportunityCreateError) {
+            return opportunityJson({ error: error.message, code: error.code }, error.status);
+        }
         return opportunityJson({ error: 'Could not create this opportunity' }, 500);
     }
 };

@@ -2,6 +2,8 @@ export const OPPORTUNITY_CAPTURE_TIMEOUT_MS = 80_000;
 
 export type OpportunityCapturePayload = {
     opportunity?: unknown;
+    job?: OpportunityCaptureJob;
+    uploads?: OpportunityCaptureUploadTarget[];
     error?: string;
     can_manual_create?: boolean;
     canonical_url?: string;
@@ -12,8 +14,8 @@ export type OpportunityCaptureJob = {
     id: string;
     idempotency_key: string;
     channel: 'dashboard' | 'extension' | 'telegram' | 'whatsapp';
-    input_kind: 'url';
-    status: 'pending' | 'processing' | 'succeeded' | 'failed';
+    input_kind: 'url' | 'text' | 'attachments' | 'mixed';
+    status: 'uploading' | 'pending' | 'processing' | 'succeeded' | 'failed';
     source_url: string | null;
     source_title: string | null;
     attempt_count: number;
@@ -25,8 +27,18 @@ export type OpportunityCaptureJob = {
     is_duplicate: boolean;
     error_code: string | null;
     error_message: string | null;
+    source_cleanup_at: string | null;
+    source_cleaned_at: string | null;
     created_at: string;
     updated_at: string;
+};
+
+export type OpportunityCaptureUploadTarget = {
+    path: string;
+    token: string;
+    name: string;
+    type: string;
+    size: number;
 };
 
 type FetchImplementation = (
@@ -50,6 +62,19 @@ type CaptureJobRequestOptions = CaptureRequestOptions & {
     idempotencyKey?: string;
     capturedAt?: string;
     captureTimezone?: string;
+};
+
+type CaptureInputJobRequestOptions = {
+    text: string;
+    attachments?: Array<Pick<File, 'name' | 'type' | 'size'>>;
+    accessToken: string | null;
+    refreshAccessToken?: () => Promise<string | null>;
+    signal?: AbortSignal;
+    channel?: 'dashboard' | 'extension';
+    idempotencyKey?: string;
+    capturedAt?: string;
+    captureTimezone?: string;
+    fetchImpl?: FetchImplementation;
 };
 
 export class OpportunityCaptureTimeoutError extends Error {
@@ -190,6 +215,55 @@ export const requestOpportunityCaptureJob = async ({
         captured_at: capturedAt,
         capture_timezone: captureTimezone,
     },
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl,
+});
+
+export const requestOpportunityInputCaptureJob = async ({
+    text,
+    attachments = [],
+    channel = 'dashboard',
+    idempotencyKey = crypto.randomUUID(),
+    capturedAt = new Date().toISOString(),
+    captureTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl = fetch,
+}: CaptureInputJobRequestOptions) => authorizedJsonRequest({
+    endpoint: '/api/opportunities/capture-jobs',
+    method: 'POST',
+    body: {
+        text,
+        attachments: attachments.map(({ name, type, size }) => ({ name, type, size })),
+        channel,
+        idempotency_key: idempotencyKey,
+        captured_at: capturedAt,
+        capture_timezone: captureTimezone,
+    },
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl,
+});
+
+export const finalizeOpportunityCaptureJob = async ({
+    jobId,
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl = fetch,
+}: {
+    jobId: string;
+    accessToken: string | null;
+    refreshAccessToken?: () => Promise<string | null>;
+    signal?: AbortSignal;
+    fetchImpl?: FetchImplementation;
+}) => authorizedJsonRequest({
+    endpoint: `/api/opportunities/capture-jobs/${encodeURIComponent(jobId)}/finalize`,
+    method: 'POST',
     accessToken,
     refreshAccessToken,
     signal,
