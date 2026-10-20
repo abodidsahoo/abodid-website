@@ -30,6 +30,12 @@ const profileFromUser = (user: any) => {
     };
 };
 
+const cacheSignedInProfile = async (profile: ReturnType<typeof profileFromUser>) => {
+    const state = { signedIn: true, profile, updatedAt: Date.now() };
+    await webext.storage.local.set({ [AUTH_CACHE_KEY]: state });
+    return state;
+};
+
 const refreshProfileCache = async (accessToken: string) => {
     try {
         const response = await fetch(`${__APP_ORIGIN__}/api/opportunities/session`, {
@@ -39,9 +45,7 @@ const refreshProfileCache = async (accessToken: string) => {
         const payload = await response.json();
         const { data: { session } } = await extensionSupabase.auth.getSession();
         if (session?.access_token !== accessToken) return;
-        await webext.storage.local.set({
-            [AUTH_CACHE_KEY]: { signedIn: true, profile: payload.profile, updatedAt: Date.now() },
-        });
+        await cacheSignedInProfile(payload.profile);
     } catch (error) {
         console.warn('Opportunity profile refresh failed', error instanceof Error ? error.message : error);
     }
@@ -56,8 +60,17 @@ const getSessionState = async () => {
 
     const cached = await webext.storage.local.get(AUTH_CACHE_KEY);
     const profile = cached?.[AUTH_CACHE_KEY]?.profile || profileFromUser(session.user);
+    const state = await cacheSignedInProfile(profile);
     void refreshProfileCache(session.access_token);
-    return { signedIn: true, profile };
+    return state;
+};
+
+const prewarmAuthCache = async () => {
+    try {
+        await getSessionState();
+    } catch (error) {
+        console.warn('Opportunity sign-in cache could not be prepared', error instanceof Error ? error.message : error);
+    }
 };
 
 const openDashboardTab = async () => {
@@ -262,6 +275,7 @@ webext.notifications?.onClicked?.addListener((notificationId: string) => {
 });
 
 webext.runtime.onInstalled.addListener(() => {
+    void prewarmAuthCache();
     void (async () => {
         await webext.contextMenus.removeAll();
         webext.contextMenus.create({ id: 'save-opportunity-page', title: 'Save page to Opportunity Tracker', contexts: ['page'] });
@@ -269,6 +283,10 @@ webext.runtime.onInstalled.addListener(() => {
     })().catch((error) => {
         console.warn('Opportunity context menus could not be created', error instanceof Error ? error.message : error);
     });
+});
+
+webext.runtime.onStartup?.addListener(() => {
+    void prewarmAuthCache();
 });
 
 webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {

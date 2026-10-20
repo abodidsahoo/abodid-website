@@ -78,6 +78,18 @@ type PendingDuplicate = {
     sourceKind: 'url' | 'extracted';
 };
 
+type CaptureNotice = {
+    eyebrow: string;
+    title: string;
+    detail: string;
+};
+
+const captureNotice = (eyebrow: string, title: string, detail: string): CaptureNotice => ({
+    eyebrow,
+    title,
+    detail,
+});
+
 interface OpportunityDashboardProps {
     username: string;
     accessToken?: string | null;
@@ -106,7 +118,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [isCapturing, setIsCapturing] = useState(false);
     const [captureResult, setCaptureResult] = useState<Opportunity | null>(null);
     const [captureError, setCaptureError] = useState('');
-    const [captureProgress, setCaptureProgress] = useState('');
+    const [captureProgress, setCaptureProgress] = useState<CaptureNotice | null>(null);
     const [pendingDuplicate, setPendingDuplicate] = useState<PendingDuplicate | null>(null);
     const [failedCaptureJobId, setFailedCaptureJobId] = useState<string | null>(null);
     const captureAbortRef = useRef<AbortController | null>(null);
@@ -419,14 +431,18 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             const job = payload.job as OpportunityCaptureJob;
             if (job.status === 'pending' || job.status === 'processing') {
-                setCaptureProgress('Safely captured. Processing in the background — you can close this tab.');
+                setCaptureProgress(captureNotice(
+                    'Capture received',
+                    'Your capture is processing in the background.',
+                    'It is safely stored. You can close this tab.',
+                ));
                 captureJobPollTimerRef.current = window.setTimeout(() => {
                     void watchCaptureJob(jobId);
                 }, 2_000);
                 return;
             }
 
-            setCaptureProgress('');
+            setCaptureProgress(null);
             if (job.status === 'failed') {
                 latestCaptureJobIdRef.current = null;
                 setFailedCaptureJobId(job.id);
@@ -455,14 +471,18 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         if (!failedCaptureJobId) return;
         setCaptureError('');
         setFailedCaptureJobId(null);
-        setCaptureProgress('Retrying safely in the background…');
+        setCaptureProgress(captureNotice(
+            'Retrying capture',
+            'Your capture is being sent to the server again.',
+            'You can leave this page once the new receipt is confirmed.',
+        ));
         const response = await fetch(`/api/opportunities/capture-jobs/${encodeURIComponent(failedCaptureJobId)}`, {
             method: 'POST',
             headers: authenticatedHeaders(),
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.job) {
-            setCaptureProgress('');
+            setCaptureProgress(null);
             setCaptureError(data.error || 'This capture could not be retried.');
             setFailedCaptureJobId(failedCaptureJobId);
             return;
@@ -485,7 +505,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             const unfinished = jobs.find((job) => job.status === 'pending' || job.status === 'processing');
             if (!unfinished || cancelled) return;
             latestCaptureJobIdRef.current = unfinished.id;
-            setCaptureProgress('Resuming a background capture. You can close this tab.');
+            setCaptureProgress(captureNotice(
+                'Capture resumed',
+                'Your capture is still processing in the background.',
+                'It is safely stored. You can close this tab.',
+            ));
             void watchCaptureJob(unfinished.id);
         })().catch(() => undefined);
 
@@ -550,7 +574,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         try {
             const inputKind = classifyUnifiedOpportunityInput(submittedInput, submittedFiles.length);
             if (inputKind === 'url') {
-                setCaptureProgress('Safely recording this capture…');
+                setCaptureProgress(captureNotice(
+                    'Sending link',
+                    'Your link is being sent to the server.',
+                    'Please wait while we create a secure capture receipt.',
+                ));
                 const { response: queuedResponse, payload: queuedPayload } = await requestOpportunityCaptureJob({
                     url: submittedInput,
                     accessToken,
@@ -563,8 +591,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     const job = queuedPayload.job as OpportunityCaptureJob;
                     latestCaptureJobIdRef.current = job.id;
                     setCaptureUrl((current) => clearSubmittedCaptureUrl(current, submittedInput));
-                    setCaptureProgress('Safely captured. Processing in the background — you can close this tab.');
-                    showToast('✓ Capture received — processing in the background');
+                    setCaptureProgress(captureNotice(
+                        'Capture received',
+                        'Your link is processing in the background.',
+                        'It is safely stored. You can close this tab.',
+                    ));
                     keepBackgroundProgress = true;
                     void watchCaptureJob(job.id);
                     return;
@@ -574,7 +605,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 // being deployed. Existing users continue to receive the old
                 // synchronous behavior instead of a broken capture button.
                 if (queuedResponse.status === 503 && queuedPayload.code === 'CAPTURE_JOBS_NOT_CONFIGURED') {
-                    setCaptureProgress('Reading the link and organizing the opportunity…');
+                    setCaptureProgress(captureNotice(
+                        'Reading link',
+                        'Your link is being read and organized.',
+                        'Please keep this tab open until saving is complete.',
+                    ));
                     const { response: res, payload: data } = await requestOpportunityCapture({
                         url: submittedInput,
                         accessToken,
@@ -596,9 +631,21 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 throw new Error(queuedPayload.error || 'Failed to safely record this capture');
             }
 
+            const isSinglePdf = submittedFiles.length === 1
+                && (submittedFiles[0].type === 'application/pdf' || submittedFiles[0].name.toLowerCase().endsWith('.pdf'));
             setCaptureProgress(submittedFiles.length > 0
-                ? 'Preparing a secure attachment upload…'
-                : 'Safely recording your note…');
+                ? captureNotice(
+                    isSinglePdf ? 'PDF upload' : 'File upload',
+                    isSinglePdf
+                        ? 'Your PDF is being uploaded. Please wait.'
+                        : 'Your files are being uploaded. Please wait.',
+                    'Keep this tab open until the secure capture receipt is ready.',
+                )
+                : captureNotice(
+                    'Sending note',
+                    'Your note is being sent to the server.',
+                    'Please wait while we create a secure capture receipt.',
+                ));
             const { response: queuedResponse, payload: queuedPayload } = await requestOpportunityInputCaptureJob({
                 text: submittedInput,
                 attachments: submittedFiles,
@@ -618,7 +665,13 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     if (job.status !== 'uploading' || uploads.length !== submittedFiles.length) {
                         throw new Error('The secure attachment upload could not be prepared.');
                     }
-                    setCaptureProgress('Uploading securely… Keep this tab open until the capture receipt is ready.');
+                    setCaptureProgress(captureNotice(
+                        isSinglePdf ? 'PDF upload' : 'File upload',
+                        isSinglePdf
+                            ? 'Your PDF is being uploaded. Please wait.'
+                            : 'Your files are being uploaded. Please wait.',
+                        'Keep this tab open until the secure capture receipt is ready.',
+                    ));
                     for (const [index, file] of submittedFiles.entries()) {
                         const target = uploads[index];
                         const { error: uploadError } = await supabase.storage
@@ -629,7 +682,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         if (uploadError) throw new Error(`Could not upload ${file.name}. Try again.`);
                     }
 
-                    setCaptureProgress('Finalizing the secure capture receipt…');
+                    setCaptureProgress(captureNotice(
+                        'Finalizing upload',
+                        'Your upload is safely recorded.',
+                        'Please wait while the server confirms the capture receipt.',
+                    ));
                     const finalized = await finalizeOpportunityCaptureJob({
                         jobId: job.id,
                         accessToken,
@@ -645,8 +702,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 latestCaptureJobIdRef.current = job.id;
                 setCaptureUrl((current) => clearSubmittedCaptureUrl(current, submittedInput));
                 clearCaptureAttachments();
-                setCaptureProgress('Safely captured. Processing in the background — you can close this tab.');
-                showToast('✓ Capture received — processing in the background');
+                setCaptureProgress(captureNotice(
+                    'Capture received',
+                    'Your capture is processing in the background.',
+                    'It is safely stored. You can close this tab.',
+                ));
                 keepBackgroundProgress = true;
                 void watchCaptureJob(job.id);
                 return;
@@ -654,13 +714,21 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             // Compatibility path while the additive migration is rolling out.
             if (queuedResponse.status === 503 && queuedPayload.code === 'CAPTURE_JOBS_NOT_CONFIGURED') {
-                setCaptureProgress(submittedFiles.length > 0
-                    ? 'Reading your note and attachments…'
-                    : 'Reading your note and organizing the details…');
+                setCaptureProgress(captureNotice(
+                    submittedFiles.length > 0 ? 'Reading files' : 'Reading note',
+                    submittedFiles.length > 0
+                        ? 'Your note and attachments are being read.'
+                        : 'Your note is being read and organized.',
+                    'Please keep this tab open until saving is complete.',
+                ));
                 const draft = await extractUnifiedInput(submittedInput, submittedFiles, controller.signal);
                 if (controller.signal.aborted) return;
 
-                setCaptureProgress('Saving the extracted opportunity…');
+                setCaptureProgress(captureNotice(
+                    'Saving opportunity',
+                    'Your opportunity is being saved.',
+                    'Please keep this tab open until saving is complete.',
+                ));
                 const payload = buildExtractedOpportunityPayload({
                     draft,
                     input: submittedInput,
@@ -701,7 +769,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             if (captureAbortRef.current === controller) {
                 captureAbortRef.current = null;
                 setIsCapturing(false);
-                if (!keepBackgroundProgress) setCaptureProgress('');
+                if (!keepBackgroundProgress) setCaptureProgress(null);
             }
         }
     };
@@ -715,7 +783,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         if (!pendingDuplicate || isCapturing) return;
         setIsCapturing(true);
         setCaptureError('');
-        setCaptureProgress('Updating the existing opportunity…');
+        setCaptureProgress(captureNotice(
+            'Updating opportunity',
+            'Your existing opportunity is being updated.',
+            'Please keep this tab open until the update is saved.',
+        ));
         try {
             const response = pendingDuplicate.sourceKind === 'url'
                 ? await fetch(`/api/opportunities/${pendingDuplicate.existing.id}/re-extract`, {
@@ -738,7 +810,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             setCaptureError(error instanceof Error ? error.message : 'The existing opportunity could not be updated.');
         } finally {
             setIsCapturing(false);
-            setCaptureProgress('');
+            setCaptureProgress(null);
         }
     };
 
@@ -1131,10 +1203,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 </button>
                             </form>
                             {captureProgress && (
-                                <div className="opp-capture-processing" role="status" aria-live="polite">
-                                    <span className="opp-create-processing-mark" aria-hidden="true" />
-                                    <span>{captureProgress}</span>
-                                </div>
+                                <aside className="opp-capture-processing" role="status" aria-live="polite" aria-atomic="true">
+                                    <span className="opp-capture-processing-eyebrow">{captureProgress.eyebrow}</span>
+                                    <strong>{captureProgress.title}</strong>
+                                    <span>{captureProgress.detail}</span>
+                                    <progress aria-label={captureProgress.title} />
+                                </aside>
                             )}
                             {captureError && (
                                 <div id="opportunity-capture-error" className="opp-capture-error" role="alert">

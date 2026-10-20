@@ -84,6 +84,7 @@ const applyAuthState = (state: any) => {
     authPanel.classList.toggle('hidden', signedIn);
     capturePanel.classList.toggle('hidden', !signedIn);
     profileRow.classList.toggle('hidden', !signedIn);
+    profileRow.classList.remove('is-pending');
     if (signedIn) renderProfile(state.profile);
     syncSaveButton();
 };
@@ -187,16 +188,20 @@ const loadActiveTab = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    void renderCachedAuth();
+    void (async () => {
+        try {
+            await renderCachedAuth();
+            await renderState();
+        } catch (error) {
+            if (!signedIn) applyAuthState({ signedIn: false, profile: null });
+            showError(error instanceof Error ? error.message : 'Your tracker session could not be checked.');
+        }
+    })();
     void loadActiveTab().catch((error) => {
         targetCard.classList.remove('is-scanning');
         pageTitle.textContent = 'This tab cannot be captured';
         showError(error instanceof Error ? error.message : 'The page could not be read.');
         syncSaveButton();
-    });
-    void renderState().catch((error) => {
-        if (!signedIn) applyAuthState({ signedIn: false, profile: null });
-        showError(error instanceof Error ? error.message : 'Your tracker session could not be checked.');
     });
     void sendRuntimeMessage<any>({ type: 'GET_CAPTURE_STATE' }).then((response) => {
         if (response?.ok) applyCaptureState(response.data);

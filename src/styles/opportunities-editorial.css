@@ -4447,15 +4447,55 @@ body.opportunities-editorial-page {
 }
 
 .opp-capture-processing {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  inline-size: min(390px, calc(100vw - 32px));
+  display: grid;
+  gap: 6px;
   margin: 0;
-  padding: 10px 12px;
-  border: 1.5px solid var(--opp-border);
-  border-radius: 10px;
+  padding: 16px 18px;
+  border: 2px solid var(--opp-border);
+  border-radius: 14px;
   background: var(--opp-cream);
-  font: 750 0.82rem/1.4 var(--opp-font);
+  box-shadow: var(--opp-shadow);
+  color: var(--opp-ink);
+  font: 650 0.82rem/1.45 var(--opp-font);
+  animation: opp-toast-pop 0.2s ease;
+}
+
+.opp-capture-processing-eyebrow {
+  color: var(--opp-purple);
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.opp-capture-processing strong {
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.opp-capture-processing > span:last-of-type {
+  color: color-mix(in srgb, var(--opp-ink) 70%, transparent);
+}
+
+.opp-capture-processing progress {
+  inline-size: 100%;
+  block-size: 7px;
+  margin-block-start: 4px;
+  accent-color: var(--opp-purple);
+}
+
+@media (max-width: 700px) {
+  .opp-capture-processing {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    inline-size: auto;
+  }
 }
 
 .opp-capture-error,
