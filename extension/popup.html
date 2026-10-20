@@ -11,7 +11,7 @@
     <header class="pop-header">
       <div class="pop-brand-wrap">
         <span class="pop-brand-dot" aria-hidden="true"></span>
-        <span class="pop-brand">OPPORTUNITY TRACKER</span>
+        <span class="pop-brand">QUICK CAPTURE</span>
       </div>
     </header>
 
@@ -29,6 +29,7 @@
       </div>
 
       <div id="target-card" class="target-card is-scanning" aria-live="polite">
+        <span class="target-label">Current tab</span>
         <div id="page-title" class="target-title">Loading…</div>
       </div>
 
@@ -36,8 +37,8 @@
 
       <section id="capture-progress" class="capture-progress hidden" aria-labelledby="capture-progress-title">
         <div class="capture-progress-copy" role="status" aria-live="polite" aria-atomic="true">
-          <strong id="capture-progress-title">Capturing opportunity</strong>
-          <span>We’re safely handing it to background processing. You can leave as soon as it is received.</span>
+          <strong id="capture-progress-title">Sending to your tracker</strong>
+          <span>Creating a secure capture receipt…</span>
         </div>
         <span class="capture-dots" aria-hidden="true">
           <i></i><i></i><i></i><i></i>
@@ -46,8 +47,13 @@
       </section>
 
       <div id="result-box" class="result-box hidden">
-        <span id="result-success-badge" class="result-success-badge">✓ Captured &amp; Saved</span>
-        <div class="result-details">
+        <span id="result-success-badge" class="result-success-badge">✓ Captured</span>
+        <div id="result-processing" class="result-processing hidden" role="status" aria-live="polite">
+          <strong>Processing in the background</strong>
+          <span>Your capture is safe. You can close this popup while we organize it.</span>
+          <progress aria-label="Processing capture"></progress>
+        </div>
+        <div id="result-details" class="result-details">
           <div class="result-detail result-category-detail">
             <span>Category</span>
             <strong id="result-category">—</strong>
@@ -59,7 +65,7 @@
         </div>
       </div>
 
-      <button id="dashboard-btn" class="dashboard-btn" type="button">Open dashboard</button>
+      <button id="dashboard-btn" class="dashboard-btn" type="button">View all opportunities</button>
     </section>
 
     <aside class="privacy-note" aria-label="Sign-in and capture privacy information">

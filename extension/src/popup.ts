@@ -23,6 +23,8 @@ const status = byId<HTMLDivElement>('status-msg');
 const captureProgress = byId<HTMLElement>('capture-progress');
 const result = byId<HTMLDivElement>('result-box');
 const resultSuccessBadge = byId<HTMLSpanElement>('result-success-badge');
+const resultProcessing = byId<HTMLDivElement>('result-processing');
+const resultDetails = byId<HTMLDivElement>('result-details');
 const resultCategory = byId<HTMLElement>('result-category');
 const resultDeadline = byId<HTMLElement>('result-deadline');
 const saveButton = byId<HTMLButtonElement>('save-btn');
@@ -76,6 +78,14 @@ const clearStatus = () => {
 const renderProfile = (profile: any) => {
     profileName.textContent = profile?.display_name || 'Opportunity tracker';
     profileUsername.textContent = profile?.username ? `@${profile.username}` : '';
+};
+
+const formatPageTitle = (title: unknown) => {
+    if (typeof title !== 'string' || !title.trim()) return 'Untitled page';
+    const simplified = title
+        .replace(/\s*[·|—]\s*Opportunity Tracker(?:\s*[|·—]\s*.*)?$/i, '')
+        .trim();
+    return simplified || 'Opportunity page';
 };
 
 const applyAuthState = (state: any) => {
@@ -139,15 +149,18 @@ const applyCaptureState = (state: CaptureState | null) => {
 
     if (state.status === 'queued') {
         clearStatus();
-        resultSuccessBadge.textContent = '✓ Safely captured';
-        resultCategory.textContent = 'Processing';
-        resultDeadline.textContent = 'You can close Chrome';
-        resultDeadline.classList.remove('result-deadline-passed');
+        result.classList.add('is-processing');
+        resultSuccessBadge.textContent = '✓ Capture received';
+        resultProcessing.classList.remove('hidden');
+        resultDetails.classList.add('hidden');
         result.classList.remove('hidden');
         return;
     }
 
     clearStatus();
+    result.classList.remove('is-processing');
+    resultProcessing.classList.add('hidden');
+    resultDetails.classList.remove('hidden');
     const saved = state.result || {};
     const opportunity = saved.opportunity || {};
     const deadline = formatResultDeadline(opportunity.deadline_at, opportunity.deadline_raw);
@@ -182,7 +195,7 @@ const renderState = async () => {
 const loadActiveTab = async () => {
     activeTab = await getActiveTab();
     targetCard.classList.remove('is-scanning');
-    pageTitle.textContent = activeTab?.url ? (activeTab.title || 'Untitled page') : 'This tab cannot be captured';
+    pageTitle.textContent = activeTab?.url ? formatPageTitle(activeTab.title) : 'This tab cannot be captured';
     syncSaveButton();
     return activeTab;
 };
