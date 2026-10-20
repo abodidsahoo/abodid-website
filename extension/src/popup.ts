@@ -38,6 +38,7 @@ let authResolved = false;
 let signedIn = false;
 let isCapturing = false;
 let currentCaptureState: CaptureState | null = null;
+let captureStartedInPopup = false;
 
 const syncSaveButton = () => {
     if (isCapturing) {
@@ -216,13 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showError(error instanceof Error ? error.message : 'The page could not be read.');
         syncSaveButton();
     });
-    void sendRuntimeMessage<any>({ type: 'GET_CAPTURE_STATE' }).then((response) => {
-        if (response?.ok) applyCaptureState(response.data);
-    });
 });
 
 webext.storage.onChanged.addListener((changes: any, areaName: string) => {
-    if ((areaName === 'session' || areaName === 'local') && changes[CAPTURE_STATE_KEY]) {
+    if (captureStartedInPopup && (areaName === 'session' || areaName === 'local') && changes[CAPTURE_STATE_KEY]) {
         applyCaptureState(changes[CAPTURE_STATE_KEY].newValue || null);
     }
     if (areaName === 'local' && changes[AUTH_CACHE_KEY]?.newValue?.signedIn) {
@@ -270,6 +268,7 @@ dashboardButton.addEventListener('click', openDashboard);
 closeProgressButton.addEventListener('click', () => window.close());
 
 saveButton.addEventListener('click', async () => {
+    captureStartedInPopup = true;
     clearStatus();
     result.classList.add('hidden');
     applyCaptureState({ id: 'pending', status: 'capturing', startedAt: Date.now() });
