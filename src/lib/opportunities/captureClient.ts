@@ -8,6 +8,27 @@ export type OpportunityCapturePayload = {
     [key: string]: unknown;
 };
 
+export type OpportunityCaptureJob = {
+    id: string;
+    idempotency_key: string;
+    channel: 'dashboard' | 'extension' | 'telegram' | 'whatsapp';
+    input_kind: 'url';
+    status: 'pending' | 'processing' | 'succeeded' | 'failed';
+    source_url: string | null;
+    source_title: string | null;
+    attempt_count: number;
+    max_attempts: number;
+    available_at: string;
+    started_at: string | null;
+    completed_at: string | null;
+    opportunity_id: string | null;
+    is_duplicate: boolean;
+    error_code: string | null;
+    error_message: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
 type FetchImplementation = (
     input: RequestInfo | URL,
     init?: RequestInit,
@@ -20,6 +41,15 @@ type CaptureRequestOptions = {
     signal?: AbortSignal;
     timeoutMs?: number;
     fetchImpl?: FetchImplementation;
+};
+
+type CaptureJobRequestOptions = CaptureRequestOptions & {
+    title?: string;
+    pageText?: string;
+    channel?: 'dashboard' | 'extension';
+    idempotencyKey?: string;
+    capturedAt?: string;
+    captureTimezone?: string;
 };
 
 export class OpportunityCaptureTimeoutError extends Error {
@@ -96,3 +126,92 @@ export const requestOpportunityCapture = async ({
         signal?.removeEventListener('abort', abortFromCaller);
     }
 };
+
+const authorizedJsonRequest = async ({
+    endpoint,
+    method = 'GET',
+    body,
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl = fetch,
+}: {
+    endpoint: string;
+    method?: 'GET' | 'POST';
+    body?: unknown;
+    accessToken: string | null;
+    refreshAccessToken?: () => Promise<string | null>;
+    signal?: AbortSignal;
+    fetchImpl?: FetchImplementation;
+}) => {
+    const send = async (token: string | null) => {
+        const response = await fetchImpl(endpoint, {
+            method,
+            headers: {
+                ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+            signal,
+            cache: 'no-store',
+        });
+        return { response, payload: await readPayload(response) };
+    };
+
+    let result = await send(accessToken);
+    if (result.response.status === 401 && refreshAccessToken && !signal?.aborted) {
+        const refreshedToken = await refreshAccessToken();
+        if (refreshedToken && !signal?.aborted) result = await send(refreshedToken);
+    }
+    return result;
+};
+
+export const requestOpportunityCaptureJob = async ({
+    url,
+    title = '',
+    pageText = '',
+    channel = 'dashboard',
+    idempotencyKey = crypto.randomUUID(),
+    capturedAt = new Date().toISOString(),
+    captureTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl = fetch,
+}: CaptureJobRequestOptions) => authorizedJsonRequest({
+    endpoint: '/api/opportunities/capture-jobs',
+    method: 'POST',
+    body: {
+        url,
+        title,
+        page_text: pageText,
+        channel,
+        idempotency_key: idempotencyKey,
+        captured_at: capturedAt,
+        capture_timezone: captureTimezone,
+    },
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl,
+});
+
+export const requestOpportunityCaptureJobStatus = async ({
+    jobId,
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl = fetch,
+}: {
+    jobId: string;
+    accessToken: string | null;
+    refreshAccessToken?: () => Promise<string | null>;
+    signal?: AbortSignal;
+    fetchImpl?: FetchImplementation;
+}) => authorizedJsonRequest({
+    endpoint: `/api/opportunities/capture-jobs/${encodeURIComponent(jobId)}`,
+    accessToken,
+    refreshAccessToken,
+    signal,
+    fetchImpl,
+});

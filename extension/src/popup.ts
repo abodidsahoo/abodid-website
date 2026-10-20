@@ -5,7 +5,7 @@ const CAPTURE_STATE_KEY = 'opportunity-capture-state-v1';
 
 type CaptureState = {
     id: string;
-    status: 'capturing' | 'success' | 'error';
+    status: 'capturing' | 'queued' | 'success' | 'error';
     startedAt: number;
     result?: any;
     error?: string;
@@ -133,6 +133,16 @@ const applyCaptureState = (state: CaptureState | null) => {
         result.classList.add('hidden');
         showError(state.error || 'Opportunity could not be saved');
         saveButton.textContent = 'Try again';
+        return;
+    }
+
+    if (state.status === 'queued') {
+        clearStatus();
+        resultSuccessBadge.textContent = '✓ Safely captured';
+        resultCategory.textContent = 'Processing';
+        resultDeadline.textContent = 'You can close Chrome';
+        resultDeadline.classList.remove('result-deadline-passed');
+        result.classList.remove('hidden');
         return;
     }
 

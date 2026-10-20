@@ -9,11 +9,11 @@ const AUTH_CACHE_KEY = 'opportunity-auth-cache-v1';
 const CAPTURE_STATE_KEY = 'opportunity-capture-state-v1';
 const CAPTURE_STATE_MAX_AGE_MS = 15 * 60 * 1000;
 const CAPTURE_NOTIFICATION_PREFIX = 'opportunity-capture:';
-const captureStorage = webext.storage.session || webext.storage.local;
+const captureStorage = webext.storage.local;
 
 type CaptureState = {
     id: string;
-    status: 'capturing' | 'success' | 'error';
+    status: 'capturing' | 'queued' | 'success' | 'error';
     startedAt: number;
     tabId?: number;
     result?: any;
@@ -84,7 +84,7 @@ const setCaptureState = async (state: CaptureState) => {
     return state;
 };
 
-const saveUrl = async (url: string, title = '', pageText = '') => {
+const saveUrl = async (idempotencyKey: string, url: string, title = '', pageText = '') => {
     const controller = new AbortController();
     let timedOut = false;
     let rejectTimeout: ((reason: Error) => void) | undefined;
@@ -97,7 +97,7 @@ const saveUrl = async (url: string, title = '', pageText = '') => {
         rejectTimeout?.(new Error('This extraction took too long. Please try the link again.'));
     }, EXTENSION_CAPTURE_TIMEOUT_MS);
 
-    const send = (accessToken: string) => fetch(`${__APP_ORIGIN__}/api/opportunities/capture`, {
+    const send = (accessToken: string, endpoint = '/api/opportunities/capture-jobs') => fetch(`${__APP_ORIGIN__}${endpoint}`, {
         method: 'POST',
         signal: controller.signal,
         headers: {
@@ -108,6 +108,8 @@ const saveUrl = async (url: string, title = '', pageText = '') => {
             url,
             title,
             page_text: pageText,
+            channel: 'extension',
+            idempotency_key: idempotencyKey,
             captured_at: new Date().toISOString(),
             capture_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
@@ -117,15 +119,21 @@ const saveUrl = async (url: string, title = '', pageText = '') => {
         const { data: { session } } = await extensionSupabase.auth.getSession();
         if (!session?.access_token) throw new Error('Sign in before saving an opportunity');
 
-        let response = await send(session.access_token);
+        let activeToken = session.access_token;
+        let response = await send(activeToken);
         if (response.status === 401 && !controller.signal.aborted) {
             const { data, error } = await extensionSupabase.auth.refreshSession();
             if (!error && data.session?.access_token && !controller.signal.aborted) {
-                response = await send(data.session.access_token);
+                activeToken = data.session.access_token;
+                response = await send(activeToken);
             }
         }
 
-        const payload = await response.json().catch(() => ({}));
+        let payload = await response.json().catch(() => ({}));
+        if (response.status === 503 && payload?.code === 'CAPTURE_JOBS_NOT_CONFIGURED') {
+            response = await send(activeToken, '/api/opportunities/capture');
+            payload = await response.json().catch(() => ({}));
+        }
         if (!response.ok) throw new Error(payload.error || 'Opportunity could not be saved');
         return payload;
     };
@@ -180,7 +188,31 @@ const keepCaptureWorkerAlive = () => {
 const runCaptureOperation = async (state: CaptureState, url: string, title: string, pageText: string) => {
     const stopKeepingAlive = keepCaptureWorkerAlive();
     try {
-        const saved = await saveUrl(url, title, pageText);
+        const saved = await saveUrl(state.id, url, title, pageText);
+        if (saved?.job) {
+            const queuedState: CaptureState = {
+                ...state,
+                id: String(saved.job.id || state.id),
+                status: 'queued',
+                result: saved,
+            };
+            await setCaptureState(queuedState);
+            const notified = await showCaptureNotification(
+                queuedState,
+                'Capture received',
+                'It is safely processing in the background. You can close the tab or browser.',
+            );
+            if (!notified) {
+                await showOpportunityToast(state.tabId, {
+                    kind: 'success',
+                    requestId: state.id,
+                    message: 'Capture received.',
+                    detail: 'It is safely processing in the background.',
+                });
+            }
+            await showActionFeedback('✓', '#caff48');
+            return;
+        }
         const completedState: CaptureState = { ...state, status: 'success', result: saved };
         await setCaptureState(completedState);
         const opportunityTitle = saved?.opportunity?.title
@@ -249,13 +281,23 @@ webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
     await showOpportunityToast(tabId, {
         kind: 'working',
         requestId,
-        message: 'Extracting opportunity…',
-        detail: 'Reading the details and important dates.',
+        message: 'Securing capture…',
+        detail: 'Recording it safely before background processing begins.',
     });
 
     try {
         const pageText = isCurrentPage && tabId ? await extractPageText(tabId) : '';
-        const saved = await saveUrl(url, tab?.title || '', pageText);
+        const saved = await saveUrl(requestId, url, tab?.title || '', pageText);
+        if (saved?.job) {
+            await showOpportunityToast(tabId, {
+                kind: 'success',
+                requestId,
+                message: 'Capture received',
+                detail: 'It is safely processing in the background. You can close this tab.',
+            });
+            await showActionFeedback('✓', '#caff48');
+            return;
+        }
         const opportunityTitle = saved?.opportunity?.title
             ? String(saved.opportunity.title)
             : 'The opportunity';

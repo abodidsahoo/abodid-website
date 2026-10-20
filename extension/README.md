@@ -51,9 +51,9 @@ Google's OAuth client continues to use the Supabase project callback URL; extens
 3. Record the stable extension ID, allow-list its identity redirect in Supabase, then reload.
 4. Verify Google sign-in, session persistence, two consecutive popup captures, overlapping context-menu captures, dashboard opening, logout, and a second account's isolation.
 
-The right-click page action immediately shows an in-page “Extracting opportunity…” toast, captures the current page text, and updates that toast when the saved record is ready. Right-clicking a link shows the same progress and completion feedback while the backend safely fetches the selected public URL. Restricted browser pages fall back to the toolbar badge because Chrome does not allow injected page UI there.
+The right-click page action immediately shows an in-page receipt, captures the current page text, and hands the work to durable background processing. Right-clicking a link records the same durable receipt while the backend safely fetches the selected public URL. Once the receipt is accepted, closing the tab, popup, browser, or extension service worker does not cancel extraction. Restricted browser pages fall back to the toolbar badge because Chrome does not allow injected page UI there.
 
-Each capture has a bounded wait so a provider or network stall returns the popup to a usable retry state. The popup re-reads the active tab immediately before capture, and context-menu feedback carries a request identity so an older completion cannot overwrite a newer extraction's progress.
+Each capture waits only for the durable receipt, not for AI extraction. The popup re-reads the active tab immediately before capture, and each submission carries an idempotency identity so browser retries cannot create duplicate jobs or opportunities. The dashboard resumes unfinished jobs, reports final failures, and offers a safe retry.
 
 ### Firefox
 

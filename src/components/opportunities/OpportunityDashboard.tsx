@@ -49,8 +49,12 @@ import {
     parseRadarImportIntent,
 } from '../../lib/opportunities/importIntent';
 import {
+    clearSubmittedCaptureUrl,
     OpportunityCaptureTimeoutError,
     requestOpportunityCapture,
+    requestOpportunityCaptureJob,
+    requestOpportunityCaptureJobStatus,
+    type OpportunityCaptureJob,
 } from '../../lib/opportunities/captureClient';
 import {
     buildExtractedOpportunityPayload,
@@ -101,7 +105,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [captureError, setCaptureError] = useState('');
     const [captureProgress, setCaptureProgress] = useState('');
     const [pendingDuplicate, setPendingDuplicate] = useState<PendingDuplicate | null>(null);
+    const [failedCaptureJobId, setFailedCaptureJobId] = useState<string | null>(null);
     const captureAbortRef = useRef<AbortController | null>(null);
+    const captureJobPollTimerRef = useRef<number | null>(null);
+    const latestCaptureJobIdRef = useRef<string | null>(null);
     const captureFileInputRef = useRef<HTMLInputElement | null>(null);
 
     // Filters: Single clean Urgency Rail + Secondary Filter Tray Toggle
@@ -138,6 +145,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     useEffect(() => () => {
         captureAbortRef.current?.abort();
         captureAbortRef.current = null;
+        if (captureJobPollTimerRef.current !== null) {
+            window.clearTimeout(captureJobPollTimerRef.current);
+            captureJobPollTimerRef.current = null;
+        }
     }, []);
 
     const showToast = useCallback((msg: string) => {
@@ -212,8 +223,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     };
 
     // 1. Fetch the owner's private rows, or a deliberately safe public projection.
-    const fetchOpportunities = async () => {
-        setIsLoading(true);
+    const fetchOpportunities = async (silent = false): Promise<Opportunity[]> => {
+        if (!silent) setIsLoading(true);
         setLoadError('');
         try {
             const endpoint = isOwner
@@ -225,11 +236,14 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             });
             if (res.ok) {
                 const data = await res.json();
-                setOpportunities(data.opportunities || []);
+                const loadedOpportunities = (data.opportunities || []) as Opportunity[];
+                setOpportunities(loadedOpportunities);
                 if (data.profile) setCollectionProfile(data.profile);
+                return loadedOpportunities;
             } else if (res.status === 404) {
                 setOpportunities([]);
                 setCollectionProfile(null);
+                return [];
             } else {
                 setLoadError('Your opportunities could not be loaded.');
             }
@@ -237,12 +251,13 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             console.error('Failed to load opportunities:', err);
             setLoadError('Your opportunities could not be loaded. Check your connection and try again.');
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
+        return [];
     };
 
     useEffect(() => {
-        fetchOpportunities();
+        void fetchOpportunities();
     }, [username, accessToken, isOwner]);
 
     useEffect(() => {
@@ -380,6 +395,102 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         if (captureFileInputRef.current) captureFileInputRef.current.value = '';
     };
 
+    const refreshOpportunityAccessToken = async () => {
+        const { data, error } = await supabase.auth.refreshSession();
+        if (error) return null;
+        return data.session?.access_token || null;
+    };
+
+    const watchCaptureJob = async (jobId: string) => {
+        if (latestCaptureJobIdRef.current !== jobId) return;
+        try {
+            const { response, payload } = await requestOpportunityCaptureJobStatus({
+                jobId,
+                accessToken,
+                refreshAccessToken: refreshOpportunityAccessToken,
+            });
+            if (latestCaptureJobIdRef.current !== jobId) return;
+            if (!response.ok || !payload.job) {
+                throw new Error(payload.error || 'Capture status could not be checked');
+            }
+
+            const job = payload.job as OpportunityCaptureJob;
+            if (job.status === 'pending' || job.status === 'processing') {
+                setCaptureProgress('Safely captured. Processing in the background — you can close this tab.');
+                captureJobPollTimerRef.current = window.setTimeout(() => {
+                    void watchCaptureJob(jobId);
+                }, 2_000);
+                return;
+            }
+
+            setCaptureProgress('');
+            if (job.status === 'failed') {
+                latestCaptureJobIdRef.current = null;
+                setFailedCaptureJobId(job.id);
+                setCaptureError(job.error_message || 'Background capture failed. You can retry it safely.');
+                showToast('❌ Background capture needs attention');
+                return;
+            }
+
+            setFailedCaptureJobId(null);
+            latestCaptureJobIdRef.current = null;
+            setCaptureError('');
+            const loaded = await fetchOpportunities(true);
+            const saved = loaded.find((opportunity) => opportunity.id === job.opportunity_id) || null;
+            if (saved) setCaptureResult(saved);
+            showToast(job.is_duplicate ? '✓ Already on your radar' : '✓ Opportunity saved in the background');
+        } catch (error) {
+            if (latestCaptureJobIdRef.current !== jobId) return;
+            console.warn('Background capture status check failed', error);
+            captureJobPollTimerRef.current = window.setTimeout(() => {
+                void watchCaptureJob(jobId);
+            }, 5_000);
+        }
+    };
+
+    const retryFailedCaptureJob = async () => {
+        if (!failedCaptureJobId) return;
+        setCaptureError('');
+        setFailedCaptureJobId(null);
+        setCaptureProgress('Retrying safely in the background…');
+        const response = await fetch(`/api/opportunities/capture-jobs/${encodeURIComponent(failedCaptureJobId)}`, {
+            method: 'POST',
+            headers: authenticatedHeaders(),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.job) {
+            setCaptureProgress('');
+            setCaptureError(data.error || 'This capture could not be retried.');
+            setFailedCaptureJobId(failedCaptureJobId);
+            return;
+        }
+        latestCaptureJobIdRef.current = failedCaptureJobId;
+        void watchCaptureJob(failedCaptureJobId);
+    };
+
+    useEffect(() => {
+        if (!isOwner || !accessToken) return;
+        let cancelled = false;
+        void (async () => {
+            const response = await fetch('/api/opportunities/capture-jobs?limit=10', {
+                headers: authenticatedHeaders(),
+                cache: 'no-store',
+            });
+            if (!response.ok || cancelled) return;
+            const data = await response.json().catch(() => ({}));
+            const jobs = Array.isArray(data.jobs) ? data.jobs as OpportunityCaptureJob[] : [];
+            const unfinished = jobs.find((job) => job.status === 'pending' || job.status === 'processing');
+            if (!unfinished || cancelled) return;
+            latestCaptureJobIdRef.current = unfinished.id;
+            setCaptureProgress('Resuming a background capture. You can close this tab.');
+            void watchCaptureJob(unfinished.id);
+        })().catch(() => undefined);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [accessToken, isOwner]);
+
     const addSavedOpportunity = (opportunity: Opportunity) => {
         setOpportunities((current) => [
             opportunity,
@@ -426,37 +537,60 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
         const controller = new AbortController();
         captureAbortRef.current = controller;
+        let keepBackgroundProgress = false;
 
         setIsCapturing(true);
         setCaptureError('');
         setCaptureResult(null);
         setPendingDuplicate(null);
+        setFailedCaptureJobId(null);
         try {
             const inputKind = classifyUnifiedOpportunityInput(submittedInput, submittedFiles.length);
             if (inputKind === 'url') {
-                setCaptureProgress('Reading the link and organizing the opportunity…');
-                const { response: res, payload: data } = await requestOpportunityCapture({
+                setCaptureProgress('Safely recording this capture…');
+                const { response: queuedResponse, payload: queuedPayload } = await requestOpportunityCaptureJob({
                     url: submittedInput,
                     accessToken,
+                    channel: 'dashboard',
                     signal: controller.signal,
-                    refreshAccessToken: async () => {
-                        const { data, error } = await supabase.auth.refreshSession();
-                        if (error) return null;
-                        return data.session?.access_token || null;
-                    },
+                    refreshAccessToken: refreshOpportunityAccessToken,
                 });
 
-                if (res.ok && data.opportunity) {
-                    const capturedOpportunity = data.opportunity as Opportunity;
-                    if (data.is_duplicate) {
-                        setPendingDuplicate({ existing: capturedOpportunity, proposedUpdates: null, sourceKind: 'url' });
-                        return;
-                    }
-                    addSavedOpportunity(capturedOpportunity);
+                if (queuedResponse.ok && queuedPayload.job) {
+                    const job = queuedPayload.job as OpportunityCaptureJob;
+                    latestCaptureJobIdRef.current = job.id;
+                    setCaptureUrl((current) => clearSubmittedCaptureUrl(current, submittedInput));
+                    setCaptureProgress('Safely captured. Processing in the background — you can close this tab.');
+                    showToast('✓ Capture received — processing in the background');
+                    keepBackgroundProgress = true;
+                    void watchCaptureJob(job.id);
                     return;
                 }
 
-                throw new Error(data.error || 'Failed to capture this opportunity');
+                // Compatibility path while the additive database migration is
+                // being deployed. Existing users continue to receive the old
+                // synchronous behavior instead of a broken capture button.
+                if (queuedResponse.status === 503 && queuedPayload.code === 'CAPTURE_JOBS_NOT_CONFIGURED') {
+                    setCaptureProgress('Reading the link and organizing the opportunity…');
+                    const { response: res, payload: data } = await requestOpportunityCapture({
+                        url: submittedInput,
+                        accessToken,
+                        signal: controller.signal,
+                        refreshAccessToken: refreshOpportunityAccessToken,
+                    });
+                    if (res.ok && data.opportunity) {
+                        const capturedOpportunity = data.opportunity as Opportunity;
+                        if (data.is_duplicate) {
+                            setPendingDuplicate({ existing: capturedOpportunity, proposedUpdates: null, sourceKind: 'url' });
+                            return;
+                        }
+                        addSavedOpportunity(capturedOpportunity);
+                        return;
+                    }
+                    throw new Error(data.error || 'Failed to capture this opportunity');
+                }
+
+                throw new Error(queuedPayload.error || 'Failed to safely record this capture');
             }
 
             setCaptureProgress(submittedFiles.length > 0
@@ -502,7 +636,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             if (captureAbortRef.current === controller) {
                 captureAbortRef.current = null;
                 setIsCapturing(false);
-                setCaptureProgress('');
+                if (!keepBackgroundProgress) setCaptureProgress('');
             }
         }
     };
@@ -933,9 +1067,18 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 </div>
                             )}
                             {captureError && (
-                                <p id="opportunity-capture-error" className="opp-capture-error" role="alert">
-                                    {captureError}
-                                </p>
+                                <div id="opportunity-capture-error" className="opp-capture-error" role="alert">
+                                    <span>{captureError}</span>
+                                    {failedCaptureJobId && (
+                                        <button
+                                            type="button"
+                                            className="opp-btn opp-btn-secondary"
+                                            onClick={() => void retryFailedCaptureJob()}
+                                        >
+                                            Retry capture
+                                        </button>
+                                    )}
+                                </div>
                             )}
                             {pendingDuplicate && (
                                 <div className="opp-capture-duplicate" role="status" aria-live="polite">

@@ -4,6 +4,8 @@ import {
     clearSubmittedCaptureUrl,
     OpportunityCaptureTimeoutError,
     requestOpportunityCapture,
+    requestOpportunityCaptureJob,
+    requestOpportunityCaptureJobStatus,
 } from '../../src/lib/opportunities/captureClient';
 
 describe('Opportunity capture client lifecycle', () => {
@@ -80,5 +82,50 @@ describe('Opportunity capture client lifecycle', () => {
             ' https://example.org/first ',
             'https://example.org/first',
         )).toBe('');
+    });
+
+    it('records a durable capture receipt without waiting for extraction', async () => {
+        const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            accepted: true,
+            job: { id: 'job-1', status: 'pending' },
+        }), {
+            status: 202,
+            headers: { 'Content-Type': 'application/json' },
+        }));
+
+        const result = await requestOpportunityCaptureJob({
+            url: 'https://example.org/opportunity',
+            accessToken: 'token',
+            idempotencyKey: '10000000-0000-4000-8000-000000000001',
+            fetchImpl,
+        });
+
+        expect(result.response.status).toBe(202);
+        expect(result.payload.job).toMatchObject({ id: 'job-1', status: 'pending' });
+        expect(fetchImpl).toHaveBeenCalledWith('/api/opportunities/capture-jobs', expect.objectContaining({
+            method: 'POST',
+            cache: 'no-store',
+        }));
+        expect(JSON.parse(String(fetchImpl.mock.calls[0][1]?.body))).toMatchObject({
+            idempotency_key: '10000000-0000-4000-8000-000000000001',
+            channel: 'dashboard',
+        });
+    });
+
+    it('loads job status through the authenticated receipt endpoint', async () => {
+        const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            job: { id: 'job with spaces', status: 'succeeded' },
+        }), { status: 200 }));
+
+        await requestOpportunityCaptureJobStatus({
+            jobId: 'job with spaces',
+            accessToken: 'token',
+            fetchImpl,
+        });
+
+        expect(fetchImpl).toHaveBeenCalledWith(
+            '/api/opportunities/capture-jobs/job%20with%20spaces',
+            expect.objectContaining({ method: 'GET', cache: 'no-store' }),
+        );
     });
 });

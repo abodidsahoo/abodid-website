@@ -114,7 +114,7 @@ const lastUpdatedDate = "14 October 2026";
                   <strong>Opportunity Tracker sign-in:</strong> When you choose Continue with Google, Google shares only the basic identity information authorized by the <code>openid</code>, <code>email</code>, and <code>profile</code> scopes: your Google account identifier, primary email address, display name, and profile photo. These details are used to create your private account, show your first name and profile image in the tracker, and associate saved opportunities with you. Opportunity Tracker does not request access to Gmail, Drive, Calendar, Contacts, or your Google password.
                 </li>
                 <li>
-                  <strong>Opportunity capture:</strong> When you choose Capture &amp; Save or Save to Opportunity Tracker from Chrome’s right-click menu, the extension sends the selected page URL, page title, visible page text, capture time, and browser timezone to abodid.com to identify and save opportunity details. No page is read or transmitted until you take one of these capture actions.
+                  <strong>Opportunity capture:</strong> When you choose Capture &amp; Save or Save to Opportunity Tracker from Chrome’s right-click menu, the extension sends the selected page URL, page title, visible page text, capture time, and browser timezone to abodid.com to identify and save opportunity details. No page is read or transmitted until you take one of these capture actions. A private capture receipt is recorded first so processing can continue after you close the page or browser.
                 </li>
               </ul>
             </div>
@@ -132,7 +132,7 @@ const lastUpdatedDate = "14 October 2026";
                 Local storage is used strictly for essential user preferences — such as preserving your dark/light theme preference across page navigations.
               </p>
               <p>
-                The Opportunity Tracker extension also uses extension-local storage for its encrypted-in-transit authentication session. Saved opportunity records remain in your private Supabase-backed account until you delete them. Signing out removes the local extension session; account or full-data deletion requests can be sent to the contact address below.
+                The Opportunity Tracker extension also uses extension-local storage for its encrypted-in-transit authentication session and the latest short-lived capture receipt. Saved opportunity records remain in your private Supabase-backed account until you delete them. Signing out removes the local extension session; account or full-data deletion requests can be sent to the contact address below.
               </p>
             </div>
           </article>
@@ -146,7 +146,7 @@ const lastUpdatedDate = "14 October 2026";
                 All data in transit is encrypted using industry-standard TLS / HTTPS encryption. Data records (such as newsletter subscribers and form submissions) are stored in secure Supabase databases with Row Level Security (RLS) policies enforced.
               </p>
               <p>
-                For Opportunity Tracker, Google provides account sign-in, Supabase provides authentication and database storage, Vercel hosts the application endpoints, and OpenRouter processes the page text needed to extract opportunity details. Raw captured page text is processed for extraction and is not stored in the saved opportunity record; the derived title, organisation, dates, summary, requirements, links, and related fields are stored for the tracker. Data is not used for advertising, creditworthiness, or purposes unrelated to the tracker.
+                For Opportunity Tracker, Google provides account sign-in, Supabase provides authentication and durable capture-job storage, Vercel hosts the application endpoints and background processing, and OpenRouter processes the page text needed to extract opportunity details. Raw captured page text is not stored in the saved opportunity record. It is removed from a successful capture job immediately; after a final failure it is retained privately for retry recovery for no longer than 24 hours and then removed automatically. The derived title, organisation, dates, summary, requirements, links, and related fields are stored for the tracker. Data is not used for advertising, creditworthiness, or purposes unrelated to the tracker.
               </p>
               <p>
                 Basic Google profile details are not used to read or access other Google services. They are retained with the tracker account until the account is deleted or an erasure request is completed. Signing out removes the local session but does not delete the account or its saved opportunities.

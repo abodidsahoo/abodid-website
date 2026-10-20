@@ -4,7 +4,7 @@
 >
 > Manifest source: `extension/manifests/chrome.json`
 >
-> Release version: `2.0.2` (draft)
+> Release version: `2.1.0` (draft)
 
 This file is the source of truth for Chrome Web Store metadata, permission justifications, privacy disclosures, release evidence, and submission blockers. Update it whenever the Chrome manifest, extension behavior, branding, data handling, or store assets change.
 
@@ -44,9 +44,9 @@ FEATURES
 • Save a page or link from Chrome's right-click menu with visible extraction and completion feedback
 • Automatically summarize the opportunity, organisation, requirements and next action
 • Identify deadlines and other important dates
-• See a clear saved receipt with the extracted category and deadline immediately after capture
-• Select Keep exploring to close the popup while capture continues, then receive a browser notification when it finishes
-• Capture consecutive pages reliably, with a usable retry state if a network or AI request takes too long
+• Receive a durable capture receipt immediately, then close the tab, popup or browser while processing continues
+• See successful opportunities appear in the dashboard, or retry a failed background capture without returning to the original page
+• Capture consecutive pages reliably without browser or AI interruptions losing the submitted link
 • Open your private Opportunity Tracker dashboard from the toolbar popup
 
 HOW TO USE
@@ -64,7 +64,7 @@ SUPPORT
 Questions, privacy requests or bug reports: hello@abodid.com
 Privacy policy: https://abodid.com/privacy
 
-Version 2.0.2 — Adds instant cached account details, background capture with native completion notifications, a compact four-square progress indicator and a clearer persistent dashboard action.
+Version 2.1.0 — Adds durable server-side background capture, restart-safe receipts, automatic retry recovery and dashboard failure handling so closing a tab or browser cannot cancel an accepted capture.
 ```
 
 ## URLs and developer information
@@ -72,7 +72,7 @@ Version 2.0.2 — Adds instant cached account details, background capture with n
 | Field | Value | Status |
 |---|---|---|
 | Homepage URL | `https://abodid.com/opportunities` | Ready |
-| Privacy policy URL | `https://abodid.com/privacy` | Ready; 2026-10-14 identity and capture disclosures deployed and rechecked in production |
+| Privacy policy URL | `https://abodid.com/privacy` | Ready; durable capture-job storage and temporary raw-page retention disclosures deployed on 2026-10-20 |
 | Support URL | `https://abodid.com/contact` | Ready |
 | Support email | `hello@abodid.com` | Confirm this inbox is monitored before submission |
 | Publisher name | Abodid Sahoo | Confirm it matches the Developer Dashboard account |
@@ -87,12 +87,12 @@ Version 2.0.2 — Adds instant cached account details, background capture with n
 | Toolbar and context-menu icon | 16×16 PNG | Ready | `extension/icons/icon-16.png`; the optically centred “O” is explicitly assigned to the toolbar action and supplied through the manifest for Chrome’s right-click menu, verified as 16×16 |
 | Extension-management icon | 48×48 PNG | Ready | `extension/icons/icon-48.png`; matching optically centred yellow “O”, verified as 48×48 |
 | Screenshot 1 | 1280×800 or 640×400 | Missing | Capture the signed-out popup with the privacy disclosure visible |
-| Screenshot 2 | 1280×800 or 640×400 | Missing; refresh required for the redesigned popup | Capture the signed-in account hierarchy, four-square capture state, successful-save receipt and persistent Open dashboard action |
+| Screenshot 2 | 1280×800 or 640×400 | Missing; refresh required for the redesigned popup | Capture the signed-in account hierarchy, four-square handoff state, durable “Safely captured” receipt and persistent Open dashboard action |
 | Screenshot 3 | 1280×800 or 640×400 | Missing | Show the private dashboard with organized opportunities |
 | Small promo tile | 440×280 PNG or JPEG | Recommended, missing | Use the Pop Editorial blue, cream and yellow system without unsupported claims |
 | Marquee promo tile | 1400×560 PNG or JPEG | Optional, missing | Create only if merchandising is planned |
 
-Screenshots must show the current `2.0.2` UI and must not include private account data, email addresses, authentication tokens, or opportunity content that cannot be published.
+Screenshots must show the current `2.1.0` UI and must not include private account data, email addresses, authentication tokens, or opportunity content that cannot be published.
 
 ## Permission justifications
 
@@ -102,11 +102,11 @@ These entries must match the built `extension/dist/chrome/manifest.json`, not on
 |---|---|---|
 | `activeTab` | API permission | Grants temporary page access only after the user invokes the extension from the toolbar or right-click menu. It limits content extraction and status injection to a deliberate user action instead of allowing automatic access during ordinary browsing. |
 | `tabs` | API permission | Reads the active tab's current title and URL when the popup opens and again immediately before capture. Rechecking prevents a navigation or tab change from pairing newly extracted content with a stale page address. The extension does not enumerate, monitor or retain browsing history. |
-| `scripting` | API permission | Runs packaged functions in the user-selected tab after Capture & Save or the Save page context-menu action. One function reads visible page text, relevant links and structured opportunity data so the service can identify the title, organisation, deadline, requirements and application link; another displays the context-menu action’s extraction and completion status. Neither runs automatically on ordinary browsing. |
-| `storage` | API permission | Stores the user's Supabase PKCE authentication session and a minimal cached display name/username in extension-local storage so signed-in identity appears immediately. Session storage holds the current capture operation and result so popup closure and reopening do not lose progress. It is not used for advertising, profiling or cross-device browsing-history sync. |
+| `scripting` | API permission | Runs packaged functions in the user-selected tab after Capture & Save or the Save page context-menu action. One function reads visible page text, relevant links and structured opportunity data so the service can identify the title, organisation, deadline, requirements and application link; another displays the context-menu action’s durable handoff status. Neither runs automatically on ordinary browsing. |
+| `storage` | API permission | Stores the user's Supabase PKCE authentication session, a minimal cached display name/username and the latest short-lived durable capture receipt in extension-local storage. This lets the popup reopen with accurate handoff status while server-side processing continues independently. It is not used for advertising, profiling or cross-device browsing-history sync. |
 | `contextMenus` | API permission | Adds “Save page” and “Save link” commands to Chrome's right-click menu so a user can deliberately send an opportunity to the same private tracker without first opening the popup. |
 | `identity` | API permission | Opens and completes the browser-controlled Google/Supabase OAuth flow using a `chromiumapp.org` redirect. It is used only when the user selects Continue with Google and requests the minimal `openid email profile` identity scopes so the tracker can receive the account identifier, primary email, display name and profile photo. It does not grant access to Gmail, Drive, Calendar or Contacts. |
-| `notifications` | API permission | Shows a single browser-level success or failure message when a user-triggered capture finishes, so the user can close the popup and continue browsing without losing completion feedback. Clicking a successful-capture notification opens the private dashboard. Notifications are not used for marketing. |
+| `notifications` | API permission | Shows a single browser-level confirmation after a user-triggered capture is safely accepted for background processing, or an immediate handoff failure if the receipt cannot be recorded. The notification is optional feedback and does not control processing. Notifications are not used for marketing. |
 | `https://abodid.com/*` | Host permission | Sends authenticated session checks and user-triggered opportunity captures to the Opportunity Tracker API and opens the user's dashboard. No code is downloaded or executed from this origin. |
 | `https://jwipqbjxpmgyevfzpjjx.supabase.co/*` | Host permission added at build time | Authenticates the user, refreshes the signed-in session and stores or retrieves that user's private tracker records through the configured Supabase project. Access is restricted by authenticated Row Level Security. |
 
@@ -131,7 +131,7 @@ These entries must match the built `extension/dist/chrome/manifest.json`, not on
 | Location | Browser timezone only | The browser timezone is sent with a capture solely to interpret ambiguous dates correctly. The extension does not request geolocation or collect GPS coordinates. | abodid.com and OpenRouter process it for date extraction. |
 | Web history | Yes, user-selected page only | The URL and title of the page or link the user deliberately saves are transmitted and stored as part of the opportunity. The extension does not monitor browsing in the background. | abodid.com; Supabase stores the saved URL; OpenRouter may process it as extraction context. |
 | User activity | Yes, minimal | Capture timestamp and the explicit save action support date interpretation, duplicate handling and the saved record. No advertising or behavioral profile is created. | abodid.com, Supabase and OpenRouter only as needed for the capture. |
-| Website content | Yes, user-selected page only | Visible text, relevant links and limited structured data from the selected page are transmitted for opportunity extraction. Raw page text is not stored in the saved opportunity record; derived opportunity fields are stored. | OpenRouter processes the text for AI extraction; abodid.com orchestrates the request; Supabase stores the derived record. |
+| Website content | Yes, user-selected page only | Visible text, relevant links and limited structured data from the selected page are transmitted for opportunity extraction. A private durable capture job may temporarily hold the page snapshot so closing the browser cannot cancel processing. Raw text is removed immediately after success or within 24 hours after final failure; it is never stored in the saved opportunity record. | OpenRouter processes the text for AI extraction; abodid.com orchestrates the request; Supabase temporarily stores the private job and permanently stores only the derived record. |
 
 ### Prominent disclosure and consent
 
@@ -154,9 +154,9 @@ Before submission, confirm the current data-processing and retention terms for e
 
 ### Storage, retention and deletion
 
-- OAuth session material and the minimal display-name/username cache remain in `chrome.storage.local` until replaced, the user signs out, or extension storage is cleared. Current capture progress/results use session storage and are removed at logout or browser-session end.
+- OAuth session material, the minimal display-name/username cache and the latest short-lived capture receipt remain in `chrome.storage.local` until replaced, expired, the user signs out, or extension storage is cleared. Server-side processing does not depend on this local receipt.
 - Saved opportunity records remain in the user's private tracker until the user deletes them.
-- Raw page text is used during extraction and is not written to the saved opportunity record by the application.
+- Raw page text is used during extraction and is not written to the saved opportunity record. It is removed from successful jobs immediately; final failures retain it privately for retry recovery for no longer than 24 hours before automatic removal.
 - Uninstalling the extension clears local extension storage but does not delete the user's server-side tracker records.
 - Users can delete individual opportunities in the dashboard. Account-wide access or erasure requests go to `hello@abodid.com` until a self-service account deletion flow exists.
 
@@ -194,26 +194,26 @@ Chrome runtime test matrix:
 
 | Test | Expected result | 2026-10-14 status |
 |---|---|---|
-| Load `extension/dist/chrome` unpacked | Extension installs with no manifest error | Version `2.0.0` was reloaded and verified in Chrome on 2026-10-14 with ID `bikjdgkkefmflkanfmppnidfkdiblnpg`; the `2.0.2` popup/background build requires a final unpacked reload. |
+| Load `extension/dist/chrome` unpacked | Extension installs with no manifest error | Version `2.0.0` was reloaded and verified in Chrome on 2026-10-14 with ID `bikjdgkkefmflkanfmppnidfkdiblnpg`; the `2.1.0` popup/background build requires a final unpacked reload. |
 | Open popup while signed out | Current-page preview appears first; sign-in UI and prominent privacy disclosure render only after the signed-out state is confirmed; no console error | Built and passed a delayed-session headless Chromium UI-state test on 2026-10-14; real-extension signed-out recheck pending. |
-| Open popup while signed in | Cached name and handle appear immediately without waiting for the network profile refresh; the selected page title appears without redundant “current page” labeling | Previous signed-in flow passed in real Chrome on 2026-10-14; the new `2.0.2` cached-identity presentation requires a final unpacked reload. |
+| Open popup while signed in | Cached name and handle appear immediately without waiting for the network profile refresh; the selected page title appears without redundant “current page” labeling | Previous signed-in flow passed in real Chrome on 2026-10-14; the current `2.1.0` receipt presentation requires a final unpacked reload. |
 | Google sign-in | OAuth completes and session persists after popup closes | The unpacked Chrome ID `bikjdgkkefmflkanfmppnidfkdiblnpg` and its exact `chromiumapp.org/supabase-auth` callback were verified and allow-listed in Supabase on 2026-10-14. A fresh end-to-end sign-in and sign-out retest is pending. |
-| Capture a public opportunity page | Four-square progress appears immediately; page is extracted once, success details appear and the record is private | Pending authenticated real-Chrome test |
-| Select Keep exploring during capture | The popup closes, capture continues, and Chrome shows a success/failure notification; clicking a success notification opens the dashboard; reopening the popup restores progress or result | Code-audited; authenticated real-Chrome confirmation pending |
+| Capture a public opportunity page | Four-square handoff progress appears immediately; a durable receipt is returned before extraction and the record remains private | Automated build passed; authenticated real-Chrome test pending |
+| Close the popup, tab or browser after the receipt | Server-side extraction continues independently; the dashboard resumes unfinished status after reopening and shows the saved opportunity or a retryable failure | Code-audited; authenticated real-Chrome confirmation pending |
 | Capture two different pages consecutively | The second page is read from the current tab, its request completes independently, and the popup remains reusable | Regression logic covered by local opportunity tests; authenticated real-Chrome confirmation pending |
 | Capture from many independent accounts concurrently | Requests retain isolated prompts/results; transient provider throttling uses model failover and a bounded jittered retry | A mocked 50-request concurrency regression passes locally; provider-account load confirmation remains pending |
 | Capture a restricted/internal Chrome page | Control disables or capture fails safely without crashing | Pending real-Chrome test |
-| Save page/link from context menu | An on-page toast immediately reports extraction, then confirms the saved/duplicate record or shows the backend error; toolbar badge remains a fallback | Passed an authenticated real-Chrome page-context test on 2026-10-14: the toast appeared immediately as “Extracting opportunity…” and changed to “Already in your tracker” with the saved title. Link-context and restricted-page fallbacks remain pending. The disclosed `tabs` permission added in 2.0.1 supports fresh popup target metadata, not background monitoring. |
+| Save page/link from context menu | An on-page toast immediately reports the durable handoff, then confirms that background processing owns the job or shows a receipt error; toolbar badge remains a fallback | The former synchronous flow passed an authenticated real-Chrome page-context test on 2026-10-14. The new `2.1.0` “Securing capture…” → “Capture received” flow, link context and restricted-page fallback require final real-Chrome confirmation. The disclosed `tabs` permission supports fresh popup target metadata, not background monitoring. |
 | Duplicate capture | Reports Already saved and does not consume another extraction | Covered by opportunity API tests and confirmed in real Chrome on 2026-10-14. |
 | Quota/network/timeout failure | Human-readable error; the bounded request returns the button to a usable retry state | Regression logic covered by local opportunity tests; browser confirmation pending |
 | Open dashboard | Opens the current user's tracker route | Pending signed-in real-Chrome test |
 | Log out and reopen popup | Local session is removed and sign-in panel returns | Pending signed-in real-Chrome test |
-| Service worker starts cleanly | Worker scope, name and version match the installed extension | Passed in Chrome 155 for `2.0.0`; the `2.0.2` manifest and worker require a final unpacked reload |
-| Service worker restart with signed-in state | Session and capture continue because durable state is in extension storage | Code-audited; authenticated browser confirmation pending |
+| Service worker starts cleanly | Worker scope, name and version match the installed extension | Passed in Chrome 155 for `2.0.0`; the `2.1.0` manifest and worker require a final unpacked reload |
+| Service worker restart with signed-in state | Session remains local while an accepted capture continues server-side without depending on service-worker lifetime | Code-audited; authenticated browser confirmation pending |
 
 ### Performance evidence
 
-- The release output remains compact and is minified with source maps disabled: popup JavaScript 5.87 KB (2.27 KB gzip), popup CSS 5.87 KB (1.87 KB gzip), and background JavaScript 188.39 KB (50.89 KB gzip) in the `2.0.2` Chrome build on 2026-10-20.
+- The release output remains compact and is minified with source maps disabled: popup JavaScript 6.08 KB (2.32 KB gzip), popup CSS 5.87 KB (1.87 KB gzip), and background JavaScript 189.18 KB (51.12 KB gzip) in the `2.1.0` Chrome build on 2026-10-20.
 - The redesigned successful-save receipt was rendered at the popup's 360×600 viewport on 2026-10-15 with no horizontal overflow; all popup buttons measured at least 44px tall, and category/deadline values are configured to wrap inside the keylined facts panel.
 - The extension registers no always-on content script in Chrome. Page extraction is injected only after a user capture action, avoiding work on ordinary page loads.
 - The updated signed-in popup was reloaded and visually verified in real Chrome on 2026-10-14; its first visible state contained the current page title and URL, not the Google sign-in card.
@@ -246,13 +246,14 @@ Chrome runtime test matrix:
 - [ ] Confirm publisher name, verified contact email, visibility and regions in the Developer Dashboard.
 - [ ] Complete the Dashboard Privacy practices form exactly as documented above.
 - [ ] Produce a clean ZIP from `extension/dist/chrome` only; exclude source maps, tests, environment files, repository metadata, `CHROMEWEBSTORE.md`, and development configuration.
-- [ ] Inspect the final ZIP contents and bump the manifest version if `2.0.2` has already been uploaded.
+- [ ] Inspect the final ZIP contents and bump the manifest version if `2.1.0` has already been uploaded.
 
 ## Version history
 
 | Version | Date | Changes | Store status |
 |---|---|---|---|
-| 2.0.2 | 2026-10-20 | Redesigned the signed-in popup with clearer name/handle hierarchy, simpler logout, no redundant current-page label or upper diagonal action, and a persistent Open dashboard control; cached the minimal profile display for immediate rendering; moved toolbar capture ownership to the service worker with restorable state, a four-square progress indicator, a Keep exploring action, and browser-level success/failure notifications. | Draft |
+| 2.1.0 | 2026-10-20 | Replaced browser-lifetime extraction with a durable server-side capture receipt; accepted jobs continue after the popup, tab, browser or extension worker closes; added idempotent submissions, automatic retry recovery, dashboard resumption and explicit retry for final failures; limited temporary raw-page retention to successful completion or 24 hours after final failure. | Draft |
+| 2.0.2 | 2026-10-20 | Redesigned the signed-in popup with clearer name/handle hierarchy, simpler logout, no redundant current-page label or upper diagonal action, and a persistent Open dashboard control; cached the minimal profile display for immediate rendering; moved toolbar capture ownership to the service worker with restorable state, a four-square progress indicator, a Keep exploring action, and browser-level success/failure notifications. | Superseded before submission |
 | 2.0.1 | 2026-10-15 | Prevented consecutive captures from getting stuck or erasing a newly pasted link; added bounded extraction waits, automatic expired-session recovery, OpenRouter multi-model failover and jittered throttling recovery for concurrent traffic; rechecked the current tab immediately before toolbar capture using the disclosed `tabs` permission; prevented an older right-click completion from replacing a newer extraction's feedback. | Draft |
 | 2.0.0 | 2026-10-15 | Branded as Opportunity Tracker; corrected the yellow “O” icon’s optical centring across the store listing, toolbar and context menu; added first-name personalization, an instant current-page preview without authentication flash, yellow scanning feedback, a redesigned post-capture receipt with clear category/deadline facts and a direct dashboard action, explicit minimal Google identity scopes, prominent toolbar/right-click disclosures, resilient extraction diagnostics, and an on-page context-menu progress/completion toast. | Draft |
 

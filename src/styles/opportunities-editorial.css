@@ -4466,10 +4466,19 @@ body.opportunities-editorial-page {
 }
 
 .opp-capture-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 9px 12px;
   border: 1.5px solid #b91c1c;
   border-radius: 10px;
   background: #ffe4e6;
+}
+
+.opp-capture-error .opp-btn {
+  flex: 0 0 auto;
+  min-block-size: 44px;
 }
 
 .opp-capture-success {
