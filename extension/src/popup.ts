@@ -233,7 +233,11 @@ const loadActiveTab = async () => {
 const restoreCaptureStateForActiveTab = async () => {
     const response = await sendRuntimeMessage<any>({ type: 'GET_CAPTURE_STATE' });
     const state = response?.ok ? response.data as CaptureState | null : null;
-    if (!state?.url || normalizePageUrl(state.url) !== normalizePageUrl(activeTab?.url)) return;
+    if (!state) return;
+    const isActiveCapture = state.status === 'capturing' || state.status === 'queued';
+    const belongsToActiveTab = Boolean(state.url)
+        && normalizePageUrl(state.url) === normalizePageUrl(activeTab?.url);
+    if (!isActiveCapture && !belongsToActiveTab) return;
     captureStartedInPopup = true;
     applyCaptureState(state);
 };
