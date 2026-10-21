@@ -11,6 +11,12 @@ export function doesOpportunityRequireAction(opportunity: Opportunity): boolean 
     return opportunity.status === 'reviewing';
 }
 
+export function isOutstandingDirectTask(opportunity: Opportunity): boolean {
+    return doesOpportunityRequireAction(opportunity)
+        && opportunity.source_url.startsWith('https://direct.entry/')
+        && Boolean(opportunity.event_date);
+}
+
 export function isOpportunityPastDeadline(opportunity: Opportunity, now = Date.now()): boolean {
     if (opportunity.deadline_confidence === 'rolling') return false;
 

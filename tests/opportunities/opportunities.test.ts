@@ -22,6 +22,7 @@ import { generateIcsFile, generateGoogleCalendarUrl } from '../../src/lib/opport
 import { formatTimeRemaining } from '../../src/lib/opportunities/reminders';
 import {
     isOpportunityAttention,
+    isOutstandingDirectTask,
     isOpportunityPastDeadline,
     opportunityAttentionScore,
     selectAttentionOpportunities,
@@ -180,6 +181,17 @@ describe('Opportunity Assistant Core Functionality', () => {
             expect(isOpportunityPastDeadline(opportunity({ deadline_at: '2026-09-25T00:00:00.000Z' }), now)).toBe(false);
             expect(isOpportunityPastDeadline(opportunity({ deadline_confidence: 'rolling' }), now)).toBe(false);
             expect(isOpportunityPastDeadline(opportunity(), now)).toBe(false);
+        });
+
+        it('keeps direct personal tasks outstanding until the user marks them done', () => {
+            const directTask = opportunity({
+                source_url: 'https://direct.entry/telegram/test-task',
+                event_date: '2026-09-23T23:55:00.000Z',
+            });
+
+            expect(isOutstandingDirectTask(directTask)).toBe(true);
+            expect(isOutstandingDirectTask({ ...directTask, status: 'applied' })).toBe(false);
+            expect(isOutstandingDirectTask({ ...directTask, source_url: 'https://example.com/open-call' })).toBe(false);
         });
 
         it('puts the nearest high-priority work first', () => {

@@ -11,6 +11,7 @@ import {
 import {
     doesOpportunityRequireAction,
     getOpportunityActionAt,
+    isOutstandingDirectTask,
     isOpportunityPastDeadline,
 } from '../../lib/opportunities/attention';
 import {
@@ -1005,7 +1006,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             // An explicit Applied view is the completed archive, so it must include
             // finished items even when their original deadline has passed.
-            if (!isAppliedFilter && shouldHidePastDeadlines && isOpportunityPastDeadline(o, now)) {
+            if (
+                !isAppliedFilter
+                && shouldHidePastDeadlines
+                && isOpportunityPastDeadline(o, now)
+                && !isOutstandingDirectTask(o)
+            ) {
                 return false;
             }
 
@@ -1017,6 +1023,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             if (urgencyFilter !== 'apply_asap') return true;
 
             if (!doesOpportunityRequireAction(o)) return false;
+            if (isOutstandingDirectTask(o)) return true;
             if (o.is_high_priority) return true;
 
             const actionableAt = getOpportunityActionAt(o);
