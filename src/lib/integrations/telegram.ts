@@ -96,9 +96,11 @@ export type ParsedTelegramUpdate = {
 
 const envValue = (name: string) => {
     const metaEnv = typeof import.meta !== 'undefined'
-        ? (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
+        ? (import.meta as ImportMeta & { env?: Record<string, unknown> }).env
         : undefined;
-    return metaEnv?.[name] || process.env[name] || '';
+    const value = metaEnv?.[name] ?? process.env[name];
+    if (value === undefined || value === null) return '';
+    return typeof value === 'string' ? value : String(value);
 };
 
 export const getTelegramConfig = () => {
