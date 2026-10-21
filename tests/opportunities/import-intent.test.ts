@@ -55,4 +55,14 @@ describe('Opportunity public copy SQL contract', () => {
         expect(sql).toContain('on conflict (user_id, canonical_url) do nothing');
         expect(sql).toContain('grant execute on function public.copy_public_opportunity(uuid) to authenticated');
     });
+
+    it('does not allow personal direct-entry tasks to be copied from a public collection', async () => {
+        const sql = await readFile(new URL(
+            '../../supabase/migrations/20261021160000_keep_direct_tasks_private.sql',
+            import.meta.url,
+        ), 'utf8');
+
+        expect(sql).toContain("saved.source_url not like 'https://direct.entry/%'");
+        expect(sql).toContain('profile.is_public = true');
+    });
 });

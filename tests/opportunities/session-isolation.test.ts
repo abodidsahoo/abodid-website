@@ -15,6 +15,7 @@ describe('Opportunity authentication session isolation', () => {
 
         expect(privateRoute).toContain(".eq('user_id', authorization.user.id)");
         expect(publicRoute).toContain(".eq('user_id', profile.id)");
+        expect(publicRoute).toContain(".not('source_url', 'like', 'https://direct.entry/%')");
         expect(dashboard).toContain('buildOpportunitySearchIndex(opportunities)');
         expect(search).not.toMatch(/fetch\(|supabase|saved_opportunities/i);
         expect(migration).toContain('alter table public.saved_opportunities force row level security');

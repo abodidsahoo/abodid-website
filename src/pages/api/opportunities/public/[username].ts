@@ -30,6 +30,7 @@ export const GET: APIRoute = async ({ params }) => {
         .select(PUBLIC_SELECT)
         .eq('user_id', profile.id)
         .eq('status', 'reviewing')
+        .not('source_url', 'like', 'https://direct.entry/%')
         .order('created_at', { ascending: false });
 
     if (error) return opportunityJson({ error: 'Could not load this collection' }, 500);
