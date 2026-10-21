@@ -33,6 +33,9 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isSavingVisibility, setIsSavingVisibility] = useState(false);
+    const [telegramStatus, setTelegramStatus] = useState<'loading' | 'active' | 'pending' | 'disconnected' | 'unavailable'>('loading');
+    const [telegramMissingConfiguration, setTelegramMissingConfiguration] = useState<string[]>([]);
+    const [isUpdatingTelegram, setIsUpdatingTelegram] = useState(false);
     const [position, setPosition] = useState<OpportunityMenuPosition | null>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -104,6 +107,61 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
             window.visualViewport?.removeEventListener('scroll', handleViewportChange);
         };
     }, [closeMenu, isOpen, updatePosition]);
+
+    useEffect(() => {
+        if (!isOpen || !accessToken) return;
+        const controller = new AbortController();
+        setTelegramStatus('loading');
+        void fetch('/api/integrations/telegram/connection', {
+            cache: 'no-store',
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
+        }).then(async (response) => {
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || 'Telegram connection could not be loaded.');
+            setTelegramMissingConfiguration(Array.isArray(payload.missing_configuration) ? payload.missing_configuration : []);
+            setTelegramStatus(payload.enabled === false ? 'unavailable' : payload.status || 'disconnected');
+        }).catch((error) => {
+            if (error instanceof DOMException && error.name === 'AbortError') return;
+            setTelegramMissingConfiguration([
+                error instanceof Error ? error.message : 'Telegram connection could not be loaded.',
+            ]);
+            setTelegramStatus('unavailable');
+        });
+        return () => controller.abort();
+    }, [accessToken, isOpen]);
+
+    const updateTelegramConnection = async () => {
+        if (!accessToken || isUpdatingTelegram || telegramStatus === 'unavailable') return;
+        setIsUpdatingTelegram(true);
+        try {
+            const disconnecting = telegramStatus === 'active';
+            const response = await fetch('/api/integrations/telegram/connection', {
+                method: disconnecting ? 'DELETE' : 'POST',
+                cache: 'no-store',
+                headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || 'Telegram connection could not be updated.');
+            if (disconnecting) {
+                setTelegramStatus('disconnected');
+                onToast('Telegram disconnected.');
+                return;
+            }
+            if (payload.status === 'active') {
+                setTelegramStatus('active');
+                onToast('Telegram is already connected.');
+                return;
+            }
+            if (!payload.connect_url) throw new Error('Telegram connection link is unavailable.');
+            setTelegramStatus('pending');
+            window.location.assign(payload.connect_url);
+        } catch (error) {
+            onToast(error instanceof Error ? error.message : 'Telegram connection could not be updated.');
+        } finally {
+            setIsUpdatingTelegram(false);
+        }
+    };
 
     const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(INTERACTIVE_ITEM_SELECTOR));
@@ -259,6 +317,43 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                             ) : (
                                 <p className="opp-private-visibility-note">Only you can view it</p>
                             )}
+                        </div>
+                    </div>
+
+                    <div className="opp-user-menu-section opp-telegram-connection" role="group" aria-labelledby="opp-telegram-label">
+                        <p id="opp-telegram-label" className="opp-user-menu-label">Telegram Capture</p>
+                        <div className="opp-telegram-connection-row">
+                            <div>
+                                <strong>
+                                    {telegramStatus === 'active'
+                                        ? 'Connected'
+                                        : telegramStatus === 'pending'
+                                            ? 'Waiting for Telegram'
+                                            : telegramStatus === 'loading'
+                                                ? 'Checking connection'
+                                                : telegramStatus === 'unavailable'
+                                                    ? 'Not configured yet'
+                                                    : 'Not connected'}
+                                </strong>
+                                <small>{telegramStatus === 'unavailable' && telegramMissingConfiguration.length
+                                    ? `Setup issue: ${telegramMissingConfiguration.join(', ')}`
+                                    : 'Send links, files, images and voice notes.'}</small>
+                            </div>
+                            <button
+                                type="button"
+                                role="menuitem"
+                                disabled={isUpdatingTelegram || telegramStatus === 'loading' || telegramStatus === 'unavailable'}
+                                aria-busy={isUpdatingTelegram}
+                                onClick={() => void updateTelegramConnection()}
+                            >
+                                {isUpdatingTelegram
+                                    ? 'Please wait…'
+                                    : telegramStatus === 'active'
+                                        ? 'Disconnect'
+                                        : telegramStatus === 'pending'
+                                            ? 'Open Telegram'
+                                            : 'Connect'}
+                            </button>
                         </div>
                     </div>
 

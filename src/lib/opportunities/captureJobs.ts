@@ -1,5 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseServiceClient } from '../supabaseServer';
+import { AudioTranscriptionError, transcribeAudio } from '../audio/transcribeAudio';
+import {
+    downloadTelegramFile,
+    TelegramApiError,
+    type TelegramFileDescriptor,
+} from '../integrations/telegram';
+import { notifyTelegramCaptureResult } from '../integrations/telegramDelivery';
 import {
     captureOpportunityFromUrl,
     OpportunityCaptureError,
@@ -26,12 +33,15 @@ export type OpportunityCaptureAttachment = {
     name: string;
     type: string;
     size: number;
+    kind?: 'document' | 'image' | 'voice';
+    telegram_file_unique_id?: string;
 };
 
 export type OpportunityCaptureJobPayload = Partial<OpportunityUrlCaptureInput> & {
     text?: string;
     mode?: 'note' | 'text';
     attachments?: OpportunityCaptureAttachment[];
+    telegram_files?: TelegramFileDescriptor[];
 };
 
 export type OpportunityCaptureJobRow = {
@@ -54,6 +64,7 @@ export type OpportunityCaptureJobRow = {
     error_message: string | null;
     source_cleanup_at: string | null;
     source_cleaned_at: string | null;
+    messaging_event_id: string | null;
     created_at: string;
     updated_at: string;
 };
@@ -77,6 +88,7 @@ export const PUBLIC_CAPTURE_JOB_SELECT = [
     'error_message',
     'source_cleanup_at',
     'source_cleaned_at',
+    'messaging_event_id',
     'created_at',
     'updated_at',
 ].join(', ');
@@ -113,6 +125,60 @@ export const captureJobToPublic = (job: OpportunityCaptureJobRow) => ({
     created_at: job.created_at,
     updated_at: job.updated_at,
 });
+
+export const enqueueOpportunityCaptureJob = async ({
+    client,
+    userId,
+    idempotencyKey,
+    channel,
+    inputKind,
+    payload,
+    status = 'pending',
+    jobId = crypto.randomUUID(),
+    sourceCleanupAt = null,
+    messagingEventId = null,
+}: {
+    client: SupabaseClient;
+    userId: string;
+    idempotencyKey: string;
+    channel: OpportunityCaptureJobRow['channel'];
+    inputKind: OpportunityCaptureInputKind;
+    payload: OpportunityCaptureJobPayload;
+    status?: OpportunityCaptureJobStatus;
+    jobId?: string;
+    sourceCleanupAt?: string | null;
+    messagingEventId?: string | null;
+}) => {
+    const { data, error } = await client
+        .from('opportunity_capture_jobs')
+        .insert({
+            id: jobId,
+            user_id: userId,
+            idempotency_key: idempotencyKey,
+            channel,
+            input_kind: inputKind,
+            status,
+            payload,
+            source_cleanup_at: sourceCleanupAt,
+            messaging_event_id: messagingEventId,
+        })
+        .select(PUBLIC_CAPTURE_JOB_SELECT)
+        .single();
+    if (!error && data) return { job: data as unknown as OpportunityCaptureJobRow, existing: false };
+    if (error?.code !== '23505') throw error || new Error('The capture could not be safely recorded.');
+    let query = client
+        .from('opportunity_capture_jobs')
+        .select(PUBLIC_CAPTURE_JOB_SELECT)
+        .eq('user_id', userId);
+    query = messagingEventId
+        ? query.eq('messaging_event_id', messagingEventId)
+        : query.eq('idempotency_key', idempotencyKey);
+    const { data: existing, error: existingError } = await query.maybeSingle();
+    if (existingError || !existing) {
+        throw existingError || new Error('The existing capture receipt could not be loaded.');
+    }
+    return { job: existing as unknown as OpportunityCaptureJobRow, existing: true };
+};
 
 const redactCapturePayload = (
     payload: OpportunityCaptureJobPayload,
@@ -157,17 +223,74 @@ const downloadCaptureAttachments = async (
     return new File([data], attachment.name, { type: attachment.type || data.type });
 }));
 
+const extensionForAttachment = (attachment: TelegramFileDescriptor) => {
+    const extension = attachment.name.toLowerCase().split('.').pop() || '';
+    return /^[a-z0-9]{1,10}$/.test(extension) ? `.${extension}` : '';
+};
+
+const prepareTelegramAttachments = async (
+    serviceClient: SupabaseClient,
+    job: OpportunityCaptureJobRow,
+) => {
+    const telegramFiles = Array.isArray(job.payload.telegram_files) ? job.payload.telegram_files : [];
+    if (telegramFiles.length === 0) return;
+    const attachments: OpportunityCaptureAttachment[] = [...attachmentsFromPayload(job.payload)];
+    for (const telegramFile of telegramFiles) {
+        if (attachments.some((attachment) => attachment.telegram_file_unique_id === telegramFile.file_unique_id)) {
+            continue;
+        }
+        const bytes = await downloadTelegramFile(telegramFile);
+        const safeUniqueId = telegramFile.file_unique_id.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 100)
+            || crypto.randomUUID();
+        const path = `${job.user_id}/${job.id}/telegram-${safeUniqueId}${extensionForAttachment(telegramFile)}`;
+        const { error } = await serviceClient.storage
+            .from(OPPORTUNITY_CAPTURE_FILES_BUCKET)
+            .upload(path, bytes, {
+                contentType: telegramFile.type,
+                upsert: true,
+            });
+        if (error) throw error;
+        attachments.push({
+            path,
+            name: telegramFile.name,
+            type: telegramFile.type,
+            size: bytes.byteLength,
+            kind: telegramFile.kind,
+            telegram_file_unique_id: telegramFile.file_unique_id,
+        });
+        job.payload = { ...job.payload, attachments };
+        const { error: progressError } = await serviceClient
+            .from('opportunity_capture_jobs')
+            .update({ payload: job.payload })
+            .eq('id', job.id)
+            .eq('user_id', job.user_id);
+        if (progressError) throw progressError;
+    }
+    const { telegram_files: _telegramFiles, ...remainingPayload } = job.payload;
+    job.payload = { ...remainingPayload, attachments };
+    const { error } = await serviceClient
+        .from('opportunity_capture_jobs')
+        .update({ payload: job.payload })
+        .eq('id', job.id)
+        .eq('user_id', job.user_id);
+    if (error) throw error;
+};
+
 const errorStatus = (error: unknown) => {
     if (error instanceof OpportunityCaptureError
         || error instanceof OpportunityInputExtractionError
-        || error instanceof OpportunityCreateError) return error.status;
+        || error instanceof OpportunityCreateError
+        || error instanceof AudioTranscriptionError
+        || error instanceof TelegramApiError) return error.status;
     return 500;
 };
 
 const errorCode = (error: unknown) => {
     if (error instanceof OpportunityCaptureError
         || error instanceof OpportunityInputExtractionError
-        || error instanceof OpportunityCreateError) return error.code;
+        || error instanceof OpportunityCreateError
+        || error instanceof AudioTranscriptionError
+        || error instanceof TelegramApiError) return error.code;
     return 'CAPTURE_FAILED';
 };
 
@@ -196,20 +319,31 @@ const processCapturedInput = async (
         };
     }
 
+    await prepareTelegramAttachments(serviceClient, job);
     const attachmentDescriptors = attachmentsFromPayload(job.payload);
     const attachments = await downloadCaptureAttachments(serviceClient, attachmentDescriptors);
+    const audioAttachments = attachments.filter((attachment) => attachment.type.startsWith('audio/'));
+    const readableAttachments = attachments.filter((attachment) => !attachment.type.startsWith('audio/'));
+    const transcriptSections = await Promise.all(audioAttachments.map(async (attachment) => {
+        const transcript = await transcribeAudio({ file: attachment });
+        return `VOICE NOTE TRANSCRIPT:\n${transcript.text}`;
+    }));
+    const capturedText = [
+        typeof job.payload.text === 'string' ? job.payload.text : '',
+        ...transcriptSections,
+    ].filter(Boolean).join('\n\n');
     const extraction = await extractOpportunityFromInput({
         userId: job.user_id,
         serviceClient,
-        text: typeof job.payload.text === 'string' ? job.payload.text : '',
-        attachments,
+        text: capturedText,
+        attachments: readableAttachments,
         capturedAt: job.payload.captured_at,
         captureTimezone: job.payload.capture_timezone,
         mode: job.payload.mode,
     });
     const body = buildExtractedOpportunityPayload({
         draft: extraction.draft,
-        input: typeof job.payload.text === 'string' ? job.payload.text : '',
+        input: capturedText,
         directEntryId: job.id,
     });
     const result = await createOpportunityFromPayload({
@@ -272,6 +406,23 @@ const processClaimedJob = async (
             }
         }
 
+        if (job.messaging_event_id) {
+            try {
+                await notifyTelegramCaptureResult({
+                    serviceClient,
+                    jobId: job.id,
+                    messagingEventId: job.messaging_event_id,
+                    opportunityId: result.opportunityId,
+                    isDuplicate: result.isDuplicate,
+                });
+            } catch (notificationError) {
+                console.error('Telegram capture completion message deferred', {
+                    jobId: job.id,
+                    message: notificationError instanceof Error ? notificationError.message : 'Unknown Telegram delivery failure',
+                });
+            }
+        }
+
         return { id: job.id, status: 'succeeded' as const, opportunityId: result.opportunityId };
     } catch (error) {
         const message = error instanceof Error ? error.message.slice(0, 1000) : 'Capture failed unexpectedly';
@@ -314,6 +465,23 @@ const processClaimedJob = async (
             code,
             message,
         });
+        if (!shouldRetry && job.messaging_event_id) {
+            try {
+                await notifyTelegramCaptureResult({
+                    serviceClient,
+                    jobId: job.id,
+                    messagingEventId: job.messaging_event_id,
+                    failedMessage: errorStatus(error) >= 400 && errorStatus(error) < 500
+                        ? 'I need one clarification. Send a little more context and try again.'
+                        : 'This could not be processed. Try again.',
+                });
+            } catch (notificationError) {
+                console.error('Telegram capture failure message deferred', {
+                    jobId: job.id,
+                    message: notificationError instanceof Error ? notificationError.message : 'Unknown Telegram delivery failure',
+                });
+            }
+        }
         return { id: job.id, status: shouldRetry ? 'pending' as const : 'failed' as const };
     }
 };

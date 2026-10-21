@@ -29,6 +29,7 @@ const job = (updates: Partial<OpportunityCaptureJobRow> = {}): OpportunityCaptur
     error_message: null,
     source_cleanup_at: null,
     source_cleaned_at: null,
+    messaging_event_id: null,
     created_at: '2026-10-20T12:00:00.000Z',
     updated_at: '2026-10-20T12:00:00.000Z',
     ...updates,

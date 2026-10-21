@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { normalizeOpportunityCaptureUrl } from '../../../../lib/opportunities/captureUrl';
 import {
     captureJobToPublic,
+    enqueueOpportunityCaptureJob,
     OPPORTUNITY_CAPTURE_FILES_BUCKET,
     processOpportunityCaptureJobs,
     PUBLIC_CAPTURE_JOB_SELECT,
@@ -213,36 +214,27 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const uploading = attachmentDescriptors.length > 0;
-    const { data, error } = await authorization.userClient
-        .from('opportunity_capture_jobs')
-        .insert({
-            id: jobId,
-            user_id: authorization.user.id,
-            idempotency_key: idempotencyKey,
+    let job: OpportunityCaptureJobRow;
+    try {
+        const result = await enqueueOpportunityCaptureJob({
+            client: authorization.userClient,
+            userId: authorization.user.id,
+            idempotencyKey,
             channel,
-            input_kind: inputKind,
-            status: uploading ? 'uploading' : 'pending',
+            inputKind,
             payload,
-            source_cleanup_at: uploading
+            status: uploading ? 'uploading' : 'pending',
+            jobId,
+            sourceCleanupAt: uploading
                 ? new Date(Date.now() + UPLOAD_RECEIPT_TTL_MS).toISOString()
                 : null,
-        })
-        .select(PUBLIC_CAPTURE_JOB_SELECT)
-        .single();
-
-    let job = data as unknown as OpportunityCaptureJobRow | null;
-    if (error?.code === '23505') {
-        const duplicate = await findExistingJob(
-            authorization.userClient,
-            authorization.user.id,
-            idempotencyKey,
-        );
-        if (duplicate.error || !duplicate.job) {
-            return opportunityJson({ error: 'The existing capture receipt could not be loaded' }, 500);
-        }
-        job = duplicate.job;
-    } else if (error || !job) {
-        const unavailable = UNAVAILABLE_CODES.has(error?.code || '') || error?.code === '23514';
+        });
+        job = result.job;
+    } catch (error) {
+        const code = typeof error === 'object' && error !== null && 'code' in error
+            ? String(error.code || '')
+            : '';
+        const unavailable = UNAVAILABLE_CODES.has(code) || code === '23514';
         return opportunityJson({
             error: unavailable
                 ? 'Background capture is not configured for this input yet.'
