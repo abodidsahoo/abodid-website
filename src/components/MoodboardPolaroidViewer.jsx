@@ -29,6 +29,81 @@ function toOverlayColor(rgbString) {
     return rgbString.replace('rgb', 'rgba').replace(')', ', 0.95)');
 }
 
+function getLayoutWidth(dimensions) {
+    if (
+        typeof window === 'undefined' ||
+        !dimensions?.width ||
+        !dimensions?.height
+    ) {
+        return 'auto';
+    }
+
+    const maxHeight = window.innerHeight * 0.65;
+    const maxWidth = window.innerWidth * 0.8;
+    const minWidth = Math.min(340, maxWidth);
+    const aspect = dimensions.width / dimensions.height;
+    const width = Math.min(maxWidth, Math.max(minWidth, maxHeight * aspect));
+    return `${Math.round(width)}px`;
+}
+
+function preloadDecodedImage(imageUrl, assetCacheRef) {
+    if (!imageUrl || typeof window === 'undefined') {
+        return Promise.reject(new Error('Cannot preload an empty image URL'));
+    }
+
+    const cached = assetCacheRef.current[imageUrl] || {};
+    if (cached.decoded && cached.dimensions) return Promise.resolve(cached);
+    if (cached.decodePromise) return cached.decodePromise;
+
+    const image = new window.Image();
+    image.decoding = 'async';
+
+    const decodePromise = new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error(`Unable to load image: ${imageUrl}`));
+        image.src = imageUrl;
+
+        if (image.complete && image.naturalWidth > 0) resolve();
+    })
+        .then(async () => {
+            if (typeof image.decode === 'function') {
+                try {
+                    await image.decode();
+                } catch {
+                    // A completed image can still paint when decode() is unsupported or
+                    // rejects after the resource has already entered the memory cache.
+                    if (!image.complete || image.naturalWidth === 0) throw new Error('Image decode failed');
+                }
+            }
+
+            const current = assetCacheRef.current[imageUrl] || {};
+            const { decodePromise: _completedPromise, ...cachedAsset } = current;
+            const result = {
+                ...cachedAsset,
+                dimensions: {
+                    width: image.naturalWidth,
+                    height: image.naturalHeight,
+                },
+                decoded: true,
+            };
+            assetCacheRef.current[imageUrl] = result;
+            return result;
+        })
+        .catch((error) => {
+            const current = assetCacheRef.current[imageUrl] || {};
+            const { decodePromise: _stalePromise, ...rest } = current;
+            assetCacheRef.current[imageUrl] = rest;
+            throw error;
+        });
+
+    assetCacheRef.current[imageUrl] = {
+        ...cached,
+        decodePromise,
+    };
+
+    return decodePromise;
+}
+
 export default function MoodboardPolaroidViewer({
     items = [],
     activeId = null,
@@ -148,29 +223,44 @@ export default function MoodboardPolaroidViewer({
 
     useEffect(() => {
         if (!imageUrl) return;
-        setLoading(true);
-
+        let cancelled = false;
+        let revealFrame = 0;
         const cached = assetCacheRef.current[imageUrl];
-        if (cached?.dimensions && typeof window !== 'undefined') {
-            const maxHeight = window.innerHeight * 0.65;
-            const maxWidth = window.innerWidth * 0.8;
-            const MIN_LAYOUT_WIDTH = Math.min(340, maxWidth);
-            const aspect = cached.dimensions.width / cached.dimensions.height;
-            let width = Math.max(MIN_LAYOUT_WIDTH, maxHeight * aspect);
-            if (width > maxWidth) width = maxWidth;
-            setLayoutWidth(`${Math.round(width)}px`);
-            setIsLayoutStable(true);
-        } else {
-            setLayoutWidth('auto');
-            setIsLayoutStable(false);
-        }
 
-        const safetyTimer = window.setTimeout(() => {
-            setIsLayoutStable(true);
-        }, 300);
+        setLoading(!cached?.decoded);
+        setIsLayoutStable(false);
+        setLayoutWidth(getLayoutWidth(cached?.dimensions));
 
-        return () => window.clearTimeout(safetyTimer);
-    }, [imageUrl]);
+        preloadDecodedImage(imageUrl, assetCacheRef)
+            .then(async (decodedAsset) => {
+                const imageNode = imgRef.current;
+                if (imageNode && typeof imageNode.decode === 'function') {
+                    try {
+                        await imageNode.decode();
+                    } catch {
+                        // onError handles a genuinely unavailable image. A decode()
+                        // rejection alone should not trap the shutter closed.
+                    }
+                }
+                if (cancelled || imgRef.current !== imageNode) return;
+
+                setLayoutWidth(getLayoutWidth(decodedAsset.dimensions));
+                setLoading(false);
+                revealFrame = window.requestAnimationFrame(() => {
+                    if (!cancelled) setIsLayoutStable(true);
+                });
+            })
+            .catch(() => {
+                if (cancelled) return;
+                setLoading(false);
+                setIsLayoutStable(true);
+            });
+
+        return () => {
+            cancelled = true;
+            window.cancelAnimationFrame(revealFrame);
+        };
+    }, [imageUrl, assetCacheRef]);
 
     useEffect(() => {
         if (!normalizedItems.length) return undefined;
@@ -183,21 +273,28 @@ export default function MoodboardPolaroidViewer({
             );
         }
 
-        indexesToPreload.forEach((index) => {
+        [...new Set(indexesToPreload)].forEach((index) => {
             const item = normalizedItems[index];
-            if (!item?.imageUrl || assetCacheRef.current[item.imageUrl]) return;
+            if (!item?.imageUrl) return;
 
-            const preloadLink = document.createElement('link');
-            preloadLink.rel = 'preload';
-            preloadLink.as = 'image';
-            preloadLink.href = item.imageUrl;
-            document.head.appendChild(preloadLink);
+            // Fetching alone is not enough: Chrome may still decode a large image on
+            // the first visible paint. Decode adjacent full-size assets up front so
+            // the shutter never opens onto an empty frame.
+            preloadDecodedImage(item.imageUrl, assetCacheRef).catch(() => {});
 
-            analyzeImage(item.paletteImageUrl || item.imageUrl)
-                .then((result) => {
-                    assetCacheRef.current[item.imageUrl] = result;
-                })
-                .catch(() => {});
+            const cached = assetCacheRef.current[item.imageUrl] || {};
+            if (!cached.palette || !cached.bg) {
+                analyzeImage(item.paletteImageUrl || item.imageUrl)
+                    .then((result) => {
+                        const latest = assetCacheRef.current[item.imageUrl] || {};
+                        assetCacheRef.current[item.imageUrl] = {
+                            ...result,
+                            ...latest,
+                            dimensions: latest.dimensions || result.dimensions,
+                        };
+                    })
+                    .catch(() => {});
+            }
         });
 
         return undefined;
@@ -230,24 +327,32 @@ export default function MoodboardPolaroidViewer({
         return () => window.removeEventListener('keydown', handleKeyDown);
     });
 
-    const handleImageLoad = () => {
-        if (imgRef.current) {
-            const MIN_LAYOUT_WIDTH = 340;
-            const measuredWidth = imgRef.current.clientWidth;
-            const nextWidth = `${Math.max(MIN_LAYOUT_WIDTH, measuredWidth)}px`;
-            setLayoutWidth(nextWidth);
-            if (imageUrl) {
-                const existing = assetCacheRef.current[imageUrl] || {};
-                assetCacheRef.current[imageUrl] = {
-                    ...existing,
-                    dimensions: {
-                        width: Math.max(MIN_LAYOUT_WIDTH, imgRef.current.naturalWidth || imgRef.current.clientWidth),
-                        height: imgRef.current.naturalHeight || imgRef.current.clientHeight,
-                    },
-                };
+    const handleImageLoad = async (event) => {
+        const imageNode = event.currentTarget;
+        if (typeof imageNode.decode === 'function') {
+            try {
+                await imageNode.decode();
+            } catch {
+                // The load event is sufficient fallback evidence that the image can paint.
             }
         }
-        setIsLayoutStable(true);
+        if (imgRef.current !== imageNode) return;
+
+        const dimensions = {
+            width: imageNode.naturalWidth || imageNode.clientWidth,
+            height: imageNode.naturalHeight || imageNode.clientHeight,
+        };
+        if (imageUrl) {
+            const existing = assetCacheRef.current[imageUrl] || {};
+            assetCacheRef.current[imageUrl] = {
+                ...existing,
+                dimensions,
+                decoded: true,
+            };
+        }
+        setLayoutWidth(getLayoutWidth(dimensions));
+        setLoading(false);
+        window.requestAnimationFrame(() => setIsLayoutStable(true));
     };
 
     const handleDominantColor = useCallback((rgbString, palette) => {
@@ -271,17 +376,12 @@ export default function MoodboardPolaroidViewer({
             normalizedItems.length;
         setCurrentIndex(nextIndex);
         setPendingOffset(0);
+        setLoading(true);
+        setIsLayoutStable(false);
 
         const nextItem = normalizedItems[nextIndex];
         if (nextItem?.id && nextItem.id !== activeId && typeof onChange === 'function') {
             onChange(nextItem.id);
-        }
-        const nextUrl = nextItem?.imageUrl;
-        const isCached = nextUrl && assetCacheRef.current[nextUrl]?.dimensions;
-        if (isCached) {
-            setIsLayoutStable(true);
-        } else {
-            setIsLayoutStable(false);
         }
     };
 
@@ -292,6 +392,10 @@ export default function MoodboardPolaroidViewer({
     const requestSwitch = (offset) => {
         if (!normalizedItems.length) return;
         if (shutterState !== 'open') return;
+        const nextIndex =
+            (currentIndex + offset + normalizedItems.length) % normalizedItems.length;
+        const nextUrl = normalizedItems[nextIndex]?.imageUrl;
+        if (nextUrl) preloadDecodedImage(nextUrl, assetCacheRef).catch(() => {});
         setPendingOffset(offset);
         setShutterState('closing');
     };
@@ -378,7 +482,10 @@ export default function MoodboardPolaroidViewer({
                     <div className="lightbox-inner">
                         <motion.div
                             className="lightbox-image-area"
-                            style={itemAspect ? { aspectRatio: itemAspect } : undefined}
+                            style={{
+                                ...(itemAspect ? { aspectRatio: itemAspect } : {}),
+                                ...(layoutWidth !== 'auto' ? { width: layoutWidth } : {}),
+                            }}
                             animate={{
                                 clipPath:
                                     shutterState === 'closing' || shutterState === 'closed'
@@ -405,10 +512,17 @@ export default function MoodboardPolaroidViewer({
                                 ref={imgRef}
                                 src={imageUrl}
                                 alt={currentItem.title}
+                                width={cachedData?.dimensions?.width}
+                                height={cachedData?.dimensions?.height}
+                                loading="eager"
+                                decoding="async"
+                                fetchPriority="high"
                                 onLoad={handleImageLoad}
                                 onError={() => {
+                                    setLoading(false);
                                     setIsLayoutStable(true);
                                 }}
+                                style={{ opacity: loading ? 0 : 1 }}
                             />
                         </motion.div>
 
@@ -532,12 +646,12 @@ export default function MoodboardPolaroidViewer({
                     }
 
                     .lightbox-image-area img {
+                        width: 100%;
+                        height: 100%;
                         max-height: 65vh;
-                        max-width: 80vw;
-                        min-width: min(100%, 300px);
-                        min-height: 200px;
-                        height: auto;
-                        width: auto;
+                        max-width: 100%;
+                        min-width: 0;
+                        min-height: 0;
                         display: block;
                         object-fit: contain;
                     }

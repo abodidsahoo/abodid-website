@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import AdminDashboard from "../../../components/admin/AdminDashboard.jsx";
+import ThemeToggle from "../../../components/ThemeToggle.astro";
+---
+
+<AdminLayout title="Opportunity Users" fullWidth={true}>
+  <div class="admin-theme-control">
+    <ThemeToggle labeled={true} />
+  </div>
+  <AdminDashboard initialSection="opportunities" client:only="react" />
+</AdminLayout>

@@ -63,4 +63,12 @@ describe('Opportunity authentication session isolation', () => {
         expect(adminDashboard).toContain("signOut({ scope: 'local' })");
         expect(adminLogin).toContain("signOut({ scope: 'local' })");
     });
+
+    it('records onboarding from the successful Tracker session without blocking access', async () => {
+        const sessionRoute = await source('../../src/pages/api/opportunities/session.ts');
+
+        expect(sessionRoute).toContain('recordOpportunityOnboarding');
+        expect(sessionRoute).toContain('Tracker access must never depend on an operational owner notification.');
+        expect(sessionRoute).toContain('opportunityJson({');
+    });
 });

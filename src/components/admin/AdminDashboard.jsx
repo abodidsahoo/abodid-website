@@ -7,6 +7,7 @@ import {
 } from '../../lib/newsletter/media.js';
 import { prefetchNetworkIntelligence } from '../../lib/network/prefetch.js';
 import UserList from './UserList';
+import OpportunityAdminHub from './OpportunityAdminHub';
 import BrandManager from './BrandManager';
 import NewsletterSender from './NewsletterSender';
 import PhotoStoryManager from './PhotoStoryManager';
@@ -112,6 +113,7 @@ const NAV_GROUPS = [
         sections: [
             { id: 'network_intelligence', label: 'Contacts', icon: Network },
             { id: 'newsletter', label: 'Newsletters', icon: Mail },
+            { id: 'opportunities', label: 'Opportunity Tracker', icon: CalendarClock },
             { id: 'users', label: 'Members & Access', icon: UsersRound },
         ],
     },
@@ -145,6 +147,10 @@ const SECTIONS = NAV_GROUPS.flatMap((group) => (
     group.sections.map((section) => ({ ...section, groupId: group.id, groupLabel: group.label }))
 ));
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
+const SECTION_PATHS = {
+    dashboard: '/admin/dashboard',
+    opportunities: '/admin/opportunities',
+};
 const REQUEST_TIMEOUT_MS = 8000;
 const WORLD_CLOCKS = [
     { city: 'New York', timeZone: 'America/New_York' },
@@ -213,7 +219,22 @@ class SectionErrorBoundary extends React.Component {
     }
 }
 
-export default function AdminDashboard() {
+const getSectionFromLocation = (initialSection = 'dashboard') => {
+    const normalizedPath = window.location.pathname.replace(/\/+$/, '') || '/';
+    if (normalizedPath === '/admin/opportunities' || normalizedPath.startsWith('/admin/opportunities/')) {
+        return 'opportunities';
+    }
+    const pathSection = Object.entries(SECTION_PATHS)
+        .find(([, pathname]) => pathname === normalizedPath)?.[0];
+    if (pathSection && pathSection !== 'dashboard') return pathSection;
+
+    const section = new URLSearchParams(window.location.search).get('section');
+    if (section && VALID_SECTION_IDS.has(section)) return section;
+    if (pathSection) return pathSection;
+    return VALID_SECTION_IDS.has(initialSection) ? initialSection : 'dashboard';
+};
+
+export default function AdminDashboard({ initialSection = 'dashboard' }) {
     const moodboardFileInputRef = useRef(null);
     const authorizedUserIdRef = useRef(null);
     const signOutDestinationRef = useRef(null);
@@ -228,7 +249,9 @@ export default function AdminDashboard() {
     });
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeSection, setActiveSection] = useState('dashboard');
+    const [activeSection, setActiveSection] = useState(
+        VALID_SECTION_IDS.has(initialSection) ? initialSection : 'dashboard'
+    );
     const [connectionError, setConnectionError] = useState(null);
     const [accessDenied, setAccessDenied] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -257,11 +280,7 @@ export default function AdminDashboard() {
     useEffect(() => {
         console.log("AdminDashboard: Mounted");
         // URL State Sync
-        const params = new URLSearchParams(window.location.search);
-        const sectionFromUrl = params.get('section');
-        if (sectionFromUrl && VALID_SECTION_IDS.has(sectionFromUrl)) {
-            setActiveSection(sectionFromUrl);
-        }
+        setActiveSection(getSectionFromLocation(initialSection));
 
         // Simple, robust auth check
         const checkAuth = async () => {
@@ -348,17 +367,21 @@ export default function AdminDashboard() {
             setConnectionError("Supabase client not initialized.");
             setLoading(false);
         }
-    }, []);
+    }, [initialSection]);
 
     useEffect(() => {
         const handleHistoryChange = () => {
-            const section = new URLSearchParams(window.location.search).get('section');
-            setActiveSection(section && VALID_SECTION_IDS.has(section) ? section : 'dashboard');
+            const nextSection = getSectionFromLocation(initialSection);
+            setActiveSection(nextSection);
+            if (nextSection !== 'opportunities') {
+                const nextTitle = SECTIONS.find((section) => section.id === nextSection)?.label || 'Creator Studio';
+                document.title = `${nextTitle} | Admin`;
+            }
         };
 
         window.addEventListener('popstate', handleHistoryChange);
         return () => window.removeEventListener('popstate', handleHistoryChange);
-    }, []);
+    }, [initialSection]);
 
     useEffect(() => {
         if (!sidebarOpen || !window.matchMedia('(max-width: 899px)').matches) return undefined;
@@ -636,14 +659,19 @@ export default function AdminDashboard() {
         if (window.matchMedia('(max-width: 1024px)').matches) {
             setSidebarOpen(false);
         }
-        const url = new URL(window.location);
-        url.searchParams.set('section', id);
+        const canonicalPath = SECTION_PATHS[id] || '/admin/dashboard';
+        const url = new URL(canonicalPath, window.location.origin);
+        if (!SECTION_PATHS[id]) url.searchParams.set('section', id);
         if (action) {
             url.searchParams.set('action', action);
-        } else {
-            url.searchParams.delete('action');
         }
         window.history.pushState({}, '', url);
+        if (id === 'opportunities') {
+            window.dispatchEvent(new CustomEvent('admin:route-change'));
+        } else {
+            const nextTitle = SECTIONS.find((section) => section.id === id)?.label || 'Creator Studio';
+            document.title = `${nextTitle} | Admin`;
+        }
     };
 
     const handleLogout = async () => { await supabase.auth.signOut({ scope: 'local' }); };
@@ -841,7 +869,7 @@ export default function AdminDashboard() {
             </aside>
 
             {/* Main Content Area */}
-            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' ? 'analytics-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'media_mentions' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'instagram' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
+            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' ? 'analytics-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'media_mentions' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'instagram' || activeSection === 'opportunities' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
                 <div className="mobile-studio-bar">
                     <button
                         type="button"
@@ -1045,6 +1073,12 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
+                    {activeSection === 'opportunities' && (
+                        <SectionErrorBoundary>
+                            <OpportunityAdminHub accessToken={session?.access_token} />
+                        </SectionErrorBoundary>
+                    )}
+
                     {activeSection === 'analytics' && (
                         <SectionErrorBoundary>
                             <AnalyticsDashboard accessToken={session?.access_token} />
@@ -1179,7 +1213,7 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'media_mentions' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'instagram' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'media_mentions' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'instagram' && activeSection !== 'opportunities' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
                         <SectionErrorBoundary key={activeSection}>
                             <ListView
                                 table={activeSection}
