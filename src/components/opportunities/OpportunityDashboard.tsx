@@ -131,7 +131,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [isFilterTrayOpen, setIsFilterTrayOpen] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [showPastDeadlines, setShowPastDeadlines] = useState(false);
+    const [isDeadlineFilterActive, setIsDeadlineFilterActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<OpportunityViewMode>('grid');
     const [resultsAnnouncement, setResultsAnnouncement] = useState('');
@@ -982,6 +982,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     // Filter, rank fuzzy-search matches, and sort opportunities.
     const filteredOpportunities = useMemo(() => {
+        const shouldHidePastDeadlines = urgencyFilter === 'apply_asap'
+            ? !isDeadlineFilterActive
+            : isDeadlineFilterActive;
+
         const filtered = opportunities.filter((o) => {
             const hasExplicitStatusFilter = statusFilter !== 'all';
             const isAppliedFilter = statusFilter === 'applied';
@@ -1001,7 +1005,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             // An explicit Applied view is the completed archive, so it must include
             // finished items even when their original deadline has passed.
-            if (!isAppliedFilter && !showPastDeadlines && isOpportunityPastDeadline(o, now)) {
+            if (!isAppliedFilter && shouldHidePastDeadlines && isOpportunityPastDeadline(o, now)) {
                 return false;
             }
 
@@ -1035,7 +1039,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 now,
             );
         return rankOpportunitySearch(sorted, searchQuery, opportunitySearchIndex);
-    }, [opportunities, opportunitySearchIndex, urgencyFilter, categoryFilter, statusFilter, showPastDeadlines, searchQuery, now]);
+    }, [opportunities, opportunitySearchIndex, urgencyFilter, categoryFilter, statusFilter, isDeadlineFilterActive, searchQuery, now]);
 
     useEffect(() => {
         if (isLoading || loadError) return undefined;
@@ -1051,19 +1055,19 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const activeSecondaryFiltersCount =
         (categoryFilter !== 'all' ? 1 : 0) +
         (statusFilter !== 'all' ? 1 : 0) +
-        (showPastDeadlines ? 1 : 0);
+        (isDeadlineFilterActive ? 1 : 0);
 
     const activeFiltersCount =
         (categoryFilter !== 'all' ? 1 : 0) +
         (statusFilter !== 'all' ? 1 : 0) +
-        (showPastDeadlines ? 1 : 0) +
+        (isDeadlineFilterActive ? 1 : 0) +
         (searchQuery.trim() ? 1 : 0);
 
     const resetFilters = useCallback(() => {
         setUrgencyFilter('apply_asap');
         setCategoryFilter('all');
         setStatusFilter('all');
-        setShowPastDeadlines(false);
+        setIsDeadlineFilterActive(false);
         setSearchQuery('');
     }, []);
 
@@ -1298,7 +1302,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                             type="button"
                             className={`opp-rail-pill ${urgencyFilter === r.id ? 'active' : ''}`}
                             aria-pressed={urgencyFilter === r.id}
-                            onClick={() => setUrgencyFilter(r.id)}
+                            onClick={() => {
+                                if (r.id === urgencyFilter) return;
+                                setUrgencyFilter(r.id);
+                                setIsDeadlineFilterActive(false);
+                            }}
                         >
                             {r.label}
                         </button>
@@ -1388,21 +1396,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     </div>
                                 </div>
 
+                                {/* Box 2: Status Selection */}
                                 <div className="opp-popover-section">
-                                    <div className="opp-popover-section-label">Past deadlines</div>
-                                    <label className="opp-popover-checkbox">
-                                        <input
-                                            type="checkbox"
-                                            checked={showPastDeadlines}
-                                            onChange={(event) => setShowPastDeadlines(event.target.checked)}
-                                        />
-                                        <span>Show Opportunities Past Deadline</span>
-                                    </label>
-                                </div>
-
-                                {/* Box 2: Workflow Status Selection */}
-                                <div className="opp-popover-section">
-                                    <div className="opp-popover-section-label">Workflow Status</div>
+                                    <div className="opp-popover-section-label">Status</div>
                                     <div className="opp-popover-pills">
                                         {[{ id: 'all', label: 'All' }, ...WORKFLOW_STATUSES].map((statusOption) => (
                                             <button
@@ -1416,6 +1412,22 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                             </button>
                                         ))}
                                     </div>
+                                </div>
+
+                                <div className="opp-popover-section">
+                                    <div className="opp-popover-section-label">Deadline</div>
+                                    <label className="opp-popover-checkbox">
+                                        <input
+                                            type="checkbox"
+                                            checked={isDeadlineFilterActive}
+                                            onChange={(event) => setIsDeadlineFilterActive(event.target.checked)}
+                                        />
+                                        <span>
+                                            {urgencyFilter === 'apply_asap'
+                                                ? 'Show past deadlines'
+                                                : 'Hide past deadlines'}
+                                        </span>
+                                    </label>
                                 </div>
 
                             </div>
