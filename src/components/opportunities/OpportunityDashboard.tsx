@@ -1238,7 +1238,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 </div>
                             )}
                             {captureResult && (
-                                <div className="opp-capture-success" role="status" aria-live="polite">
+                                <aside className="opp-capture-success" aria-live="polite">
                                     <div>
                                         <span className="opp-capture-success-label">Saved to your radar</span>
                                         <strong>{formatOpportunityTitle(captureResult.title)}</strong>
@@ -1249,14 +1249,25 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                             ).label}
                                         </span>
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="opp-btn opp-btn-secondary opp-capture-view-btn"
-                                        onClick={() => setSelectedDetailId(captureResult.id)}
-                                    >
-                                        View Opportunity →
-                                    </button>
-                                </div>
+                                    <div className="opp-capture-success-actions">
+                                        <button
+                                            type="button"
+                                            className="opp-capture-success-dismiss"
+                                            aria-label="Dismiss saved opportunity notification"
+                                            onClick={() => setCaptureResult(null)}
+                                        >×</button>
+                                        <button
+                                            type="button"
+                                            className="opp-btn opp-btn-secondary opp-capture-view-btn"
+                                            onClick={() => {
+                                                setSelectedDetailId(captureResult.id);
+                                                setCaptureResult(null);
+                                            }}
+                                        >
+                                            View Opportunity →
+                                        </button>
+                                    </div>
+                                </aside>
                             )}
                         </div>
                     )}

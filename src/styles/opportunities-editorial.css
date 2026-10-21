@@ -4574,6 +4574,36 @@ body.opportunities-editorial-page {
   gap: 2px;
 }
 
+.opp-capture-success-actions {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.opp-capture-success-dismiss {
+  inline-size: 32px;
+  block-size: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1.5px solid var(--opp-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--opp-ink);
+  font: 750 1.1rem/1 var(--opp-font);
+  cursor: pointer;
+}
+
+.opp-capture-success-dismiss:hover {
+  background: var(--opp-cream);
+}
+
+.opp-capture-success-dismiss:focus-visible {
+  outline: 3px solid var(--opp-purple);
+  outline-offset: 2px;
+}
+
 .opp-capture-success-label {
   font: 800 0.68rem/1.3 var(--opp-mono);
   letter-spacing: 0.08em;
@@ -5174,7 +5204,8 @@ ul.opp-eligibility-row,
   }
 
   .opp-hero-capture-bar > :where(input, button),
-  .opp-capture-success > button,
+  .opp-capture-success-actions,
+  .opp-capture-success-actions .opp-capture-view-btn,
   .opp-detail-primary-actions > :where(a, button, span) {
     width: 100%;
   }
