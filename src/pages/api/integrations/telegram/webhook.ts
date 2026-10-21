@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { waitUntil } from '@vercel/functions';
 import {
     answerTelegramCallback,
+    editTelegramMessageKeyboard,
     getTelegramConfig,
     hashTelegramLinkToken,
     isTelegramConfigured,
@@ -23,6 +24,7 @@ import {
     type OpportunityCaptureJobPayload,
 } from '../../../../lib/opportunities/captureJobs';
 import { normalizeOpportunityCaptureUrl } from '../../../../lib/opportunities/captureUrl';
+import { DEFAULT_REMINDER_OFFSETS, reminderKeyboard } from '../../../../lib/opportunities/reminderPreferences';
 import { createSupabaseServiceClient } from '../../../../lib/supabaseServer';
 
 export const prerender = false;
@@ -149,6 +151,12 @@ const updateInboundEvent = async (
     updates: Record<string, unknown>,
 ) => serviceClient.from('messaging_events').update(updates).eq('id', eventId);
 
+const isCompletionIntent = (text: string) => (
+    /\b(?:this\s+task|this|it|task)\s+(?:is\s+)?(?:done|complete|completed|finished)\b/i.test(text)
+    || /\b(?:do\s+not|don't|dont|need\s+not)\s+remind\s+me\s+(?:again|anymore)?\b/i.test(text)
+    || /\bstop\s+remind(?:ing|ers?)\b/i.test(text)
+);
+
 const handleCallback = async ({
     serviceClient,
     parsed,
@@ -160,16 +168,18 @@ const handleCallback = async ({
     connection: NonNullable<Awaited<ReturnType<typeof findActiveConnection>>>;
     eventId: string;
 }) => {
-    const match = parsed.callbackData?.match(/^opportunity:(submitted|snooze|mute):([0-9a-f-]{36})$/i);
-    if (!match) {
+    const actionMatch = parsed.callbackData?.match(/^opportunity:(submitted|done|snooze|mute):([0-9a-f-]{36})$/i);
+    const reminderMatch = parsed.callbackData?.match(/^opportunity:reminder:(1440|120|30):([0-9a-f-]{36})$/i);
+    if (!actionMatch && !reminderMatch) {
         if (parsed.callbackQueryId) await answerTelegramCallback(parsed.callbackQueryId, 'This action is no longer available.');
         await updateInboundEvent(serviceClient, eventId, { status: 'ignored', processed_at: new Date().toISOString() });
         return;
     }
-    const [, action, opportunityId] = match;
+    const action = actionMatch?.[1] || 'reminder';
+    const opportunityId = actionMatch?.[2] || reminderMatch?.[2] || '';
     const { data: opportunity, error: opportunityError } = await serviceClient
         .from('saved_opportunities')
-        .select('id, content')
+        .select('id, title, content')
         .eq('id', opportunityId)
         .eq('user_id', connection.user_id)
         .maybeSingle();
@@ -179,18 +189,43 @@ const handleCallback = async ({
         await updateInboundEvent(serviceClient, eventId, { status: 'ignored', processed_at: new Date().toISOString() });
         return;
     }
+    const content = typeof opportunity.content === 'object' && opportunity.content !== null
+        ? opportunity.content as Record<string, unknown>
+        : {};
     let message = 'Updated.';
-    if (action === 'submitted') {
+    if (reminderMatch) {
+        const minutes = Number(reminderMatch[1]);
+        const enabled = new Set(Array.isArray(content.reminder_offsets_minutes)
+            ? content.reminder_offsets_minutes.map(Number).filter(Number.isInteger)
+            : [...DEFAULT_REMINDER_OFFSETS]);
+        if (enabled.has(minutes)) enabled.delete(minutes);
+        else enabled.add(minutes);
+        const nextContent = {
+            ...content,
+            reminders_disabled: false,
+            reminder_offsets_minutes: [...enabled].sort((a, b) => b - a),
+        };
         const { error } = await serviceClient.from('saved_opportunities')
-            .update({ status: 'submitted' })
+            .update({ content: nextContent })
             .eq('id', opportunityId)
             .eq('user_id', connection.user_id);
         if (error) throw error;
-        message = 'Marked as applied.';
+        message = `${minutes === 1440 ? '1 day' : minutes === 120 ? '2 hour' : '30 minute'} reminder ${enabled.has(minutes) ? 'on' : 'off'}.`;
+        if (parsed.chatId && parsed.messageId) {
+            await editTelegramMessageKeyboard({
+                chatId: parsed.chatId,
+                messageId: parsed.messageId,
+                keyboard: reminderKeyboard(opportunityId, nextContent),
+            }).catch(() => undefined);
+        }
+    } else if (action === 'submitted' || action === 'done') {
+        const { error } = await serviceClient.from('saved_opportunities')
+            .update({ status: 'applied', content: { ...content, reminders_disabled: true } })
+            .eq('id', opportunityId)
+            .eq('user_id', connection.user_id);
+        if (error) throw error;
+        message = action === 'done' ? 'Marked done. Future reminders stopped.' : 'Marked as applied.';
     } else {
-        const content = typeof opportunity.content === 'object' && opportunity.content !== null
-            ? opportunity.content as Record<string, unknown>
-            : {};
         const { error } = await serviceClient.from('saved_opportunities')
             .update({
                 content: action === 'snooze'
@@ -395,6 +430,53 @@ export const POST: APIRoute = async ({ request }) => {
         });
         return telegramJson();
     }
+    if (isCompletionIntent(parsed.text)) {
+        const opportunityId = typeof connection.settings?.last_active_opportunity_id === 'string'
+            ? connection.settings.last_active_opportunity_id
+            : null;
+        if (!opportunityId) {
+            await updateInboundEvent(serviceClient, event.id, { status: 'ignored', processed_at: new Date().toISOString() });
+            await responseFor({
+                serviceClient,
+                parsed,
+                connection,
+                eventType: 'completion_needs_context',
+                text: 'I could not tell which task you meant. Use “Done — stop reminders” on its latest message.',
+            });
+            return telegramJson();
+        }
+        const { data: latest } = await serviceClient.from('saved_opportunities')
+            .select('id, title, content')
+            .eq('id', opportunityId)
+            .eq('user_id', connection.user_id)
+            .maybeSingle();
+        if (!latest) {
+            await updateInboundEvent(serviceClient, event.id, { status: 'ignored', processed_at: new Date().toISOString() });
+            await responseFor({ serviceClient, parsed, connection, eventType: 'completion_missing', text: 'That task is no longer available.' });
+            return telegramJson();
+        }
+        const content = latest.content && typeof latest.content === 'object'
+            ? latest.content as Record<string, unknown>
+            : {};
+        await serviceClient.from('saved_opportunities').update({
+            status: 'applied',
+            content: { ...content, reminders_disabled: true },
+        }).eq('id', opportunityId).eq('user_id', connection.user_id);
+        await updateInboundEvent(serviceClient, event.id, {
+            status: 'processed',
+            opportunity_id: opportunityId,
+            processed_at: new Date().toISOString(),
+            payload: { action: 'natural_language_done' },
+        });
+        await responseFor({
+            serviceClient,
+            parsed,
+            connection,
+            eventType: 'completion_succeeded',
+            text: `Done — reminders stopped for “${String(latest.title).slice(0, 200)}”.`,
+        });
+        return telegramJson();
+    }
     if (!supportedTelegramFiles(parsed)) {
         await updateInboundEvent(serviceClient, event.id, { status: 'ignored', processed_at: new Date().toISOString() });
         await responseFor({
@@ -424,14 +506,17 @@ export const POST: APIRoute = async ({ request }) => {
         : parsed.files.length > 0
             ? parsed.text ? 'mixed' : 'attachments'
             : 'text';
+    const captureTimezone = typeof connection.settings?.timezone === 'string'
+        ? connection.settings.timezone
+        : 'UTC';
     const payload: OpportunityCaptureJobPayload = url
-        ? { url, captured_at: parsed.capturedAt, capture_timezone: 'UTC' }
+        ? { url, captured_at: parsed.capturedAt, capture_timezone: captureTimezone }
         : {
             text: parsed.text,
             mode: parsed.text.length < 50 ? 'note' : 'text',
             telegram_files: parsed.files,
             captured_at: parsed.capturedAt,
-            capture_timezone: 'UTC',
+            capture_timezone: captureTimezone,
         };
     try {
         const queued = await enqueueOpportunityCaptureJob({

@@ -61,6 +61,11 @@ export const savedRowToOpportunity = (row: SavedOpportunityRow): Opportunity => 
         llm_extraction_count: Number(content.llm_extraction_count) || 0,
         notes: row.notes,
         is_high_priority: row.is_high_priority,
+        reminder_offsets_minutes: Array.isArray(content.reminder_offsets_minutes)
+            ? content.reminder_offsets_minutes.map(Number).filter(Number.isInteger)
+            : undefined,
+        reminder_at_target: content.reminder_at_target === true,
+        reminders_disabled: content.reminders_disabled === true,
     };
 };
 
@@ -94,6 +99,11 @@ export const opportunityToSavedInsert = (userId: string, opportunity: Partial<Op
         source_hash: opportunity.source_hash || null,
         llm_model: opportunity.llm_model || null,
         llm_extraction_count: opportunity.llm_extraction_count || 0,
+        ...(Array.isArray(opportunity.reminder_offsets_minutes)
+            ? { reminder_offsets_minutes: opportunity.reminder_offsets_minutes }
+            : {}),
+        ...(opportunity.reminder_at_target ? { reminder_at_target: true } : {}),
+        ...(opportunity.reminders_disabled ? { reminders_disabled: true } : {}),
     },
 });
 

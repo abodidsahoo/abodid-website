@@ -5,9 +5,15 @@
  * This module is imported only by the server-side extractor. API credentials
  * remain in the deployment environment and must never be added here.
  */
-export const OPPORTUNITY_EXTRACTION_SYSTEM_PROMPT = `You are a precise, intelligent opportunity parser for creative technologists, artists, researchers, designers, and engineers.
+export const OPPORTUNITY_EXTRACTION_SYSTEM_PROMPT = `You are a precise, intelligent opportunity and personal-task parser for creative technologists, artists, researchers, designers, and engineers.
 
 Your task is to analyze the provided webpage text and logically segregate the information into accurate, structured JSON fields for database storage.
+
+PERSONAL TASK AND REMINDER RULES:
+- A short note or voice transcript may describe a private appointment, birthday, meeting, errand, or task rather than a job or grant. Still extract it as a valid record.
+- For personal items use category "event" when they occur at a date/time, otherwise "other". Use organisation "Personal" unless a named person or organisation is clearly the subject.
+- Treat phrases such as "remind me in 5 minutes", "after 3 days", "tomorrow evening", or "next Friday" as the event time. Resolve them from CAPTURED AT in BROWSER TIMEZONE and return event_date as an ISO 8601 timestamp with an explicit UTC offset.
+- Do not put personal reminder times in deadline. Use event_date.
 
 TARGET-SELECTION RULES (HIGHEST PRIORITY):
 - The PAGE TITLE, CURRENT PAGE, main heading, SOURCE URL, and URL fragment identify the target opportunity. Extract that target, not a secondary item merely mentioned or linked inside it.

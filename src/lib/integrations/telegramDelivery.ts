@@ -4,6 +4,7 @@ import {
     sendTelegramMessage,
     type TelegramInlineKeyboard,
 } from './telegram';
+import { reminderKeyboard } from '../opportunities/reminderPreferences';
 
 type MessagingEventRow = {
     id: string;
@@ -207,15 +208,19 @@ export const notifyTelegramCaptureResult = async ({
         : isDuplicate
             ? 'Already in your radar.'
             : 'Saved to your radar.';
+    let opportunityContent: Record<string, unknown> = {};
+    if (opportunityId && inbound.user_id) {
+        const { data: opportunity } = await serviceClient.from('saved_opportunities')
+            .select('content')
+            .eq('id', opportunityId)
+            .eq('user_id', inbound.user_id)
+            .maybeSingle();
+        opportunityContent = opportunity?.content && typeof opportunity.content === 'object'
+            ? opportunity.content as Record<string, unknown>
+            : {};
+    }
     const keyboard: TelegramInlineKeyboard = opportunityId
-        ? [
-            [{ text: 'Open dashboard', url: dashboardUrl }],
-            [
-                { text: 'Mark applied', callback_data: `opportunity:submitted:${opportunityId}` },
-                { text: 'Snooze', callback_data: `opportunity:snooze:${opportunityId}` },
-            ],
-            [{ text: 'Stop reminders', callback_data: `opportunity:mute:${opportunityId}` }],
-        ]
+        ? reminderKeyboard(opportunityId, opportunityContent)
         : [[{ text: 'Open dashboard', url: dashboardUrl }]];
     const outbound = await queueTelegramMessage({
         serviceClient,
@@ -238,5 +243,17 @@ export const notifyTelegramCaptureResult = async ({
             payload: { capture_completed: !failedMessage, capture_failed: Boolean(failedMessage) },
         })
         .eq('id', messagingEventId);
+    if (opportunityId && inbound.connection_id) {
+        const { data: connection } = await serviceClient.from('messaging_connections')
+            .select('settings')
+            .eq('id', inbound.connection_id)
+            .maybeSingle();
+        const settings = connection?.settings && typeof connection.settings === 'object'
+            ? connection.settings as Record<string, unknown>
+            : {};
+        await serviceClient.from('messaging_connections').update({
+            settings: { ...settings, last_active_opportunity_id: opportunityId },
+        }).eq('id', inbound.connection_id);
+    }
     await deliverTelegramEvent(serviceClient, outbound);
 };

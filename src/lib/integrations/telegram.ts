@@ -292,6 +292,20 @@ export const sendTelegramMessage = async ({
     ...(keyboard ? { reply_markup: { inline_keyboard: keyboard } } : {}),
 });
 
+export const editTelegramMessageKeyboard = async ({
+    chatId,
+    messageId,
+    keyboard,
+}: {
+    chatId: string;
+    messageId: string;
+    keyboard: TelegramInlineKeyboard;
+}) => callTelegramApi<boolean>('editMessageReplyMarkup', {
+    chat_id: chatId,
+    message_id: Number(messageId),
+    reply_markup: { inline_keyboard: keyboard },
+});
+
 export const configureTelegramBot = async () => {
     const config = getTelegramConfig();
     if (!isTelegramConfigured()) {

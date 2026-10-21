@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { isCronAuthenticated } from '../../../../lib/opportunities/auth';
-import { processOpportunityReminders } from '../../../../lib/opportunities/reminders';
+import { processTaskReminders } from '../../../../lib/opportunities/taskReminders';
 
 export const prerender = false;
 
@@ -13,10 +13,13 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     try {
-        const result = await processOpportunityReminders();
+        const result = await processTaskReminders();
         return new Response(JSON.stringify({
             success: true,
             sent_count: result.sent,
+            claimed_count: result.claimed,
+            cancelled_count: result.cancelled,
+            failed_count: result.failed,
             errors: result.errors,
             timestamp: new Date().toISOString(),
         }), {

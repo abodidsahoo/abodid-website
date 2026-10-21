@@ -73,6 +73,9 @@ export interface Opportunity {
     llm_extraction_count: number;
     notes: string | null;
     is_high_priority: boolean;
+    reminder_offsets_minutes?: number[];
+    reminder_at_target?: boolean;
+    reminders_disabled?: boolean;
 }
 
 export const LLMExtractionOutputSchema = z.object({

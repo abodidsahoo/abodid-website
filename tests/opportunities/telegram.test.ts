@@ -7,6 +7,11 @@ import {
     telegramUpdateIdempotencyKey,
     verifyTelegramWebhookSecret,
 } from '../../src/lib/integrations/telegram';
+import {
+    DEFAULT_REMINDER_OFFSETS,
+    reminderKeyboard,
+    reminderOffsetsFromContent,
+} from '../../src/lib/opportunities/reminderPreferences';
 
 describe('Telegram Opportunity integration', () => {
     it('creates URL-safe, non-persisted link tokens and stable hashes', () => {
@@ -86,5 +91,36 @@ describe('Telegram Opportunity integration', () => {
         expect(migration).toContain('force row level security');
         expect(migration).not.toContain('create table if not exists public.messaging_link_tokens');
         expect(migration).not.toContain('create table if not exists public.notification_deliveries');
+    });
+
+    it('defaults every dated card to one day, two hours, and thirty minutes', () => {
+        expect(reminderOffsetsFromContent({})).toEqual([...DEFAULT_REMINDER_OFFSETS]);
+        const keyboard = reminderKeyboard('00000000-0000-4000-8000-000000000000');
+        expect(keyboard.flat().map((button) => button.text)).toContain('✅ 1 day');
+        expect(keyboard.flat().map((button) => button.text)).toContain('✅ 2 hours');
+        expect(keyboard.flat().map((button) => button.text)).toContain('✅ 30 minutes');
+    });
+
+    it('renders disabled reminder choices without removing the completion action', () => {
+        const keyboard = reminderKeyboard('00000000-0000-4000-8000-000000000000', {
+            reminder_offsets_minutes: [120],
+        });
+        const labels = keyboard.flat().map((button) => button.text);
+        expect(labels).toContain('⬜ 1 day');
+        expect(labels).toContain('✅ 2 hours');
+        expect(labels).toContain('⬜ 30 minutes');
+        expect(labels).toContain('Done — stop reminders');
+    });
+
+    it('creates a server-only reminder queue and an every-minute recovery schedule', async () => {
+        const migration = await readFile(
+            new URL('../../supabase/migrations/20261021150000_create_opportunity_reminders.sql', import.meta.url),
+            'utf8',
+        );
+        expect(migration).toContain('create table if not exists public.opportunity_reminders');
+        expect(migration).toContain('for update skip locked');
+        expect(migration).toContain("array[1440, 120, 30]");
+        expect(migration).toContain("'* * * * *'");
+        expect(migration).toContain('force row level security');
     });
 });

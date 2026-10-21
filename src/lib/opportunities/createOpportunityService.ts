@@ -112,6 +112,10 @@ export const createOpportunityFromPayload = async ({
         source_hash: null,
         llm_model: extractionMetadata?.model || 'manual',
         llm_extraction_count: extractionMetadata?.count || 0,
+        reminder_at_target: body.reminder_at_target === true,
+        reminder_offsets_minutes: Array.isArray(body.reminder_offsets_minutes)
+            ? body.reminder_offsets_minutes.map(Number).filter(Number.isInteger)
+            : undefined,
     } as Opportunity;
 
     const { data: possibleDuplicates, error: duplicateLookupError } = await client

@@ -121,6 +121,17 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
             if (!response.ok) throw new Error(payload.error || 'Telegram connection could not be loaded.');
             setTelegramMissingConfiguration(Array.isArray(payload.missing_configuration) ? payload.missing_configuration : []);
             setTelegramStatus(payload.enabled === false ? 'unavailable' : payload.status || 'disconnected');
+            if (payload.status === 'active') {
+                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                void fetch('/api/integrations/telegram/connection', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    body: JSON.stringify({ timezone }),
+                }).catch(() => undefined);
+            }
         }).catch((error) => {
             if (error instanceof DOMException && error.name === 'AbortError') return;
             setTelegramMissingConfiguration([
@@ -139,7 +150,13 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
             const response = await fetch('/api/integrations/telegram/connection', {
                 method: disconnecting ? 'DELETE' : 'POST',
                 cache: 'no-store',
-                headers: { Authorization: `Bearer ${accessToken}` },
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    ...(disconnecting ? {} : { 'Content-Type': 'application/json' }),
+                },
+                ...(disconnecting ? {} : {
+                    body: JSON.stringify({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+                }),
             });
             const payload = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(payload.error || 'Telegram connection could not be updated.');
