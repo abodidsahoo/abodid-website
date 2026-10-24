@@ -1,4 +1,4 @@
-import { getActiveTab, sendRuntimeMessage, webext } from './browser';
+import { getActiveTab, requestSafariAppAccess, sendRuntimeMessage, webext } from './browser';
 
 const AUTH_CACHE_KEY = 'opportunity-auth-cache-v1';
 const CAPTURE_STATE_KEY = 'opportunity-capture-state-v1';
@@ -273,6 +273,12 @@ webext.storage.onChanged.addListener((changes: any, areaName: string) => {
 
 signInButton.addEventListener('click', async () => {
     try {
+        // Keep this as the first awaited call. Safari only grants callback-site
+        // access while the sign-in click still carries a user gesture.
+        const appAccessGranted = await requestSafariAppAccess();
+        if (!appAccessGranted) {
+            throw new Error('Allow access to abodid.com so Safari can finish Google sign-in.');
+        }
         signInButton.disabled = true;
         signInButton.textContent = 'Opening Google…';
         clearStatus();

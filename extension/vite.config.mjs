@@ -49,11 +49,18 @@ export default defineConfig(({ mode }) => {
       async closeBundle() {
         const manifest = JSON.parse(await fs.readFile(path.resolve(extensionRoot, 'manifests', `${target}.json`), 'utf8'));
         const supabaseOrigin = new URL(supabaseUrl).origin;
+        const appOriginPattern = `${appOrigin.replace(/\/$/, '')}/*`;
         manifest.host_permissions = Array.from(new Set([
           ...(manifest.host_permissions || []),
           `${supabaseOrigin}/*`,
-          `${appOrigin.replace(/\/$/, '')}/*`,
+          ...(target === 'safari' ? [] : [appOriginPattern]),
         ]));
+        if (target === 'safari') {
+          manifest.optional_host_permissions = Array.from(new Set([
+            ...(manifest.optional_host_permissions || []),
+            appOriginPattern,
+          ]));
+        }
         await fs.writeFile(path.resolve(outputDirectory, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
         await fs.cp(path.resolve(extensionRoot, 'icons'), path.resolve(outputDirectory, 'icons'), { recursive: true });
       },

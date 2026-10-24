@@ -91,18 +91,27 @@ export const completeSafariSignIn = async (callbackUrl: string) => {
         throw new Error('Invalid Safari authentication callback');
     }
 
+    const { data: existingSessionData } = await extensionSupabase.auth.getSession();
+    if (existingSessionData.session) {
+        await webext.storage.local.remove(SAFARI_STATE_KEY);
+        return existingSessionData.session;
+    }
+
     const stored = await webext.storage.local.get(SAFARI_STATE_KEY);
     const expectedState = stored?.[SAFARI_STATE_KEY];
     const state = callback.searchParams.get('state');
-    await webext.storage.local.remove(SAFARI_STATE_KEY);
     if (!expectedState || !state || state !== expectedState) throw new Error('Safari authentication state did not match');
 
     const oauthError = callback.searchParams.get('error_description') || callback.searchParams.get('error');
-    if (oauthError) throw new Error(oauthError);
+    if (oauthError) {
+        await webext.storage.local.remove(SAFARI_STATE_KEY);
+        throw new Error(oauthError);
+    }
     const code = callback.searchParams.get('code');
     if (!code) throw new Error('Google sign-in did not return an authorization code');
 
     const { data, error } = await extensionSupabase.auth.exchangeCodeForSession(code);
     if (error || !data.session) throw error || new Error('Could not create a Safari extension session');
+    await webext.storage.local.remove(SAFARI_STATE_KEY);
     return data.session;
 };

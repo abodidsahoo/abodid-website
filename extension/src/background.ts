@@ -466,7 +466,18 @@ webext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (
             }
             case 'SAFARI_OAUTH_CALLBACK': {
                 const callbackUrl = String(message.url || '');
-                if (!sender?.url?.startsWith(`${__APP_ORIGIN__}/opportunities/extension/callback`)) {
+                const senderUrl = String(sender?.url || sender?.tab?.url || '');
+                let trustedSender = false;
+                try {
+                    const actual = new URL(senderUrl);
+                    const expected = new URL(__APP_ORIGIN__);
+                    trustedSender = actual.origin !== 'null'
+                        && actual.origin === expected.origin
+                        && actual.pathname === '/opportunities/extension/callback';
+                } catch {
+                    trustedSender = false;
+                }
+                if (!trustedSender) {
                     throw new Error('Untrusted Safari authentication callback');
                 }
                 await completeSafariSignIn(callbackUrl);

@@ -1,10 +1,10 @@
 # Chrome Web Store Listing — Opportunity Tracker
 
-> Last updated: 2026-10-21
+> Last updated: 2026-10-24
 >
 > Manifest source: `extension/manifests/chrome.json`
 >
-> Release version: `2.1.5` (draft)
+> Release version: `2.1.6` (draft)
 
 This file is the source of truth for Chrome Web Store metadata, permission justifications, privacy disclosures, release evidence, and submission blockers. Update it whenever the Chrome manifest, extension behavior, branding, data handling, or store assets change.
 
@@ -64,7 +64,7 @@ SUPPORT
 Questions, privacy requests or bug reports: hello@abodid.com
 Privacy policy: https://abodid.com/privacy
 
-Version 2.1.5 — Restores any active capture whenever the popup reopens, while keeping completed receipts limited to their original page.
+Version 2.1.6 — Improves the shared sign-in callback validation and fixes Safari’s permission-gated OAuth handoff; Chrome permissions and user data handling are unchanged.
 ```
 
 ## URLs and developer information
@@ -92,7 +92,7 @@ Version 2.1.5 — Restores any active capture whenever the popup reopens, while 
 | Small promo tile | 440×280 PNG or JPEG | Recommended, missing | Use the Pop Editorial blue, cream and yellow system without unsupported claims |
 | Marquee promo tile | 1400×560 PNG or JPEG | Optional, missing | Create only if merchandising is planned |
 
-Screenshots must show the current `2.1.5` UI and must not include private account data, email addresses, authentication tokens, or opportunity content that cannot be published.
+Screenshots must show the current `2.1.6` UI and must not include private account data, email addresses, authentication tokens, or opportunity content that cannot be published.
 
 ## Permission justifications
 
@@ -195,7 +195,7 @@ Chrome runtime test matrix:
 
 | Test | Expected result | 2026-10-14 status |
 |---|---|---|
-| Load `extension/dist/chrome` unpacked | Extension installs with no manifest error | Version `2.0.0` was reloaded and verified in Chrome on 2026-10-14 with ID `bikjdgkkefmflkanfmppnidfkdiblnpg`; the `2.1.5` popup/background build requires a final unpacked reload. |
+| Load `extension/dist/chrome` unpacked | Extension installs with no manifest error | Version `2.0.0` was reloaded and verified in Chrome on 2026-10-14 with ID `bikjdgkkefmflkanfmppnidfkdiblnpg`; the `2.1.6` popup/background build requires a final unpacked reload. |
 | Open popup while signed out | Current-page preview appears first; sign-in UI and prominent privacy disclosure render only after the signed-out state is confirmed; no console error | Built and passed a delayed-session headless Chromium UI-state test on 2026-10-14; real-extension signed-out recheck pending. |
 | Open popup while signed in | The service worker prepares the minimal local identity cache at browser startup; the popup reserves the profile row and paints the cached name and handle before the network refresh, without a late layout shift | Cache-first initialization and startup prewarming are implemented in `2.1.1`; final unpacked signed-in timing check pending. |
 | Google sign-in | OAuth completes and session persists after popup closes | The unpacked Chrome ID `bikjdgkkefmflkanfmppnidfkdiblnpg` and its exact `chromiumapp.org/supabase-auth` callback were verified and allow-listed in Supabase on 2026-10-14. A fresh end-to-end sign-in and sign-out retest is pending. |
@@ -209,12 +209,12 @@ Chrome runtime test matrix:
 | Quota/network/timeout failure | Human-readable error; the bounded request returns the button to a usable retry state | Regression logic covered by local opportunity tests; browser confirmation pending |
 | Open dashboard | Opens the current user's tracker route | Pending signed-in real-Chrome test |
 | Log out and reopen popup | Local session is removed and sign-in panel returns | Pending signed-in real-Chrome test |
-| Service worker starts cleanly | Worker scope, name and version match the installed extension | Passed in Chrome 155 for `2.0.0`; the `2.1.5` manifest and worker require a final unpacked reload |
+| Service worker starts cleanly | Worker scope, name and version match the installed extension | Passed in Chrome 155 for `2.0.0`; the `2.1.6` manifest and worker require a final unpacked reload |
 | Service worker restart with signed-in state | Session remains local while an accepted capture continues server-side without depending on service-worker lifetime | Code-audited; authenticated browser confirmation pending |
 
 ### Performance evidence
 
-- The release output remains compact and is minified with source maps disabled: popup JavaScript 7.35 KB (2.69 KB gzip), popup CSS 6.33 KB (1.98 KB gzip), and background JavaScript 191.40 KB (51.72 KB gzip) in the `2.1.5` Chrome build on 2026-10-21.
+- The release output remains compact and is minified with source maps disabled: popup JavaScript 7.45 KB (2.75 KB gzip), popup CSS 6.33 KB (1.98 KB gzip), and background JavaScript 191.55 KB (51.79 KB gzip) in the `2.1.6` Chrome build on 2026-10-24.
 - The redesigned successful-save receipt was rendered at the popup's 360×600 viewport on 2026-10-15 with no horizontal overflow; all popup buttons measured at least 44px tall, and category/deadline values are configured to wrap inside the keylined facts panel.
 - The extension registers no always-on content script in Chrome. Page extraction is injected only after a user capture action, avoiding work on ordinary page loads.
 - The updated signed-in popup was reloaded and visually verified in real Chrome on 2026-10-14; its first visible state contained the current page title and URL, not the Google sign-in card.
@@ -247,12 +247,13 @@ Chrome runtime test matrix:
 - [ ] Confirm publisher name, verified contact email, visibility and regions in the Developer Dashboard.
 - [ ] Complete the Dashboard Privacy practices form exactly as documented above.
 - [ ] Produce a clean ZIP from `extension/dist/chrome` only; exclude source maps, tests, environment files, repository metadata, `CHROMEWEBSTORE.md`, and development configuration.
-- [ ] Inspect the final ZIP contents and bump the manifest version if `2.1.5` has already been uploaded.
+- [ ] Inspect the final ZIP contents and bump the manifest version if `2.1.6` has already been uploaded.
 
 ## Version history
 
 | Version | Date | Changes | Store status |
 |---|---|---|---|
+| 2.1.6 | 2026-10-24 | Requests Safari’s narrowly scoped `abodid.com` access from the Google sign-in gesture before opening OAuth, allows the callback content script to run, accepts Safari’s alternate sender URL metadata, validates the exact origin/path, retries a sleeping background worker with a bounded timeout, and preserves PKCE state until exchange succeeds. Chrome permissions and data handling are unchanged. | Draft |
 | 2.1.5 | 2026-10-21 | Restores active capturing and queued states whenever the popup is reopened, even after focus or tab changes; completed and failed receipts remain page-specific so unrelated pages stay uncluttered. | Draft |
 | 2.1.4 | 2026-10-21 | Added page-specific receipt restoration when reopening the popup, explicit “do not capture again” handoff copy, resource-efficient completion checks after popup dismissal, and final saved, duplicate or failed browser notifications. Added the narrowly scoped `alarms` permission for those one-shot completion checks. | Draft |
 | 2.1.3 | 2026-10-21 | Prevented an earlier persisted queued receipt from displaying as active progress when the popup is merely opened; capture progress and completion now render only after Capture & Save is selected in that popup session. Durable background processing remains unchanged. | Draft |

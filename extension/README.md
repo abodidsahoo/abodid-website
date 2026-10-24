@@ -75,8 +75,9 @@ Each capture waits only for the durable receipt, not for AI extraction. The popu
    ```
 
 3. Open the generated project in Xcode, select the Apple team/signing configuration, and enable the extension for the macOS and iOS/iPadOS app targets.
-4. Add `https://abodid.com/opportunities/extension/callback` to the Supabase redirect allow-list before device testing. Safari does not support the WebExtension `identity` API, so this target opens OAuth in a normal tab. A content script restricted to that callback route passes the one-time code and state back to the extension; the PKCE verifier and resulting tokens remain in extension-local storage.
-5. Test the containing macOS app and iOS/iPadOS app targets with separate accounts before App Store submission.
+4. Add `https://abodid.com/opportunities/extension/callback` to the Supabase redirect allow-list before device testing. Safari does not support the WebExtension `identity` API, so this target opens OAuth in a normal tab. When Continue with Google is selected, Safari first asks for narrowly scoped access to `abodid.com`; this permission is required so the callback content script can pass the one-time code and state back to the extension. The PKCE verifier and resulting tokens remain in extension-local storage.
+5. Verify that denying the `abodid.com` prompt keeps the user in the popup with an actionable error, then grant it and confirm that Google sign-in completes, the callback tab closes, and the session persists after Safari restarts.
+6. Test the containing macOS app and iOS/iPadOS app targets with separate accounts before App Store submission.
 
 ## Permission rationale
 
@@ -86,8 +87,8 @@ Each capture waits only for the durable receipt, not for AI extraction. The popu
 - `storage`: persist the Supabase PKCE verifier/session and extension state.
 - `contextMenus`: save a page or link through right-click.
 - `identity` (Chrome and Firefox only): complete browser-controlled OAuth without exposing tokens to visited pages.
-- Host permissions: only `abodid.com` and the configured Supabase project.
+- Host permissions: only the configured Supabase project is required at install time. Safari requests optional access to `abodid.com` from the sign-in click so it can receive the OAuth callback and use the authenticated Opportunity Tracker API; Chrome and Firefox declare the same app origin as a required host permission.
 
-The Safari callback content script runs only on `https://abodid.com/opportunities/extension/callback*` and relays a one-time authorization code plus anti-forgery state. It never receives an access token, refresh token, service-role key, or OpenRouter credential.
+The Safari callback content script runs only on `https://abodid.com/opportunities/extension/callback*`, validates the exact callback origin and path, and relays a one-time authorization code plus anti-forgery state. A bounded retry handles a temporarily sleeping background worker without leaving the page in a permanent loading state. It never receives an access token, refresh token, service-role key, or OpenRouter credential.
 
 Page scripts are injected only after an explicit toolbar or context-menu action. They collect the selected page content or display the temporary capture-status toast, and never receive access or refresh tokens; authenticated API calls are made by the extension background context.
