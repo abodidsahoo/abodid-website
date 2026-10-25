@@ -59,3 +59,12 @@
 - `src/styles/opportunity-feedback.css`
 - `tests/opportunities/extension-auth-network.test.ts`
 - `tests/opportunities/quick-tour.test.ts`
+
+
+## Capture examples and integration controls — 2026-10-25
+
+- Reuses the moodboard’s 5.6-second phrase cadence, upward enter/exit and moonlight text sweep for four examples in the empty capture field. Real input remains separate, examples disappear during editing, and reduced-motion users get a static example. Long examples and URLs wrap within the field.
+- Aligns the desktop integration rail with the save panel, removes the Quick access label, and gives Settings a panel wider than the integration cards. The settings menu renders in a portal above navigation so short-screen positioning cannot put interactive controls behind the site header.
+- Telegram status loads on mount and refreshes when the window regains focus, rather than whenever Settings opens. For disconnected accounts, the existing authenticated POST prepares a short-lived connection token in advance; it stays in component memory, deduplicates in-flight requests, and is reused only before expiry. Expired or failed preparation retries on click. No account becomes active until the existing Telegram confirmation succeeds. Connected accounts can disconnect from the integration card’s small dropdown.
+- Public access uses one checkbox-style toggle and an icon-only copy control, disabled while private. The existing server visibility update and rollback behavior are preserved. The URL editor has no gap or inner focus outline at the slash; keyboard focus highlights the complete field. Text directly on the cobalt canvas uses white.
+- Validation: 115 opportunity tests, targeted TypeScript and production builds pass. Mocked browser checks cover six responsive hero widths, all four rotating examples, reduced motion, public/private updates, clipboard copying, seamless URL focus, and Telegram preparation/reuse/expiry/retry/disconnect. All four onboarding steps pass at ten viewport sizes, including 720×450, with no clipping, overlap or orphaned final words. Telegram timing is verified with mocked transport; no live-account linking or disconnecting is performed.

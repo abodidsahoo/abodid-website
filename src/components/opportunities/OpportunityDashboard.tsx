@@ -1,3 +1,4 @@
+import { OpportunityCaptureExamples } from './OpportunityCaptureExamples';
 import { validateOpportunityAttachmentMetadata, isOpportunityImageFile, isOpportunityVideoFile } from '../../lib/opportunities/attachmentValidation';
 import { OpportunityQuickTour } from './OpportunityQuickTour';
 import { OpportunityBusy, OpportunityWaveDots } from './OpportunityBusy';
@@ -1124,7 +1125,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                         id="opportunity-capture-input"
                                         name="opportunity_input"
                                         className="opp-hero-capture-input"
-                                        placeholder="Paste here"
+                                        placeholder=""
                                         value={captureUrl}
                                         onChange={(event) => {
                                             setCaptureUrl(event.target.value);
@@ -1137,6 +1138,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                         maxLength={100000}
                                         disabled={isCapturing}
                                     />
+                                    {!captureUrl && <OpportunityCaptureExamples />}
                                     <input
                                         ref={captureFileInputRef}
                                         id="opportunity-capture-files"

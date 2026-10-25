@@ -1,4 +1,5 @@
-import { Chrome, Send, Settings, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Chrome, Send, Settings, ArrowUpRight, CheckCircle2, Copy, ChevronDown } from 'lucide-react';
 import { OpportunityExtensionHelp } from './OpportunityExtensionHelp';
 import { OpportunityBusy } from './OpportunityBusy';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -7,6 +8,12 @@ import {
     OPPORTUNITY_CURATED_COLLECTION_PATH,
     OPPORTUNITY_PRIVACY_PATH,
 } from '../../lib/opportunities/routes';
+
+interface TelegramConnectionPreparation {
+    status?: string;
+    connect_url?: string;
+    expires_at?: string;
+}
 
 interface OpportunitySettingsMenuProps {
     showQuickAccess?: boolean;
@@ -22,7 +29,7 @@ interface OpportunitySettingsMenuProps {
 
 const INTERACTIVE_ITEM_SELECTOR = [
     '[role="menuitem"]:not([aria-disabled="true"]):not(:disabled)',
-    '[role="menuitemradio"]:not([aria-disabled="true"]):not(:disabled)',
+    '[role="menuitemcheckbox"]:not([aria-disabled="true"]):not(:disabled)',
 ].join(',');
 
 export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = ({
@@ -45,6 +52,11 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
     const [position, setPosition] = useState<OpportunityMenuPosition | null>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [telegramMenuOpen, setTelegramMenuOpen] = useState(false);
+    const telegramMenuRef = useRef<HTMLDivElement>(null);
+    const telegramTriggerRef = useRef<HTMLButtonElement>(null);
+    const preparedTelegramRef = useRef<{ connect_url: string; expires_at: string } | null>(null);
+    const telegramRequestRef = useRef<Promise<TelegramConnectionPreparation> | null>(null);
     const initialFocusRef = useRef<'first' | 'last'>('first');
 
     const focusTrigger = useCallback(() => {
@@ -66,13 +78,13 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
         const viewportHeight = viewport?.height ?? window.innerHeight;
         const nextPosition = getOpportunityMenuPosition({
             triggerRect: trigger.getBoundingClientRect(),
-            menuWidth: 340,
+            menuWidth: showQuickAccess ? Math.max(340, (document.getElementById('opportunity-integrations')?.getBoundingClientRect().width || 0) + 24) : 340,
             menuHeight: menu.scrollHeight,
             viewportWidth,
             viewportHeight,
         });
         setPosition(nextPosition);
-    }, []);
+    }, [showQuickAccess]);
 
     const openMenu = (focus: 'first' | 'last' = 'first') => {
         initialFocusRef.current = focus;
@@ -114,76 +126,98 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
         };
     }, [closeMenu, isOpen, updatePosition]);
 
-    useEffect(() => {
-        if ((!isOpen && !showQuickAccess) || !accessToken) return;
-        const controller = new AbortController();
-        setTelegramStatus('loading');
-        void fetch('/api/integrations/telegram/connection', {
-            cache: 'no-store',
-            headers: { Authorization: `Bearer ${accessToken}` },
-            signal: controller.signal,
+    // Prepare only a short-lived linking token; the user still confirms in Telegram.
+    // Keep it in memory, never in local storage or a shared response cache.
+    const prepareTelegramConnection = useCallback((): Promise<TelegramConnectionPreparation> => {
+        const prepared = preparedTelegramRef.current;
+        if (prepared && Date.parse(prepared.expires_at) > Date.now() + 30_000) return Promise.resolve(prepared);
+        if (telegramRequestRef.current) return telegramRequestRef.current;
+        const request: Promise<TelegramConnectionPreparation> = fetch('/api/integrations/telegram/connection', {
+            method: 'POST', cache: 'no-store',
+            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
         }).then(async (response) => {
             const payload = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(payload.error || 'Telegram connection could not be loaded.');
-            setTelegramMissingConfiguration(Array.isArray(payload.missing_configuration) ? payload.missing_configuration : []);
-            setTelegramStatus(payload.enabled === false ? 'unavailable' : payload.status || 'disconnected');
-            if (payload.status === 'active') {
-                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                void fetch('/api/integrations/telegram/connection', {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                    body: JSON.stringify({ timezone }),
-                }).catch(() => undefined);
+            if (!response.ok) throw new Error(payload.error || 'Telegram connection could not be prepared.');
+            if (telegramRequestRef.current === request && payload.connect_url && payload.expires_at) preparedTelegramRef.current = { connect_url: payload.connect_url, expires_at: payload.expires_at };
+            return payload;
+        }).finally(() => { if (telegramRequestRef.current === request) telegramRequestRef.current = null; });
+        telegramRequestRef.current = request;
+        return request;
+    }, [accessToken]);
+
+    useEffect(() => {
+        if (!accessToken) return;
+        let disposed = false;
+        const controller = new AbortController();
+        preparedTelegramRef.current = null;
+        telegramRequestRef.current = null;
+        const loadConnection = async () => {
+            try {
+                const response = await fetch('/api/integrations/telegram/connection', {
+                    cache: 'no-store', headers: { Authorization: `Bearer ${accessToken}` }, signal: controller.signal,
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (disposed) return;
+                if (!response.ok) throw new Error(payload.error || 'Telegram connection could not be loaded.');
+                setTelegramMissingConfiguration(Array.isArray(payload.missing_configuration) ? payload.missing_configuration : []);
+                const status = payload.enabled === false ? 'unavailable' : payload.status || 'disconnected';
+                setTelegramStatus(status);
+                if (status === 'active') {
+                    preparedTelegramRef.current = null;
+                    void fetch('/api/integrations/telegram/connection', {
+                        method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+                        body: JSON.stringify({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+                    }).catch(() => undefined);
+                } else if (status !== 'unavailable') {
+                    void prepareTelegramConnection().then((prepared) => { if (!disposed && prepared.status === 'active') setTelegramStatus('active'); }).catch(() => undefined);
+                }
+            } catch (error) {
+                if (disposed || controller.signal.aborted) return;
+                setTelegramMissingConfiguration([error instanceof Error ? error.message : 'Telegram connection could not be loaded.']);
+                setTelegramStatus('unavailable');
             }
-        }).catch((error) => {
-            if (error instanceof DOMException && error.name === 'AbortError') return;
-            setTelegramMissingConfiguration([
-                error instanceof Error ? error.message : 'Telegram connection could not be loaded.',
-            ]);
-            setTelegramStatus('unavailable');
-        });
-        return () => controller.abort();
-    }, [accessToken, isOpen, showQuickAccess]);
+        };
+        void loadConnection();
+        const refresh = () => { if (document.visibilityState === 'visible') void loadConnection(); };
+        window.addEventListener('focus', refresh);
+        return () => { disposed = true; controller.abort(); window.removeEventListener('focus', refresh); telegramRequestRef.current = null; preparedTelegramRef.current = null; };
+    }, [accessToken, prepareTelegramConnection]);
+
+    useEffect(() => {
+        if (!telegramMenuOpen) return;
+        telegramMenuRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
+        const closeOutside = (event: PointerEvent) => { if (!telegramMenuRef.current?.contains(event.target as Node)) setTelegramMenuOpen(false); };
+        document.addEventListener('pointerdown', closeOutside);
+        return () => document.removeEventListener('pointerdown', closeOutside);
+    }, [telegramMenuOpen]);
 
     const updateTelegramConnection = async () => {
         if (!accessToken || isUpdatingTelegram || telegramStatus === 'unavailable') return;
         setIsUpdatingTelegram(true);
+        const disconnecting = telegramStatus === 'active';
         try {
-            const disconnecting = telegramStatus === 'active';
-            const response = await fetch('/api/integrations/telegram/connection', {
-                method: disconnecting ? 'DELETE' : 'POST',
-                cache: 'no-store',
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    ...(disconnecting ? {} : { 'Content-Type': 'application/json' }),
-                },
-                ...(disconnecting ? {} : {
-                    body: JSON.stringify({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
-                }),
-            });
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(payload.error || 'Telegram connection could not be updated.');
             if (disconnecting) {
+                const response = await fetch('/api/integrations/telegram/connection', {
+                    method: 'DELETE', cache: 'no-store', headers: { Authorization: `Bearer ${accessToken}` },
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(payload.error || 'Telegram could not be disconnected.');
+                preparedTelegramRef.current = null;
                 setTelegramStatus('disconnected');
+                setTelegramMenuOpen(false);
+                telegramTriggerRef.current?.focus();
                 onToast('Telegram disconnected.');
                 return;
             }
-            if (payload.status === 'active') {
-                setTelegramStatus('active');
-                onToast('Telegram is already connected.');
-                return;
-            }
+            const payload = await prepareTelegramConnection();
+            if (payload.status === 'active') { setTelegramStatus('active'); return; }
             if (!payload.connect_url) throw new Error('Telegram connection link is unavailable.');
             setTelegramStatus('pending');
             window.location.assign(payload.connect_url);
         } catch (error) {
             onToast(error instanceof Error ? error.message : 'Telegram connection could not be updated.');
-        } finally {
-            setIsUpdatingTelegram(false);
-        }
+        } finally { setIsUpdatingTelegram(false); }
     };
 
     const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -253,7 +287,6 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
     return (
         <div id={showQuickAccess ? 'opportunity-quick-access' : undefined} className={`opp-user-menu ${showQuickAccess ? 'opp-quick-access' : ''}`}>
             <div className={showQuickAccess ? 'opp-quick-access-header' : undefined}>
-            {showQuickAccess && <span>Quick access</span>}
             <button
                 ref={triggerRef}
                 id="opportunity-settings-trigger"
@@ -288,17 +321,23 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                     <span><strong>Install Chrome Extension</strong><small>Save opportunities directly from your browser.</small></span>
                     <ArrowUpRight size={18} aria-hidden="true" />
                 </button>
-                <button type="button" className="opp-quick-integration" disabled={telegramStatus === 'loading' || isUpdatingTelegram} onClick={() => {
-                    if (telegramStatus === 'active' || telegramStatus === 'unavailable') openMenu();
+                <div className="opp-telegram-quick-menu" ref={telegramMenuRef}>
+                <button ref={telegramTriggerRef} type="button" className="opp-quick-integration" aria-expanded={telegramStatus === 'active' ? telegramMenuOpen : undefined} aria-haspopup={telegramStatus === 'active' ? 'menu' : undefined} disabled={telegramStatus === 'loading' || isUpdatingTelegram} onClick={() => {
+                    if (telegramStatus === 'active') setTelegramMenuOpen((open) => !open);
+                    else if (telegramStatus === 'unavailable') openMenu();
                     else void updateTelegramConnection();
                 }}>
                     {telegramStatus === 'active' ? <CheckCircle2 size={25} aria-hidden="true" /> : <Send size={25} aria-hidden="true" />}
-                    <span><strong>{telegramStatus === 'active' ? 'Telegram connected' : 'Connect to Telegram'}</strong><small>{isUpdatingTelegram ? <OpportunityBusy>Connecting</OpportunityBusy> : telegramStatus === 'loading' ? <OpportunityBusy>Checking connection</OpportunityBusy> : telegramStatus === 'active' ? 'Manage your Telegram connection.' : telegramStatus === 'unavailable' ? 'Check connection setup in Settings.' : 'Capture messages and voice notes.'}</small></span>
-                    <ArrowUpRight size={18} aria-hidden="true" />
+                    <span><strong>{telegramStatus === 'active' ? 'Telegram connected' : 'Connect to Telegram'}</strong><small>{isUpdatingTelegram ? <OpportunityBusy>{telegramStatus === 'active' ? 'Disconnecting' : 'Connecting'}</OpportunityBusy> : telegramStatus === 'loading' ? <OpportunityBusy>Checking connection</OpportunityBusy> : telegramStatus === 'active' ? 'Send opportunities from Telegram.' : telegramStatus === 'unavailable' ? 'Check connection setup in Settings.' : 'Capture messages and voice notes.'}</small></span>
+                    {telegramStatus === 'active' ? <ChevronDown size={18} aria-hidden="true" /> : <ArrowUpRight size={18} aria-hidden="true" />}
                 </button>
+                {telegramMenuOpen && telegramStatus === 'active' && <div className="opp-telegram-quick-dropdown" role="menu" aria-label="Telegram connection" onKeyDown={(event) => {
+                    if (event.key === 'Escape' || event.key === 'Tab') { setTelegramMenuOpen(false); if (event.key === 'Escape') { event.preventDefault(); telegramTriggerRef.current?.focus(); } }
+                }}><button type="button" role="menuitem" disabled={isUpdatingTelegram} onClick={() => void updateTelegramConnection()}>{isUpdatingTelegram ? <OpportunityBusy>Disconnecting</OpportunityBusy> : 'Disconnect Telegram'}</button></div>}
+                </div>
             </div>}
             <OpportunityExtensionHelp open={isExtensionHelpOpen} onClose={() => setIsExtensionHelpOpen(false)} />
-            {isOpen && (
+            {isOpen && createPortal(
                 <div
                     ref={menuRef}
                     id="opportunity-settings-menu"
@@ -314,51 +353,11 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                     } : undefined}
                 >
                     <div className="opp-user-menu-section" role="group" aria-labelledby="opp-visibility-label">
-                        <p id="opp-visibility-label" className="opp-user-menu-label">Collection Visibility</p>
-                        <div className="opp-visibility-controls">
-                            <div
-                                className={`opp-visibility-switch ${isPublic ? 'is-public' : 'is-private'} ${isSavingVisibility ? 'opp-waiting' : ''}`}
-                                aria-busy={isSavingVisibility}
-                            >
-                                <span className="opp-visibility-indicator" aria-hidden="true" />
-                                <button
-                                    className="opp-visibility-option"
-                                    type="button"
-                                    role="menuitemradio"
-                                    aria-checked={!isPublic}
-                                    disabled={isSavingVisibility}
-                                    onClick={() => void updateVisibility(false)}
-                                >
-                                    Private
-                                </button>
-                                <button
-                                    className="opp-visibility-option"
-                                    type="button"
-                                    role="menuitemradio"
-                                    aria-checked={isPublic}
-                                    disabled={isSavingVisibility}
-                                    onClick={() => void updateVisibility(true)}
-                                >
-                                    Public
-                                </button>
-                            </div>
-
-                            {isPublic ? (
-                                <button
-                                    className="opp-copy-public-link"
-                                    type="button"
-                                    role="menuitem"
-                                    onClick={() => void copyPublicLink()}
-                                >
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
-                                        <rect x="8" y="8" width="11" height="11" rx="1.5" />
-                                        <path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8" />
-                                    </svg>
-                                    <span>Copy public link to share</span>
-                                </button>
-                            ) : (
-                                <p className="opp-private-visibility-note">Only you can view it</p>
-                            )}
+                        <div className="opp-public-access-row">
+                            <button className="opp-public-access-toggle" type="button" role="menuitemcheckbox" aria-checked={isPublic} disabled={isSavingVisibility} aria-busy={isSavingVisibility} onClick={() => void updateVisibility(!isPublic)}>
+                                <span id="opp-visibility-label">Public access</span><span className={`opp-access-track ${isPublic ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
+                            </button>
+                            <button className="opp-public-copy-icon" type="button" role="menuitem" aria-label="Copy public link" title="Copy public link" disabled={!isPublic || isSavingVisibility} onClick={() => void copyPublicLink()}><Copy size={19} aria-hidden="true" /></button>
                         </div>
                     </div>
 
@@ -389,7 +388,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                                 onClick={() => void updateTelegramConnection()}
                             >
                                 {isUpdatingTelegram
-                                    ? <OpportunityBusy>Connecting</OpportunityBusy>
+                                    ? <OpportunityBusy>{telegramStatus === 'active' ? 'Disconnecting' : 'Connecting'}</OpportunityBusy>
                                     : telegramStatus === 'active'
                                         ? 'Disconnect'
                                         : telegramStatus === 'pending'
@@ -430,7 +429,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                     >
                         <span>Log Out</span>
                     </button>
-                </div>
+                </div>, document.body
             )}
         </div>
     );
