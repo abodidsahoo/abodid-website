@@ -78,13 +78,13 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
         const viewportHeight = viewport?.height ?? window.innerHeight;
         const nextPosition = getOpportunityMenuPosition({
             triggerRect: trigger.getBoundingClientRect(),
-            menuWidth: showQuickAccess ? Math.max(340, (document.getElementById('opportunity-integrations')?.getBoundingClientRect().width || 0) + 24) : 340,
+            menuWidth: 340,
             menuHeight: menu.scrollHeight,
             viewportWidth,
             viewportHeight,
         });
         setPosition(nextPosition);
-    }, [showQuickAccess]);
+    }, []);
 
     const openMenu = (focus: 'first' | 'last' = 'first') => {
         initialFocusRef.current = focus;

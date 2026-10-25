@@ -5122,13 +5122,12 @@ ul.opp-eligibility-row,
   }
 
   .opp-capture-workspace .opp-hero-capture-input {
-    height: 56px;
-    min-block-size: 56px;
-    max-block-size: 56px;
-    field-sizing: fixed;
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
+    height: auto;
+    min-block-size: 60px;
+    max-block-size: 8lh;
+    field-sizing: content;
+    overflow-y: auto;
+    white-space: pre-wrap;
   }
 
   .opp-capture-workspace .opp-hero-capture-bar {
@@ -8557,12 +8556,12 @@ button.opp-detail-deadline-card,
 .opp-quick-integration:disabled { cursor: wait; }
 .opp-quick-integration:focus-visible { outline: 3px solid var(--opp-purple); outline-offset: 3px; }
 .has-quick-access .opp-capture-workspace { width: 100%; min-width: 0; padding: 16px; gap: 10px; border-width: 1px; box-shadow: none; }
-.opp-capture-workspace .opp-hero-capture-bar { grid-template-areas: 'input save'; gap: 10px; }
-.opp-capture-workspace .opp-hero-capture-bar.has-attachments { grid-template-areas: 'input save' 'files files'; }
+.opp-capture-workspace .opp-hero-capture-bar { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'input' 'save'; gap: 10px; }
+.opp-capture-workspace .opp-hero-capture-bar.has-attachments { grid-template-areas: 'input' 'files' 'save'; }
 .opp-capture-input-shell { grid-area: input; }
-.opp-capture-workspace .opp-hero-btn { grid-area: save; }
+.opp-capture-workspace .opp-hero-btn { grid-area: save; justify-self: end; }
 .opp-capture-files { grid-area: files; }
-.opp-capture-workspace .opp-hero-capture-input { padding-inline-end: 110px; min-block-size: 60px; }
+.opp-capture-workspace .opp-hero-capture-input { display: block; align-self: start; padding-inline-end: 110px; min-block-size: 60px; height: auto; max-block-size: 8lh; overflow-y: auto; overflow-wrap: anywhere; white-space: pre-wrap; field-sizing: content; }
 .opp-capture-attach-button { inline-size: auto; min-inline-size: 88px; block-size: 44px; min-block-size: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border-width: 1px; font: 750 .78rem/1 var(--opp-font); }
 .opp-capture-file { position: relative; max-inline-size: 100%; gap: 6px; padding: 2px 4px 2px 10px; }
 .opp-capture-file > svg { flex: none; }
@@ -8602,13 +8601,12 @@ button.opp-detail-deadline-card,
 .opp-auth-callback h1 { margin: 0 0 20px; font-size: clamp(1.5rem, 4vw, 2.25rem); line-height: 1.15; text-wrap: balance; }
 
 /* Moodboard-style capture examples: upward phrase swap and a sweep across the letters. */
-.opp-capture-examples { position: absolute; inset: 14px 116px 14px 16px; display: flex; align-items: center; gap: .4em; pointer-events: none; user-select: none; color: #6b6a66; font: 500 .94rem/1.4 var(--opp-font); }
+.opp-capture-examples { position: absolute; inset: 0 116px 0 16px; display: flex; align-items: center; gap: .4em; pointer-events: none; user-select: none; color: #6b6a66; font: 500 .94rem/1.4 var(--opp-font); }
 .opp-capture-examples > span:first-child { flex: 0 0 auto; }
-.opp-example-phrase { min-width: 0; overflow-wrap: anywhere; text-wrap: pretty; padding-block-end: .28em; margin-block-end: -.28em; background: linear-gradient(90deg,#6b6a66 0%,#6b6a66 28%,#0c1038 48%,#080a2c 52%,#6b6a66 72%,#6b6a66 100%); background-size: 260% 100%; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.opp-example-phrase { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-block-end: .28em; margin-block-end: -.28em; background: linear-gradient(90deg,#6b6a66 0%,#6b6a66 28%,#0c1038 48%,#080a2c 52%,#6b6a66 72%,#6b6a66 100%); background-size: 260% 100%; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .opp-example-phrase.is-entering { animation: opp-example-enter .38s cubic-bezier(.16,1,.3,1) both, opp-example-sweep 5.6s cubic-bezier(.35,0,.25,1) infinite; }
 .opp-example-phrase.is-exiting { animation: opp-example-exit .32s cubic-bezier(.4,0,1,1) both; }
 .opp-capture-input-shell:focus-within .opp-capture-examples { visibility: hidden; }
-.opp-capture-workspace .opp-hero-capture-input { min-block-size: 108px; }
 @keyframes opp-example-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes opp-example-exit { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-6px); } }
 @keyframes opp-example-sweep { 0% { background-position: 160% 0; } 68%,100% { background-position: -50% 0; } }
@@ -8638,20 +8636,16 @@ button.opp-detail-deadline-card,
 /* Text sitting directly on the cobalt canvas must remain light. */
 .opp-public-footer, .opp-public-footer .opp-curator-badge, .opp-auth-loading { color: #fff; }
 @media (max-width: 1024px) { .opp-quick-access { gap: 16px; } .opp-quick-integrations { margin-block-start: 0; } }
-@media (max-width: 767px) {
-  .opp-capture-workspace .opp-hero-capture-input { min-block-size: 170px; padding-inline-end: 16px; padding-block-end: 54px; }
-  .opp-capture-examples { inset: 14px 16px 54px; align-items: flex-start; font-size: .88rem; }
-  .opp-capture-examples > span:first-child { padding-block-start: 0; }
-  .opp-capture-attach-button { top: auto; bottom: 8px; transform: none; }
+@media (max-width: 480px) {
+  .opp-capture-attach-button { min-inline-size: 44px; }
+  .opp-capture-attach-button > span { display: none; }
+  .opp-capture-workspace .opp-hero-capture-input { padding-inline-end: 64px; }
+  .opp-capture-examples { inset-inline-end: 70px; font-size: .88rem; }
 }
 @media (prefers-reduced-motion: reduce) { .opp-example-phrase.is-entering, .opp-example-phrase.is-exiting { animation: none; } .opp-access-track > span { transition: none; } }
 
 /* Portal the settings panel above site navigation and hero stacking contexts. */
 .opp-user-menu-popover { z-index: 11000; }
-@media (max-height: 500px) and (max-width: 767px) {
-  body:has(.opp-quick-tour) .opportunities-shell .opp-capture-workspace .opp-hero-capture-input { min-block-size: 88px; }
-  body:has(.opp-quick-tour) .opportunities-shell .opp-capture-examples { visibility: hidden; }
-}
 
 /* Share the numbered section's content edge with its application link and removal copy. */
 .opp-focus-scroll { --opp-section-gutter: 48px; --opp-section-gap: 18px; }
@@ -8660,3 +8654,17 @@ button.opp-detail-deadline-card,
 .opp-focus-remove { padding-inline-start: calc(var(--opp-section-gutter) + var(--opp-section-gap)); }
 .opp-deadline-add { justify-self: start; text-align: start; }
 @media (max-width: 620px) { .opp-focus-scroll { --opp-section-gutter: 32px; --opp-section-gap: 9px; } }
+
+/* Auto-grow only from real input; the rotating example never controls field height. */
+@supports not (field-sizing: content) {
+  .opp-capture-input-shell { display: grid; }
+  .opp-capture-input-shell::after { content: attr(data-replicated-value) " "; visibility: hidden; pointer-events: none; white-space: pre-wrap; overflow-wrap: anywhere; grid-area: 1 / 1; width: 100%; min-block-size: 60px; max-block-size: 8lh; overflow: hidden; padding: 14px 110px 14px 16px; border: 2px solid transparent; box-sizing: border-box; font: 600 1rem/1.45 var(--opp-font); }
+  .opp-capture-workspace .opp-hero-capture-input { grid-area: 1 / 1; align-self: stretch; height: 100%; }
+  @media (max-width: 480px) { .opp-capture-input-shell::after { padding-inline-end: 64px; } }
+}
+/* Google authentication keeps its decorative dots immediately after the label. */
+.opp-busy-copy.is-inline .opp-busy-line { flex-direction: row; gap: 8px; }
+.opp-busy-copy.is-inline .opp-wave-dots { block-size: 20px; }
+.opp-auth-callback h1 > span { font: inherit; letter-spacing: inherit; text-transform: none; }
+.opp-auth-inline-wave { display: inline-flex; margin-inline-start: 8px; vertical-align: middle; }
+@media (max-width: 480px) { .opp-auth-callback > div { padding: 20px; } }

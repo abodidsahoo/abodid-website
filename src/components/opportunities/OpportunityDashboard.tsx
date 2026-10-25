@@ -1120,7 +1120,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 id="opportunity-save-form"
                                 className={`opp-hero-capture-bar ${captureFiles.length ? 'has-attachments' : ''} ${isCapturing || captureProgress ? 'opp-waiting' : ''}`}
                             >
-                                <div className="opp-capture-input-shell">
+                                <div className="opp-capture-input-shell" data-replicated-value={captureUrl}>
                                     <textarea
                                         id="opportunity-capture-input"
                                         name="opportunity_input"
