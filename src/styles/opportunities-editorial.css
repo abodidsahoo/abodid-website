@@ -4260,8 +4260,9 @@ body.opportunities-editorial-page {
 
 .opp-capture-workspace .opp-hero-btn {
   align-self: start;
-  block-size: 56px;
-  min-block-size: 56px;
+  block-size: 60px;
+  min-block-size: 60px;
+  min-inline-size: 150px;
   border-radius: 14px;
   box-sizing: border-box;
 }
@@ -8556,8 +8557,8 @@ button.opp-detail-deadline-card,
 .opp-quick-integration:disabled { cursor: wait; }
 .opp-quick-integration:focus-visible { outline: 3px solid var(--opp-purple); outline-offset: 3px; }
 .has-quick-access .opp-capture-workspace { width: 100%; min-width: 0; padding: 16px; gap: 10px; border-width: 1px; box-shadow: none; }
-.opp-capture-workspace .opp-hero-capture-bar { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'input' 'save'; gap: 10px; }
-.opp-capture-workspace .opp-hero-capture-bar.has-attachments { grid-template-areas: 'input' 'files' 'save'; }
+.opp-capture-workspace .opp-hero-capture-bar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'input save'; gap: 10px; }
+.opp-capture-workspace .opp-hero-capture-bar.has-attachments { grid-template-areas: 'input save' 'files files'; }
 .opp-capture-input-shell { grid-area: input; }
 .opp-capture-workspace .opp-hero-btn { grid-area: save; justify-self: end; }
 .opp-capture-files { grid-area: files; }
@@ -8662,9 +8663,20 @@ button.opp-detail-deadline-card,
   .opp-capture-workspace .opp-hero-capture-input { grid-area: 1 / 1; align-self: stretch; height: 100%; }
   @media (max-width: 480px) { .opp-capture-input-shell::after { padding-inline-end: 64px; } }
 }
-/* Google authentication keeps its decorative dots immediately after the label. */
+/* Buttons and compact notifications keep decorative dots immediately after their label. */
 .opp-busy-copy.is-inline .opp-busy-line { flex-direction: row; gap: 8px; }
 .opp-busy-copy.is-inline .opp-wave-dots { block-size: 20px; }
 .opp-auth-callback h1 > span { font: inherit; letter-spacing: inherit; text-transform: none; }
 .opp-auth-inline-wave { display: inline-flex; margin-inline-start: 8px; vertical-align: middle; }
 @media (max-width: 480px) { .opp-auth-callback > div { padding: 20px; } }
+
+/* Rotate the existing symmetric arrows around the center of their SVG viewBox. */
+.opp-refresh-list { min-inline-size: 132px; }
+.opp-refresh-icon { display: block; flex: none; transform-box: view-box; transform-origin: 50% 50%; }
+.opp-refresh-list.is-refreshing { opacity: 1; }
+.opp-refresh-list.is-refreshing .opp-refresh-icon { animation: opp-refresh-spin .9s linear infinite; }
+@keyframes opp-refresh-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .opp-refresh-list.is-refreshing .opp-refresh-icon { animation-duration: 6s; } }
+@media (min-width: 1025px) {
+  .opp-quick-integration { min-height: 76px; padding-block: 12px; }
+}

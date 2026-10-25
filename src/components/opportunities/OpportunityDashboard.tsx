@@ -1353,12 +1353,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         )}
                     </div>
 
-                    <button type="button" id="opportunity-refresh-list" className={`opp-filter-toggle-btn opp-refresh-list ${isRefreshing ? 'opp-waiting' : ''}`} aria-busy={isRefreshing} disabled={isRefreshing || isLoading} onClick={async () => {
+                    <button type="button" id="opportunity-refresh-list" className={`opp-filter-toggle-btn opp-refresh-list ${isRefreshing ? 'is-refreshing' : ''}`} aria-busy={isRefreshing} disabled={isRefreshing || isLoading} onClick={async () => {
                         setIsRefreshing(true);
                         try { await fetchOpportunities(true); } finally { setIsRefreshing(false); }
                     }}>
-                        <RefreshCw size={16} aria-hidden="true" />
-                        <span>{isRefreshing ? <OpportunityBusy>Refreshing</OpportunityBusy> : 'Refresh list'}</span>
+                        <RefreshCw className="opp-refresh-icon" size={16} aria-hidden="true" />
+                        <span>{isRefreshing ? 'Refreshing' : 'Refresh list'}</span>
                     </button>
                     {/* Filter Button with Badge and Dropdown Anchor */}
                     <div className="opp-filter-anchor-wrap">
@@ -1529,7 +1529,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             {/* Opportunities Grid / Empty State */}
             {isLoading ? (
                 <div className="opp-loading-state" role="status">
-                    <OpportunityBusy>Loading opportunities</OpportunityBusy>
+                    <OpportunityBusy inline={false}>Loading opportunities</OpportunityBusy>
                 </div>
             ) : loadError ? (
                 <div className="opp-load-error" role="alert">
