@@ -7996,8 +7996,8 @@ button.opp-detail-deadline-card,
 
 .opp-focus-section {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 0 18px;
+  grid-template-columns: var(--opp-section-gutter) minmax(0, 1fr);
+  gap: 0 var(--opp-section-gap);
   padding-block: clamp(24px, 4vw, 36px);
   border-block-start: 1px solid var(--opp-line);
 }
@@ -8387,8 +8387,8 @@ button.opp-detail-deadline-card,
   }
 
   .opp-focus-section {
-    grid-template-columns: 32px minmax(0, 1fr);
-    gap: 0 9px;
+    grid-template-columns: var(--opp-section-gutter) minmax(0, 1fr);
+    gap: 0 var(--opp-section-gap);
     padding-block: 24px;
   }
 
@@ -8652,3 +8652,11 @@ button.opp-detail-deadline-card,
   body:has(.opp-quick-tour) .opportunities-shell .opp-capture-workspace .opp-hero-capture-input { min-block-size: 88px; }
   body:has(.opp-quick-tour) .opportunities-shell .opp-capture-examples { visibility: hidden; }
 }
+
+/* Share the numbered section's content edge with its application link and removal copy. */
+.opp-focus-scroll { --opp-section-gutter: 48px; --opp-section-gap: 18px; }
+.opp-focus-apply > a { grid-column: 2; justify-self: start; min-inline-size: 0; font-weight: 700; text-decoration: underline; text-decoration-thickness: 1px; }
+.opp-focus-apply > a:focus-visible { outline: 2px solid var(--opp-ink); outline-offset: 4px; }
+.opp-focus-remove { padding-inline-start: calc(var(--opp-section-gutter) + var(--opp-section-gap)); }
+.opp-deadline-add { justify-self: start; text-align: start; }
+@media (max-width: 620px) { .opp-focus-scroll { --opp-section-gutter: 32px; --opp-section-gap: 9px; } }

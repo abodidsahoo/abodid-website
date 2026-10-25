@@ -566,7 +566,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
 
                         {applicationUrl && (
                             <section className="opp-focus-section opp-focus-apply" aria-labelledby="opp-apply-heading">
-                                <div className="opp-focus-section-heading"><h3 id="opp-apply-heading">Link to apply</h3></div>
+                                <div className="opp-focus-section-heading"><span aria-hidden="true">{opp.notes ? '04' : '03'}</span><h3 id="opp-apply-heading">Link to apply</h3></div>
                                 <a href={applicationUrl} target="_blank" rel="noopener noreferrer">Open application <ExternalLink size={16} aria-hidden="true" /></a>
                             </section>
                         )}
