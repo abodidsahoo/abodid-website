@@ -1,3 +1,4 @@
+import { FileImage, FileText, RefreshCw } from 'lucide-react';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { Opportunity, OpportunityStatus } from '../../lib/opportunities/types';
@@ -35,14 +36,9 @@ import {
     OpportunityProfileDialog,
     type OpportunityEditableProfile,
 } from './OpportunityProfileDialog';
-import { OpportunitySupportPrompt } from './OpportunitySupportPrompt';
 import { OpportunityRadarSignInDialog } from './OpportunityRadarSignInDialog';
 import { OpportunitySettingsMenu } from './OpportunitySettingsMenu';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
-import {
-    getOpportunitySupportPromptStorageKey,
-    shouldShowOpportunitySupportPrompt,
-} from '../../lib/opportunities/supportPrompt';
 import {
     RADAR_IMPORT_INTENT_STORAGE_KEY,
     createRadarImportIntent,
@@ -93,6 +89,7 @@ const captureNotice = (eyebrow: string, title: string, detail: string): CaptureN
 
 interface OpportunityDashboardProps {
     username: string;
+    initialListRequest?: Promise<Response> | null;
     accessToken?: string | null;
     isOwner?: boolean;
     viewerProfile?: ProfileSummary | null;
@@ -100,6 +97,7 @@ interface OpportunityDashboardProps {
 
 export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     username,
+    initialListRequest = null,
     accessToken = null,
     isOwner = false,
     viewerProfile = null,
@@ -112,6 +110,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [profileVisibility, setProfileVisibility] = useState(Boolean(viewerProfile?.is_public));
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [loadError, setLoadError] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const initialListRequestRef = useRef(initialListRequest);
+    const listRequestIdRef = useRef(0);
 
     // Capture bar state
     const [captureUrl, setCaptureUrl] = useState('');
@@ -131,6 +132,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [urgencyFilter, setUrgencyFilter] = useState<UrgencyRailFilter>('apply_asap');
     const [isFilterTrayOpen, setIsFilterTrayOpen] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
+    const [sortBy, setSortBy] = useState<'deadline' | 'date_added'>('deadline');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [isDeadlineFilterActive, setIsDeadlineFilterActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -142,7 +144,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null);
     const [editingOpp, setEditingOpp] = useState<Opportunity | null>(null);
     const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
-    const [supportPromptSource, setSupportPromptSource] = useState<'automatic' | 'manual' | null>(null);
     const [radarStates, setRadarStates] = useState<Record<string, RadarSaveState>>({});
     const [radarSignInOpportunity, setRadarSignInOpportunity] = useState<Opportunity | null>(null);
     const [isStartingRadarSignIn, setIsStartingRadarSignIn] = useState(false);
@@ -240,18 +241,23 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     // 1. Fetch the owner's private rows, or a deliberately safe public projection.
     const fetchOpportunities = async (silent = false): Promise<Opportunity[]> => {
+        const requestId = ++listRequestIdRef.current;
         if (!silent) setIsLoading(true);
         setLoadError('');
         try {
             const endpoint = isOwner
                 ? `/api/opportunities?refresh=${Date.now()}`
                 : `/api/opportunities/public/${encodeURIComponent(username)}?refresh=${Date.now()}`;
-            const res = await fetch(endpoint, {
+            const prefetched = initialListRequestRef.current;
+            initialListRequestRef.current = null;
+            const res = await (prefetched || fetch(endpoint, {
                 cache: 'no-store',
                 headers: authenticatedHeaders(),
-            });
+            }));
+            if (requestId !== listRequestIdRef.current) return [];
             if (res.ok) {
                 const data = await res.json();
+                if (requestId !== listRequestIdRef.current) return [];
                 const loadedOpportunities = (data.opportunities || []) as Opportunity[];
                 setOpportunities(loadedOpportunities);
                 if (data.profile) setCollectionProfile(data.profile);
@@ -264,10 +270,11 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 setLoadError('Your opportunities could not be loaded.');
             }
         } catch (err) {
+            if (requestId !== listRequestIdRef.current) return [];
             console.error('Failed to load opportunities:', err);
             setLoadError('Your opportunities could not be loaded. Check your connection and try again.');
         } finally {
-            if (!silent) setIsLoading(false);
+            if (requestId === listRequestIdRef.current) setIsLoading(false);
         }
         return [];
     };
@@ -334,33 +341,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         setActiveViewerProfile(viewerProfile);
     }, [viewerProfile]);
 
-    const supportPromptStorageKey = useMemo(
-        () => getOpportunitySupportPromptStorageKey(username),
-        [username],
-    );
-
-    useEffect(() => {
-        if (editingOpp) return;
-        if (isProfileDialogOpen) return;
-        if (supportPromptSource) return;
-
-        let hasBeenDismissed = false;
-        try {
-            hasBeenDismissed = window.localStorage.getItem(supportPromptStorageKey) === 'dismissed';
-        } catch {
-            // The prompt can still work when browser storage is unavailable.
-        }
-
-        if (shouldShowOpportunitySupportPrompt({
-            opportunityCount: opportunities.length,
-            isOwner,
-            isLoading,
-            hasBeenDismissed,
-        })) {
-            setSupportPromptSource('automatic');
-        }
-    }, [editingOpp, isLoading, isOwner, isProfileDialogOpen, opportunities.length, supportPromptStorageKey]);
-
     const closeProfileDialog = () => {
         setIsProfileDialogOpen(false);
         window.requestAnimationFrame(() => {
@@ -377,23 +357,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
         if (previousUsername && previousUsername !== nextProfile.username) {
             window.location.assign(`/opportunities/${encodeURIComponent(nextProfile.username)}`);
-        }
-    };
-
-    const dismissSupportPrompt = () => {
-        const shouldReturnToSettings = supportPromptSource === 'manual';
-        if (supportPromptSource === 'automatic') {
-            try {
-                window.localStorage.setItem(supportPromptStorageKey, 'dismissed');
-            } catch {
-                // Dismiss for this visit even when browser storage is unavailable.
-            }
-        }
-        setSupportPromptSource(null);
-        if (shouldReturnToSettings) {
-            window.requestAnimationFrame(() => {
-                document.querySelector<HTMLButtonElement>('#opportunity-settings-trigger')?.focus();
-            });
         }
     };
 
@@ -497,6 +460,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         let cancelled = false;
         void (async () => {
             const response = await fetch('/api/opportunities/capture-jobs?limit=10', {
+                priority: 'low',
                 headers: authenticatedHeaders(),
                 cache: 'no-store',
             });
@@ -1033,7 +997,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             return Number.isFinite(actionableTimestamp) && actionableTimestamp >= now;
         });
 
-        const sorted = urgencyFilter === 'apply_asap'
+        const sorted = sortBy === 'deadline'
             ? [...filtered].sort((first, second) => {
                 if (first.is_high_priority !== second.is_high_priority) return first.is_high_priority ? -1 : 1;
                 const firstDeadline = Date.parse(getOpportunityActionAt(first) || '9999-12-31');
@@ -1046,7 +1010,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 now,
             );
         return rankOpportunitySearch(sorted, searchQuery, opportunitySearchIndex);
-    }, [opportunities, opportunitySearchIndex, urgencyFilter, categoryFilter, statusFilter, isDeadlineFilterActive, searchQuery, now]);
+    }, [opportunities, opportunitySearchIndex, urgencyFilter, sortBy, categoryFilter, statusFilter, isDeadlineFilterActive, searchQuery, now]);
 
     useEffect(() => {
         if (isLoading || loadError) return undefined;
@@ -1060,6 +1024,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     // Active secondary filters count for badge
     const activeSecondaryFiltersCount =
+        (sortBy !== 'deadline' ? 1 : 0) +
         (categoryFilter !== 'all' ? 1 : 0) +
         (statusFilter !== 'all' ? 1 : 0) +
         (isDeadlineFilterActive ? 1 : 0);
@@ -1072,6 +1037,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
     const resetFilters = useCallback(() => {
         setUrgencyFilter('apply_asap');
+        setSortBy('deadline');
         setCategoryFilter('all');
         setStatusFilter('all');
         setIsDeadlineFilterActive(false);
@@ -1117,7 +1083,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     username={activeViewerProfile.username}
                                     onLogout={handleLogout}
                                     onEditProfile={() => setIsProfileDialogOpen(true)}
-                                    onOpenSupport={() => setSupportPromptSource('manual')}
                                     onToast={showToast}
                                     onVisibilityChange={setProfileVisibility}
                                 />
@@ -1184,7 +1149,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                         aria-label="Attach images, videos, or documents"
                                         title="Attach images, videos, or documents"
                                     >
-                                        <span aria-hidden="true">+</span>
+                                        <span className="opp-attachment-icons" aria-hidden="true"><FileImage size={17} /><FileText size={17} /></span>
                                     </label>
                                 </div>
                                 {captureFiles.length > 0 && (
@@ -1312,6 +1277,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                             onClick={() => {
                                 if (r.id === urgencyFilter) return;
                                 setUrgencyFilter(r.id);
+                                setSortBy(r.id === 'newly_added' ? 'date_added' : 'deadline');
                                 setIsDeadlineFilterActive(false);
                             }}
                         >
@@ -1349,6 +1315,13 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         )}
                     </div>
 
+                    <button type="button" className="opp-filter-toggle-btn opp-refresh-list" disabled={isRefreshing || isLoading} onClick={async () => {
+                        setIsRefreshing(true);
+                        try { await fetchOpportunities(true); } finally { setIsRefreshing(false); }
+                    }}>
+                        <RefreshCw size={16} aria-hidden="true" />
+                        <span>{isRefreshing ? 'Refreshing…' : 'Refresh list'}</span>
+                    </button>
                     {/* Filter Button with Badge and Dropdown Anchor */}
                     <div className="opp-filter-anchor-wrap">
                     <button
@@ -1421,6 +1394,14 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     </div>
                                 </div>
 
+                                <div className="opp-popover-section">
+                                    <div className="opp-popover-section-label">Sort by</div>
+                                    <div className="opp-popover-pills">
+                                        {([{ id: 'deadline', label: 'Urgency' }, { id: 'date_added', label: 'Date added' }] as const).map((option) => (
+                                            <button key={option.id} type="button" className={`opp-popover-pill ${sortBy === option.id ? 'active' : ''}`} aria-pressed={sortBy === option.id} onClick={() => setSortBy(option.id)}>{option.label}</button>
+                                        ))}
+                                    </div>
+                                </div>
                                 <div className="opp-popover-section">
                                     <div className="opp-popover-section-label">Deadline</div>
                                     <label className="opp-popover-checkbox">
@@ -1773,13 +1754,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     profile={activeViewerProfile}
                     onClose={closeProfileDialog}
                     onSaved={handleProfileSaved}
-                />
-            )}
-
-            {activeViewerProfile && (
-                <OpportunitySupportPrompt
-                    isOpen={supportPromptSource !== null}
-                    onDismiss={dismissSupportPrompt}
                 />
             )}
 

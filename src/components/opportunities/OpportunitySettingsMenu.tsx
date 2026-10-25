@@ -11,7 +11,6 @@ interface OpportunitySettingsMenuProps {
     username: string;
     onLogout: () => void;
     onEditProfile: () => void;
-    onOpenSupport: () => void;
     onToast: (message: string) => void;
     onVisibilityChange: (isPublic: boolean) => void;
 }
@@ -27,7 +26,6 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
     username,
     onLogout,
     onEditProfile,
-    onOpenSupport,
     onToast,
     onVisibilityChange,
 }) => {
@@ -385,16 +383,6 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                         <span>Edit profile &amp; public URL</span><span aria-hidden="true">→</span>
                     </button>
 
-                    <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                            closeMenu();
-                            onOpenSupport();
-                        }}
-                    >
-                        <span>Support this project</span><span aria-hidden="true">↗</span>
-                    </button>
                     <div className="opp-user-menu-disabled opp-user-menu-extension" aria-disabled="true">
                         <span>Install Chrome extension</span><small>(coming soon)</small>
                     </div>

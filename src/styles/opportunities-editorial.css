@@ -2680,149 +2680,6 @@ body.opportunities-editorial-page {
   .opp-profile-save { order: -1; }
 }
 
-/* One-time support milestone prompt */
-.opp-support-dialog {
-  position: fixed;
-  inset: 0;
-  width: min(360px, calc(100vw - 32px));
-  max-width: none;
-  max-height: calc(100dvh - 32px);
-  margin: auto;
-  padding: clamp(22px, 6vw, 30px);
-  overflow: auto;
-  color: var(--opp-ink);
-  background: var(--opp-cream);
-  border: 2px solid var(--opp-border);
-  border-radius: 18px;
-  box-shadow: 6px 6px 0 var(--opp-border);
-  box-sizing: border-box;
-}
-
-.opp-support-dialog::backdrop {
-  background: rgba(21, 19, 15, 0.66);
-}
-
-.opp-support-accent {
-  width: 52px;
-  height: 8px;
-  margin-bottom: 22px;
-  background: var(--opp-yellow);
-  border: 1.5px solid var(--opp-border);
-  border-radius: 999px;
-}
-
-.opp-support-label {
-  margin: 0 0 10px;
-  color: var(--opp-ink);
-  font: 800 0.72rem/1.25 var(--opp-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.opp-support-title {
-  margin: 0;
-  color: var(--opp-ink);
-  font: 750 clamp(1.65rem, 7vw, 2.1rem)/1 var(--opp-font);
-  letter-spacing: -0.045em;
-  text-wrap: balance;
-}
-
-.opp-support-copy {
-  margin: 14px 0 0;
-  max-width: 31ch;
-  color: var(--opp-ink);
-  font: 500 clamp(0.94rem, 3.8vw, 1rem)/1.5 var(--opp-font);
-  text-wrap: pretty;
-}
-
-.opp-support-actions {
-  display: grid;
-  gap: 9px;
-  margin-top: 24px;
-}
-
-.opp-support-link,
-.opp-support-dismiss {
-  min-height: 46px;
-  border: 1.5px solid var(--opp-border);
-  border-radius: 12px;
-  box-sizing: border-box;
-  font: 750 0.92rem/1.2 var(--opp-font);
-}
-
-.opp-support-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 11px 15px;
-  color: var(--opp-ink);
-  background: var(--opp-yellow);
-  text-decoration: none;
-  box-shadow: 3px 3px 0 var(--opp-border);
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.opp-support-arrow {
-  display: inline-block;
-  text-decoration: none;
-  transition: transform 180ms ease;
-}
-
-.opp-support-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 4px 4px 0 var(--opp-border);
-}
-
-.opp-support-link:hover > span:first-child {
-  text-decoration: underline;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 3px;
-}
-
-.opp-support-link:hover .opp-support-arrow {
-  transform: translate(2px, -2px);
-}
-
-.opp-support-dismiss {
-  padding: 10px 15px;
-  color: var(--opp-ink);
-  background: transparent;
-  cursor: pointer;
-}
-
-.opp-support-link:focus-visible,
-.opp-support-dismiss:focus-visible {
-  outline: 3px solid var(--opp-purple);
-  outline-offset: 3px;
-}
-
-.opp-support-dismiss:hover {
-  background: rgba(21, 19, 15, 0.05);
-}
-
-@media (max-width: 360px) {
-  .opp-support-dialog {
-    width: calc(100vw - 20px);
-    max-height: calc(100dvh - 20px);
-    padding: 20px;
-    border-radius: 14px;
-    box-shadow: 4px 4px 0 var(--opp-border);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .opp-support-link,
-  .opp-support-arrow {
-    transition-duration: 0.01ms;
-  }
-
-  .opp-support-link:hover,
-  .opp-support-link:hover .opp-support-arrow {
-    transform: none;
-  }
-}
-
 /* ==========================================================================
    6. DEDICATED OPPORTUNITY DETAIL MODAL (CONTENT-ADAPTED & FOCUSED)
    ========================================================================== */
@@ -8605,4 +8462,25 @@ button.opp-detail-deadline-card,
   .opp-focus-close {
     transition-duration: 0.01ms !important;
   }
+}
+
+
+/* Tracker list refresh, capture attachments, and inline deadline editing. */
+.opp-refresh-list { display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.opp-refresh-list:disabled { opacity: .6; cursor: wait; }
+.opp-attachment-icons { display: flex; align-items: center; gap: 2px; }
+.opp-deadline-add { background: transparent; border: 0; padding: 8px 0; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+.opp-deadline-editor { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 20px 0; border-block: 1px solid var(--opp-border); }
+.opp-deadline-editor label { flex-basis: 100%; font-weight: 700; }
+.opp-deadline-editor input, .opp-deadline-editor button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--opp-border); border-radius: 8px; background: var(--opp-cream); color: var(--opp-ink); font: inherit; }
+.opp-deadline-editor button { cursor: pointer; }
+.opp-deadline-editor p { flex-basis: 100%; }
+.opp-focus-apply a { display: inline-flex; align-items: center; gap: 8px; color: inherit; text-underline-offset: 4px; }
+.opp-deadline-add:focus-visible, .opp-deadline-editor :focus-visible { outline: 2px solid var(--opp-ink); outline-offset: 4px; }
+.opp-filter-anchor-wrap > .opp-filter-toggle-btn { position: relative; z-index: 91; }
+@media (max-width: 900px) {
+  .opp-rail-actions { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+}
+@media (max-width: 680px) {
+  .opp-rail-actions { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
 }

@@ -27,14 +27,6 @@ button { font: inherit; }
 .pop-btn { position: relative; isolation: isolate; overflow: hidden; width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--yellow); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); cursor: pointer; font-weight: 800; }
 .pop-btn:hover:not(:disabled) { transform: translateY(-1px); }
 .pop-btn:disabled { opacity: 0.66; cursor: wait; }
-.profile-row { display: flex; align-items: center; gap: 14px; padding: 0 0 12px; margin-bottom: 12px; border-bottom: 1px solid rgba(21, 19, 15, 0.16); }
-.profile-copy { min-width: 0; display: grid; flex: 1; }
-.profile-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1rem; font-weight: 850; line-height: 1.15; }
-.profile-copy small { margin-top: 2px; color: rgba(21, 19, 15, 0.58); font-size: 0.7rem; font-weight: 650; letter-spacing: 0.035em; }
-.profile-row.is-pending .profile-copy { opacity: 0.58; }
-.profile-row.is-pending .text-btn { visibility: hidden; }
-.text-btn { min-height: 44px; padding: 6px 0 6px 10px; border: 0; background: transparent; color: rgba(21, 19, 15, 0.72); cursor: pointer; font-size: 0.72rem; font-weight: 800; }
-.text-btn:hover { color: var(--blue); }
 .target-card { display: grid; gap: 4px; margin-bottom: 12px; padding: 0 0 12px; border: 0; background: transparent; }
 .target-label { color: rgba(21, 19, 15, 0.5); }
 .target-title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 0.94rem; font-weight: 790; line-height: 1.25; }
@@ -49,8 +41,6 @@ button { font: inherit; }
 .capture-dots i:nth-child(2) { inset: 0 0 auto auto; animation-delay: -0.9s; }
 .capture-dots i:nth-child(3) { inset: auto 0 0 auto; animation-delay: -0.6s; }
 .capture-dots i:nth-child(4) { inset: auto auto 0 0; animation-delay: -0.3s; }
-.capture-close-btn { grid-column: 1 / -1; width: fit-content; min-height: 40px; padding: 7px 12px; border: 1.5px solid var(--ink); border-radius: 9px; background: var(--blue); color: var(--cream); box-shadow: 2px 2px 0 var(--ink); cursor: pointer; font-size: 0.75rem; font-weight: 850; }
-.capture-close-btn:hover { transform: translateY(-1px); }
 .result-box { margin-top: 14px; padding: 14px; display: grid; gap: 12px; border: 1.5px solid rgba(21, 19, 15, 0.5); border-radius: 12px; background: #fffdf7; }
 .result-box.is-processing { border-color: rgba(36, 68, 202, 0.34); background: #f5f6ff; }
 .result-success-badge { width: fit-content; max-width: 100%; color: #087b5a; font-size: 0.7rem; font-weight: 850; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -65,9 +55,6 @@ button { font: inherit; }
 .result-category-detail strong { width: fit-content; color: #5524c7; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; text-transform: capitalize; }
 .result-deadline-passed { color: var(--ink); }
 .result-deadline-passed::first-letter { color: #d79b00; }
-.dashboard-btn { width: 100%; min-height: 44px; margin-top: 10px; border: 0; border-top: 1px solid rgba(21, 19, 15, 0.18); background: transparent; color: var(--ink); cursor: pointer; font-size: 0.78rem; font-weight: 850; text-align: left; }
-.dashboard-btn::after { float: right; color: var(--blue); content: "→"; }
-.dashboard-btn:hover { color: var(--blue); }
 .privacy-note { display: grid; gap: 5px; margin-top: 10px; padding: 10px 11px; border: 1px solid var(--ink); border-radius: 11px; background: var(--cream); color: var(--ink); font-size: 0.68rem; line-height: 1.35; }
 .privacy-note strong { font-size: 0.63rem; letter-spacing: 0.08em; }
 .privacy-note a { width: fit-content; color: var(--ink); font-weight: 800; text-underline-offset: 2px; }
@@ -81,3 +68,36 @@ button { font: inherit; }
   * { transition-duration: 0.01ms !important; transform: none !important; }
   .capture-dots i { animation-duration: 6s; }
 }
+
+/* Keep the current page and its durable receipt separate from account controls. */
+body { width: 360px; max-height: 600px; overflow-y: auto; overflow-x: hidden; }
+.pop-shell, .pane, .result-box { min-width: 0; }
+.pop-shell { display: grid; gap: 10px; }
+.pop-header { min-height: 24px; }
+.target-title, .result-source, .status-msg, .result-processing { overflow-wrap: anywhere; }
+.target-card { margin-bottom: 10px; padding-bottom: 6px; }
+.capture-pane { padding: 18px 16px; }
+.capture-close-note { grid-column: 1 / -1; margin: 0; color: rgba(21,19,15,.65); font-size: .72rem; line-height: 1.4; }
+.result-box { margin-top: 0; gap: 10px; padding: 12px; }
+.result-box.is-error { background: #fff0eb; border-color: #a23020; }
+.result-box.is-error .result-success-badge { color: #a23020; }
+.result-box.is-processing .result-success-badge { color: var(--blue); }
+.result-source { font-size: .74rem; line-height: 1.35; font-weight: 700; }
+.result-success-badge { line-height: 1.4; }
+.capture-pane > .pop-btn:not(.hidden) + .capture-progress.hidden + .result-box:not(.hidden) { margin-top: 14px; }
+.result-processing strong { font-size: .92rem; }
+.privacy-note { margin-top: 0; font-size: .65rem; }
+.status-msg { padding: 0 4px; min-height: 0; }
+.status-msg:empty { display: none; }
+.account-footer { padding: 12px 14px; background: var(--cream); border-radius: 12px; border: 1px solid var(--ink); }
+.profile-copy { display: grid; gap: 2px; min-width: 0; }
+.profile-copy strong { font-size: .9rem; font-weight: 850; line-height: 1.25; overflow-wrap: anywhere; }
+.profile-copy small { color: rgba(21,19,15,.62); font-size: .72rem; overflow-wrap: anywhere; }
+.account-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.account-actions button { min-height: 44px; border: 1px solid rgba(21,19,15,.24); border-radius: 8px; padding: 8px 10px; color: var(--ink); cursor: pointer; font-size: .72rem; font-weight: 750; }
+.dashboard-btn { background: transparent; text-align: left; }
+.dashboard-btn span { color: var(--blue); margin-left: 4px; }
+.logout-btn { background: var(--yellow); flex-shrink: 0; }
+.account-actions button:hover { border-color: var(--ink); }
+.account-footer :where(button, a):focus-visible { outline-color: var(--blue); }
+.account-footer.is-pending .account-actions { visibility: hidden; }

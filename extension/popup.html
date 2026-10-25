@@ -11,7 +11,7 @@
     <header class="pop-header">
       <div class="pop-brand-wrap">
         <span class="pop-brand-dot" aria-hidden="true"></span>
-        <span class="pop-brand">QUICK CAPTURE</span>
+        <span class="pop-brand">OPPORTUNITY TRACKER</span>
       </div>
     </header>
 
@@ -23,11 +23,6 @@
     </section>
 
     <section id="capture-panel" class="pane capture-pane">
-      <div id="profile-row" class="profile-row is-pending">
-        <span class="profile-copy"><strong id="profile-name">Opening your tracker…</strong><small id="profile-username">Account ready</small></span>
-        <button id="logout-btn" class="text-btn" type="button">Log out</button>
-      </div>
-
       <div id="target-card" class="target-card is-scanning" aria-live="polite">
         <span class="target-label">Current tab</span>
         <div id="page-title" class="target-title">Loading…</div>
@@ -37,18 +32,19 @@
 
       <section id="capture-progress" class="capture-progress hidden" aria-labelledby="capture-progress-title">
         <div class="capture-progress-copy" role="status" aria-live="polite" aria-atomic="true">
-          <strong id="capture-progress-title">Sending to your tracker</strong>
-          <span>Creating a secure capture receipt…</span>
+          <strong id="capture-progress-title">Saving opportunity</strong>
+          <span>Reading this page and sending it securely.</span>
         </div>
         <span class="capture-dots" aria-hidden="true">
           <i></i><i></i><i></i><i></i>
         </span>
-        <button id="close-progress-btn" class="capture-close-btn" type="button">Keep exploring →</button>
+        <p class="capture-close-note">You can close this popup. Progress will be here when you return.</p>
       </section>
 
-      <div id="result-box" class="result-box hidden">
-        <span id="result-success-badge" class="result-success-badge">✓ Captured</span>
-        <div id="result-processing" class="result-processing hidden" role="status" aria-live="polite">
+      <div id="result-box" class="result-box hidden" role="status" aria-live="polite" aria-atomic="true">
+        <span id="result-source" class="result-source hidden"></span>
+        <span id="result-success-badge" class="result-success-badge">✓ Saved</span>
+        <div id="result-processing" class="result-processing hidden">
           <strong id="result-processing-title">Processing in the background</strong>
           <span id="result-processing-detail">Your capture is safe. You can close this popup while we organize it.</span>
           <progress id="result-processing-progress" aria-label="Processing capture"></progress>
@@ -65,16 +61,22 @@
         </div>
       </div>
 
-      <button id="dashboard-btn" class="dashboard-btn" type="button">View all opportunities</button>
     </section>
 
     <aside class="privacy-note" aria-label="Sign-in and capture privacy information">
       <strong>YOUR CHOICE, YOUR DATA</strong>
-      <span>Google sign-in shares your name, email and profile photo only to create and personalize your account. Page content is not collected until you choose Capture &amp; Save or Save to Opportunity Tracker from the right-click menu; it is then sent only to extract and save the opportunity.</span>
+      <span>Google sign-in shares your name, email and profile photo only to create and personalize your account. Page content is not collected until you choose Save opportunity or Save to Opportunity Tracker from the right-click menu; it is then sent only to extract and save the opportunity.</span>
       <a href="https://abodid.com/privacy" target="_blank" rel="noreferrer">Privacy policy ↗</a>
     </aside>
 
     <div id="status-msg" class="status-msg" role="status" aria-live="polite" aria-atomic="true"></div>
+    <footer id="profile-row" class="account-footer is-pending">
+      <span class="profile-copy"><strong id="profile-name">Opening your tracker…</strong><small id="profile-username">Checking account</small></span>
+      <div class="account-actions">
+        <button id="dashboard-btn" class="dashboard-btn" type="button">View your dashboard <span aria-hidden="true">↗</span></button>
+        <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+      </div>
+    </footer>
   </main>
   <script type="module" src="/src/popup.ts"></script>
 </body>

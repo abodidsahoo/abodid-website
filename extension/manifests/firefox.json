@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Opportunity Tracker",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "Save open calls, residencies, fellowships, grants and jobs. AI summarizes key details and important dates so you stay on track.",
   "permissions": ["activeTab", "tabs", "scripting", "storage", "contextMenus", "identity", "notifications", "alarms"],
   "host_permissions": ["https://abodid.com/*"],

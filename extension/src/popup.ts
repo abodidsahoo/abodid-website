@@ -1,16 +1,8 @@
+import { type CaptureState } from './captureState';
 import { getActiveTab, requestSafariAppAccess, sendRuntimeMessage, webext } from './browser';
 
 const AUTH_CACHE_KEY = 'opportunity-auth-cache-v1';
 const CAPTURE_STATE_KEY = 'opportunity-capture-state-v1';
-
-type CaptureState = {
-    id: string;
-    status: 'capturing' | 'queued' | 'success' | 'error';
-    startedAt: number;
-    url?: string;
-    result?: any;
-    error?: string;
-};
 
 const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const authPanel = byId<HTMLDivElement>('auth-panel');
@@ -23,6 +15,7 @@ const pageTitle = byId<HTMLDivElement>('page-title');
 const status = byId<HTMLDivElement>('status-msg');
 const captureProgress = byId<HTMLElement>('capture-progress');
 const result = byId<HTMLDivElement>('result-box');
+const resultSource = byId<HTMLElement>('result-source');
 const resultSuccessBadge = byId<HTMLSpanElement>('result-success-badge');
 const resultProcessing = byId<HTMLDivElement>('result-processing');
 const resultProcessingTitle = byId<HTMLElement>('result-processing-title');
@@ -35,17 +28,19 @@ const saveButton = byId<HTMLButtonElement>('save-btn');
 const signInButton = byId<HTMLButtonElement>('sign-in-btn');
 const logoutButton = byId<HTMLButtonElement>('logout-btn');
 const dashboardButton = byId<HTMLButtonElement>('dashboard-btn');
-const closeProgressButton = byId<HTMLButtonElement>('close-progress-btn');
 
 let activeTab: any = null;
 let authResolved = false;
 let signedIn = false;
 let isCapturing = false;
 let currentCaptureState: CaptureState | null = null;
-let captureStartedInPopup = false;
+let captureStateRevision = 0;
+let capturePollTimer: ReturnType<typeof setTimeout> | undefined;
 
 const syncSaveButton = () => {
-    if (isCapturing) {
+    const savedCurrentPage = currentCaptureState?.status === 'success'
+        && normalizePageUrl(currentCaptureState.url) === normalizePageUrl(activeTab?.url);
+    if (isCapturing || savedCurrentPage) {
         saveButton.classList.add('hidden');
         return;
     }
@@ -67,7 +62,7 @@ const syncSaveButton = () => {
         return;
     }
     saveButton.disabled = false;
-    saveButton.textContent = 'Capture & Save';
+    saveButton.textContent = 'Save opportunity';
 };
 
 const showError = (message: string) => {
@@ -112,6 +107,12 @@ const applyAuthState = (state: any) => {
     profileRow.classList.toggle('hidden', !signedIn);
     profileRow.classList.remove('is-pending');
     if (signedIn) renderProfile(state.profile);
+    if (!signedIn) {
+        currentCaptureState = null;
+        result.classList.add('hidden');
+        captureProgress.classList.add('hidden');
+        if (capturePollTimer) clearTimeout(capturePollTimer);
+    }
     syncSaveButton();
 };
 
@@ -141,64 +142,58 @@ const formatResultDeadline = (deadlineAt: unknown, deadlineRaw: unknown) => {
 };
 
 const applyCaptureState = (state: CaptureState | null) => {
-    if (
-        state?.status === 'capturing'
-        && currentCaptureState?.id === state.id
-        && currentCaptureState.status !== 'capturing'
-    ) return;
-    currentCaptureState = state;
-    isCapturing = state?.status === 'capturing';
-    captureProgress.classList.toggle('hidden', !isCapturing);
-    syncSaveButton();
-
-    if (!state || state.status === 'capturing') {
-        if (state?.status === 'capturing') result.classList.add('hidden');
-        return;
+    if (state && currentCaptureState) {
+        if (state.startedAt < currentCaptureState.startedAt) return;
+        if (state.id === currentCaptureState.id && currentCaptureState.status === 'success' && state.status !== 'success') return;
+        if (state.id === currentCaptureState.id && state.status === 'capturing' && currentCaptureState.status !== 'capturing') return;
     }
+    currentCaptureState = state;
+    isCapturing = state?.status === 'capturing' || state?.status === 'queued';
+    captureProgress.classList.toggle('hidden', state?.status !== 'capturing');
+    result.classList.add('hidden');
+    clearStatus();
+    syncSaveButton();
+    if (capturePollTimer) clearTimeout(capturePollTimer);
+    if (!state || state.status === 'capturing') return;
+
+    const differentPage = normalizePageUrl(state.url) !== normalizePageUrl(activeTab?.url);
+    resultSource.textContent = differentPage ? (state.title || state.url || '') : '';
+    resultSource.classList.toggle('hidden', !differentPage);
+    result.classList.toggle('is-processing', state.status === 'queued');
+    result.classList.toggle('is-error', state.status === 'error');
+    resultProcessing.classList.add('hidden');
+    resultDetails.classList.add('hidden');
+    resultProcessingProgress.classList.add('hidden');
+    result.classList.remove('hidden');
 
     if (state.status === 'error') {
-        result.classList.add('hidden');
-        showError(state.error || 'Opportunity could not be saved');
+        resultSuccessBadge.textContent = 'Could not save';
+        resultProcessingTitle.textContent = 'Please try again';
+        resultProcessingDetail.textContent = state.error || 'Opportunity could not be saved.';
+        resultProcessing.classList.remove('hidden');
         saveButton.textContent = 'Try again';
         return;
     }
-
     if (state.status === 'queued') {
-        clearStatus();
-        result.classList.add('is-processing');
-        resultSuccessBadge.textContent = '✓ Capture received';
-        resultProcessingTitle.textContent = 'Processing in the background';
-        resultProcessingDetail.textContent = 'Your capture is safe. You do not need to capture it again.';
+        resultSuccessBadge.textContent = 'Processing';
+        resultProcessingTitle.textContent = 'Organizing your opportunity';
+        resultProcessingDetail.textContent = 'Your page is safely received. You can close this popup and check back here.';
         resultProcessingProgress.classList.remove('hidden');
         resultProcessing.classList.remove('hidden');
-        resultDetails.classList.add('hidden');
-        result.classList.remove('hidden');
+        capturePollTimer = setTimeout(() => { void restoreCaptureState(); }, 3000);
         return;
     }
 
-    clearStatus();
-    result.classList.remove('is-processing');
-    resultProcessing.classList.add('hidden');
-    resultDetails.classList.remove('hidden');
     const saved = state.result || {};
-    if (saved.backgroundCompleted) {
-        result.classList.add('is-processing');
-        resultSuccessBadge.textContent = saved.is_duplicate ? '✓ Already in your tracker' : '✓ Saved successfully';
-        resultProcessingTitle.textContent = saved.is_duplicate ? 'Nothing was duplicated' : 'Added to your tracker';
-        resultProcessingDetail.textContent = 'This page is handled. You do not need to capture it again.';
-        resultProcessingProgress.classList.add('hidden');
-        resultProcessing.classList.remove('hidden');
-        resultDetails.classList.add('hidden');
-        result.classList.remove('hidden');
-        return;
+    resultSuccessBadge.textContent = saved.is_duplicate ? '✓ Already saved' : '✓ Opportunity saved';
+    const opportunity = saved.opportunity;
+    if (opportunity) {
+        const deadline = formatResultDeadline(opportunity.deadline_at, opportunity.deadline_raw);
+        resultCategory.textContent = String(opportunity.category || 'other').replaceAll('_', ' ');
+        resultDeadline.textContent = deadline.label;
+        resultDeadline.classList.toggle('result-deadline-passed', deadline.hasPassed);
+        resultDetails.classList.remove('hidden');
     }
-    const opportunity = saved.opportunity || {};
-    const deadline = formatResultDeadline(opportunity.deadline_at, opportunity.deadline_raw);
-    resultSuccessBadge.textContent = saved.is_duplicate ? '✓ Already saved' : '✓ Captured successfully';
-    resultCategory.textContent = String(opportunity.category || 'other').replaceAll('_', ' ');
-    resultDeadline.textContent = deadline.label;
-    resultDeadline.classList.toggle('result-deadline-passed', deadline.hasPassed);
-    result.classList.remove('hidden');
 };
 
 const openDashboard = async () => {
@@ -230,19 +225,32 @@ const loadActiveTab = async () => {
     return activeTab;
 };
 
-const restoreCaptureStateForActiveTab = async () => {
-    const response = await sendRuntimeMessage<any>({ type: 'GET_CAPTURE_STATE' });
-    const state = response?.ok ? response.data as CaptureState | null : null;
-    if (!state) return;
-    const isActiveCapture = state.status === 'capturing' || state.status === 'queued';
-    const belongsToActiveTab = Boolean(state.url)
-        && normalizePageUrl(state.url) === normalizePageUrl(activeTab?.url);
-    if (!isActiveCapture && !belongsToActiveTab) return;
-    captureStartedInPopup = true;
-    applyCaptureState(state);
+const restoreCaptureState = async () => {
+    const revision = captureStateRevision;
+    try {
+        const response = await sendRuntimeMessage<any>({ type: 'GET_CAPTURE_STATE' });
+        if (revision !== captureStateRevision) return;
+        if (!response?.ok) throw new Error('Status could not be refreshed');
+        applyCaptureState(response.data || null);
+    } catch {
+        // Keep the last durable receipt visible if a status refresh is offline.
+        if (currentCaptureState?.status === 'queued') {
+            capturePollTimer = setTimeout(() => { void restoreCaptureState(); }, 5000);
+        }
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    void (async () => {
+        try {
+            await loadActiveTab();
+            const stored = await webext.storage.local.get(CAPTURE_STATE_KEY);
+            if (!currentCaptureState && stored?.[CAPTURE_STATE_KEY]) applyCaptureState(stored[CAPTURE_STATE_KEY]);
+            await restoreCaptureState();
+        } catch (error) {
+            showError(error instanceof Error ? error.message : 'The page could not be read.');
+        }
+    })();
     void (async () => {
         try {
             await renderCachedAuth();
@@ -252,22 +260,16 @@ document.addEventListener('DOMContentLoaded', () => {
             showError(error instanceof Error ? error.message : 'Your tracker session could not be checked.');
         }
     })();
-    void loadActiveTab()
-        .then(() => restoreCaptureStateForActiveTab())
-        .catch((error) => {
-            targetCard.classList.remove('is-scanning');
-            pageTitle.textContent = 'This tab cannot be captured';
-            showError(error instanceof Error ? error.message : 'The page could not be read.');
-            syncSaveButton();
-        });
 });
 
 webext.storage.onChanged.addListener((changes: any, areaName: string) => {
-    if (captureStartedInPopup && (areaName === 'session' || areaName === 'local') && changes[CAPTURE_STATE_KEY]) {
+    if (areaName !== 'local') return;
+    if (changes[CAPTURE_STATE_KEY]) {
+        captureStateRevision += 1;
         applyCaptureState(changes[CAPTURE_STATE_KEY].newValue || null);
     }
-    if (areaName === 'local' && changes[AUTH_CACHE_KEY]?.newValue?.signedIn) {
-        applyAuthState(changes[AUTH_CACHE_KEY].newValue);
+    if (changes[AUTH_CACHE_KEY]) {
+        applyAuthState(changes[AUTH_CACHE_KEY].newValue || { signedIn: false });
     }
 });
 
@@ -314,13 +316,12 @@ logoutButton.addEventListener('click', async () => {
 });
 
 dashboardButton.addEventListener('click', openDashboard);
-closeProgressButton.addEventListener('click', () => window.close());
 
 saveButton.addEventListener('click', async () => {
-    captureStartedInPopup = true;
+    captureStateRevision += 1;
     clearStatus();
     result.classList.add('hidden');
-    applyCaptureState({ id: 'pending', status: 'capturing', startedAt: Date.now() });
+    applyCaptureState({ id: 'pending', status: 'capturing', startedAt: Date.now(), url: activeTab?.url, title: activeTab?.title });
 
     try {
         const captureTab = await loadActiveTab();
@@ -332,7 +333,7 @@ saveButton.addEventListener('click', async () => {
             title: captureTab.title || '',
         });
         if (!response?.ok) throw new Error(response?.error || 'Opportunity could not be captured');
-        applyCaptureState(response.data);
+        if (currentCaptureState?.id === 'pending') applyCaptureState(response.data);
     } catch (error) {
         applyCaptureState({
             id: 'failed',

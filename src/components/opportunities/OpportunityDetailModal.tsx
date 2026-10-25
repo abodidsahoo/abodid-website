@@ -10,6 +10,7 @@ import {
     X,
 } from 'lucide-react';
 import type { Opportunity, OpportunityStatus } from '../../lib/opportunities/types';
+import { cleanOpportunityListingUrl } from '../../lib/opportunities/listingUrl';
 import { generateGoogleCalendarUrl } from '../../lib/opportunities/calendar';
 import {
     extractEligibility,
@@ -66,6 +67,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
     isAuthenticated = false,
     onClose,
     onUpdateStatus,
+    onUpdateDeadline,
     onDelete,
     onNavigateNext,
     onNavigatePrev,
@@ -92,6 +94,11 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
         lastTime: 0,
         velocityX: 0,
     });
+    const [isDeadlineEditorOpen, setIsDeadlineEditorOpen] = useState(false);
+    const [deadlineDraft, setDeadlineDraft] = useState('');
+    const [isSavingDeadline, setIsSavingDeadline] = useState(false);
+    const [deadlineError, setDeadlineError] = useState('');
+    const deadlineInputRef = useRef<HTMLInputElement>(null);
     const [dragX, setDragX] = useState(0);
     const [cardOpacity, setCardOpacity] = useState(1);
     const [isDragging, setIsDragging] = useState(false);
@@ -117,6 +124,9 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
         setIsDragging(false);
         setIsMarkingDone(false);
         setDeleteStep('idle');
+        setIsDeadlineEditorOpen(false);
+        setDeadlineDraft('');
+        setDeadlineError('');
 
         if (!pendingEntranceRef.current) {
             setMotionPhase('idle');
@@ -195,10 +205,31 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
             day: 'numeric', month: 'short', year: 'numeric',
         })
         : 'Not provided';
-    const calendarUrl = opp.deadline_at
-        ? generateGoogleCalendarUrl(opp, 'deadline')
+    const sourceUrl = cleanOpportunityListingUrl(opp.source_url);
+    const applicationUrl = cleanOpportunityListingUrl(opp.application_url);
+    const calendarOpportunity = { ...opp, source_url: sourceUrl || '', application_url: applicationUrl };
+    const calendarUrl = opp.deadline_at || opp.event_date
+        ? generateGoogleCalendarUrl(calendarOpportunity, opp.deadline_at ? 'deadline' : 'event')
         : null;
     const hasExactDeadline = Boolean(opp.deadline_at) && opp.deadline_confidence !== 'rolling';
+    const openDeadlineEditor = () => {
+        setIsDeadlineEditorOpen(true);
+        window.requestAnimationFrame(() => deadlineInputRef.current?.focus());
+    };
+    const saveDeadline = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!deadlineDraft || !onUpdateDeadline || isSavingDeadline) return;
+        setIsSavingDeadline(true);
+        setDeadlineError('');
+        try {
+            await onUpdateDeadline(opp.id, deadlineDraft);
+            setIsDeadlineEditorOpen(false);
+        } catch (error) {
+            setDeadlineError(error instanceof Error ? error.message : 'Deadline could not be saved.');
+        } finally {
+            setIsSavingDeadline(false);
+        }
+    };
     const canNavigate = Boolean(onNavigateNext || onNavigatePrev);
 
     const animateToOpportunity = (direction: 'next' | 'previous') => {
@@ -444,6 +475,9 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                                 <p className={`opp-focus-urgency ${urgency.level}`}>
                                     <strong>{urgency.label}</strong>
                                 </p>
+                                {!opp.deadline_at && isAuthenticated && onUpdateDeadline && (
+                                    <button type="button" className="opp-deadline-add" onClick={openDeadlineEditor}>Add a deadline</button>
+                                )}
                                 {hasExactDeadline && (
                                     <p className="opp-focus-deadline-date">
                                         <span>Deadline</span>
@@ -453,6 +487,15 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                             </div>
                         </header>
 
+                        {isDeadlineEditorOpen && (
+                            <form className="opp-deadline-editor" onSubmit={(event) => void saveDeadline(event)}>
+                                <label htmlFor="opp-new-deadline">Add a deadline</label>
+                                <input ref={deadlineInputRef} id="opp-new-deadline" type="date" required value={deadlineDraft} onChange={(event) => setDeadlineDraft(event.target.value)} disabled={isSavingDeadline} />
+                                <button type="submit" disabled={isSavingDeadline}>{isSavingDeadline ? 'Saving…' : 'Save deadline'}</button>
+                                <button type="button" onClick={() => setIsDeadlineEditorOpen(false)} disabled={isSavingDeadline}>Cancel</button>
+                                {deadlineError && <p role="alert">{deadlineError}</p>}
+                            </form>
+                        )}
                         <section className="opp-focus-next" aria-labelledby="opp-next-action-heading">
                             <p id="opp-next-action-heading">Next action</p>
                             <h3>{nextAction}</h3>
@@ -520,6 +563,12 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                             </section>
                         )}
 
+                        {applicationUrl && (
+                            <section className="opp-focus-section opp-focus-apply" aria-labelledby="opp-apply-heading">
+                                <div className="opp-focus-section-heading"><h3 id="opp-apply-heading">Link to apply</h3></div>
+                                <a href={applicationUrl} target="_blank" rel="noopener noreferrer">Open application <ExternalLink size={16} aria-hidden="true" /></a>
+                            </section>
+                        )}
                         {isAuthenticated && (
                             <section className="opp-focus-remove" aria-labelledby="opp-remove-heading">
                                 <div>
@@ -553,13 +602,13 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                                 <span>Add to calendar</span>
                             </a>
                         ) : (
-                            <span className="opp-focus-action is-disabled" aria-disabled="true">
+                            <button type="button" className="opp-focus-action" onClick={openDeadlineEditor} disabled={!isAuthenticated || !onUpdateDeadline}>
                                 <span className="opp-focus-action-icon"><CalendarDays aria-hidden="true" /></span>
                                 <span>Add to calendar</span>
-                            </span>
+                            </button>
                         )}
-                        {opp.source_url ? (
-                            <a className="opp-focus-action" href={opp.source_url} target="_blank" rel="noopener noreferrer">
+                        {sourceUrl ? (
+                            <a className="opp-focus-action" href={sourceUrl} target="_blank" rel="noopener noreferrer">
                                 <span className="opp-focus-action-icon"><ExternalLink aria-hidden="true" /></span>
                                 <span>View original listing</span>
                             </a>

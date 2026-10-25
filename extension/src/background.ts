@@ -1,28 +1,17 @@
 import { completeSafariSignIn, extensionSupabase, signInWithGoogle } from './auth';
 import { extractPageText } from './capture';
 import { EXTENSION_CAPTURE_TIMEOUT_MS, webext } from './browser';
+import { restoreStoredCapture, isOlderCaptureUpdate, type CaptureState } from './captureState';
 import { showOpportunityToast } from './toast';
 
 declare const __APP_ORIGIN__: string;
 
 const AUTH_CACHE_KEY = 'opportunity-auth-cache-v1';
 const CAPTURE_STATE_KEY = 'opportunity-capture-state-v1';
-const CAPTURE_STATE_MAX_AGE_MS = 15 * 60 * 1000;
 const CAPTURE_NOTIFICATION_PREFIX = 'opportunity-capture:';
 const CAPTURE_STATUS_ALARM_PREFIX = 'opportunity-capture-status:';
 const CAPTURE_STATUS_POLL_MINUTES = 0.5;
 const captureStorage = webext.storage.local;
-
-type CaptureState = {
-    id: string;
-    status: 'capturing' | 'queued' | 'success' | 'error';
-    startedAt: number;
-    tabId?: number;
-    url?: string;
-    title?: string;
-    result?: any;
-    error?: string;
-};
 
 const profileFromUser = (user: any) => {
     const metadata = user?.user_metadata || {};
@@ -89,14 +78,15 @@ const getCaptureState = async (): Promise<CaptureState | null> => {
     const stored = await captureStorage.get(CAPTURE_STATE_KEY);
     const state = stored?.[CAPTURE_STATE_KEY] as CaptureState | undefined;
     if (!state) return null;
-    if (Date.now() - state.startedAt > CAPTURE_STATE_MAX_AGE_MS) {
-        await captureStorage.remove(CAPTURE_STATE_KEY);
-        return null;
-    }
-    return state;
+    const restored = restoreStoredCapture(state);
+    if (restored && restored !== state) return setCaptureState(restored);
+    return restored;
 };
 
 const setCaptureState = async (state: CaptureState) => {
+    const stored = await captureStorage.get(CAPTURE_STATE_KEY);
+    const current = stored?.[CAPTURE_STATE_KEY] as CaptureState | null;
+    if (isOlderCaptureUpdate(current, state)) return current;
     await captureStorage.set({ [CAPTURE_STATE_KEY]: state });
     return state;
 };
@@ -447,7 +437,7 @@ webext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (
                 })();
             case 'START_CAPTURE': {
                 const existing = await getCaptureState();
-                if (existing?.status === 'capturing') return existing;
+                if (existing?.status === 'capturing' || existing?.status === 'queued') return existing;
 
                 const state: CaptureState = {
                     id: globalThis.crypto.randomUUID(),

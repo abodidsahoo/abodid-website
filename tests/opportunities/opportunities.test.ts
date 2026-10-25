@@ -35,10 +35,6 @@ import {
     opportunityMatchesTrackerStatus,
 } from '../../src/components/opportunities/OpportunityStatusPicker';
 import { getOpportunityMenuPosition } from '../../src/lib/opportunities/menuPosition';
-import {
-    getOpportunitySupportPromptStorageKey,
-    shouldShowOpportunitySupportPrompt,
-} from '../../src/lib/opportunities/supportPrompt';
 
 describe('Opportunity Assistant Core Functionality', () => {
     describe('Settings menu positioning', () => {
@@ -68,52 +64,6 @@ describe('Opportunity Assistant Core Functionality', () => {
 
             expect(position.top).toBeLessThan(700);
             expect(position.left + position.width).toBeLessThanOrEqual(1428);
-        });
-    });
-
-    describe('Support milestone prompt', () => {
-        it('appears for the owner after ten saved opportunities without limiting further saves', () => {
-            expect(shouldShowOpportunitySupportPrompt({
-                opportunityCount: 10,
-                isOwner: true,
-                isLoading: false,
-                hasBeenDismissed: false,
-            })).toBe(true);
-
-            expect(shouldShowOpportunitySupportPrompt({
-                opportunityCount: 25,
-                isOwner: true,
-                isLoading: false,
-                hasBeenDismissed: false,
-            })).toBe(true);
-        });
-
-        it('stays hidden for visitors, during loading, or after dismissal', () => {
-            expect(shouldShowOpportunitySupportPrompt({
-                opportunityCount: 10,
-                isOwner: false,
-                isLoading: false,
-                hasBeenDismissed: false,
-            })).toBe(false);
-
-            expect(shouldShowOpportunitySupportPrompt({
-                opportunityCount: 10,
-                isOwner: true,
-                isLoading: true,
-                hasBeenDismissed: false,
-            })).toBe(false);
-
-            expect(shouldShowOpportunitySupportPrompt({
-                opportunityCount: 10,
-                isOwner: true,
-                isLoading: false,
-                hasBeenDismissed: true,
-            })).toBe(false);
-        });
-
-        it('uses a normalized per-user dismissal key', () => {
-            expect(getOpportunitySupportPromptStorageKey('  Yashaswinee1995  '))
-                .toBe('opportunity-support-prompt:v1:yashaswinee1995');
         });
     });
 
