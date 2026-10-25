@@ -1,4 +1,7 @@
-import { FileImage, FileText, RefreshCw } from 'lucide-react';
+import { validateOpportunityAttachmentMetadata, isOpportunityImageFile, isOpportunityVideoFile } from '../../lib/opportunities/attachmentValidation';
+import { OpportunityQuickTour } from './OpportunityQuickTour';
+import { OpportunityBusy, OpportunityWaveDots } from './OpportunityBusy';
+import { FileImage, FileText, FileVideo, Paperclip, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { Opportunity, OpportunityStatus } from '../../lib/opportunities/types';
@@ -117,6 +120,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     // Capture bar state
     const [captureUrl, setCaptureUrl] = useState('');
     const [captureFiles, setCaptureFiles] = useState<File[]>([]);
+    const [uploadStates, setUploadStates] = useState<Record<string, 'uploading' | 'uploaded' | 'error'>>({});
+    const attachmentKey = (file: File) => `${file.name}-${file.size}-${file.lastModified}`;
     const [isCapturing, setIsCapturing] = useState(false);
     const [captureResult, setCaptureResult] = useState<Opportunity | null>(null);
     const [captureError, setCaptureError] = useState('');
@@ -143,6 +148,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     // Modals
     const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null);
     const [editingOpp, setEditingOpp] = useState<Opportunity | null>(null);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [tourReplayKey, setTourReplayKey] = useState(0);
     const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
     const [radarStates, setRadarStates] = useState<Record<string, RadarSaveState>>({});
     const [radarSignInOpportunity, setRadarSignInOpportunity] = useState<Opportunity | null>(null);
@@ -361,16 +368,36 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     };
 
     const handleLogout = async () => {
+        if (isLoggingOut) return;
+        setIsLoggingOut(true);
         try {
-            await supabase.auth.signOut({ scope: 'local' });
+            const { error } = await supabase.auth.signOut({ scope: 'local' });
+            if (error) throw error;
             window.location.assign('/opportunities');
         } catch {
+            setIsLoggingOut(false);
             showToast('Logout failed');
         }
     };
 
     const clearCaptureAttachments = () => {
         setCaptureFiles([]);
+        setUploadStates({});
+        if (captureFileInputRef.current) captureFileInputRef.current.value = '';
+    };
+
+    const selectCaptureFiles = (files: File[]) => {
+        const next = [...captureFiles];
+        for (const file of files) if (!next.some((current) => attachmentKey(current) === attachmentKey(file))) next.push(file);
+        try {
+            validateOpportunityAttachmentMetadata(next);
+            setCaptureFiles(next);
+            setUploadStates({});
+            setCaptureError('');
+            setPendingDuplicate(null);
+        } catch (error) {
+            setCaptureError(error instanceof Error ? error.message : 'These files could not be attached.');
+        }
         if (captureFileInputRef.current) captureFileInputRef.current.value = '';
     };
 
@@ -397,7 +424,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             if (job.status === 'pending' || job.status === 'processing') {
                 setCaptureProgress(captureNotice(
                     'Capture received',
-                    'Your capture is processing in the background.',
+                    'Sorting the details. Saving you the tabs.',
                     'It is safely stored. You can close this tab.',
                 ));
                 captureJobPollTimerRef.current = window.setTimeout(() => {
@@ -472,7 +499,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             latestCaptureJobIdRef.current = unfinished.id;
             setCaptureProgress(captureNotice(
                 'Capture resumed',
-                'Your capture is still processing in the background.',
+                'Back at it. Your find is still being organized.',
                 'It is safely stored. You can close this tab.',
             ));
             void watchCaptureJob(unfinished.id);
@@ -532,6 +559,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         let keepBackgroundProgress = false;
 
         setIsCapturing(true);
+        setUploadStates({});
         setCaptureError('');
         setCaptureResult(null);
         setPendingDuplicate(null);
@@ -639,12 +667,17 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     ));
                     for (const [index, file] of submittedFiles.entries()) {
                         const target = uploads[index];
+                        setUploadStates((current) => ({ ...current, [attachmentKey(file)]: 'uploading' }));
                         const { error: uploadError } = await supabase.storage
                             .from('opportunity-capture-files')
                             .uploadToSignedUrl(target.path, target.token, file, {
                                 contentType: file.type || undefined,
                             });
-                        if (uploadError) throw new Error(`Could not upload ${file.name}. Try again.`);
+                        if (uploadError) {
+                            setUploadStates((current) => ({ ...current, [attachmentKey(file)]: 'error' }));
+                            throw new Error(`Could not upload ${file.name}. Try again.`);
+                        }
+                        setUploadStates((current) => ({ ...current, [attachmentKey(file)]: 'uploaded' }));
                     }
 
                     setCaptureProgress(captureNotice(
@@ -669,7 +702,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 clearCaptureAttachments();
                 setCaptureProgress(captureNotice(
                     'Capture received',
-                    'Your capture is processing in the background.',
+                    'Sorting the details. Saving you the tabs.',
                     'It is safely stored. You can close this tab.',
                 ));
                 keepBackgroundProgress = true;
@@ -728,6 +761,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             const message = error instanceof OpportunityCaptureTimeoutError
                 ? error.message
                 : error instanceof Error ? error.message : 'The opportunity could not be saved.';
+            setUploadStates((current) => Object.fromEntries(Object.entries(current).map(([key, state]) => [key, state === 'uploading' ? 'error' : state])));
             setCaptureError(message);
             showToast(`❌ ${message}`);
         } finally {
@@ -1054,7 +1088,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     return (
         <div className="opportunities-shell">
             {/* Enlarged Curated Opportunities Hero Deck */}
-            <header className="opp-hero-deck">
+            <header className={`opp-hero-deck ${isOwner ? 'has-quick-access' : ''}`}>
                 <div className="opp-hero-main">
                     <div className="opp-hero-header-row">
                         <div className="opp-hero-branding">
@@ -1066,32 +1100,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 {isOwner ? 'One Click. Every opportunity organized.' : 'Curated opportunities, ready to track.'}
                             </p>
                         </div>
-                        {activeViewerProfile ? (
-                            <div className="opp-hero-account-actions">
-                                {!isOwner && (
-                                    <a
-                                        className="opp-my-radar-link"
-                                        href={viewerDashboardPath}
-                                    >
-                                        <span aria-hidden="true">←</span>
-                                        <span>My Radar</span>
-                                    </a>
-                                )}
-                                <OpportunitySettingsMenu
-                                    accessToken={accessToken}
-                                    isPublic={profileVisibility}
-                                    username={activeViewerProfile.username}
-                                    onLogout={handleLogout}
-                                    onEditProfile={() => setIsProfileDialogOpen(true)}
-                                    onToast={showToast}
-                                    onVisibilityChange={setProfileVisibility}
-                                />
-                            </div>
-                        ) : (
-                            <a className="opp-google-signin-compact" href={`/opportunities?next=${encodeURIComponent(`/opportunities/${username}`)}`}>
-                                Sign in with Google <span aria-hidden="true">→</span>
-                            </a>
-                        )}
+
                     </div>
 
                     {/* Capture Bar: Only the collection owner may mutate data. */}
@@ -1100,14 +1109,15 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                             <div className="opp-capture-heading">
                                 <label htmlFor="opportunity-capture-input">Save an opportunity</label>
                                 <p id="opportunity-capture-help">
-                                    Paste a link or description, write a quick note, or attach supporting files.
+                                    Paste a link, write a note, or attach a file.
                                 </p>
                             </div>
                             <form
                                 action="/api/opportunities/capture-jobs"
                                 method="post"
                                 onSubmit={handleCapture}
-                                className="opp-hero-capture-bar"
+                                id="opportunity-save-form"
+                                className={`opp-hero-capture-bar ${captureFiles.length ? 'has-attachments' : ''} ${isCapturing || captureProgress ? 'opp-waiting' : ''}`}
                             >
                                 <div className="opp-capture-input-shell">
                                     <textarea
@@ -1135,39 +1145,38 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                         className="sr-only"
                                         accept="application/pdf,text/plain,text/markdown,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.pdf,.txt,.md,.jpg,.jpeg,.png,.webp,.mp4,.webm,.mov"
                                         multiple
-                                        onChange={(event) => {
-                                            const nextFiles = Array.from(event.target.files || []).slice(0, 4);
-                                            setCaptureFiles(nextFiles);
-                                            setCaptureError('');
-                                            setPendingDuplicate(null);
-                                        }}
+                                        onChange={(event) => selectCaptureFiles(Array.from(event.target.files || []))}
+                                        tabIndex={-1}
                                         disabled={isCapturing}
                                     />
-                                    <label
-                                        htmlFor="opportunity-capture-files"
+                                    <button
+                                        type="button"
                                         className="opp-capture-attach-button"
-                                        aria-label="Attach images, videos, or documents"
-                                        title="Attach images, videos, or documents"
+                                        onClick={() => captureFileInputRef.current?.click()}
+                                        aria-label="Attach files"
+                                        disabled={isCapturing}
                                     >
-                                        <span className="opp-attachment-icons" aria-hidden="true"><FileImage size={17} /><FileText size={17} /></span>
-                                    </label>
+                                        <Paperclip size={17} aria-hidden="true" /><span>Attach</span>
+                                    </button>
                                 </div>
                                 {captureFiles.length > 0 && (
                                     <div className="opp-capture-files" aria-label="Selected attachments">
-                                        {captureFiles.map((file, index) => (
-                                            <span className="opp-capture-file" key={`${file.name}-${file.size}-${index}`}>
-                                                <span>{file.name}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setCaptureFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
-                                                        if (captureFileInputRef.current) captureFileInputRef.current.value = '';
-                                                    }}
-                                                    aria-label={`Remove ${file.name}`}
-                                                    disabled={isCapturing}
-                                                >×</button>
-                                            </span>
-                                        ))}
+                                        {captureFiles.map((file, index) => {
+                                            const upload = uploadStates[attachmentKey(file)];
+                                            const Icon = isOpportunityImageFile(file) ? FileImage : isOpportunityVideoFile(file) ? FileVideo : FileText;
+                                            return <span className="opp-capture-file" key={attachmentKey(file)}>
+                                                <Icon size={17} aria-hidden="true" />
+                                                <span className="opp-capture-file-name" tabIndex={0} aria-describedby={`opp-file-name-${index}`}>{file.name}</span>
+                                                <span className="opp-capture-file-tooltip" id={`opp-file-name-${index}`} role="tooltip">{file.name}</span>
+                                                {upload === 'uploading' && <span role="status" aria-label={`Uploading ${file.name}`}><OpportunityWaveDots /></span>}
+                                                {upload === 'uploaded' && <CheckCircle2 size={17} role="img" aria-label={`${file.name} uploaded`} />}
+                                                {upload === 'error' && <AlertCircle size={17} role="img" aria-label={`${file.name} upload failed`} />}
+                                                <button type="button" onClick={() => {
+                                                    setCaptureFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
+                                                    setCaptureError('');
+                                                }} aria-label={`Remove ${file.name}`} disabled={isCapturing}>×</button>
+                                            </span>;
+                                        })}
                                     </div>
                                 )}
                                 <button
@@ -1175,7 +1184,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     className="opp-btn opp-btn-primary opp-hero-btn"
                                     disabled={isCapturing}
                                 >
-                                    {isCapturing ? 'Saving…' : 'Save Opportunity'}
+                                    {isCapturing ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save opportunity'}
                                 </button>
                             </form>
                             {captureProgress && (
@@ -1183,7 +1192,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     <span className="opp-capture-processing-eyebrow">{captureProgress.eyebrow}</span>
                                     <strong>{captureProgress.title}</strong>
                                     <span>{captureProgress.detail}</span>
-                                    <progress aria-label={captureProgress.title} />
+                                    <OpportunityWaveDots />
                                 </aside>
                             )}
                             {captureError && (
@@ -1248,6 +1257,34 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         </div>
                     )}
                 </div>
+                        {activeViewerProfile ? (
+                            <div className="opp-hero-account-actions">
+                                {!isOwner && (
+                                    <a
+                                        className="opp-my-radar-link"
+                                        href={viewerDashboardPath}
+                                    >
+                                        <span aria-hidden="true">←</span>
+                                        <span>My Radar</span>
+                                    </a>
+                                )}
+                                <OpportunitySettingsMenu
+                                    accessToken={accessToken}
+                                    isPublic={profileVisibility}
+                                    username={activeViewerProfile.username}
+                                    showQuickAccess={isOwner}
+                                    onLogout={handleLogout}
+                                    onEditProfile={() => setIsProfileDialogOpen(true)}
+                                    onStartTour={isOwner ? () => setTourReplayKey((key) => key + 1) : undefined}
+                                    onToast={showToast}
+                                    onVisibilityChange={setProfileVisibility}
+                                />
+                            </div>
+                        ) : (
+                            <a className="opp-google-signin-compact" href={`/opportunities?next=${encodeURIComponent(`/opportunities/${username}`)}`}>
+                                Sign in with Google <span aria-hidden="true">→</span>
+                            </a>
+                        )}
             </header>
 
             {/* Thin Divider Line */}
@@ -1262,7 +1299,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             {/* Primary opportunity views & filter popover toggle */}
             <div className="opp-rail-wrapper">
-                <div className="opp-urgency-rail">
+                <div id="opportunity-urgency-views" className="opp-urgency-rail">
                     {(
                         [
                             { id: 'apply_asap', label: 'Apply ASAP' },
@@ -1315,12 +1352,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         )}
                     </div>
 
-                    <button type="button" className="opp-filter-toggle-btn opp-refresh-list" disabled={isRefreshing || isLoading} onClick={async () => {
+                    <button type="button" id="opportunity-refresh-list" className={`opp-filter-toggle-btn opp-refresh-list ${isRefreshing ? 'opp-waiting' : ''}`} aria-busy={isRefreshing} disabled={isRefreshing || isLoading} onClick={async () => {
                         setIsRefreshing(true);
                         try { await fetchOpportunities(true); } finally { setIsRefreshing(false); }
                     }}>
                         <RefreshCw size={16} aria-hidden="true" />
-                        <span>{isRefreshing ? 'Refreshing…' : 'Refresh list'}</span>
+                        <span>{isRefreshing ? <OpportunityBusy>Freshening up…</OpportunityBusy> : 'Refresh list'}</span>
                     </button>
                     {/* Filter Button with Badge and Dropdown Anchor */}
                     <div className="opp-filter-anchor-wrap">
@@ -1491,7 +1528,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             {/* Opportunities Grid / Empty State */}
             {isLoading ? (
                 <div className="opp-loading-state" role="status">
-                    Loading opportunities…
+                    <OpportunityBusy detail="Your next move is worth a moment.">Rounding up your opportunities…</OpportunityBusy>
                 </div>
             ) : loadError ? (
                 <div className="opp-load-error" role="alert">
@@ -1757,8 +1794,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 />
             )}
 
+            {isOwner && (
+                <OpportunityQuickTour username={username} replayKey={tourReplayKey} suspended={Boolean(isLoading || loadError || editingOpp || isProfileDialogOpen || selectedDetailId || isCapturing || captureProgress)} />
+            )}
             {/* Toast Notification */}
-            {toastMessage && <div className="opp-toast" role="status" aria-live="polite">{toastMessage}</div>}
+            {isLoggingOut && <div className="opp-toast" role="status"><OpportunityBusy detail="Signing you out.">See you at the next big thing.</OpportunityBusy></div>}
+            {!isLoggingOut && toastMessage && <div className="opp-toast" role="status" aria-live="polite">{toastMessage}</div>}
         </div>
     );
 };

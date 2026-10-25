@@ -1,3 +1,4 @@
+import { OpportunityBusy } from './OpportunityBusy';
 import React, { useEffect, useRef, useState } from 'react';
 import { isValidOpportunityUsername, normalizeOpportunityUsername } from '../../lib/opportunities/username';
 
@@ -186,7 +187,7 @@ export const OpportunityProfileDialog: React.FC<OpportunityProfileDialogProps> =
                         Cancel
                     </button>
                     <button type="submit" className="opp-profile-save" disabled={isSaving}>
-                        {isSaving ? 'Saving…' : 'Save changes'}
+                        {isSaving ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save changes'}
                     </button>
                 </div>
             </form>

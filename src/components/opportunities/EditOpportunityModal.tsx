@@ -1,3 +1,4 @@
+import { OpportunityBusy } from './OpportunityBusy';
 import React, { useState, useRef } from 'react';
 import type { Opportunity, OpportunityCategory, OpportunityStatus, OpportunityOutcome } from '../../lib/opportunities/types';
 import { formatLiveDatePreview } from '../../lib/opportunities/ui-helpers';
@@ -367,7 +368,7 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
                             Cancel
                         </button>
                         <button type="submit" className="opp-btn opp-btn-save" disabled={isSaving}>
-                            {isSaving ? 'Saving...' : 'Save Opportunity'}
+                            {isSaving ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save opportunity'}
                         </button>
                     </div>
                 </form>

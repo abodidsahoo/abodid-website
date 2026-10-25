@@ -1,3 +1,6 @@
+import { Chrome, Send, Settings, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { OpportunityExtensionHelp } from './OpportunityExtensionHelp';
+import { OpportunityBusy } from './OpportunityBusy';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { getOpportunityMenuPosition, type OpportunityMenuPosition } from '../../lib/opportunities/menuPosition';
 import {
@@ -6,11 +9,13 @@ import {
 } from '../../lib/opportunities/routes';
 
 interface OpportunitySettingsMenuProps {
+    showQuickAccess?: boolean;
     accessToken: string | null;
     isPublic: boolean;
     username: string;
     onLogout: () => void;
     onEditProfile: () => void;
+    onStartTour?: () => void;
     onToast: (message: string) => void;
     onVisibilityChange: (isPublic: boolean) => void;
 }
@@ -21,14 +26,17 @@ const INTERACTIVE_ITEM_SELECTOR = [
 ].join(',');
 
 export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = ({
+    showQuickAccess = false,
     accessToken,
     isPublic,
     username,
     onLogout,
     onEditProfile,
+    onStartTour,
     onToast,
     onVisibilityChange,
 }) => {
+    const [isExtensionHelpOpen, setIsExtensionHelpOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [isSavingVisibility, setIsSavingVisibility] = useState(false);
     const [telegramStatus, setTelegramStatus] = useState<'loading' | 'active' | 'pending' | 'disconnected' | 'unavailable'>('loading');
@@ -107,7 +115,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
     }, [closeMenu, isOpen, updatePosition]);
 
     useEffect(() => {
-        if (!isOpen || !accessToken) return;
+        if ((!isOpen && !showQuickAccess) || !accessToken) return;
         const controller = new AbortController();
         setTelegramStatus('loading');
         void fetch('/api/integrations/telegram/connection', {
@@ -138,7 +146,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
             setTelegramStatus('unavailable');
         });
         return () => controller.abort();
-    }, [accessToken, isOpen]);
+    }, [accessToken, isOpen, showQuickAccess]);
 
     const updateTelegramConnection = async () => {
         if (!accessToken || isUpdatingTelegram || telegramStatus === 'unavailable') return;
@@ -243,7 +251,9 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
     };
 
     return (
-        <div className="opp-user-menu">
+        <div id={showQuickAccess ? 'opportunity-quick-access' : undefined} className={`opp-user-menu ${showQuickAccess ? 'opp-quick-access' : ''}`}>
+            <div className={showQuickAccess ? 'opp-quick-access-header' : undefined}>
+            {showQuickAccess && <span>Quick access</span>}
             <button
                 ref={triggerRef}
                 id="opportunity-settings-trigger"
@@ -267,10 +277,27 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                 aria-expanded={isOpen}
                 aria-haspopup="menu"
             >
-                <span>Settings</span>
+                <Settings size={16} aria-hidden="true" /><span>Settings</span>
                 <span aria-hidden="true">{isOpen ? '↑' : '↓'}</span>
             </button>
 
+            </div>
+            {showQuickAccess && <div id="opportunity-integrations" className="opp-quick-integrations">
+                <button type="button" className="opp-quick-integration" onClick={() => setIsExtensionHelpOpen(true)}>
+                    <Chrome size={25} aria-hidden="true" />
+                    <span><strong>Install Chrome Extension</strong><small>Save opportunities directly from your browser.</small></span>
+                    <ArrowUpRight size={18} aria-hidden="true" />
+                </button>
+                <button type="button" className="opp-quick-integration" disabled={telegramStatus === 'loading' || isUpdatingTelegram} onClick={() => {
+                    if (telegramStatus === 'active' || telegramStatus === 'unavailable') openMenu();
+                    else void updateTelegramConnection();
+                }}>
+                    {telegramStatus === 'active' ? <CheckCircle2 size={25} aria-hidden="true" /> : <Send size={25} aria-hidden="true" />}
+                    <span><strong>{telegramStatus === 'active' ? 'Telegram connected' : 'Connect to Telegram'}</strong><small>{isUpdatingTelegram ? <OpportunityBusy>Connecting…</OpportunityBusy> : telegramStatus === 'loading' ? <OpportunityBusy>Checking connection…</OpportunityBusy> : telegramStatus === 'active' ? 'Manage your Telegram connection.' : telegramStatus === 'unavailable' ? 'Check connection setup in Settings.' : 'Capture messages and voice notes.'}</small></span>
+                    <ArrowUpRight size={18} aria-hidden="true" />
+                </button>
+            </div>}
+            <OpportunityExtensionHelp open={isExtensionHelpOpen} onClose={() => setIsExtensionHelpOpen(false)} />
             {isOpen && (
                 <div
                     ref={menuRef}
@@ -290,7 +317,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                         <p id="opp-visibility-label" className="opp-user-menu-label">Collection Visibility</p>
                         <div className="opp-visibility-controls">
                             <div
-                                className={`opp-visibility-switch ${isPublic ? 'is-public' : 'is-private'}`}
+                                className={`opp-visibility-switch ${isPublic ? 'is-public' : 'is-private'} ${isSavingVisibility ? 'opp-waiting' : ''}`}
                                 aria-busy={isSavingVisibility}
                             >
                                 <span className="opp-visibility-indicator" aria-hidden="true" />
@@ -345,7 +372,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                                         : telegramStatus === 'pending'
                                             ? 'Waiting for Telegram'
                                             : telegramStatus === 'loading'
-                                                ? 'Checking connection'
+                                                ? <OpportunityBusy>Checking connection</OpportunityBusy>
                                                 : telegramStatus === 'unavailable'
                                                     ? 'Not configured yet'
                                                     : 'Not connected'}
@@ -362,7 +389,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                                 onClick={() => void updateTelegramConnection()}
                             >
                                 {isUpdatingTelegram
-                                    ? 'Please wait…'
+                                    ? <OpportunityBusy>Connecting the dots…</OpportunityBusy>
                                     : telegramStatus === 'active'
                                         ? 'Disconnect'
                                         : telegramStatus === 'pending'
@@ -383,9 +410,8 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                         <span>Edit profile &amp; public URL</span><span aria-hidden="true">→</span>
                     </button>
 
-                    <div className="opp-user-menu-disabled opp-user-menu-extension" aria-disabled="true">
-                        <span>Install Chrome extension</span><small>(coming soon)</small>
-                    </div>
+                    {onStartTour && <button type="button" role="menuitem" onClick={() => { closeMenu(false); onStartTour(); }}><span>Quick tour</span><span aria-hidden="true">↗</span></button>}
+                    <button type="button" role="menuitem" onClick={() => { closeMenu(false); setIsExtensionHelpOpen(true); }}><span>Install Chrome extension</span><span aria-hidden="true">↗</span></button>
                     <a role="menuitem" href={OPPORTUNITY_CURATED_COLLECTION_PATH} onClick={() => setIsOpen(false)}>
                         <span>View Abodid’s curated list</span><span aria-hidden="true">→</span>
                     </a>

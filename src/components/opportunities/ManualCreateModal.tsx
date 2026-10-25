@@ -1,3 +1,4 @@
+import { OpportunityBusy } from './OpportunityBusy';
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
@@ -402,13 +403,13 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
                             </div>
                         )}
 
-                        {isProcessing && <div className="opp-create-processing" role="status" aria-live="polite"><span className="opp-create-processing-mark" aria-hidden="true" /><div><strong>It’s processing now.</strong><span>{processingLabel}</span></div></div>}
+                        {isProcessing && <div className="opp-create-processing" role="status" aria-live="polite"><span className="opp-create-processing-mark" aria-hidden="true" /><div><strong>Finding the good bits.</strong><span>{processingLabel}</span></div></div>}
                         {formError && <p className="opp-create-error" role="alert">{formError}</p>}
                     </div>
 
                     <div className="opp-modal-footer opp-create-modal-footer">
                         <button type="button" className="opp-btn opp-btn-secondary" onClick={onClose} disabled={isBusy}>Cancel</button>
-                        <button type="submit" className="opp-btn opp-btn-save" disabled={isBusy}>{isProcessing ? 'Processing…' : isSaving ? 'Saving…' : 'Save Opportunity'}</button>
+                        <button type="submit" className="opp-btn opp-btn-save" disabled={isBusy}>{isProcessing ? <OpportunityBusy>Reading between the lines…</OpportunityBusy> : isSaving ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save opportunity'}</button>
                     </div>
                 </form>
             </div>

@@ -46,11 +46,13 @@ if (params.has('code') || params.has('error')) {
         if (status) status.textContent = 'Connecting securely to Opportunity Tracker…';
         try {
             const response = await sendCallback();
+            document.getElementById('safari-extension-auth-wave')?.setAttribute('hidden', '');
             if (!status) return;
             status.textContent = response?.ok
                 ? 'Signed in. You can return to Opportunity Tracker.'
                 : response?.error || 'Sign in could not be completed.';
         } catch (error) {
+            document.getElementById('safari-extension-auth-wave')?.setAttribute('hidden', '');
             if (status) {
                 const detail = error instanceof Error ? error.message : '';
                 status.textContent = detail

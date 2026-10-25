@@ -1,4 +1,5 @@
-import { completeSafariSignIn, extensionSupabase, signInWithGoogle } from './auth';
+import { completeSafariSignIn, extensionSupabase, getExtensionSession, refreshExtensionSession, signInWithGoogle } from './auth';
+import { isTemporaryAuthFailure } from './authNetwork';
 import { extractPageText } from './capture';
 import { EXTENSION_CAPTURE_TIMEOUT_MS, webext } from './browser';
 import { restoreStoredCapture, isOlderCaptureUpdate, type CaptureState } from './captureState';
@@ -36,7 +37,7 @@ const refreshProfileCache = async (accessToken: string) => {
         });
         if (!response.ok) return;
         const payload = await response.json();
-        const { data: { session } } = await extensionSupabase.auth.getSession();
+        const session = await getExtensionSession();
         if (session?.access_token !== accessToken) return;
         await cacheSignedInProfile(payload.profile);
     } catch (error) {
@@ -45,7 +46,16 @@ const refreshProfileCache = async (accessToken: string) => {
 };
 
 const getSessionState = async () => {
-    const { data: { session } } = await extensionSupabase.auth.getSession();
+    let session;
+    try {
+        session = await getExtensionSession();
+    } catch (error) {
+        // A network outage is not a sign-out. Keep the cached display identity
+        // and stored refresh token; protected requests still require a valid token.
+        if (isTemporaryAuthFailure(error)) throw error;
+        await webext.storage.local.remove(AUTH_CACHE_KEY);
+        throw error;
+    }
     if (!session?.access_token) {
         await webext.storage.local.remove(AUTH_CACHE_KEY);
         return { signedIn: false, profile: null };
@@ -103,13 +113,13 @@ const fetchCaptureJob = async (jobId: string) => {
         headers: { Authorization: `Bearer ${accessToken}` },
         cache: 'no-store',
     });
-    const { data: { session } } = await extensionSupabase.auth.getSession();
+    const session = await getExtensionSession();
     if (!session?.access_token) throw new Error('Sign in to check this capture');
 
     let response = await send(session.access_token);
     if (response.status === 401) {
-        const { data, error } = await extensionSupabase.auth.refreshSession();
-        if (!error && data.session?.access_token) response = await send(data.session.access_token);
+        const refreshed = await refreshExtensionSession();
+        if (refreshed?.access_token) response = await send(refreshed.access_token);
     }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || !payload.job) throw new Error(payload.error || 'Capture status could not be checked');
@@ -148,15 +158,15 @@ const saveUrl = async (idempotencyKey: string, url: string, title = '', pageText
     });
 
     const execute = async () => {
-        const { data: { session } } = await extensionSupabase.auth.getSession();
+        const session = await getExtensionSession();
         if (!session?.access_token) throw new Error('Sign in before saving an opportunity');
 
         let activeToken = session.access_token;
         let response = await send(activeToken);
         if (response.status === 401 && !controller.signal.aborted) {
-            const { data, error } = await extensionSupabase.auth.refreshSession();
-            if (!error && data.session?.access_token && !controller.signal.aborted) {
-                activeToken = data.session.access_token;
+            const refreshed = await refreshExtensionSession();
+            if (refreshed?.access_token && !controller.signal.aborted) {
+                activeToken = refreshed.access_token;
                 response = await send(activeToken);
             }
         }
@@ -426,7 +436,8 @@ webext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (
                     ? getSessionState()
                     : { signedIn: false, profile: null, pending: true };
             case 'AUTH_LOGOUT':
-                await extensionSupabase.auth.signOut();
+                const { error: logoutError } = await extensionSupabase.auth.signOut({ scope: 'local' });
+                if (logoutError) throw logoutError;
                 await webext.storage.local.remove(AUTH_CACHE_KEY);
                 await captureStorage.remove(CAPTURE_STATE_KEY);
                 return { signedIn: false, profile: null };

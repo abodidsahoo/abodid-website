@@ -1,3 +1,4 @@
+@import "./opportunity-feedback.css";
 /* ==========================================================================
    ABODID POP EDITORIAL: REFINED OPPORTUNITY DESK DESIGN SYSTEM
    ========================================================================== */
@@ -8484,3 +8485,113 @@ button.opp-detail-deadline-card,
 @media (max-width: 680px) {
   .opp-rail-actions { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
 }
+
+/* A short, non-modal first-visit tour. A native manual popover keeps it above page chrome. */
+.opp-auth-loading { text-align: center; padding: 24px; }
+.opp-auth-loading .opp-busy-copy { max-width: 480px; }
+.opp-auth-loading .opp-wave-dots { color: var(--opp-yellow); }
+.opp-tour-spotlight { position: fixed; z-index: 10040; pointer-events: none; border: 2px solid var(--opp-yellow, #ffe44f); border-radius: 16px; box-shadow: 0 0 0 9999px rgb(10 16 55 / .65), 0 0 0 4px rgb(255 228 79 / .25); }
+.opp-quick-tour { position: fixed; z-index: 10041; inset: auto; top: var(--tour-top, 100px); left: var(--tour-left, 14px); width: min(360px, calc(100vw - 28px)); max-height: calc(100dvh - 28px); margin: 0; padding: 20px; overflow: visible; border: 1.5px solid #15130f; border-radius: 16px; background: #fff8e8; color: #15130f; box-shadow: 4px 4px 0 #15130f; font-family: var(--opp-font, Arial, sans-serif); }
+.opp-quick-tour:not([popover]) { display: block; }
+.opp-quick-tour::backdrop { background: transparent; pointer-events: none; }
+.opp-quick-tour::before { content: ''; position: absolute; left: calc(var(--tour-arrow, 50%) - 7px); width: 14px; height: 14px; background: #fff8e8; transform: rotate(45deg); border: 1.5px solid #15130f; }
+.opp-quick-tour[data-placement="below"]::before { top: -8px; border-right: 0; border-bottom: 0; }
+.opp-quick-tour[data-placement="above"]::before { bottom: -8px; border-left: 0; border-top: 0; }
+.opp-tour-heading, .opp-tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.opp-tour-heading > span { font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; }
+.opp-tour-heading > button { display: grid; place-items: center; width: 44px; height: 44px; margin: -8px -8px -4px 0; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.opp-quick-tour h2 { margin: 12px 0 10px; font-size: 1.4rem; line-height: 1.08; letter-spacing: -.04em; font-weight: 850; }
+.opp-quick-tour p { margin: 0 0 10px; font-size: .85rem; line-height: 1.5; overflow-wrap: anywhere; }
+.opp-tour-actions { margin-top: 16px; }
+.opp-tour-actions button { min-height: 44px; padding: 10px 14px; border: 1px solid #15130f; border-radius: 9px; font: 750 .8rem var(--opp-font, Arial, sans-serif); color: #15130f; background: transparent; cursor: pointer; }
+.opp-tour-actions button.is-next { background: #ffe44f; box-shadow: 2px 2px 0 #15130f; }
+.opp-quick-tour button:focus-visible { outline: 3px solid #2444ca; outline-offset: 3px; }
+@supports (top: anchor(bottom)) {
+  .opp-quick-tour { position-anchor: --opportunity-tour-target; }
+  .opp-quick-tour[data-anchor="true"][data-placement="below"] { top: calc(anchor(bottom) + 18px); }
+  .opp-quick-tour[data-anchor="true"][data-placement="above"] { top: calc(anchor(top) - var(--tour-height) - 18px); }
+}
+@media (max-height: 620px) { .opp-quick-tour { padding: 14px 16px; } .opp-quick-tour h2 { font-size: 1.22rem; margin-top: 8px; } .opp-quick-tour p { font-size: .78rem; line-height: 1.4; } .opp-tour-actions { margin-top: 10px; } }
+@media (max-height: 500px) { .opp-quick-tour { overflow-y: auto; } }
+.opp-auth-loading .opp-busy-line { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 750; }
+.opp-google-signin > span:nth-child(2) { min-width: 0; white-space: normal; }
+
+/* Keep the public collection save action quiet and right-aligned. */
+.opp-card .opp-card-links { flex: 0 1 auto; margin-inline-start: auto; }
+.opp-radar-add-btn {
+  inline-size: auto;
+  min-height: 36px;
+  min-block-size: 36px;
+  padding: 7px 10px;
+  border: 1px solid rgba(21, 19, 15, .35);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--opp-ink);
+  box-shadow: none;
+  font-weight: 700;
+}
+.opp-radar-add-btn:hover:not(:disabled) { background: rgba(21, 19, 15, .05); border-color: var(--opp-ink); transform: none; box-shadow: none; }
+.opp-radar-add-btn.is-added,
+.opp-radar-add-btn.is-already { background: #edf4e4; color: var(--opp-ink); }
+.opp-radar-add-btn.is-error { background: #fff0eb; color: #982e21; }
+.opp-card .opp-card-links .opp-radar-add-btn { width: auto; max-inline-size: 100%; }
+@media (pointer: coarse) { .opp-radar-add-btn { min-height: 44px; min-block-size: 44px; } }
+
+/* Compact owner workspace: one saving column and a coherent integration rail. */
+.opp-hero-deck.has-quick-access { display: grid; grid-template-columns: minmax(0, 7fr) minmax(270px, 3fr); gap: 24px; padding: 24px; align-items: start; }
+.has-quick-access > .opp-hero-main { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; gap: 20px; }
+.has-quick-access .opp-hero-header-row { display: block; }
+.has-quick-access .opp-hero-title { font-size: clamp(2.3rem, 4vw, 3.8rem); line-height: 1.05; }
+.has-quick-access .opp-hero-tagline { font-size: clamp(.95rem, 1.3vw, 1.12rem); }
+.has-quick-access > .opp-hero-account-actions { min-width: 0; display: block; align-self: stretch; }
+.opp-quick-access { display: grid; gap: 12px; min-width: 0; }
+.opp-quick-access-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+.opp-quick-access-header > span { font: 800 .68rem/1.2 var(--opp-font); text-transform: uppercase; letter-spacing: .08em; }
+.opp-quick-access .opp-user-menu-trigger { width: auto; min-height: 44px; display: flex; justify-content: center; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--opp-border); background: transparent; box-shadow: none; border-radius: 10px; }
+.opp-quick-integrations { display: grid; gap: 10px; }
+.opp-quick-integration { width: 100%; min-height: 96px; display: grid; grid-template-columns: 26px minmax(0, 1fr) 18px; align-items: center; gap: 12px; padding: 16px 12px; border: 1px solid var(--opp-border); border-radius: 14px; color: var(--opp-ink); background: var(--opp-cream); text-align: left; cursor: pointer; }
+.opp-quick-integration > span { min-width: 0; display: grid; gap: 5px; }
+.opp-quick-integration strong { font: 800 .92rem/1.2 var(--opp-font); text-wrap: balance; }
+.opp-quick-integration small { letter-spacing: normal; text-transform: none; font: 500 .76rem/1.4 var(--opp-font); text-wrap: pretty; }
+.opp-quick-integration:hover:not(:disabled) { background: var(--opp-yellow); }
+.opp-quick-integration:disabled { cursor: wait; }
+.opp-quick-integration:focus-visible { outline: 3px solid var(--opp-purple); outline-offset: 3px; }
+.has-quick-access .opp-capture-workspace { width: 100%; min-width: 0; padding: 16px; gap: 10px; border-width: 1px; box-shadow: none; }
+.opp-capture-workspace .opp-hero-capture-bar { grid-template-areas: 'input save'; gap: 10px; }
+.opp-capture-workspace .opp-hero-capture-bar.has-attachments { grid-template-areas: 'input save' 'files files'; }
+.opp-capture-input-shell { grid-area: input; }
+.opp-capture-workspace .opp-hero-btn { grid-area: save; }
+.opp-capture-files { grid-area: files; }
+.opp-capture-workspace .opp-hero-capture-input { padding-inline-end: 110px; min-block-size: 60px; }
+.opp-capture-attach-button { inline-size: auto; min-inline-size: 88px; block-size: 44px; min-block-size: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border-width: 1px; font: 750 .78rem/1 var(--opp-font); }
+.opp-capture-file { position: relative; max-inline-size: 100%; gap: 6px; padding: 2px 4px 2px 10px; }
+.opp-capture-file > svg { flex: none; }
+.opp-capture-file .opp-capture-file-name { min-width: 0; max-width: 28ch; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.opp-capture-file .opp-capture-file-tooltip { pointer-events: none; display: none; position: absolute; z-index: 150; inset-block-end: calc(100% + 6px); inset-inline-start: 0; width: max-content; max-width: min(320px, 65vw); padding: 8px 10px; border: 1px solid var(--opp-border); border-radius: 8px; background: var(--opp-cream); color: var(--opp-ink); overflow: visible; overflow-wrap: anywhere; white-space: normal; font-weight: 500; }
+.opp-capture-file-name:hover + .opp-capture-file-tooltip, .opp-capture-file-name:focus + .opp-capture-file-tooltip { display: block; }
+.opp-capture-file button { inline-size: 44px; block-size: 44px; flex: none; }
+.opp-capture-file > span[role='status'] { overflow: visible; }
+.opp-extension-help { width: min(430px, calc(100vw - 32px)); padding: 28px 24px 24px; border: 1px solid var(--opp-border); border-radius: 18px; background: var(--opp-cream); color: var(--opp-ink); font-family: var(--opp-font); }
+.opp-extension-help::backdrop { background: rgb(10 16 55 / .65); }
+.opp-extension-help h2 { margin: 16px 0 12px; font-size: 1.5rem; line-height: 1.1; text-wrap: balance; }
+.opp-extension-help p { font-size: .9rem; line-height: 1.5; text-wrap: pretty; }
+.opp-extension-help a { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--opp-ink); font-weight: 750; font-size: .85rem; text-decoration: none; }
+.opp-extension-help a > span:first-child { text-decoration: underline; text-underline-offset: 3px; }
+.opp-extension-help-close { position: absolute; inset-inline-end: 8px; inset-block-start: 8px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.opp-quick-tour { width: min(340px, calc(100vw - 28px)); padding: 18px; }
+.opp-quick-tour h2 { text-wrap: balance; font-size: 1.25rem; }
+.opp-quick-tour p { text-wrap: pretty; font-size: .88rem; line-height: 1.45; }
+.opp-tour-heading > span { font-size: .73rem; }
+@media (max-width: 1024px) {
+  .opp-hero-deck.has-quick-access { grid-template-columns: minmax(0, 1fr); }
+  .opp-quick-integrations { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .opp-hero-deck.has-quick-access { padding: 16px; gap: 20px; }
+  .opp-quick-integrations { grid-template-columns: minmax(0, 1fr); }
+  .opp-capture-workspace .opp-hero-capture-bar { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'input' 'save'; }
+  .opp-capture-workspace .opp-hero-capture-bar.has-attachments { grid-template-areas: 'input' 'files' 'save'; }
+  .opp-capture-workspace .opp-hero-btn { width: 100%; }
+  .opp-capture-file .opp-capture-file-name { max-width: 38vw; }
+}
+@media (max-width: 360px) { .opp-quick-integration { padding-block: 12px; } }

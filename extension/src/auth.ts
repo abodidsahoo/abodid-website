@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+import { createExtensionAuthClient } from './authClient';
+import { readExtensionSession } from './authNetwork';
 import { webext } from './browser';
 
 declare const __SUPABASE_URL__: string;
@@ -22,15 +23,12 @@ const extensionStorage = {
     },
 };
 
-export const extensionSupabase = createClient(__SUPABASE_URL__, __SUPABASE_ANON_KEY__, {
-    auth: {
-        flowType: 'pkce',
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: false,
-        storage: extensionStorage,
-    },
-});
+export const extensionSupabase = {
+    auth: createExtensionAuthClient(__SUPABASE_URL__, __SUPABASE_ANON_KEY__, extensionStorage),
+};
+
+export const getExtensionSession = async () => readExtensionSession(await extensionSupabase.auth.getSession());
+export const refreshExtensionSession = async () => readExtensionSession(await extensionSupabase.auth.refreshSession());
 
 export const signInWithGoogle = async () => {
     if (__BROWSER_TARGET__ === 'safari') {
@@ -91,10 +89,10 @@ export const completeSafariSignIn = async (callbackUrl: string) => {
         throw new Error('Invalid Safari authentication callback');
     }
 
-    const { data: existingSessionData } = await extensionSupabase.auth.getSession();
-    if (existingSessionData.session) {
+    const existingSession = await getExtensionSession();
+    if (existingSession) {
         await webext.storage.local.remove(SAFARI_STATE_KEY);
-        return existingSessionData.session;
+        return existingSession;
     }
 
     const stored = await webext.storage.local.get(SAFARI_STATE_KEY);

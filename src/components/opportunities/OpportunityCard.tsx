@@ -1,3 +1,4 @@
+import { OpportunityBusy } from './OpportunityBusy';
 import React from 'react';
 import type { Opportunity } from '../../lib/opportunities/types';
 import {
@@ -25,7 +26,7 @@ export const getRadarButtonLabel = (state: RadarSaveState) => {
     if (state === 'added') return '✓ On your radar';
     if (state === 'already') return '✓ Already saved';
     if (state === 'error') return 'Try again';
-    return '+ Add to radar';
+    return 'Add to my radar';
 };
 
 export const OpportunityCard: React.FC<OpportunityCardProps> = ({
@@ -109,6 +110,8 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                     <span className="opp-card-category-label">{categoryLabel}</span>
                 </button>
 
+                <div className="opp-card-footer-spacer" />
+
                 {showRadarAction && (
                     <div className="opp-card-links">
                         <button
@@ -121,12 +124,10 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                             disabled={radarState === 'adding' || radarState === 'added' || radarState === 'already'}
                             aria-label={`${getRadarButtonLabel(radarState)}: ${displayTitle}`}
                         >
-                            {getRadarButtonLabel(radarState)}
+                            {radarState === 'adding' ? <OpportunityBusy>Adding…</OpportunityBusy> : getRadarButtonLabel(radarState)}
                         </button>
                     </div>
                 )}
-
-                <div className="opp-card-footer-spacer" />
 
                 {showPriorityToggle && (
                     <label className={`opp-high-priority-toggle is-card ${opp.is_high_priority ? 'is-active' : ''}`} onClick={(event) => event.stopPropagation()}>

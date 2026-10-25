@@ -1,3 +1,4 @@
+import { OpportunityBusy } from './OpportunityBusy';
 import React, { useEffect, useState } from 'react';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
 import { OPPORTUNITY_CURATED_COLLECTION_PATH } from '../../lib/opportunities/routes';
@@ -78,9 +79,9 @@ export default function OpportunityLanding() {
                 </div>
                 <div className="opp-landing-action">
                     <span className="opp-landing-action-label">ORGANIZE YOUR NEXT MOVE</span>
-                    <button type="button" className="opp-google-signin" onClick={signIn} disabled={checking || signingIn}>
+                    <button type="button" className={`opp-google-signin ${checking || signingIn ? 'opp-waiting' : ''}`} aria-busy={checking || signingIn} onClick={signIn} disabled={checking || signingIn}>
                         <span className="opp-google-mark" aria-hidden="true">G</span>
-                        <span>{checking ? 'Checking your session…' : signingIn ? 'Opening Google…' : 'Continue with Google'}</span>
+                        <span>{checking ? <OpportunityBusy>Finding your place…</OpportunityBusy> : signingIn ? <OpportunityBusy>A quick hello to Google…</OpportunityBusy> : 'Continue with Google'}</span>
                         <span aria-hidden="true">→</span>
                     </button>
                     <a className="opp-public-collection-link" href={OPPORTUNITY_CURATED_COLLECTION_PATH}>

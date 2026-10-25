@@ -96,3 +96,11 @@ Page scripts are injected only after an explicit toolbar or context-menu action.
 ### Popup receipt and account layout (2.1.7)
 
 The popup leads with the current tab and **Save opportunity**. Account identity, **View your dashboard**, and **Log out** live in a separate bottom area. Sending and queued work replace the save control with one clear status; completion shows a minimal saved receipt. The latest receipt is restored from local extension storage when reopened, including after a tab change. Accepted jobs and final receipts remain until replaced, signed out, or storage is cleared. A sending phase interrupted for over five minutes becomes retryable. While the popup is open, queued status refreshes every three seconds (five seconds after a network error); once closed, existing one-shot browser alarms check completion. No new browser permission is needed.
+
+### Authentication recovery (2.1.8)
+
+Authentication uses the Supabase auth-only client with the same persisted session/PKCE storage key as earlier builds. The worker refreshes expired sessions on demand instead of running a continuous refresh timer. Auth requests time out after eight seconds per attempt and use the SDK's bounded retry behavior. An offline or temporarily unreachable auth service does not erase a stored sign-in; the popup reports a connection problem and can recover on reopening. Protected capture requests still require a valid token.
+
+### Waiting feedback (2.1.9)
+
+Session checks, sign-in/logout buttons, sending and queued capture status use three wave dots and clear status text. A subtle glow marks active waiting controls. Both effects stop for reduced-motion preferences, keeping the indicator and text visible. Completed receipts stop animating. The shared CSS is bundled locally; no dependency or browser permission is added. The website’s four-step Quick tour can be dismissed or replayed from Settings and explains Telegram voice notes and the extension’s current availability.

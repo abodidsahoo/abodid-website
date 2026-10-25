@@ -1,3 +1,4 @@
+import { OpportunityBusy } from './OpportunityBusy';
 import React, { useId, useState } from 'react';
 import type { OpportunityStatus } from '../../lib/opportunities/types';
 
@@ -84,7 +85,7 @@ export const OpportunityStatusPicker: React.FC<OpportunityStatusPickerProps> = (
                     ))}
                 </select>
             </span>
-            {isUpdating && <span className="opp-status-saving" role="status">Saving…</span>}
+            {isUpdating && <span className="opp-status-saving" role="status"><OpportunityBusy>Saving…</OpportunityBusy></span>}
         </fieldset>
     );
 };

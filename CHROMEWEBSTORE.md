@@ -4,7 +4,7 @@
 >
 > Manifest source: `extension/manifests/chrome.json`
 >
-> Release version: `2.1.7` (draft)
+> Release version: `2.1.9` (draft)
 
 This file is the source of truth for Chrome Web Store metadata, permission justifications, privacy disclosures, release evidence, and submission blockers. Update it whenever the Chrome manifest, extension behavior, branding, data handling, or store assets change.
 
@@ -65,7 +65,7 @@ SUPPORT
 Questions, privacy requests or bug reports: hello@abodid.com
 Privacy policy: https://abodid.com/privacy
 
-Version 2.1.7 — Puts the current tab first, moves account and dashboard controls into a compact footer, and preserves clear processing and saved receipts when the popup is reopened. No additional permissions are requested.
+Version 2.1.9 — Adds gentle wave-dot feedback and warmer copy during sign-in and saves, with static indicators for reduced-motion preferences. The dashboard adds a short, replayable first-visit tour. No additional permissions or data collection.
 ```
 
 ## URLs and developer information
@@ -93,7 +93,7 @@ Version 2.1.7 — Puts the current tab first, moves account and dashboard contro
 | Small promo tile | 440×280 PNG or JPEG | Recommended, missing | Use the Pop Editorial blue, cream and yellow system without unsupported claims |
 | Marquee promo tile | 1400×560 PNG or JPEG | Optional, missing | Create only if merchandising is planned |
 
-Screenshots must show the current `2.1.7` UI and must not include private account data, email addresses, authentication tokens, or opportunity content that cannot be published.
+Screenshots must show the current `2.1.9` UI and must not include private account data, email addresses, authentication tokens, or opportunity content that cannot be published.
 
 ## Permission justifications
 
@@ -196,11 +196,11 @@ Chrome runtime test matrix:
 
 | Test | Expected result | 2026-10-14 status |
 |---|---|---|
-| Load `extension/dist/chrome` unpacked | Extension installs with no manifest error | Version `2.0.0` was reloaded and verified in Chrome on 2026-10-14 with ID `bikjdgkkefmflkanfmppnidfkdiblnpg`; the `2.1.7` popup/background build requires a final unpacked reload. |
+| Load `extension/dist/chrome` unpacked | Extension installs with no manifest error | Version `2.0.0` was reloaded and verified in Chrome on 2026-10-14 with ID `bikjdgkkefmflkanfmppnidfkdiblnpg`; `2.1.8` was reloaded successfully in the same installed unpacked Chrome extension on 2026-10-25. |
 | Open popup while signed out | Current-page preview appears first; sign-in UI and prominent privacy disclosure render only after the signed-out state is confirmed; no console error | Built and passed a delayed-session headless Chromium UI-state test on 2026-10-14; real-extension signed-out recheck pending. |
-| Open popup while signed in | The current tab appears first; cached name and handle, View your dashboard and Log out appear in a separate bottom account area | Built-popup browser tests with mocked extension APIs passed on 2026-10-25; authenticated unpacked Chrome confirmation remains pending. |
+| Open popup while signed in | The current tab appears first; cached name and handle, View your dashboard and Log out appear in a separate bottom account area | Built-popup browser tests passed on 2026-10-25. Version 2.1.8 was also opened in the actual signed-in Chrome extension and displayed the existing name and handle after reload. |
 | Google sign-in | OAuth completes and session persists after popup closes | The unpacked Chrome ID `bikjdgkkefmflkanfmppnidfkdiblnpg` and its exact `chromiumapp.org/supabase-auth` callback were verified and allow-listed in Supabase on 2026-10-14. A fresh end-to-end sign-in and sign-out retest is pending. |
-| Capture a public opportunity page | Four-square handoff progress appears immediately; a durable receipt is returned before extraction and the record remains private | Automated build passed; authenticated real-Chrome test pending |
+| Capture a public opportunity page | Three wave dots and a clear sending/processing message appear immediately; a durable receipt is returned before extraction and the record remains private | Automated build passed; authenticated real-Chrome test pending |
 | Close the popup, tab or browser after the receipt | Server-side extraction continues independently; the dashboard resumes unfinished status after reopening and shows the saved opportunity or a retryable failure | Built-popup browser checks passed on 2026-10-25 for reopening during sending, queued processing older than 15 minutes, success and error. Authenticated real-Chrome confirmation remains pending |
 | Capture two different pages consecutively | The second page is read from the current tab, its request completes independently, and the popup remains reusable | Regression logic covered by local opportunity tests; authenticated real-Chrome confirmation pending |
 | Capture from many independent accounts concurrently | Requests retain isolated prompts/results; transient provider throttling uses model failover and a bounded jittered retry | A mocked 50-request concurrency regression passes locally; provider-account load confirmation remains pending |
@@ -210,12 +210,29 @@ Chrome runtime test matrix:
 | Quota/network/timeout failure | Human-readable error; the bounded request returns the button to a usable retry state | Regression logic covered by local opportunity tests; browser confirmation pending |
 | Open dashboard | Opens the current user's tracker route | Pending signed-in real-Chrome test |
 | Log out and reopen popup | Local session is removed and sign-in panel returns | Pending signed-in real-Chrome test |
-| Service worker starts cleanly | Worker scope, name and version match the installed extension | Passed in Chrome 155 for `2.0.0`; the `2.1.7` manifest and worker require a final unpacked reload |
+| Service worker starts cleanly | Worker scope, name and version match the installed extension | Passed in Chrome 155 for `2.0.0`; the `2.1.8` manifest was successfully reloaded in the actual installed Chrome extension on 2026-10-25 |
 | Service worker restart with signed-in state | Session remains local while an accepted capture continues server-side without depending on service-worker lifetime | Code-audited; authenticated browser confirmation pending |
+
+### Authentication network recovery (2.1.8)
+
+- An auth-only Supabase client replaces the unused database/realtime client and its implicit initial-session subscription. Continuous token auto-refresh is disabled in extension workers; opening the popup or using a protected operation calls `getSession`, which refreshes expired sessions on demand.
+- The existing `sb-<project-ref>-auth-token` storage key, PKCE verifier storage and refresh tokens are preserved, so the update does not require users to sign in again.
+- Auth transport attempts have an eight-second timeout. Network and timeout failures become retryable 503 responses for the SDK's existing bounded retry mechanism, with a clear connection message returned to the popup. Temporary failures do not clear the identity cache or stored refresh token. Invalid authentication remains an error; cached profile data never authorizes backend requests.
+- Logout uses local scope and checks the result before clearing display/receipt state.
+- Regression tests use the actual auth client to verify no background refresh on initialization, preservation of the session during a failed refresh, recovery and token rotation after connectivity returns, and no raw SDK console errors during the simulated outage. Supabase Auth health returned 200 and the unauthenticated tracker session API returned the expected 401 on 2026-10-25.
+- Actual Chrome version 2.1.8 reload and signed-in popup were verified. Historical diagnostics were cleared after inspection. The intermittent network outage itself was reproduced in tests, not forced against the user's live session.
+
+### Waiting feedback and dashboard tour (2.1.9)
+
+- The popup uses three decorative wave dots for session checks, sending and queued processing, and sign-in/logout button waits. Queued work continues to restore after dismissal. Success/error receipts stop the busy animation; no guessed percentage is displayed.
+- A shared packaged CSS file supplies the wave and subtle waiting glow to the website and popup. Reduced-motion preferences stop both animations while keeping the dots and status text visible. Progress text remains available to assistive technology; decorative dots are hidden from it.
+- The website adds a four-step manual-popover tour of saving links/files, urgency views, refresh, and the integration panel. Each help box contains one short instruction with balanced headings and orphan-resistant wrapping. Settings can replay the tour. The hero groups the Telegram flow and Chrome installation instructions in a quick-access rail; the Chrome dialog accurately explains that the store release is coming soon.
+- The website stores only per-username tour progress/dismissal in local browser storage. It does not add extension storage, browser permissions, remote code, analytics or additional collection. Existing Chrome permission/host justifications and OAuth scopes remain unchanged.
+- Desktop and 390px/320px phone browser checks verify step focus, control/card separation, viewport containment, dismissal, replay and reduced-motion behavior. Extension popup reopening and capture-state regression checks pass with mocked browser APIs. Actual installed Chrome 2.1.9 reload is not yet claimed.
 
 ### Performance evidence
 
-- The release output remains compact and is minified with source maps disabled: popup JavaScript 7.58 KB (2.80 KB gzip), popup CSS 6.99 KB (2.13 KB gzip), and background JavaScript 192.02 KB (51.98 KB gzip) in the `2.1.7` Chrome build on 2026-10-25.
+- The release output remains compact and is minified with source maps disabled: popup JavaScript 7.98 KB (2.96 KB gzip), popup CSS 8.44 KB (2.47 KB gzip), and background JavaScript 108.49 KB (28.71 KB gzip) in the `2.1.9` Chrome build on 2026-10-25.
 - Idle, processing and saved views were visually checked at 360×600 on 2026-10-25 using the built popup and mocked extension APIs. Long failure messages wrap without horizontal overflow, account controls have a 44px minimum height, and tall content scrolls within the popup. Local QA images are not yet compliant store screenshots.
 - The extension registers no always-on content script in Chrome. Page extraction is injected only after a user capture action, avoiding work on ordinary page loads.
 - The updated signed-in popup was reloaded and visually verified in real Chrome on 2026-10-14; its first visible state contained the current page title and URL, not the Google sign-in card.
@@ -248,12 +265,14 @@ Chrome runtime test matrix:
 - [ ] Confirm publisher name, verified contact email, visibility and regions in the Developer Dashboard.
 - [ ] Complete the Dashboard Privacy practices form exactly as documented above.
 - [ ] Produce a clean ZIP from `extension/dist/chrome` only; exclude source maps, tests, environment files, repository metadata, `CHROMEWEBSTORE.md`, and development configuration.
-- [ ] Inspect the final ZIP contents and bump the manifest version if `2.1.7` has already been uploaded.
+- [ ] Inspect the final ZIP contents and bump the manifest version if `2.1.9` has already been uploaded.
 
 ## Version history
 
 | Version | Date | Changes | Store status |
 |---|---|---|---|
+| 2.1.9 | 2026-10-25 | Adds shared three-dot wave feedback, a subtle busy glow and welcoming waiting copy to popup/sign-in/save flows; honors reduced-motion preferences and keeps successful receipts minimal. The web dashboard adds a four-step dismissible/replayable tour with mobile spotlight positioning, Telegram guidance and truthful extension availability. No permissions, host permissions or data categories changed. | Draft |
+| 2.1.8 | 2026-10-25 | Uses an auth-only client with the existing session storage key, refreshes tokens on demand instead of continuously in the worker, bounds auth transport attempts, preserves sign-in during retryable network failures, reports connection errors without raw rejected-fetch logging, and checks local-scope logout errors. Adds regression coverage for outage/recovery. No permissions, host permissions or data categories changed. | Draft |
 | 2.1.7 | 2026-10-25 | Leads with current tab and Save opportunity, groups account identity, View your dashboard and bottom-right Log out in a footer, shows one clear processing or minimal saved receipt, restores the latest receipt across popup/tab changes, keeps accepted and final receipts until replaced or signed out, makes interrupted sending retryable, and guards stale state updates. No permissions or host permissions added; local receipt retention is updated above. | Draft |
 | 2.1.6 | 2026-10-24 | Requests Safari’s narrowly scoped `abodid.com` access from the Google sign-in gesture before opening OAuth, allows the callback content script to run, accepts Safari’s alternate sender URL metadata, validates the exact origin/path, retries a sleeping background worker with a bounded timeout, and preserves PKCE state until exchange succeeds. Chrome permissions and data handling are unchanged. | Draft |
 | 2.1.5 | 2026-10-21 | Restores active capturing and queued states whenever the popup is reopened, even after focus or tab changes; completed and failed receipts remain page-specific so unrelated pages stay uncluttered. | Draft |

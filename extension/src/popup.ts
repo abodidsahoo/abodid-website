@@ -20,7 +20,7 @@ const resultSuccessBadge = byId<HTMLSpanElement>('result-success-badge');
 const resultProcessing = byId<HTMLDivElement>('result-processing');
 const resultProcessingTitle = byId<HTMLElement>('result-processing-title');
 const resultProcessingDetail = byId<HTMLElement>('result-processing-detail');
-const resultProcessingProgress = byId<HTMLProgressElement>('result-processing-progress');
+const resultProcessingProgress = byId<HTMLElement>('result-processing-progress');
 const resultDetails = byId<HTMLDivElement>('result-details');
 const resultCategory = byId<HTMLElement>('result-category');
 const resultDeadline = byId<HTMLElement>('result-deadline');
@@ -37,6 +37,22 @@ let currentCaptureState: CaptureState | null = null;
 let captureStateRevision = 0;
 let capturePollTimer: ReturnType<typeof setTimeout> | undefined;
 
+const setButtonLabel = (button: HTMLButtonElement, label: string, busy = false) => {
+    const line = document.createElement('span');
+    line.className = 'opp-busy-line';
+    if (busy) {
+        const dots = document.createElement('span');
+        dots.className = 'opp-wave-dots';
+        dots.setAttribute('aria-hidden', 'true');
+        dots.append(document.createElement('i'), document.createElement('i'), document.createElement('i'));
+        line.append(dots);
+    }
+    line.append(document.createTextNode(label));
+    button.replaceChildren(line);
+    button.classList.toggle('opp-waiting', busy);
+    button.setAttribute('aria-busy', String(busy));
+};
+
 const syncSaveButton = () => {
     const savedCurrentPage = currentCaptureState?.status === 'success'
         && normalizePageUrl(currentCaptureState.url) === normalizePageUrl(activeTab?.url);
@@ -48,21 +64,21 @@ const syncSaveButton = () => {
     saveButton.classList.remove('hidden');
     if (!authResolved) {
         saveButton.disabled = true;
-        saveButton.textContent = 'Checking tracker…';
+        setButtonLabel(saveButton, 'Finding your place…', true);
         return;
     }
     if (!signedIn) {
         saveButton.disabled = true;
-        saveButton.textContent = 'Sign in to save';
+        setButtonLabel(saveButton, 'Sign in to save', false);
         return;
     }
     if (!activeTab?.url) {
         saveButton.disabled = true;
-        saveButton.textContent = 'Page unavailable';
+        setButtonLabel(saveButton, 'Page unavailable', false);
         return;
     }
     saveButton.disabled = false;
-    saveButton.textContent = 'Save opportunity';
+    setButtonLabel(saveButton, 'Save opportunity', false);
 };
 
 const showError = (message: string) => {
@@ -171,12 +187,12 @@ const applyCaptureState = (state: CaptureState | null) => {
         resultProcessingTitle.textContent = 'Please try again';
         resultProcessingDetail.textContent = state.error || 'Opportunity could not be saved.';
         resultProcessing.classList.remove('hidden');
-        saveButton.textContent = 'Try again';
+        setButtonLabel(saveButton, 'Try again', false);
         return;
     }
     if (state.status === 'queued') {
         resultSuccessBadge.textContent = 'Processing';
-        resultProcessingTitle.textContent = 'Organizing your opportunity';
+        resultProcessingTitle.textContent = 'Sorting the details. Saving you the tabs.';
         resultProcessingDetail.textContent = 'Your page is safely received. You can close this popup and check back here.';
         resultProcessingProgress.classList.remove('hidden');
         resultProcessing.classList.remove('hidden');
@@ -282,7 +298,7 @@ signInButton.addEventListener('click', async () => {
             throw new Error('Allow access to abodid.com so Safari can finish Google sign-in.');
         }
         signInButton.disabled = true;
-        signInButton.textContent = 'Opening Google…';
+        setButtonLabel(signInButton, 'A quick hello to Google…', true);
         clearStatus();
         const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGIN' });
         if (!response?.ok) throw new Error(response?.error || 'Sign in failed');
@@ -295,14 +311,14 @@ signInButton.addEventListener('click', async () => {
         showError(error instanceof Error ? error.message : 'Sign in failed');
     } finally {
         signInButton.disabled = false;
-        signInButton.textContent = 'Continue with Google →';
+        setButtonLabel(signInButton, 'Continue with Google →', false);
     }
 });
 
 logoutButton.addEventListener('click', async () => {
     clearStatus();
     logoutButton.disabled = true;
-    logoutButton.textContent = 'Logging out…';
+    setButtonLabel(logoutButton, 'Logging out…', true);
     try {
         const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGOUT' });
         if (!response?.ok) throw new Error(response?.error || 'Log out failed');
@@ -311,7 +327,7 @@ logoutButton.addEventListener('click', async () => {
         showError(error instanceof Error ? error.message : 'Log out failed');
     } finally {
         logoutButton.disabled = false;
-        logoutButton.textContent = 'Log out';
+        setButtonLabel(logoutButton, 'Log out', false);
     }
 });
 

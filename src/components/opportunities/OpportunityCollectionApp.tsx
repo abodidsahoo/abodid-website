@@ -1,3 +1,4 @@
+import { OpportunityBusy } from './OpportunityBusy';
 import React, { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
@@ -91,7 +92,7 @@ export default function OpportunityCollectionApp({ username }: { username: strin
     }, [username]);
 
     if (loading) {
-        return <div className="opp-auth-loading" role="status">Opening opportunity collection…</div>;
+        return <div className="opp-auth-loading" role="status"><OpportunityBusy detail="Checking your sign-in and gathering your opportunities.">Making room for your next big thing.</OpportunityBusy></div>;
     }
 
     const isOwner = Boolean(

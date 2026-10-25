@@ -1,3 +1,4 @@
+@import "../src/styles/opportunity-feedback.css";
 :root {
   --blue: #2444ca;
   --pink: #ff7eb5;
@@ -101,3 +102,6 @@ body { width: 360px; max-height: 600px; overflow-y: auto; overflow-x: hidden; }
 .account-actions button:hover { border-color: var(--ink); }
 .account-footer :where(button, a):focus-visible { outline-color: var(--blue); }
 .account-footer.is-pending .account-actions { visibility: hidden; }
+.capture-progress > .opp-wave-dots { justify-self: end; color: var(--blue); }
+.result-processing > .opp-wave-dots { color: var(--blue); justify-self: start; }
+.result-processing .opp-wave-dots i { inline-size: 5px; block-size: 5px; }

@@ -1,3 +1,4 @@
+import { OpportunityBusy } from './OpportunityBusy';
 import React from 'react';
 import type { Opportunity } from '../../lib/opportunities/types';
 import {
@@ -153,7 +154,7 @@ export const OpportunityListItem: React.FC<OpportunityListItemProps> = ({
                             disabled={radarState === 'adding' || radarState === 'added' || radarState === 'already'}
                             aria-label={`${getRadarButtonLabel(radarState)}: ${displayTitle}`}
                         >
-                            {getRadarButtonLabel(radarState)}
+                            {radarState === 'adding' ? <OpportunityBusy>Adding…</OpportunityBusy> : getRadarButtonLabel(radarState)}
                         </button>
                     )}
                 </div>
