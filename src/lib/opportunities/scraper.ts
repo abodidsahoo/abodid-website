@@ -447,10 +447,14 @@ export function extractHtmlTitle(html: string): string {
     return $('title').first().text().replace(/\s+/g, ' ').trim();
 }
 
-import { extractText } from 'unpdf';
-
 const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB limit
 const MAX_PDF_PAGES = 30; // 30 pages limit
+let unpdfPromise: Promise<typeof import('unpdf')> | undefined;
+
+const loadUnpdf = () => {
+    unpdfPromise ??= import('unpdf');
+    return unpdfPromise;
+};
 
 /**
  * Fetches the webpage or PDF content server-side with timeout and realistic User-Agent.
@@ -503,6 +507,7 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
                 throw new Error(`PDF exceeds the 10 MB limit (${sizeMb} MB). Please add this opportunity manually to conserve AI tokens.`);
             }
 
+            const { extractText } = await loadUnpdf();
             const { text: pdfPagesText, totalPages } = await extractText(pdfBytes, { mergePages: true });
 
             if (totalPages > MAX_PDF_PAGES) {
@@ -567,6 +572,7 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
                                 await embeddedFetch.release();
                             }
                             if (pdfBuf.byteLength <= MAX_PDF_SIZE_BYTES) {
+                                const { extractText } = await loadUnpdf();
                                 const { text: embeddedPdfText, totalPages } = await extractText(pdfBuf, { mergePages: true });
                                 if (totalPages <= MAX_PDF_PAGES) {
                                     const fullText = typeof embeddedPdfText === 'string' ? embeddedPdfText : (Array.isArray(embeddedPdfText) ? (embeddedPdfText as string[]).join('\n\n') : '');

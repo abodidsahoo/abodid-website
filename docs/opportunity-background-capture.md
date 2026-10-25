@@ -1,10 +1,10 @@
 # Opportunity background capture
 
-URL, pasted-note, and attachment captures use one durable Supabase job receipt. Vercel starts processing immediately with `waitUntil`; Supabase Cron retries pending, delayed, or stale work every minute. The dashboard, browser extension, and future messaging adapters all feed the same extraction and save services.
+URL, pasted-note, and attachment captures use one durable Supabase job receipt. Vercel starts processing immediately with `waitUntil`; Supabase Cron checks for pending, delayed, or stale work every minute inside Postgres and calls Vercel only when work exists. The dashboard, browser extension, and future messaging adapters all feed the same extraction and save services.
 
 ## Production status
 
-URL background capture was activated on 2026-10-20 for `https://abodid.com`. Storage migration `20261020220000` and scheduler migration `20261020221000` are applied and recorded in Supabase. Migration `20261020230000` extends the same queue to notes and temporary private attachments. `OPPORTUNITIES_CRON_SECRET` is stored as a Vercel Production secret, the matching value is stored in Supabase Vault as `opportunities_cron_secret`, and scheduled recovery requests complete with HTTP 200. The secret value is not stored in this repository.
+URL background capture was activated on 2026-10-20 for `https://abodid.com`. Storage migration `20261020220000` and scheduler migration `20261020221000` are applied and recorded in Supabase. Migration `20261020230000` extends the same queue to notes and temporary private attachments. Migration `20261024180338` was applied to production on 2026-10-25; both opportunity cron jobs now check for claimable work inside Postgres and do not invoke Vercel while the system is idle. `OPPORTUNITIES_CRON_SECRET` is stored as a Vercel Production secret, the matching value is stored in Supabase Vault as `opportunities_cron_secret`, and scheduled recovery requests complete with HTTP 200. The secret value is not stored in this repository.
 
 ## Safe activation order for another environment
 
@@ -15,9 +15,11 @@ URL background capture was activated on 2026-10-20 for `https://abodid.com`. Sto
    - Supabase Vault: `opportunities_cron_secret`
 4. Apply `supabase/migrations/20261020221000_schedule_opportunity_capture_jobs.sql` to activate one-minute recovery. It deliberately fails if the Vault secret is absent.
 5. Apply `supabase/migrations/20261020230000_expand_opportunity_capture_jobs.sql`. It adds note/attachment states, cleanup timestamps, and the private `opportunity-capture-files` bucket. It does not alter or delete saved opportunities.
-6. Submit a URL from the dashboard, close the tab after “Safely captured,” then confirm the opportunity appears after reopening.
-7. Submit a note and an attachment. For an attachment, keep the tab open only through “Uploading securely” and close it after “Safely captured.” Confirm both become `succeeded` jobs.
-8. Repeat a URL from the unpacked Chrome extension and inspect `opportunity_capture_jobs` for a `succeeded` row.
+6. Apply `supabase/migrations/20261021120000_create_telegram_integration.sql` and `supabase/migrations/20261021150000_create_opportunity_reminders.sql` before the cron gates, because the gated worker checks their durable event and reminder tables.
+7. Apply `supabase/migrations/20261024180338_gate_opportunity_cron_http_calls.sql` so the minute-level database checks only issue HTTP requests when work is ready.
+8. Submit a URL from the dashboard, close the tab after “Safely captured,” then confirm the opportunity appears after reopening.
+9. Submit a note and an attachment. For an attachment, keep the tab open only through “Uploading securely” and close it after “Safely captured.” Confirm both become `succeeded` jobs.
+10. Repeat a URL from the unpacked Chrome extension and inspect `opportunity_capture_jobs` for a `succeeded` row.
 
 The repository has historical local migrations that are intentionally not all present in the linked project's migration history. Do not run an unreviewed blanket `supabase db push`. Apply each migration above by itself, then mark only the version actually applied in migration history if the deployment workflow requires it.
 

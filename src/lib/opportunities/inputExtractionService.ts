@@ -3,8 +3,6 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import ffmpegPath from 'ffmpeg-static';
-import { extractText, getDocumentProxy } from 'unpdf';
 import {
     extractOpportunityWithLLM,
     parseEventDate,
@@ -26,6 +24,19 @@ const PDF_PAGES_TO_READ = 6;
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const TEXT_TYPES = new Set(['text/plain', 'text/markdown']);
 const VIDEO_TYPES = new Set(['video/mp4', 'video/webm', 'video/quicktime']);
+
+let unpdfPromise: Promise<typeof import('unpdf')> | undefined;
+let ffmpegPathPromise: Promise<string | null> | undefined;
+
+const loadUnpdf = () => {
+    unpdfPromise ??= import('unpdf');
+    return unpdfPromise;
+};
+
+const loadFfmpegPath = () => {
+    ffmpegPathPromise ??= import('ffmpeg-static').then((module) => module.default);
+    return ffmpegPathPromise;
+};
 
 export class OpportunityInputExtractionError extends Error {
     constructor(
@@ -118,6 +129,7 @@ const toDataUrl = async (file: File) => {
 };
 
 const readPdfText = async (file: File) => {
+    const { extractText, getDocumentProxy } = await loadUnpdf();
     const bytes = new Uint8Array(await file.arrayBuffer());
     const pdf = await getDocumentProxy(bytes);
     try {
@@ -139,6 +151,7 @@ const readPdfText = async (file: File) => {
 };
 
 const runFfmpeg = async (args: string[]) => {
+    const ffmpegPath = await loadFfmpegPath();
     if (!ffmpegPath) {
         throw new OpportunityInputExtractionError(
             'Video analysis is temporarily unavailable.',

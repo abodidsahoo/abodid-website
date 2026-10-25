@@ -2,8 +2,6 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getHomeNextContent } from "../../../lib/homeNextContent";
 
-export const prerender = false;
-
 const content = await getHomeNextContent();
 ---
 

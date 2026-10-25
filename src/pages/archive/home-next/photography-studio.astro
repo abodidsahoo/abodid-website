@@ -4,8 +4,6 @@ import InlineInquiryForm from "../../../components/InlineInquiryForm.astro";
 import Newsletter from "../../../components/Newsletter.astro";
 import { getHomeNextContent } from "../../../lib/homeNextArchive20260828Content";
 
-export const prerender = false;
-
 const content = await getHomeNextContent();
 const serviceGroups = Object.entries(
   content.services.reduce((groups, service) => {

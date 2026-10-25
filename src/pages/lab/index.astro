@@ -3,7 +3,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ContactProtection from "../../components/ContactProtection.astro";
 import LabExperimentCards from "../../components/lab/LabExperimentCards.astro";
 
-export const prerender = false;
 
 // Lab cards are managed independently in the admin. Serve a five-minute fresh
 // response and keep the last good response available while it revalidates.
