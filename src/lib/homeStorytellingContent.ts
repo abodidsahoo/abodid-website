@@ -316,7 +316,7 @@ const fallbackTestimonials = [
 export async function getHomeStorytellingContent() {
   const [brandResult, testimonialResult, cardsResult] = await Promise.allSettled([
     supabase.from("brands").select("id,name,logo_url,role,category,display_order").order("display_order", { ascending: true }).limit(100),
-    supabase.from("testimonials").select("id,name,role,company,content,created_at").eq("is_approved", true).order("created_at", { ascending: false }),
+    supabase.from("testimonials").select("id,name,role,company,content,service_context,created_at").eq("is_approved", true).order("created_at", { ascending: false }),
     supabase.from("home_storytelling_cards").select("*").eq("visible", true).order("sort_order", { ascending: true }),
   ]);
 

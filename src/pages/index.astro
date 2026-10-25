@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import TestimonialContext from "../components/TestimonialContext.astro";
 import InlineInquiryForm from "../components/InlineInquiryForm.astro";
 import Newsletter from "../components/Newsletter.astro";
 import LandingInteractiveHero from "../components/LandingInteractiveHero.jsx";
@@ -334,6 +335,7 @@ const structuredData = [
                           </span>
                         )}
                       </span>
+                      <TestimonialContext context={testimonial.service_context} />
                     </footer>
                     <div class="story-quote__actions">
                       {hasMore ? (

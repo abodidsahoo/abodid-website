@@ -1,0 +1,36 @@
+---
+interface Props {
+  context?: string | null;
+}
+
+const { context } = Astro.props;
+---
+
+{context && <p class="testimonial-context"><span class="context-label">Context: </span>{context}</p>}
+
+<style>
+  .testimonial-context {
+    grid-column: 1 / -1;
+    justify-self: start;
+    align-self: flex-start;
+    width: fit-content;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0.4rem 0 0;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid currentColor;
+    border-radius: 0.35rem;
+    color: inherit;
+    font: 650 0.75rem/1.35 var(--font-mono, monospace);
+    overflow-wrap: anywhere;
+  }
+
+  .context-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import TestimonialContext from "../components/TestimonialContext.astro";
 import { supabase } from "../lib/supabase";
 
 let testimonials = [];
@@ -96,6 +97,7 @@ const description = "Notes from people who have worked, made and collaborated wi
                     <footer>
                       <strong>{testimonial.name || "Anonymous"}</strong>
                       {detail && <span>{detail}</span>}
+                      <TestimonialContext context={testimonial.service_context} />
                     </footer>
                   </article>
                 );

@@ -2791,6 +2791,7 @@ export type Database = {
           is_approved: boolean | null
           name: string
           role: string | null
+          service_context: string | null
         }
         Insert: {
           company?: string | null
@@ -2800,6 +2801,7 @@ export type Database = {
           is_approved?: boolean | null
           name: string
           role?: string | null
+          service_context?: string | null
         }
         Update: {
           company?: string | null
@@ -2809,6 +2811,7 @@ export type Database = {
           is_approved?: boolean | null
           name?: string
           role?: string | null
+          service_context?: string | null
         }
         Relationships: []
       }
