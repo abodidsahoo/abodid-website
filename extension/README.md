@@ -104,3 +104,7 @@ Authentication uses the Supabase auth-only client with the same persisted sessio
 ### Waiting feedback (2.1.9)
 
 Session checks, sign-in/logout buttons, sending and queued capture status use three wave dots and clear status text. A subtle glow marks active waiting controls. Both effects stop for reduced-motion preferences, keeping the indicator and text visible. Completed receipts stop animating. The shared CSS is bundled locally; no dependency or browser permission is added. The website’s four-step Quick tour can be dismissed or replayed from Settings and explains Telegram voice notes and the extension’s current availability.
+
+### Clean waiting states (2.1.10)
+
+Busy labels use direct status text without trailing ellipses, with wave dots centered beneath the label. Initial page/account placeholders and queued capture copy follow the same pattern. Persistent progress, reduced-motion behavior and permissions are unchanged.

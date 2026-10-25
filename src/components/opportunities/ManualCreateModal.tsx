@@ -409,7 +409,7 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
 
                     <div className="opp-modal-footer opp-create-modal-footer">
                         <button type="button" className="opp-btn opp-btn-secondary" onClick={onClose} disabled={isBusy}>Cancel</button>
-                        <button type="submit" className="opp-btn opp-btn-save" disabled={isBusy}>{isProcessing ? <OpportunityBusy>Reading between the lines…</OpportunityBusy> : isSaving ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save opportunity'}</button>
+                        <button type="submit" className="opp-btn opp-btn-save" disabled={isBusy}>{isProcessing ? <OpportunityBusy>Processing opportunity</OpportunityBusy> : isSaving ? <OpportunityBusy>Saving</OpportunityBusy> : 'Save opportunity'}</button>
                     </div>
                 </form>
             </div>

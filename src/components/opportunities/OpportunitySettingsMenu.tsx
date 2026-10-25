@@ -293,7 +293,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                     else void updateTelegramConnection();
                 }}>
                     {telegramStatus === 'active' ? <CheckCircle2 size={25} aria-hidden="true" /> : <Send size={25} aria-hidden="true" />}
-                    <span><strong>{telegramStatus === 'active' ? 'Telegram connected' : 'Connect to Telegram'}</strong><small>{isUpdatingTelegram ? <OpportunityBusy>Connecting…</OpportunityBusy> : telegramStatus === 'loading' ? <OpportunityBusy>Checking connection…</OpportunityBusy> : telegramStatus === 'active' ? 'Manage your Telegram connection.' : telegramStatus === 'unavailable' ? 'Check connection setup in Settings.' : 'Capture messages and voice notes.'}</small></span>
+                    <span><strong>{telegramStatus === 'active' ? 'Telegram connected' : 'Connect to Telegram'}</strong><small>{isUpdatingTelegram ? <OpportunityBusy>Connecting</OpportunityBusy> : telegramStatus === 'loading' ? <OpportunityBusy>Checking connection</OpportunityBusy> : telegramStatus === 'active' ? 'Manage your Telegram connection.' : telegramStatus === 'unavailable' ? 'Check connection setup in Settings.' : 'Capture messages and voice notes.'}</small></span>
                     <ArrowUpRight size={18} aria-hidden="true" />
                 </button>
             </div>}
@@ -389,7 +389,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                                 onClick={() => void updateTelegramConnection()}
                             >
                                 {isUpdatingTelegram
-                                    ? <OpportunityBusy>Connecting the dots…</OpportunityBusy>
+                                    ? <OpportunityBusy>Connecting</OpportunityBusy>
                                     : telegramStatus === 'active'
                                         ? 'Disconnect'
                                         : telegramStatus === 'pending'

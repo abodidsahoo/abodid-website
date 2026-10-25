@@ -368,7 +368,7 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
                             Cancel
                         </button>
                         <button type="submit" className="opp-btn opp-btn-save" disabled={isSaving}>
-                            {isSaving ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save opportunity'}
+                            {isSaving ? <OpportunityBusy>Saving</OpportunityBusy> : 'Save opportunity'}
                         </button>
                     </div>
                 </form>

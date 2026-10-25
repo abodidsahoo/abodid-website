@@ -8595,3 +8595,8 @@ button.opp-detail-deadline-card,
   .opp-capture-file .opp-capture-file-name { max-width: 38vw; }
 }
 @media (max-width: 360px) { .opp-quick-integration { padding-block: 12px; } }
+
+/* Keep authentication status and its decorative wave in one centered block. */
+.opp-auth-callback > div { text-align: center; }
+.opp-auth-callback [hidden] { display: none; }
+.opp-auth-callback h1 { margin: 0 0 20px; font-size: clamp(1.5rem, 4vw, 2.25rem); line-height: 1.15; text-wrap: balance; }

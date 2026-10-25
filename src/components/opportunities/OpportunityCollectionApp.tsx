@@ -92,7 +92,7 @@ export default function OpportunityCollectionApp({ username }: { username: strin
     }, [username]);
 
     if (loading) {
-        return <div className="opp-auth-loading" role="status"><OpportunityBusy detail="Checking your sign-in and gathering your opportunities.">Making room for your next big thing.</OpportunityBusy></div>;
+        return <div className="opp-auth-loading" role="status"><OpportunityBusy>Opening Opportunity Tracker</OpportunityBusy></div>;
     }
 
     const isOwner = Boolean(

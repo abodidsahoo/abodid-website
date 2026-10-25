@@ -4,7 +4,7 @@
 >
 > Manifest source: `extension/manifests/chrome.json`
 >
-> Release version: `2.1.9` (draft)
+> Release version: `2.1.10` (draft)
 
 This file is the source of truth for Chrome Web Store metadata, permission justifications, privacy disclosures, release evidence, and submission blockers. Update it whenever the Chrome manifest, extension behavior, branding, data handling, or store assets change.
 
@@ -65,7 +65,7 @@ SUPPORT
 Questions, privacy requests or bug reports: hello@abodid.com
 Privacy policy: https://abodid.com/privacy
 
-Version 2.1.9 — Adds gentle wave-dot feedback and warmer copy during sign-in and saves, with static indicators for reduced-motion preferences. The dashboard adds a short, replayable first-visit tour. No additional permissions or data collection.
+Version 2.1.10 — Simplifies waiting labels and centers wave dots beneath each status. Reduced-motion support and persistent capture progress remain available. No additional permissions or data collection.
 ```
 
 ## URLs and developer information
@@ -93,7 +93,7 @@ Version 2.1.9 — Adds gentle wave-dot feedback and warmer copy during sign-in a
 | Small promo tile | 440×280 PNG or JPEG | Recommended, missing | Use the Pop Editorial blue, cream and yellow system without unsupported claims |
 | Marquee promo tile | 1400×560 PNG or JPEG | Optional, missing | Create only if merchandising is planned |
 
-Screenshots must show the current `2.1.9` UI and must not include private account data, email addresses, authentication tokens, or opportunity content that cannot be published.
+Screenshots must show the current `2.1.10` UI and must not include private account data, email addresses, authentication tokens, or opportunity content that cannot be published.
 
 ## Permission justifications
 
@@ -230,9 +230,16 @@ Chrome runtime test matrix:
 - The website stores only per-username tour progress/dismissal in local browser storage. It does not add extension storage, browser permissions, remote code, analytics or additional collection. Existing Chrome permission/host justifications and OAuth scopes remain unchanged.
 - Desktop and 390px/320px phone browser checks verify step focus, control/card separation, viewport containment, dismissal, replay and reduced-motion behavior. Extension popup reopening and capture-state regression checks pass with mocked browser APIs. Actual installed Chrome 2.1.9 reload is not yet claimed.
 
+### Clean waiting states (2.1.10)
+
+- Status labels use direct technical copy, with the three decorative wave dots centered beneath the text rather than beside it. Labels paired with the animation have no trailing ellipsis. Initial account/page placeholders and capture feedback follow the same language.
+- Shared website sign-in, session and list loaders remove conversational subtitles. Authentication failures retain their messages and retry links.
+- Packaged CSS, persisted capture receipts, reduced-motion support, permissions, host permissions and privacy disclosures remain unchanged in scope. Store assets still need replacement for this version; installed-browser reload has not been verified for 2.1.10.
+- Verification: production website and all three browser builds pass; 115 opportunity tests and targeted TypeScript checks pass. Headless browser checks verify centered label/dot geometry at 1440px, 768px, 390px and 320px, authentication failure recovery, reduced motion, and restored sending/queued/success/error popup receipts with mocked extension APIs.
+
 ### Performance evidence
 
-- The release output remains compact and is minified with source maps disabled: popup JavaScript 7.98 KB (2.96 KB gzip), popup CSS 8.44 KB (2.47 KB gzip), and background JavaScript 108.49 KB (28.71 KB gzip) in the `2.1.9` Chrome build on 2026-10-25.
+- The release output remains compact and is minified with source maps disabled: popup JavaScript 7.98 KB (2.93 KB gzip), popup CSS 8.56 KB (2.49 KB gzip), and background JavaScript 108.49 KB (28.71 KB gzip) in the `2.1.10` Chrome build on 2026-10-25.
 - Idle, processing and saved views were visually checked at 360×600 on 2026-10-25 using the built popup and mocked extension APIs. Long failure messages wrap without horizontal overflow, account controls have a 44px minimum height, and tall content scrolls within the popup. Local QA images are not yet compliant store screenshots.
 - The extension registers no always-on content script in Chrome. Page extraction is injected only after a user capture action, avoiding work on ordinary page loads.
 - The updated signed-in popup was reloaded and visually verified in real Chrome on 2026-10-14; its first visible state contained the current page title and URL, not the Google sign-in card.
@@ -265,12 +272,13 @@ Chrome runtime test matrix:
 - [ ] Confirm publisher name, verified contact email, visibility and regions in the Developer Dashboard.
 - [ ] Complete the Dashboard Privacy practices form exactly as documented above.
 - [ ] Produce a clean ZIP from `extension/dist/chrome` only; exclude source maps, tests, environment files, repository metadata, `CHROMEWEBSTORE.md`, and development configuration.
-- [ ] Inspect the final ZIP contents and bump the manifest version if `2.1.9` has already been uploaded.
+- [ ] Inspect the final ZIP contents and bump the manifest version if `2.1.10` has already been uploaded.
 
 ## Version history
 
 | Version | Date | Changes | Store status |
 |---|---|---|---|
+| 2.1.10 | 2026-10-25 | Simplifies loading copy and places decorative wave dots below the centered status label across packaged popup and shared website feedback. Removes conversational helper subtitles from initial website loaders. No permission or data-handling changes. | Draft |
 | 2.1.9 | 2026-10-25 | Adds shared three-dot wave feedback, a subtle busy glow and welcoming waiting copy to popup/sign-in/save flows; honors reduced-motion preferences and keeps successful receipts minimal. The web dashboard adds a four-step dismissible/replayable tour with mobile spotlight positioning, Telegram guidance and truthful extension availability. No permissions, host permissions or data categories changed. | Draft |
 | 2.1.8 | 2026-10-25 | Uses an auth-only client with the existing session storage key, refreshes tokens on demand instead of continuously in the worker, bounds auth transport attempts, preserves sign-in during retryable network failures, reports connection errors without raw rejected-fetch logging, and checks local-scope logout errors. Adds regression coverage for outage/recovery. No permissions, host permissions or data categories changed. | Draft |
 | 2.1.7 | 2026-10-25 | Leads with current tab and Save opportunity, groups account identity, View your dashboard and bottom-right Log out in a footer, shows one clear processing or minimal saved receipt, restores the latest receipt across popup/tab changes, keeps accepted and final receipts until replaced or signed out, makes interrupted sending retryable, and guards stale state updates. No permissions or host permissions added; local receipt retention is updated above. | Draft |

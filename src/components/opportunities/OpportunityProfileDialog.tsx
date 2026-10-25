@@ -187,7 +187,7 @@ export const OpportunityProfileDialog: React.FC<OpportunityProfileDialogProps> =
                         Cancel
                     </button>
                     <button type="submit" className="opp-profile-save" disabled={isSaving}>
-                        {isSaving ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save changes'}
+                        {isSaving ? <OpportunityBusy>Saving</OpportunityBusy> : 'Save changes'}
                     </button>
                 </div>
             </form>

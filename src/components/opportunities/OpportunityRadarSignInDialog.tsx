@@ -59,7 +59,7 @@ export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialog
                     autoFocus
                 >
                     <span className="opp-google-mark" aria-hidden="true">G</span>
-                    <span>{isStarting ? <OpportunityBusy>A quick hello to Google…</OpportunityBusy> : 'Continue with Google'}</span>
+                    <span>{isStarting ? <OpportunityBusy>Connecting to Google</OpportunityBusy> : 'Continue with Google'}</span>
                     <span aria-hidden="true">→</span>
                 </button>
                 <button type="button" className="opp-radar-auth-cancel" onClick={closeDialog} disabled={isStarting}>

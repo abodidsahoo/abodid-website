@@ -81,7 +81,7 @@ export default function OpportunityLanding() {
                     <span className="opp-landing-action-label">ORGANIZE YOUR NEXT MOVE</span>
                     <button type="button" className={`opp-google-signin ${checking || signingIn ? 'opp-waiting' : ''}`} aria-busy={checking || signingIn} onClick={signIn} disabled={checking || signingIn}>
                         <span className="opp-google-mark" aria-hidden="true">G</span>
-                        <span>{checking ? <OpportunityBusy>Finding your place…</OpportunityBusy> : signingIn ? <OpportunityBusy>A quick hello to Google…</OpportunityBusy> : 'Continue with Google'}</span>
+                        <span>{checking ? <OpportunityBusy>Checking session</OpportunityBusy> : signingIn ? <OpportunityBusy>Connecting to Google</OpportunityBusy> : 'Continue with Google'}</span>
                         <span aria-hidden="true">→</span>
                     </button>
                     <a className="opp-public-collection-link" href={OPPORTUNITY_CURATED_COLLECTION_PATH}>

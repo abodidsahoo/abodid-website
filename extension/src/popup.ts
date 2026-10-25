@@ -40,6 +40,9 @@ let capturePollTimer: ReturnType<typeof setTimeout> | undefined;
 const setButtonLabel = (button: HTMLButtonElement, label: string, busy = false) => {
     const line = document.createElement('span');
     line.className = 'opp-busy-line';
+    const text = document.createElement('span');
+    text.textContent = label;
+    line.append(text);
     if (busy) {
         const dots = document.createElement('span');
         dots.className = 'opp-wave-dots';
@@ -47,7 +50,6 @@ const setButtonLabel = (button: HTMLButtonElement, label: string, busy = false) 
         dots.append(document.createElement('i'), document.createElement('i'), document.createElement('i'));
         line.append(dots);
     }
-    line.append(document.createTextNode(label));
     button.replaceChildren(line);
     button.classList.toggle('opp-waiting', busy);
     button.setAttribute('aria-busy', String(busy));
@@ -64,7 +66,7 @@ const syncSaveButton = () => {
     saveButton.classList.remove('hidden');
     if (!authResolved) {
         saveButton.disabled = true;
-        setButtonLabel(saveButton, 'Finding your place…', true);
+        setButtonLabel(saveButton, 'Checking session', true);
         return;
     }
     if (!signedIn) {
@@ -192,7 +194,7 @@ const applyCaptureState = (state: CaptureState | null) => {
     }
     if (state.status === 'queued') {
         resultSuccessBadge.textContent = 'Processing';
-        resultProcessingTitle.textContent = 'Sorting the details. Saving you the tabs.';
+        resultProcessingTitle.textContent = 'Processing opportunity';
         resultProcessingDetail.textContent = 'Your page is safely received. You can close this popup and check back here.';
         resultProcessingProgress.classList.remove('hidden');
         resultProcessing.classList.remove('hidden');
@@ -298,7 +300,7 @@ signInButton.addEventListener('click', async () => {
             throw new Error('Allow access to abodid.com so Safari can finish Google sign-in.');
         }
         signInButton.disabled = true;
-        setButtonLabel(signInButton, 'A quick hello to Google…', true);
+        setButtonLabel(signInButton, 'Connecting to Google', true);
         clearStatus();
         const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGIN' });
         if (!response?.ok) throw new Error(response?.error || 'Sign in failed');
@@ -318,7 +320,7 @@ signInButton.addEventListener('click', async () => {
 logoutButton.addEventListener('click', async () => {
     clearStatus();
     logoutButton.disabled = true;
-    setButtonLabel(logoutButton, 'Logging out…', true);
+    setButtonLabel(logoutButton, 'Signing out', true);
     try {
         const response = await sendRuntimeMessage<any>({ type: 'AUTH_LOGOUT' });
         if (!response?.ok) throw new Error(response?.error || 'Log out failed');

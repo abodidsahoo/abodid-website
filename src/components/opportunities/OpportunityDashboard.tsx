@@ -424,7 +424,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             if (job.status === 'pending' || job.status === 'processing') {
                 setCaptureProgress(captureNotice(
                     'Capture received',
-                    'Sorting the details. Saving you the tabs.',
+                    'Processing opportunity',
                     'It is safely stored. You can close this tab.',
                 ));
                 captureJobPollTimerRef.current = window.setTimeout(() => {
@@ -702,7 +702,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 clearCaptureAttachments();
                 setCaptureProgress(captureNotice(
                     'Capture received',
-                    'Sorting the details. Saving you the tabs.',
+                    'Processing opportunity',
                     'It is safely stored. You can close this tab.',
                 ));
                 keepBackgroundProgress = true;
@@ -1184,15 +1184,14 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                     className="opp-btn opp-btn-primary opp-hero-btn"
                                     disabled={isCapturing}
                                 >
-                                    {isCapturing ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save opportunity'}
+                                    {isCapturing ? <OpportunityBusy>Saving</OpportunityBusy> : 'Save opportunity'}
                                 </button>
                             </form>
                             {captureProgress && (
                                 <aside className="opp-capture-processing" role="status" aria-live="polite" aria-atomic="true">
                                     <span className="opp-capture-processing-eyebrow">{captureProgress.eyebrow}</span>
-                                    <strong>{captureProgress.title}</strong>
+                                    <strong><OpportunityBusy>{captureProgress.title}</OpportunityBusy></strong>
                                     <span>{captureProgress.detail}</span>
-                                    <OpportunityWaveDots />
                                 </aside>
                             )}
                             {captureError && (
@@ -1357,7 +1356,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         try { await fetchOpportunities(true); } finally { setIsRefreshing(false); }
                     }}>
                         <RefreshCw size={16} aria-hidden="true" />
-                        <span>{isRefreshing ? <OpportunityBusy>Freshening up…</OpportunityBusy> : 'Refresh list'}</span>
+                        <span>{isRefreshing ? <OpportunityBusy>Refreshing</OpportunityBusy> : 'Refresh list'}</span>
                     </button>
                     {/* Filter Button with Badge and Dropdown Anchor */}
                     <div className="opp-filter-anchor-wrap">
@@ -1528,7 +1527,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             {/* Opportunities Grid / Empty State */}
             {isLoading ? (
                 <div className="opp-loading-state" role="status">
-                    <OpportunityBusy detail="Your next move is worth a moment.">Rounding up your opportunities…</OpportunityBusy>
+                    <OpportunityBusy>Loading opportunities</OpportunityBusy>
                 </div>
             ) : loadError ? (
                 <div className="opp-load-error" role="alert">
@@ -1798,7 +1797,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 <OpportunityQuickTour username={username} replayKey={tourReplayKey} suspended={Boolean(isLoading || loadError || editingOpp || isProfileDialogOpen || selectedDetailId || isCapturing || captureProgress)} />
             )}
             {/* Toast Notification */}
-            {isLoggingOut && <div className="opp-toast" role="status"><OpportunityBusy detail="Signing you out.">See you at the next big thing.</OpportunityBusy></div>}
+            {isLoggingOut && <div className="opp-toast" role="status"><OpportunityBusy>Signing out</OpportunityBusy></div>}
             {!isLoggingOut && toastMessage && <div className="opp-toast" role="status" aria-live="polite">{toastMessage}</div>}
         </div>
     );

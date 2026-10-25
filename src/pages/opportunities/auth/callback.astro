@@ -16,10 +16,9 @@ import '../../../styles/opportunities-editorial.css';
 >
     <main class="opp-auth-callback" id="main-content">
         <div>
-            <span>GOOGLE AUTHENTICATION</span>
+            <h1 id="opportunity-auth-title">Completing sign-in</h1>
             <div id="opportunity-auth-wave"><span class="opp-wave-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
-            <h1 id="opportunity-auth-title">Your next chapter is loading.</h1>
-            <p id="opportunity-auth-status" role="status" aria-live="polite">A quick sign-in check. Then back to the good stuff.</p>
+            <p id="opportunity-auth-status" role="status" aria-live="polite" hidden></p>
             <a id="opportunity-auth-retry" href="/opportunities" hidden>Return to sign in →</a>
         </div>
     </main>
@@ -39,8 +38,11 @@ import '../../../styles/opportunities-editorial.css';
         const showFailure = (message: string) => {
             document.getElementById('opportunity-auth-wave')?.setAttribute('hidden', '');
             const title = document.getElementById('opportunity-auth-title');
-            if (title) title.textContent = 'Let’s try that again.';
-            if (status) status.textContent = message;
+            if (title) title.textContent = 'Sign-in unavailable';
+            if (status) {
+                status.textContent = message;
+                status.hidden = false;
+            }
             if (retry) retry.hidden = false;
         };
 

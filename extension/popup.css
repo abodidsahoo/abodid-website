@@ -32,7 +32,7 @@ button { font: inherit; }
 .target-label { color: rgba(21, 19, 15, 0.5); }
 .target-title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 0.94rem; font-weight: 790; line-height: 1.25; }
 .target-card.is-scanning .target-title { color: rgba(21, 19, 15, 0.54); }
-.capture-progress { min-height: 92px; display: grid; grid-template-columns: minmax(0, 1fr) 34px; align-items: center; gap: 12px; margin-top: 3px; padding: 13px 0 11px; border-block: 1px solid rgba(21, 19, 15, 0.22); }
+.capture-progress { min-height: 92px; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; align-items: center; gap: 12px; margin-top: 3px; padding: 13px 0 11px; border-block: 1px solid rgba(21, 19, 15, 0.22); }
 .capture-progress-copy { display: grid; gap: 4px; }
 .capture-progress-copy strong { font-size: 0.93rem; font-weight: 850; }
 .capture-progress-copy span { color: rgba(21, 19, 15, 0.62); font-size: 0.7rem; line-height: 1.35; }
@@ -45,7 +45,7 @@ button { font: inherit; }
 .result-box { margin-top: 14px; padding: 14px; display: grid; gap: 12px; border: 1.5px solid rgba(21, 19, 15, 0.5); border-radius: 12px; background: #fffdf7; }
 .result-box.is-processing { border-color: rgba(36, 68, 202, 0.34); background: #f5f6ff; }
 .result-success-badge { width: fit-content; max-width: 100%; color: #087b5a; font-size: 0.7rem; font-weight: 850; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; }
-.result-processing { display: grid; gap: 5px; }
+.result-processing { display: grid; gap: 8px; text-align: center; }
 .result-processing strong { font-size: 1rem; line-height: 1.2; }
 .result-processing span { color: rgba(21, 19, 15, 0.64); font-size: 0.76rem; line-height: 1.4; }
 .result-processing progress { inline-size: 100%; block-size: 6px; margin-top: 5px; accent-color: var(--blue); }
@@ -102,6 +102,8 @@ body { width: 360px; max-height: 600px; overflow-y: auto; overflow-x: hidden; }
 .account-actions button:hover { border-color: var(--ink); }
 .account-footer :where(button, a):focus-visible { outline-color: var(--blue); }
 .account-footer.is-pending .account-actions { visibility: hidden; }
-.capture-progress > .opp-wave-dots { justify-self: end; color: var(--blue); }
-.result-processing > .opp-wave-dots { color: var(--blue); justify-self: start; }
+.capture-progress > .opp-wave-dots { justify-self: center; color: var(--blue); }
+.result-processing > .opp-wave-dots { color: var(--blue); justify-self: center; }
 .result-processing .opp-wave-dots i { inline-size: 5px; block-size: 5px; }
+
+.target-card.is-scanning .target-title { display: block; text-align: center; }

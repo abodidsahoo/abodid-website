@@ -85,7 +85,7 @@ export const OpportunityStatusPicker: React.FC<OpportunityStatusPickerProps> = (
                     ))}
                 </select>
             </span>
-            {isUpdating && <span className="opp-status-saving" role="status"><OpportunityBusy>Saving…</OpportunityBusy></span>}
+            {isUpdating && <span className="opp-status-saving" role="status"><OpportunityBusy>Saving</OpportunityBusy></span>}
         </fieldset>
     );
 };

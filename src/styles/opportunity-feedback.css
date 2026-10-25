@@ -3,9 +3,9 @@
 .opp-wave-dots i { display: block; inline-size: 5px; block-size: 5px; border-radius: 50%; background: currentColor; animation: opp-wave 1.35s ease-in-out infinite; }
 .opp-wave-dots i:nth-child(2) { animation-delay: .15s; }
 .opp-wave-dots i:nth-child(3) { animation-delay: .3s; }
-.opp-busy-copy { display: inline-grid; gap: 10px; max-inline-size: 100%; }
-.opp-busy-line { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
-.opp-busy-copy > small { font-size: .78rem; font-weight: 500; line-height: 1.5; opacity: .78; }
+.opp-busy-copy { display: inline-grid; max-inline-size: 100%; text-align: center; }
+.opp-busy-line { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.opp-busy-line > .opp-wave-dots { block-size: 12px; }
 .opp-waiting { outline: 1px solid rgb(255 126 181 / .65); outline-offset: 3px; animation: opp-wait-glow 2.4s ease-in-out infinite; }
 @keyframes opp-wave { 0%, 55%, 100% { transform: translateY(0); opacity: .45; } 25% { transform: translateY(-5px); opacity: 1; } }
 @keyframes opp-wait-glow { 0%,100% { box-shadow: 0 0 0 1px rgb(255 126 181 / .12), 0 0 8px rgb(255 126 181 / .12); } 50% { box-shadow: 0 0 0 2px rgb(255 126 181 / .3), 0 0 18px rgb(255 126 181 / .2); } }

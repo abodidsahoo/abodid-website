@@ -492,7 +492,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                             <form className="opp-deadline-editor" onSubmit={(event) => void saveDeadline(event)}>
                                 <label htmlFor="opp-new-deadline">Add a deadline</label>
                                 <input ref={deadlineInputRef} id="opp-new-deadline" type="date" required value={deadlineDraft} onChange={(event) => setDeadlineDraft(event.target.value)} disabled={isSavingDeadline} />
-                                <button type="submit" disabled={isSavingDeadline}>{isSavingDeadline ? <OpportunityBusy>Saving…</OpportunityBusy> : 'Save deadline'}</button>
+                                <button type="submit" disabled={isSavingDeadline}>{isSavingDeadline ? <OpportunityBusy>Saving</OpportunityBusy> : 'Save deadline'}</button>
                                 <button type="button" onClick={() => setIsDeadlineEditorOpen(false)} disabled={isSavingDeadline}>Cancel</button>
                                 {deadlineError && <p role="alert">{deadlineError}</p>}
                             </form>
@@ -588,7 +588,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                                             Cancel
                                         </button>
                                         <button type="button" className="is-danger" onClick={() => void handleDelete()} disabled={deleteStep === 'deleting'}>
-                                            {deleteStep === 'deleting' ? <OpportunityBusy>Deleting…</OpportunityBusy> : 'Yes, delete'}
+                                            {deleteStep === 'deleting' ? <OpportunityBusy>Deleting</OpportunityBusy> : 'Yes, delete'}
                                         </button>
                                     </div>
                                 )}
@@ -627,7 +627,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                                 disabled={radarState === 'adding' || radarState === 'added' || radarState === 'already'}
                             >
                                 <span className="opp-focus-action-icon"><Radar aria-hidden="true" /></span>
-                                <span>{radarState === 'adding' ? <OpportunityBusy>Adding…</OpportunityBusy> : getRadarButtonLabel(radarState).replace(/^[+✓]\s*/, '')}</span>
+                                <span>{radarState === 'adding' ? <OpportunityBusy>Adding</OpportunityBusy> : getRadarButtonLabel(radarState).replace(/^[+✓]\s*/, '')}</span>
                             </button>
                         ) : (
                             <button
@@ -637,7 +637,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                                 disabled={!isAuthenticated || isMarkingDone}
                             >
                                 <span className="opp-focus-action-icon"><Check aria-hidden="true" /></span>
-                                <span>{isMarkingDone ? <OpportunityBusy>Saving…</OpportunityBusy> : opp.status === 'applied' ? 'Undo done' : 'Mark as done'}</span>
+                                <span>{isMarkingDone ? <OpportunityBusy>Saving</OpportunityBusy> : opp.status === 'applied' ? 'Undo done' : 'Mark as done'}</span>
                             </button>
                         )}
                     </footer>

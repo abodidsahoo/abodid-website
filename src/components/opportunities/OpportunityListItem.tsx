@@ -154,7 +154,7 @@ export const OpportunityListItem: React.FC<OpportunityListItemProps> = ({
                             disabled={radarState === 'adding' || radarState === 'added' || radarState === 'already'}
                             aria-label={`${getRadarButtonLabel(radarState)}: ${displayTitle}`}
                         >
-                            {radarState === 'adding' ? <OpportunityBusy>Adding…</OpportunityBusy> : getRadarButtonLabel(radarState)}
+                            {radarState === 'adding' ? <OpportunityBusy>Adding</OpportunityBusy> : getRadarButtonLabel(radarState)}
                         </button>
                     )}
                 </div>

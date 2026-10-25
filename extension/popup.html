@@ -25,15 +25,14 @@
     <section id="capture-panel" class="pane capture-pane">
       <div id="target-card" class="target-card is-scanning" aria-live="polite">
         <span class="target-label">Current tab</span>
-        <div id="page-title" class="target-title"><span class="opp-wave-dots" aria-hidden="true"><i></i><i></i><i></i></span> Finding your page…</div>
+        <div id="page-title" class="target-title"><span class="opp-busy-line"><span>Loading page</span><span class="opp-wave-dots" aria-hidden="true"><i></i><i></i><i></i></span></span></div>
       </div>
 
-      <button id="save-btn" class="pop-btn" type="button" disabled>Checking tracker…</button>
+      <button id="save-btn" class="pop-btn" type="button" disabled>Checking session</button>
 
       <section id="capture-progress" class="capture-progress hidden" aria-labelledby="capture-progress-title">
         <div class="capture-progress-copy" role="status" aria-live="polite" aria-atomic="true">
           <strong id="capture-progress-title">Saving opportunity</strong>
-          <span>Reading this page. Giving it a proper home.</span>
         </div>
         <span class="opp-wave-dots" aria-hidden="true"><i></i><i></i><i></i></span>
         <p class="capture-close-note">You can close this popup. Progress will be here when you return.</p>
@@ -44,8 +43,8 @@
         <span id="result-success-badge" class="result-success-badge">✓ Saved</span>
         <div id="result-processing" class="result-processing hidden">
           <strong id="result-processing-title">Processing in the background</strong>
-          <span id="result-processing-detail">Your capture is safe. You can close this popup while we organize it.</span>
           <span id="result-processing-progress" class="opp-wave-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="result-processing-detail">You can close this popup and check back here.</span>
         </div>
         <div id="result-details" class="result-details">
           <div class="result-detail result-category-detail">
@@ -69,7 +68,7 @@
 
     <div id="status-msg" class="status-msg" role="status" aria-live="polite" aria-atomic="true"></div>
     <footer id="profile-row" class="account-footer is-pending">
-      <span class="profile-copy"><strong id="profile-name">Making room for your next big thing…</strong><small id="profile-username">Setting your place</small></span>
+      <span class="profile-copy"><strong id="profile-name">Loading account</strong><small id="profile-username"></small></span>
       <div class="account-actions">
         <button id="dashboard-btn" class="dashboard-btn" type="button">View your dashboard <span aria-hidden="true">↗</span></button>
         <button id="logout-btn" class="logout-btn" type="button">Log out</button>
