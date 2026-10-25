@@ -95,7 +95,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
     useLayoutEffect(() => {
         if (!isOpen) return;
         updatePosition();
-        const items = Array.from(menuRef.current?.querySelectorAll<HTMLElement>(INTERACTIVE_ITEM_SELECTOR) || []);
+        const items = Array.from(menuRef.current?.querySelectorAll<HTMLElement>(INTERACTIVE_ITEM_SELECTOR) || []).filter((item) => item.getClientRects().length > 0);
         const item = initialFocusRef.current === 'last' ? items.at(-1) : items[0];
         item?.focus();
     }, [isOpen, updatePosition]);
@@ -221,7 +221,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
     };
 
     const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(INTERACTIVE_ITEM_SELECTOR));
+        const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(INTERACTIVE_ITEM_SELECTOR)).filter((item) => item.getClientRects().length > 0);
         const currentIndex = items.indexOf(document.activeElement as HTMLElement);
         let nextIndex: number | null = null;
 
@@ -306,6 +306,8 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                         closeMenu();
                     }
                 }}
+                aria-label="Settings"
+                title="Settings"
                 aria-controls="opportunity-settings-menu"
                 aria-expanded={isOpen}
                 aria-haspopup="menu"
@@ -316,7 +318,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
 
             </div>
             {showQuickAccess && <div id="opportunity-integrations" className="opp-quick-integrations">
-                <button type="button" className="opp-quick-integration" onClick={() => setIsExtensionHelpOpen(true)}>
+                <button type="button" className="opp-quick-integration opp-quick-extension" onClick={() => setIsExtensionHelpOpen(true)}>
                     <Chrome size={25} aria-hidden="true" />
                     <span><strong>Install Chrome Extension</strong><small>Save opportunities directly from your browser.</small></span>
                     <ArrowUpRight size={18} aria-hidden="true" />
@@ -410,7 +412,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                     </button>
 
                     {onStartTour && <button type="button" role="menuitem" onClick={() => { closeMenu(false); onStartTour(); }}><span>Quick tour</span><span aria-hidden="true">↗</span></button>}
-                    <button type="button" role="menuitem" onClick={() => { closeMenu(false); setIsExtensionHelpOpen(true); }}><span>Install Chrome extension</span><span aria-hidden="true">↗</span></button>
+                    <button type="button" role="menuitem" className="opp-settings-extension" onClick={() => { closeMenu(false); setIsExtensionHelpOpen(true); }}><span>Install Chrome extension</span><span aria-hidden="true">↗</span></button>
                     <a role="menuitem" href={OPPORTUNITY_CURATED_COLLECTION_PATH} onClick={() => setIsOpen(false)}>
                         <span>View Abodid’s curated list</span><span aria-hidden="true">→</span>
                     </a>

@@ -995,22 +995,24 @@ body.opportunities-editorial-page {
 }
 
 .opp-telegram-connection-row > button {
-  min-height: 38px;
+  min-height: 44px;
   padding: 7px 10px;
   border: 1.5px solid var(--opp-ink);
   border-radius: 10px;
-  background: var(--opp-blue);
+  background: var(--opp-yellow);
   color: var(--opp-ink);
+  box-shadow: 2px 2px 0 var(--opp-ink);
   cursor: pointer;
-  font: 800 0.7rem/1 var(--opp-mono);
+  font: 750 0.8rem/1.2 var(--opp-font);
 }
 
 .opp-telegram-connection-row > button:hover:not(:disabled) {
-  background: var(--opp-pink);
+  background: var(--opp-yellow);
+  transform: translateY(-1px);
 }
 
 .opp-telegram-connection-row > button:focus-visible {
-  outline: 2px solid var(--opp-purple);
+  outline: 2px solid var(--opp-ink);
   outline-offset: 2px;
 }
 
@@ -8679,4 +8681,42 @@ button.opp-detail-deadline-card,
 @media (prefers-reduced-motion: reduce) { .opp-refresh-list.is-refreshing .opp-refresh-icon { animation-duration: 6s; } }
 @media (min-width: 1025px) {
   .opp-quick-integration { min-height: 76px; padding-block: 12px; }
+}
+
+/* Share the desktop workspace tracks so both columns have the same upper/lower edges. */
+@media (min-width: 1025px) {
+  .opp-hero-deck.has-quick-access { grid-template-rows: auto auto; row-gap: 20px; }
+  .has-quick-access > .opp-hero-main { grid-column: 1; grid-row: 1 / span 2; grid-template-rows: auto 1fr; grid-template-rows: subgrid; row-gap: inherit; }
+  .has-quick-access .opp-hero-header-row { grid-row: 1; }
+  .has-quick-access .opp-capture-workspace { grid-row: 2; align-self: stretch; align-content: space-between; padding: 20px; gap: 16px; }
+  .has-quick-access > .opp-hero-account-actions { display: grid; justify-content: stretch; grid-template-columns: minmax(0, 1fr); grid-column: 2; grid-row: 1 / span 2; grid-template-rows: auto 1fr; grid-template-rows: subgrid; row-gap: inherit; }
+  .has-quick-access .opp-quick-access { display: grid; height: auto; grid-template-columns: minmax(0, 1fr); grid-row: 1 / span 2; grid-template-rows: auto 1fr; grid-template-rows: subgrid; row-gap: inherit; }
+  .has-quick-access .opp-quick-access-header { grid-row: 1; align-self: start; }
+  .has-quick-access .opp-quick-integrations { grid-row: 2; align-self: stretch; margin-block-start: 0; grid-template-rows: repeat(2, minmax(76px, 1fr)); }
+  .has-quick-access .opp-quick-integration { height: 100%; }
+}
+/* Tablet: one saving column, with integrations disclosed from the greeting's settings icon. */
+@media (max-width: 1024px) {
+  .opp-hero-deck.has-quick-access { grid-template-columns: minmax(0, 1fr) 44px; grid-template-rows: auto auto; gap: 20px 12px; }
+  .has-quick-access > .opp-hero-main,
+  .has-quick-access > .opp-hero-account-actions,
+  .has-quick-access .opp-quick-access { display: contents; }
+  .has-quick-access .opp-hero-header-row { grid-column: 1; grid-row: 1; }
+  .has-quick-access .opp-capture-workspace { grid-column: 1 / -1; grid-row: 2; }
+  .has-quick-access .opp-quick-access-header { grid-column: 2; grid-row: 1; align-self: start; margin-block-start: 22px; }
+  .has-quick-access .opp-user-menu-trigger { width: 44px; height: 44px; min-width: 44px; padding: 0; }
+  .has-quick-access .opp-user-menu-trigger > span { display: none; }
+  .has-quick-access .opp-quick-integrations { display: none; }
+}
+/* Phone: retain Telegram just below saving, without desktop-only installation UI. */
+@media (max-width: 767px) {
+  .has-quick-access .opp-quick-integrations { display: grid; grid-column: 1 / -1; grid-row: 3; grid-template-columns: minmax(0, 1fr); gap: 0; margin: 0; }
+  .has-quick-access .opp-quick-extension,
+  .opp-user-menu-popover > .opp-settings-extension { display: none; }
+  .has-quick-access .opp-quick-integration { min-height: 76px; padding-block: 12px; }
+}
+@media (max-width: 1024px) {
+  .has-quick-access .opp-hero-header-row { min-inline-size: 0; }
+  .has-quick-access .opp-hero-title { overflow-wrap: anywhere; }
+  .has-quick-access .opp-user-menu-trigger > svg { width: 20px; height: 20px; }
 }

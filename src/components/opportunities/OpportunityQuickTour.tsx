@@ -5,6 +5,7 @@ import { OPPORTUNITY_TOUR_STEPS, opportunityTourStorageKey, positionOpportunityT
 
 export function OpportunityQuickTour({ username, replayKey, suspended = false }: { username: string; replayKey: number; suspended?: boolean }) {
     const [compactViewport, setCompactViewport] = useState(false);
+    const [viewportWidth, setViewportWidth] = useState(1280);
     const [step, setStep] = useState<number | null>(null);
     const [geometry, setGeometry] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
     const cardRef = useRef<HTMLDivElement>(null);
@@ -20,7 +21,7 @@ export function OpportunityQuickTour({ username, replayKey, suspended = false }:
     }, [storageKey, replayKey]);
 
     useEffect(() => {
-        const update = () => setCompactViewport((window.visualViewport?.height || innerHeight) < 500);
+        const update = () => { setCompactViewport((window.visualViewport?.height || innerHeight) < 500); setViewportWidth(innerWidth); };
         update();
         window.addEventListener('resize', update);
         window.visualViewport?.addEventListener('resize', update);
@@ -44,7 +45,8 @@ export function OpportunityQuickTour({ username, replayKey, suspended = false }:
         if (step === null || suspended) return;
         const shortViewport = compactViewport || (window.visualViewport?.height || innerHeight) < 500;
         const selector = shortViewport && step === 0 ? '#opportunity-save-form .opp-capture-input-shell'
-            : shortViewport && step === 3 ? '#opportunity-integrations .opp-telegram-quick-menu > button'
+            : step === 3 && viewportWidth <= 1024 ? '#opportunity-settings-trigger'
+                : shortViewport && step === 3 ? '#opportunity-integrations .opp-telegram-quick-menu > button'
                 : OPPORTUNITY_TOUR_STEPS[step].target;
         const target = document.querySelector<HTMLElement>(selector);
         const card = cardRef.current;
@@ -97,10 +99,12 @@ export function OpportunityQuickTour({ username, replayKey, suspended = false }:
             if (previousAnchor) target.style.setProperty('anchor-name', previousAnchor); else target.style.removeProperty('anchor-name');
             if (nativePopover && card.matches(':popover-open')) card.hidePopover();
         };
-    }, [step, suspended, compactViewport]);
+    }, [step, suspended, compactViewport, viewportWidth]);
 
     if (step === null || suspended || typeof document === 'undefined') return null;
-    const content = OPPORTUNITY_TOUR_STEPS[step];
+    const content = step === 3 && viewportWidth <= 1024
+        ? { ...OPPORTUNITY_TOUR_STEPS[step], copy: 'Open Settings to connect Telegram and manage your account.' }
+        : OPPORTUNITY_TOUR_STEPS[step];
     return createPortal(<>
         {geometry && <div className="opp-tour-spotlight" style={geometry} aria-hidden="true" />}
         <div ref={cardRef} className="opp-quick-tour" role="dialog" aria-labelledby="opp-tour-title" aria-describedby="opp-tour-copy">
