@@ -12,12 +12,10 @@ async function ready(page: import("@playwright/test").Page) {
   });
   await expect(page.locator("canvas")).toBeVisible();
   await expect(page.locator("[data-marker]:visible").first()).toBeVisible();
-  const dims = await page
-    .locator(".globe-stage")
-    .evaluate((el) => ({
-      stage: el.clientHeight,
-      canvas: el.querySelector("canvas")!.getBoundingClientRect().height,
-    }));
+  const dims = await page.locator(".globe-stage").evaluate((el) => ({
+    stage: el.clientHeight,
+    canvas: el.querySelector("canvas")!.getBoundingClientRect().height,
+  }));
   expect(Math.abs(dims.canvas - dims.stage)).toBeLessThan(2);
 }
 test("starts with a default artist, a permanent card and an in-globe discovery control", async ({
@@ -185,8 +183,12 @@ for (const [width, height] of [
     expect(globe.width).toBeGreaterThan(globe.height);
     if (width <= 980) expect(panel.y).toBeGreaterThan(globe.y + globe.height);
     else expect(panel.x).toBeGreaterThan(globe.x + globe.width);
-    if (width <= 720)
+    if (width <= 720) {
       await expect(page.locator(".artist-panel h2")).toBeInViewport();
+      const label = (await page.locator(".spotlight-name").boundingBox())!,
+        discover = (await page.locator(".discover-button").boundingBox())!;
+      expect(label.y + label.height).toBeLessThanOrEqual(discover.y - 2);
+    }
     await page.screenshot({
       path: `/tmp/globe-v3-${width}.png`,
       fullPage: true,

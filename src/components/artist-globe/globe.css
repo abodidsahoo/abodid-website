@@ -1156,3 +1156,22 @@ canvas:focus-visible {
     position: static;
   }
 }
+.spotlight-name strong {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 720px) {
+  .spotlight-name {
+    top: calc(50% + 42px);
+  }
+}
+@media (max-width: 360px) {
+  .spotlight-name {
+    top: calc(50% + 40px);
+  }
+  .spotlight-name span {
+    display: none;
+  }
+}
