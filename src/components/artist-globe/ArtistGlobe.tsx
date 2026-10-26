@@ -6,6 +6,8 @@ import {
   type Artist,
 } from "../../lib/artist-globe/data";
 import type { createGlobe } from "./scene";
+import NominateArtist from "./NominateArtist";
+import Wanderers from "./Wanderers";
 type Globe = Awaited<ReturnType<typeof createGlobe>>;
 export default function ArtistGlobe() {
   const [artists, setArtists] = useState(demoArtists);
@@ -14,11 +16,11 @@ export default function ArtistGlobe() {
   const [pinned, setPinned] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [spin, setSpin] = useState(false);
+  const [discovering, setDiscovering] = useState(false);
   const [query, setQuery] = useState("");
   const [directory, setDirectory] = useState(false);
   const [time, setTime] = useState("");
-  const [elapsed, setElapsed] = useState(0);
+
   const [hover, setHover] = useState<Artist | null>(null);
   const host = useRef<HTMLDivElement>(null),
     scene = useRef<Globe>();
@@ -43,7 +45,7 @@ export default function ArtistGlobe() {
       .finally(() => {
         if (!abort.signal.aborted) setDataLoaded(true);
       });
-    const start = Date.now();
+
     const tick = () => {
       setTime(
         new Intl.DateTimeFormat("en-GB", {
@@ -53,9 +55,8 @@ export default function ArtistGlobe() {
           timeZoneName: "short",
         }).format(new Date()),
       );
-      setElapsed(Math.floor((Date.now() - start) / 1000));
     };
-    setSpin(!matchMedia("(prefers-reduced-motion: reduce)").matches);
+
     tick();
     const timer = setInterval(tick, 1000);
     return () => {
@@ -77,7 +78,7 @@ export default function ArtistGlobe() {
           () => {
             if (!cancelled) setReady(true);
           },
-          () => setSpin(false),
+          () => {},
         );
       })
       .then((result) => {
@@ -154,56 +155,35 @@ export default function ArtistGlobe() {
     setHover(null);
     if (focus) {
       scene.current?.focus(artist);
-      setSpin(false);
     }
   };
-  const countries = new Set(artists.map((a) => a.country)).size;
+  const discover = async () => {
+    if (discovering || !ready) return;
+    const alternatives = artists.filter((a) => a.id !== selected?.id);
+    const artist = (alternatives.length ? alternatives : artists)[
+      Math.floor(Math.random() * (alternatives.length || artists.length))
+    ];
+    setDiscovering(true);
+    setHover(null);
+    try {
+      const completed = await scene.current?.discover(artist);
+      if (completed) {
+        setSelected(artist);
+        setPinned(false);
+      }
+    } finally {
+      setDiscovering(false);
+    }
+  };
   const filtered = artists.filter((a) =>
     `${a.name} ${a.current_city} ${a.country} ${a.disciplines.join(" ")}`
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
-  const demo = artists.every((a) => a.is_demo);
+
   return (
     <div className="artist-atlas">
-      <section className="atlas-intro">
-        <div>
-          <p className="micro eyebrow">
-            <span className="signal" /> Open atlas / No. 001
-          </p>
-          <h1>
-            Art in every
-            <br />
-            <span>corner.</span>
-            <span className="title-star" aria-hidden="true">
-              ✳
-            </span>
-          </h1>
-        </div>
-        <div className="intro-note">
-          <p>
-            Somewhere, someone
-            <br />
-            is making something.
-          </p>
-          <span>
-            Spin the world. Follow a point.
-            <br />
-            Find another way of seeing.
-          </span>
-        </div>
-      </section>
-      <div className="atlas-topline">
-        <span className="micro">
-          {String(artists.length).padStart(2, "0")} artists · {countries}{" "}
-          countries · One shared planet
-        </span>
-        <span className="demo-badge">
-          {demo
-            ? "Demo atlas · fictional profiles"
-            : "Artist atlas · demo profiles labelled"}
-        </span>
-      </div>
+      <h1 className="atlas-title">Art in Every Corner</h1>
       <section
         className={`observatory ${pinned && selected ? "is-pinned" : ""}`}
         aria-label="Artist globe explorer"
@@ -219,13 +199,7 @@ export default function ArtistGlobe() {
             }
           }}
         >
-          <div className="space-meta micro">
-            <span>Earth / Third from the sun</span>
-            <span>23.4° axial curiosity</span>
-          </div>
           <div className="globe-stage" ref={host}>
-            <div className="orbit orbit-one" aria-hidden="true" />
-            <div className="orbit orbit-two" aria-hidden="true" />
             {artists.map((a) => (
               <button
                 type="button"
@@ -275,11 +249,6 @@ export default function ArtistGlobe() {
             </div>
           )}
           <div className="workspace-bottom">
-            <p className="micro gesture-hint">
-              Drag to wander
-              <br />
-              Pinch or scroll to get closer
-            </p>
             <div className="globe-controls" aria-label="Globe controls">
               <button
                 aria-label="Zoom out"
@@ -294,178 +263,154 @@ export default function ArtistGlobe() {
                 +
               </button>
               <button
-                aria-label="Auto rotate"
-                aria-pressed={spin}
-                onClick={() => {
-                  setSpin(!spin);
-                  scene.current?.spin(!spin);
-                }}
+                aria-label="Show whole globe"
+                onClick={() => scene.current?.reset()}
               >
-                {spin ? "Ⅱ" : "▷"}
+                ◎
               </button>
             </div>
           </div>
         </div>
-        {selected ? (
-          <aside
-            className="artist-panel"
-            ref={panel}
-            aria-label="Selected artist"
+        <div className="artist-rail">
+          <button
+            className={`discover-button ${discovering ? "is-spinning" : ""}`}
+            disabled={!ready || discovering}
+            onClick={discover}
           >
-            <div className="panel-tools">
-              <span className="micro">
-                Field note / {selected.id.replace("demo-", "")}
-              </span>
-              <div>
-                <button
-                  aria-pressed={pinned}
-                  onClick={() => setPinned(!pinned)}
-                >
-                  {pinned ? "Unpin" : "Pin"}
-                </button>
-                <button aria-label="Close artist details" onClick={close}>
-                  ×
-                </button>
-              </div>
-            </div>
-            <div className="artist-summary" aria-live="polite">
-              <span className="profile-symbol" aria-hidden="true">
-                ✳
-              </span>
-              {selected.is_demo && (
-                <span className="demo-badge">Fictional demo artist</span>
-              )}
-              <h2>{selected.name}</h2>
-              <p className="artist-practice">
-                {selected.disciplines.join(" & ")}
-              </p>
-              <p className="artist-location">
-                {selected.current_city}, {selected.country}
-              </p>
-              <a className="mobile-detail-link" href="#artist-story">
-                Scroll for their story ↓
-              </a>
-            </div>
-            <div className="artist-story" id="artist-story">
-              <p className="micro">A practice, in place</p>
-              <p>{selected.biography}</p>
-              {selected.origin && (
-                <p className="origin">Origin: {selected.origin}</p>
-              )}
-              <div className="artist-tags">
-                {selected.tags.map((tag) => (
-                  <span key={tag}>{tag}</span>
-                ))}
-              </div>
-              {selected.artist_statement && (
-                <blockquote>“{selected.artist_statement}”</blockquote>
-              )}
-              <div className="artist-links">
-                {safeUrl(selected.portfolio_url) && (
-                  <a
-                    href={safeUrl(selected.portfolio_url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+            <span aria-hidden="true">↻</span>{" "}
+            {discovering ? "Discovering…" : "Discover an Artist!"}
+          </button>
+          {selected ? (
+            <aside
+              className="artist-panel"
+              ref={panel}
+              aria-label="Selected artist"
+            >
+              <div className="panel-tools">
+                <span className="micro">
+                  Great artist{" "}
+                  {String(
+                    selected.artist_number ?? artists.indexOf(selected) + 1,
+                  ).padStart(3, "0")}
+                </span>
+                <div>
+                  <button
+                    aria-pressed={pinned}
+                    onClick={() => setPinned(!pinned)}
                   >
-                    Portfolio ↗
-                  </a>
+                    {pinned ? "Unpin" : "Pin"}
+                  </button>
+                  <button aria-label="Close artist details" onClick={close}>
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div className="artist-summary" aria-live="polite">
+                <span className="profile-symbol" aria-hidden="true">
+                  ✳
+                </span>
+                <h2>{selected.name}</h2>
+                <p className="artist-practice">
+                  {selected.disciplines.join(" & ")}
+                </p>
+                <p className="artist-location">
+                  {selected.current_city}, {selected.country}
+                </p>
+                <a className="mobile-detail-link" href="#artist-story">
+                  Scroll for their story ↓
+                </a>
+              </div>
+              <div className="artist-story" id="artist-story">
+                <p className="micro">A practice, in place</p>
+                <p>{selected.biography}</p>
+                {selected.origin && (
+                  <p className="origin">Origin: {selected.origin}</p>
                 )}
-                {safeUrl(selected.instagram_url) && (
-                  <a
-                    href={safeUrl(selected.instagram_url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Instagram ↗
-                  </a>
+                <div className="artist-tags">
+                  {selected.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+                {selected.artist_statement && (
+                  <blockquote>“{selected.artist_statement}”</blockquote>
                 )}
-                {selected.public_email &&
-                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selected.public_email) && (
-                    <a href={`mailto:${selected.public_email}`}>
-                      Professional email ↗
+                <div className="artist-links">
+                  {safeUrl(selected.portfolio_url) && (
+                    <a
+                      href={safeUrl(selected.portfolio_url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Portfolio ↗
                     </a>
                   )}
-              </div>
-              {!!selected.artwork_urls?.filter(safeUrl).length && (
-                <div className="artwork-gallery">
-                  {selected.artwork_urls
-                    .filter(safeUrl)
-                    .slice(0, 4)
-                    .map((url, i) => (
-                      <a
-                        href={url}
-                        key={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <img
-                          src={url}
-                          alt={`Artwork ${i + 1} by ${selected.name}`}
-                          loading="lazy"
-                          onError={(e) => {
-                            e.currentTarget.parentElement!.hidden = true;
-                          }}
-                        />
+                  {safeUrl(selected.instagram_url) && (
+                    <a
+                      href={safeUrl(selected.instagram_url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Instagram ↗
+                    </a>
+                  )}
+                  {selected.public_email &&
+                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                      selected.public_email,
+                    ) && (
+                      <a href={`mailto:${selected.public_email}`}>
+                        Professional email ↗
                       </a>
-                    ))}
+                    )}
                 </div>
-              )}
-              {selected.sources?.filter(safeUrl).map((url, i) => (
-                <a
-                  className="source-link"
-                  href={url}
-                  key={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Source {i + 1} ↗
-                </a>
-              ))}
-              {selected.is_demo && (
-                <p className="demo-disclosure">
-                  This person and their story are invented for the prototype. No
-                  real biography, artwork, or contact details are implied.
-                </p>
-              )}
-            </div>
-          </aside>
-        ) : (
-          <aside className="atlas-invitation">
-            <span className="micro">A small invitation</span>
-            <p>
-              There’s a whole
-              <br />
-              world of ways
-              <br />
-              to make.
-            </p>
-            <span className="invitation-star" aria-hidden="true">
-              ✳
-            </span>
-            <p className="invitation-small">
-              Every point is a practice.
-              <br />
-              Pick one. Stay curious.
-            </p>
-            <button
-              onClick={() => {
-                const a = artists[Math.floor(Math.random() * artists.length)];
-                select(a, undefined, true);
-              }}
-            >
-              Take me somewhere <span aria-hidden="true">↗</span>
-            </button>
-          </aside>
-        )}
+                {!!selected.artwork_urls?.filter(safeUrl).length && (
+                  <div className="artwork-gallery">
+                    {selected.artwork_urls
+                      .filter(safeUrl)
+                      .slice(0, 4)
+                      .map((url, i) => (
+                        <a
+                          href={url}
+                          key={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={url}
+                            alt={`Artwork ${i + 1} by ${selected.name}`}
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.parentElement!.hidden = true;
+                            }}
+                          />
+                        </a>
+                      ))}
+                  </div>
+                )}
+                {selected.sources?.filter(safeUrl).map((url, i) => (
+                  <a
+                    className="source-link"
+                    href={url}
+                    key={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Source {i + 1} ↗
+                  </a>
+                ))}
+                {selected.is_demo && (
+                  <p className="demo-disclosure">
+                    This person and their story are invented for the prototype.
+                    No real biography, artwork, or contact details are implied.
+                  </p>
+                )}
+              </div>
+            </aside>
+          ) : null}
+        </div>
       </section>
       <div className="atlas-readout">
         <span className="micro">
           <span className="signal" /> Your local time <time>{time || "—"}</time>
-        </span>
-        <span className="micro desktop-data">
-          Time spent wandering{" "}
-          {String(Math.floor(elapsed / 60)).padStart(2, "0")}:
-          {String(elapsed % 60).padStart(2, "0")}
         </span>
         <button
           className="directory-toggle"
@@ -524,6 +469,10 @@ export default function ArtistGlobe() {
           <p>No artists match that search. Try another place or practice.</p>
         )}
       </section>
+      <div className="atlas-community">
+        <NominateArtist />
+        <Wanderers />
+      </div>
       <noscript>
         The interactive atlas needs JavaScript. All profiles in this initial
         edition are fictional demonstrations.

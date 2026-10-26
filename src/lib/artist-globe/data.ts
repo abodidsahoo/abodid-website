@@ -1,4 +1,5 @@
 export interface Artist {
+  artist_number?: number;
   id: string;
   name: string;
   origin: string;
@@ -89,6 +90,7 @@ const places: [string, string, string, number, number, string][] = [
 export const demoArtists: Artist[] = places.map(
   ([name, current_city, country, latitude, longitude, practice], i) => ({
     id: `demo-${String(i + 1).padStart(3, "0")}`,
+    artist_number: i + 1,
     name,
     current_city,
     country,

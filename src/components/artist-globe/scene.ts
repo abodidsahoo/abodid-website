@@ -1,393 +1,401 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import {
+  Map,
+  ScaleControl,
+  setWorkerUrl,
+  type StyleSpecification,
+} from "maplibre-gl";
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+import "maplibre-gl/dist/maplibre-gl.css";
 import type { Artist } from "../../lib/artist-globe/data";
-export function position(latitude: number, longitude: number, radius = 1.015) {
-  const lat = (latitude * Math.PI) / 180,
-    lon = (longitude * Math.PI) / 180;
-  return new THREE.Vector3(
-    radius * Math.cos(lat) * Math.cos(lon),
-    radius * Math.sin(lat),
-    -radius * Math.cos(lat) * Math.sin(lon),
-  );
-}
+import {
+  angularVisibility,
+  altitudeKm,
+  maxRegionalZoom,
+  spinPose,
+} from "../../lib/artist-globe/geography";
+setWorkerUrl(workerUrl);
+const style: StyleSpecification = {
+  version: 8,
+  projection: { type: "globe" },
+  glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  sources: {
+    world: {
+      type: "vector",
+      url: "https://tiles.openfreemap.org/planet",
+      attribution:
+        '<a href="https://openfreemap.org">OpenFreeMap</a> · © <a href="https://www.openmaptiles.org/">OpenMapTiles</a> · © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    },
+  },
+  layers: [
+    {
+      id: "land",
+      type: "background",
+      paint: { "background-color": "#fff8e8" },
+    },
+    {
+      id: "water",
+      type: "fill",
+      source: "world",
+      "source-layer": "water",
+      paint: { "fill-color": "#2444ca" },
+    },
+    {
+      id: "green",
+      type: "fill",
+      source: "world",
+      "source-layer": "park",
+      minzoom: 8,
+      paint: { "fill-color": "#caff48", "fill-opacity": 0.25 },
+    },
+    {
+      id: "rivers",
+      type: "line",
+      source: "world",
+      "source-layer": "waterway",
+      minzoom: 7,
+      paint: { "line-color": "#2444ca", "line-width": 1 },
+    },
+    {
+      id: "boundaries",
+      type: "line",
+      source: "world",
+      "source-layer": "boundary",
+      minzoom: 4,
+      paint: {
+        "line-color": "#15130f",
+        "line-opacity": 0.18,
+        "line-width": 0.6,
+      },
+    },
+    {
+      id: "roads",
+      type: "line",
+      source: "world",
+      "source-layer": "transportation",
+      minzoom: 9,
+      paint: {
+        "line-color": "#15130f",
+        "line-opacity": 0.18,
+        "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.4, 14, 1.5],
+      },
+    },
+    {
+      id: "places",
+      type: "symbol",
+      source: "world",
+      "source-layer": "place",
+      minzoom: 5,
+      layout: {
+        "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 5, 11, 12, 14],
+        "text-max-width": 10,
+      },
+      paint: {
+        "text-color": "#15130f",
+        "text-halo-color": "#fff8e8",
+        "text-halo-width": 2,
+      },
+    },
+  ],
+};
 export async function createGlobe(
   host: HTMLElement,
   artists: Artist[],
   onReady: () => void,
   onStop: () => void = () => {},
 ) {
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true,
-    powerPreference: "low-power",
-  });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
-  renderer.setClearColor(0, 0);
-  host.prepend(renderer.domElement);
-  renderer.domElement.tabIndex = 0;
-  renderer.domElement.setAttribute(
-    "aria-label",
-    "Interactive Earth. Drag to rotate, pinch or scroll to zoom. Arrow keys rotate; plus and minus zoom. Artist list follows.",
-  );
-  renderer.domElement.setAttribute("role", "group");
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 30);
-  const initial = position(
-    10 + Math.random() * 35,
-    Math.random() * 360 - 180,
-    3.65,
-  );
-  camera.position.copy(initial);
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enablePan = false;
-  controls.enableZoom = false;
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.065;
-  controls.minDistance = 3.2;
-  controls.maxDistance = 4.6;
-  controls.rotateSpeed = 0.55;
-  controls.zoomSpeed = 0.55;
-  controls.minPolarAngle = 0.24;
-  controls.maxPolarAngle = Math.PI - 0.24;
+  const surface = document.createElement("div");
+  surface.className = "map-surface";
+  host.prepend(surface);
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-  controls.autoRotate = !reduced.matches;
-  controls.autoRotateSpeed = 0.22;
-  scene.add(new THREE.AmbientLight(0xffffff, 2.1));
-  const light = new THREE.DirectionalLight(0xffffff, 2);
-  light.position.set(-3, 5, 4);
-  scene.add(light);
-  const globe = new THREE.Group();
-  scene.add(globe);
-  const geometry = new THREE.SphereGeometry(1, 80, 48);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x2444ca,
-    roughness: 1,
-    metalness: 0,
-    flatShading: true,
+  const worldZoom = () =>
+    Math.log2(Math.min(host.clientWidth, host.clientHeight) / 512) + 1.42;
+  const map = new Map({
+    container: surface,
+    style,
+    center: [Math.random() * 360 - 180, Math.random() * 50 - 25],
+    zoom: worldZoom(),
+    minZoom: worldZoom() - 0.1,
+    maxZoom: 15,
+    maxPitch: 0,
+    pitch: 0,
+    attributionControl: { compact: true },
+    renderWorldCopies: false,
+    pixelRatio: Math.min(devicePixelRatio, 1.75),
+    canvasContextAttributes: { antialias: true },
+    fadeDuration: reduced.matches ? 0 : 180,
   });
-  globe.add(new THREE.Mesh(geometry, material));
-  let texture: THREE.CanvasTexture | undefined;
-  let disposed = false;
-  const abort = new AbortController();
-  try {
-    const response = await fetch("/data/artist-globe/land.json", {
-      signal: AbortSignal.any([abort.signal, AbortSignal.timeout(10000)]),
-    });
-    if (!response.ok) throw Error("Geography unavailable");
-    const polygons: number[][][][] = await response.json();
-    if (disposed) return;
-    const map = document.createElement("canvas");
-    map.width = 2048;
-    map.height = 1024;
-    const ctx = map.getContext("2d")!;
-    ctx.fillStyle = "#2444ca";
-    ctx.fillRect(0, 0, map.width, map.height);
-    ctx.fillStyle = "#fff8e8";
-    for (const polygon of polygons) {
-      ctx.beginPath();
-      for (const ring of polygon)
-        ring.forEach(([lon, lat], i) => {
-          const x = ((lon + 180) / 360) * map.width,
-            y = ((90 - lat) / 180) * map.height;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        });
-      ctx.closePath();
-      ctx.fill("evenodd");
-    }
-    // SphereGeometry's UV seam is at -X; longitude zero faces +X.
-    texture = new THREE.CanvasTexture(map);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    material.color.set(0xffffff);
-    material.map = texture;
-    material.needsUpdate = true;
-  } catch (error) {
-    renderer.dispose();
-    controls.dispose();
-    geometry.dispose();
-    material.dispose();
-    renderer.domElement.remove();
-    throw error;
-  }
-  const gridMaterial = new THREE.LineBasicMaterial({
-    color: 0xfff8e8,
-    transparent: true,
-    opacity: 0.13,
-  });
-  const grid = new THREE.Group();
-  globe.add(grid);
-  for (let lat = -60; lat <= 60; lat += 30) {
-    const points = Array.from({ length: 129 }, (_, i) =>
-      position(lat, (i / 128) * 360 - 180, 1.003),
-    );
-    grid.add(
-      new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(points),
-        gridMaterial,
-      ),
-    );
-  }
-  for (let lon = -180; lon < 180; lon += 30) {
-    const points = Array.from({ length: 65 }, (_, i) =>
-      position((i / 64) * 180 - 90, lon, 1.003),
-    );
-    grid.add(
-      new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(points),
-        gridMaterial,
-      ),
-    );
-  }
-  const markerGeometry = new THREE.SphereGeometry(0.009, 8, 6);
-  const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xffe44f });
-  const markers = new THREE.InstancedMesh(
-    markerGeometry,
-    markerMaterial,
-    artists.length,
+  map.dragRotate.disable();
+  map.touchZoomRotate.disable();
+  map.touchPitch.disable();
+  map.addControl(
+    new ScaleControl({ maxWidth: 90, unit: "metric" }),
+    "bottom-left",
   );
-  const dummy = new THREE.Object3D();
-  const locations = artists.map((a) => position(a.latitude, a.longitude));
-  locations.forEach((p, i) => {
-    dummy.position.copy(p);
-    dummy.updateMatrix();
-    markers.setMatrixAt(i, dummy.matrix);
+  const canvas = map.getCanvas();
+  canvas.setAttribute(
+    "aria-label",
+    "Interactive artist globe. Drag to rotate, pinch or scroll to zoom into regional detail. Arrow keys move; plus and minus zoom.",
+  );
+  // Handle two-finger zoom on the entire viewport, including marker hit areas.
+  // Keeping touch-action scoped here preserves normal scrolling outside the globe.
+  let pinching = false,
+    pinchStart = 0,
+    pinchZoom = 0,
+    gestureZoom = 0;
+  const distance = (touches: TouchList) =>
+    Math.hypot(
+      touches[0].clientX - touches[1].clientX,
+      touches[0].clientY - touches[1].clientY,
+    );
+  const touchStart = (event: TouchEvent) => {
+    if (event.touches.length !== 2) return;
+    event.preventDefault();
+    event.stopPropagation();
+    pinching = true;
+    pinchStart = distance(event.touches);
+    pinchZoom = map.getZoom();
+    map.stop();
+    map.dragPan.disable();
+  };
+  const touchMove = (event: TouchEvent) => {
+    if (!pinching) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.touches.length === 2 && pinchStart > 0)
+      map.jumpTo({
+        zoom: pinchZoom + Math.log2(distance(event.touches) / pinchStart),
+      });
+  };
+  const touchEnd = (event: TouchEvent) => {
+    if (event.touches.length < 2 && pinching) {
+      pinching = false;
+      map.dragPan.enable();
+    }
+  };
+  const gestureStart = (event: Event) => {
+    event.preventDefault();
+    gestureZoom = map.getZoom();
+  };
+  const gestureChange = (event: Event) => {
+    event.preventDefault();
+    const scale = (event as Event & { scale: number }).scale;
+    if (scale > 0) map.jumpTo({ zoom: gestureZoom + Math.log2(scale) });
+  };
+  host.addEventListener("touchstart", touchStart, {
+    passive: false,
+    capture: true,
   });
-  globe.add(markers);
+  host.addEventListener("touchmove", touchMove, {
+    passive: false,
+    capture: true,
+  });
+  host.addEventListener("touchend", touchEnd);
+  host.addEventListener("touchcancel", touchEnd);
+  host.addEventListener("gesturestart", gestureStart, { passive: false });
+  host.addEventListener("gesturechange", gestureChange, { passive: false });
   const buttons = artists.map((a) =>
     host.querySelector<HTMLButtonElement>(
       `[data-marker="${CSS.escape(a.id)}"]`,
     ),
   );
-  let width = 1,
-    height = 1,
-    visible = true,
-    frame = 0,
-    last = performance.now(),
-    targetZoom = 3.65;
-  let destination: THREE.Vector3 | null = null;
-  const resize = new ResizeObserver(([entry]) => {
-    width = entry.contentRect.width;
-    height = entry.contentRect.height;
-    if (width && height) {
-      renderer.setSize(width, height);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-    }
-  });
-  resize.observe(host);
-  let running = true;
-  const projection = new THREE.Vector3(),
-    normal = new THREE.Vector3(),
-    towardCamera = new THREE.Vector3();
-  const arc = new THREE.Quaternion(),
-    easedArc = new THREE.Quaternion();
-  const from = new THREE.Vector3(),
-    to = new THREE.Vector3();
-  const draw = (now: number) => {
-    if (!running || disposed) return;
-    const delta = Math.min((now - last) / 1000, 0.05);
-    last = now;
-    if (destination) {
-      // Travel along the sphere instead of cutting through the planet.
-      from.copy(camera.position).normalize();
-      to.copy(destination).normalize();
-      arc.setFromUnitVectors(from, to);
-      easedArc
-        .identity()
-        .slerp(arc, reduced.matches ? 1 : 1 - Math.exp(-delta * 6));
-      camera.position.applyQuaternion(easedArc);
-      if (from.angleTo(to) < 0.002) destination = null;
-    }
-    // Interpolate log radius: wheel, buttons and pinch share the same bounded zoom.
-    const zoomBlend = reduced.matches ? 1 : 1 - Math.exp(-delta * 12);
-    camera.position.setLength(
-      Math.exp(
-        THREE.MathUtils.lerp(
-          Math.log(camera.position.length()),
-          Math.log(targetZoom),
-          zoomBlend,
-        ),
-      ),
-    );
-    controls.update(delta);
-    globe.rotation.z =
-      reduced.matches || !controls.autoRotate
-        ? 0
-        : Math.sin(now * 0.00045) * 0.012;
-    globe.updateMatrixWorld(true);
-    gridMaterial.opacity = camera.position.length() < 3.5 ? 0.19 : 0.09;
-    renderer.render(scene, camera);
+  let destroyed = false,
+    spinning = false,
+    spinFrame = 0,
+    spinElapsed = 0,
+    spinLast = 0;
+  let spinResolve: ((done: boolean) => void) | undefined;
+  const stopSpin = (done = false) => {
+    if (!spinning) return;
+    spinning = false;
+    cancelAnimationFrame(spinFrame);
+    map.dragPan.enable();
+    map.scrollZoom.enable();
+    map.touchZoomRotate.disable();
+    spinResolve?.(done);
+    spinResolve = undefined;
+  };
+  const update = () => {
+    if (destroyed) return;
+    const center = map.getCenter(),
+      zoom = map.getZoom(),
+      width = host.clientWidth,
+      height = host.clientHeight;
     const occupied: [number, number][] = [];
-    locations.forEach((point, i) => {
+    const maximum = maxRegionalZoom(center.lat, height);
+    if (Math.abs(map.getMaxZoom() - maximum) > 0.1) map.setMaxZoom(maximum);
+    host.dataset.zoom = zoom.toFixed(3);
+    host.dataset.altitudeKm = altitudeKm(zoom, center.lat, height).toFixed(1);
+    artists.forEach((a, i) => {
       const button = buttons[i];
       if (!button) return;
-      projection.copy(point).applyMatrix4(globe.matrixWorld);
-      normal.copy(projection).normalize();
-      towardCamera.copy(camera.position).sub(projection).normalize();
-      projection.project(camera);
-      const x = (projection.x * 0.5 + 0.5) * width,
-        y = (-projection.y * 0.5 + 0.5) * height;
+      const p = map.project([a.longitude, a.latitude]);
       const hidden =
-        normal.dot(towardCamera) < 0.12 ||
-        projection.z > 1 ||
-        occupied.some(([px, py]) => Math.hypot(px - x, py - y) < 30);
+        (zoom < 5 &&
+          angularVisibility(a.latitude, a.longitude, center.lat, center.lng) <
+            0.08) ||
+        p.x < 0 ||
+        p.y < 0 ||
+        p.x > width ||
+        p.y > height ||
+        occupied.some(([x, y]) => Math.hypot(x - p.x, y - p.y) < 36);
       button.hidden = hidden;
       if (!hidden) {
-        occupied.push([x, y]);
-        button.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`;
+        occupied.push([p.x, p.y]);
+        button.style.transform = `translate(${p.x}px,${p.y}px) translate(-50%,-50%)`;
       }
     });
-    frame = requestAnimationFrame(draw);
   };
-  const start = () => {
-    if (!running) {
-      running = true;
-      last = performance.now();
-      frame = requestAnimationFrame(draw);
-    }
-  };
-  const stop = () => {
-    running = false;
-    cancelAnimationFrame(frame);
-  };
-  const visibility = () => {
-    if (document.hidden || !visible) stop();
-    else start();
-  };
-  const intersection = new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting;
-    visibility();
+  map.on("render", update);
+  const loadPromise = new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(
+      () => reject(Error("Map loading timed out")),
+      18000,
+    );
+    map.once("load", () => {
+      clearTimeout(timeout);
+      map.once("idle", () => {
+        update();
+        onReady();
+        resolve();
+      });
+      map.triggerRepaint();
+    });
+    map.once("error", (event) => {
+      if (!map.isStyleLoaded()) {
+        clearTimeout(timeout);
+        reject(event.error);
+      }
+    });
   });
-  intersection.observe(host);
-  document.addEventListener("visibilitychange", visibility);
-  const motion = () => {
-    controls.enableDamping = !reduced.matches;
-    controls.autoRotate = !reduced.matches;
-    if (reduced.matches) onStop();
-  };
-  motion();
-  reduced.addEventListener("change", motion);
-  const interact = () => {
-    destination = null;
-    controls.autoRotate = false;
+  try {
+    await loadPromise;
+  } catch (error) {
+    map.remove();
+    surface.remove();
+    throw error;
+  }
+  const resize = new ResizeObserver(() => {
+    const before = map.getMinZoom();
+    map.resize();
+    map.setMinZoom(worldZoom() - 0.1);
+    if (map.getZoom() < before + 0.25) map.setZoom(worldZoom());
+    update();
+  });
+  resize.observe(host);
+  const stopFromInput = () => {
+    stopSpin();
     onStop();
   };
-  controls.addEventListener("start", interact);
-  const wheel = (event: WheelEvent) => {
-    event.preventDefault();
-    interact();
-    const pixels =
-      event.deltaY *
-      (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? height : 1);
-    targetZoom = THREE.MathUtils.clamp(
-      targetZoom * Math.exp(THREE.MathUtils.clamp(pixels * 0.001, -0.5, 0.5)),
-      3.2,
-      4.6,
-    );
-  };
-  const touches = new Map<number, THREE.Vector2>();
-  let pinchDistance = 0;
-  const pointerDown = (event: PointerEvent) => {
-    if (event.pointerType !== "touch") return;
-    touches.set(
-      event.pointerId,
-      new THREE.Vector2(event.clientX, event.clientY),
-    );
-    if (touches.size === 2) {
-      const [a, b] = [...touches.values()];
-      pinchDistance = a.distanceTo(b);
+  canvas.addEventListener("pointerdown", stopFromInput);
+  const visibility = () => {
+    if (document.hidden) {
+      map.stop();
+      cancelAnimationFrame(spinFrame);
+    } else if (spinning) {
+      spinLast = performance.now();
+      spinFrame = requestAnimationFrame(animateSpin);
     }
   };
-  const pointerMove = (event: PointerEvent) => {
-    if (!touches.has(event.pointerId)) return;
-    touches.get(event.pointerId)!.set(event.clientX, event.clientY);
-    if (touches.size === 2) {
-      const [a, b] = [...touches.values()],
-        distance = a.distanceTo(b);
-      if (pinchDistance > 0 && distance > 0)
-        targetZoom = THREE.MathUtils.clamp(
-          (targetZoom * pinchDistance) / distance,
-          3.2,
-          4.6,
-        );
-      pinchDistance = distance;
-    }
-  };
-  const pointerUp = (event: PointerEvent) => {
-    touches.delete(event.pointerId);
-    pinchDistance = 0;
-  };
-  renderer.domElement.addEventListener("wheel", wheel, { passive: false });
-  renderer.domElement.addEventListener("pointerdown", pointerDown);
-  renderer.domElement.addEventListener("pointermove", pointerMove);
-  renderer.domElement.addEventListener("pointerup", pointerUp);
-  renderer.domElement.addEventListener("pointercancel", pointerUp);
-  const key = (event: KeyboardEvent) => {
-    const spherical = new THREE.Spherical().setFromVector3(camera.position);
-    if (event.key === "ArrowLeft") spherical.theta -= 0.12;
-    else if (event.key === "ArrowRight") spherical.theta += 0.12;
-    else if (event.key === "ArrowUp")
-      spherical.phi = Math.max(0.24, spherical.phi - 0.12);
-    else if (event.key === "ArrowDown")
-      spherical.phi = Math.min(Math.PI - 0.24, spherical.phi + 0.12);
-    else if (event.key === "+" || event.key === "=")
-      spherical.radius = Math.max(3.2, spherical.radius * 0.9);
-    else if (event.key === "-")
-      spherical.radius = Math.min(4.6, spherical.radius / 0.9);
-    else return;
-    event.preventDefault();
-    interact();
-    targetZoom = spherical.radius;
-    destination = new THREE.Vector3().setFromSpherical(spherical);
-  };
-  renderer.domElement.addEventListener("keydown", key);
-  frame = requestAnimationFrame(draw);
-  onReady();
+  let animateSpin: (now: number) => void = () => {};
+  document.addEventListener("visibilitychange", visibility);
+  const observer = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) map.stop();
+  });
+  observer.observe(host);
   return {
     focus(artist: Artist) {
-      controls.autoRotate = false;
-      destination = position(
-        artist.latitude,
-        artist.longitude,
-        camera.position.length(),
-      );
+      stopSpin();
+      map.easeTo({
+        center: [artist.longitude, artist.latitude],
+        bearing: 0,
+        zoom: Math.min(map.getZoom(), 5),
+        duration: reduced.matches ? 0 : 650,
+      });
     },
     zoom(direction: number) {
-      targetZoom = THREE.MathUtils.clamp(
-        targetZoom * Math.exp(direction * 0.14),
-        3.2,
-        4.6,
-      );
+      stopSpin();
+      map.zoomTo(map.getZoom() - direction * 0.8, {
+        duration: reduced.matches ? 0 : 300,
+      });
     },
-    spin(enabled: boolean) {
-      controls.autoRotate = enabled;
+    reset() {
+      stopSpin();
+      map.easeTo({
+        zoom: worldZoom(),
+        bearing: 0,
+        duration: reduced.matches ? 0 : 700,
+      });
+    },
+    async discover(artist: Artist) {
+      stopSpin();
+      map.stop();
+      const start = {
+        lng: map.getCenter().lng,
+        lat: map.getCenter().lat,
+        bearing: map.getBearing(),
+      };
+      const target = { lng: artist.longitude, lat: artist.latitude };
+      if (reduced.matches) {
+        map.jumpTo({
+          center: [target.lng, target.lat],
+          zoom: worldZoom(),
+          bearing: 0,
+        });
+        return true;
+      }
+      const direction = Math.random() < 0.5 ? -1 : 1;
+      spinning = true;
+      spinElapsed = 0;
+      spinLast = performance.now();
+      map.dragPan.disable();
+      map.scrollZoom.disable();
+      map.touchZoomRotate.disable();
+      const initialZoom = map.getZoom();
+      const promise = new Promise<boolean>((resolve) => {
+        spinResolve = resolve;
+      });
+      animateSpin = (now: number) => {
+        if (destroyed || !spinning) return;
+        spinElapsed += Math.min(now - spinLast, 64);
+        spinLast = now;
+        const p = Math.min(1, spinElapsed / 3000),
+          pose = spinPose(start, target, p, direction);
+        map.jumpTo({
+          center: [pose.lng, Math.max(-80, Math.min(80, pose.lat))],
+          bearing: pose.bearing,
+          zoom: initialZoom + (worldZoom() - initialZoom) * Math.min(1, p * 5),
+        });
+        if (p < 1) spinFrame = requestAnimationFrame(animateSpin);
+        else {
+          map.jumpTo({
+            center: [target.lng, target.lat],
+            bearing: 0,
+            zoom: worldZoom(),
+          });
+          stopSpin(true);
+        }
+      };
+      spinFrame = requestAnimationFrame(animateSpin);
+      return promise;
     },
     dispose() {
-      disposed = true;
-      abort.abort();
-      stop();
+      destroyed = true;
+      stopSpin();
       resize.disconnect();
-      intersection.disconnect();
+      observer.disconnect();
       document.removeEventListener("visibilitychange", visibility);
-      reduced.removeEventListener("change", motion);
-      controls.dispose();
-      renderer.domElement.removeEventListener("wheel", wheel);
-      renderer.domElement.removeEventListener("pointerdown", pointerDown);
-      renderer.domElement.removeEventListener("pointermove", pointerMove);
-      renderer.domElement.removeEventListener("pointerup", pointerUp);
-      renderer.domElement.removeEventListener("pointercancel", pointerUp);
-      renderer.domElement.removeEventListener("keydown", key);
-      scene.traverse((o) => {
-        if (o instanceof THREE.Mesh || o instanceof THREE.Line)
-          o.geometry.dispose();
-      });
-      texture?.dispose();
-      material.dispose();
-      gridMaterial.dispose();
-      markers.dispose();
-      markerMaterial.dispose();
-      renderer.dispose();
-      renderer.domElement.remove();
+      canvas.removeEventListener("pointerdown", stopFromInput);
+      host.removeEventListener("touchstart", touchStart, true);
+      host.removeEventListener("touchmove", touchMove, true);
+      host.removeEventListener("touchend", touchEnd);
+      host.removeEventListener("touchcancel", touchEnd);
+      host.removeEventListener("gesturestart", gestureStart);
+      host.removeEventListener("gesturechange", gestureChange);
+      map.off("render", update);
+      map.remove();
+      surface.remove();
     },
   };
 }

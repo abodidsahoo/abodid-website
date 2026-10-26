@@ -11,7 +11,7 @@ export const GET: APIRoute = async () => {
       const { data, error } = await client
         .from("art_globe_artists")
         .select(
-          "id,name,origin,current_city,country,latitude,longitude,disciplines,tags,biography,artist_statement,portfolio_url,instagram_url,public_email,artwork_urls,sources,is_demo",
+          "id,artist_number,name,origin,current_city,country,latitude,longitude,disciplines,tags,biography,artist_statement,portfolio_url,instagram_url,public_email,artwork_urls,sources,is_demo",
         )
         .eq("published", true)
         .order("name")
