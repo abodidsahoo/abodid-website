@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+const media = '/images/lab/art-in-every-corner';
+const gestures = [
+  ['01', 'Wander', 'Drag the planet and follow the countries, places and artist dots that come into view. The nearest practice comes forward as you settle.'],
+  ['02', 'Take a chance', 'Click or flick the die. It tumbles as the globe turns, then settles on another artist at the crosshair.'],
+  ['03', 'Follow the work', 'Open the available artist websites, social profiles and sources, or use the personalised learn-more link to keep exploring.'],
+];
+const stack = [
+  ['Astro + React', 'Astro provides the page and API; React connects the selected artist, search, label settings and profile card.'],
+  ['Three.js + CSS 3D', 'A faceted Earth and a polished, rounded die bring the objects to life. The coordinate controls use small rotating digit drums.'],
+  ['Supabase', 'One artist table holds names, places, practices and outward links. The current starting collection contains 216 profiles.'],
+  ['Natural Earth + GeoNames', 'Local map geometry, country boundaries and place labels give the globe its geographical context.'],
+];
+---
+
+<BaseLayout
+  title="Art in Every Corner — A playful artist-discovery globe"
+  description="Why I built a playful globe to discover and share artists beyond the familiar art-world routes, and how the experiment works."
+  image={`${media}/globe-quito.webp`}
+  imageAlt="The working Art in Every Corner globe discovering Adrián Balseca in Ecuador"
+  canonicalUrl="https://abodid.com/lab/art-in-every-corner/about"
+  fullWidth={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="artist-globe-story-page"
+>
+  <article class="globe-story">
+    <nav class="story-nav" aria-label="Project navigation">
+      <a href="/lab">← Back to Lab</a>
+      <a href="/lab/art-in-every-corner">Explore the globe ↗</a>
+    </nav>
+    <header class="story-hero">
+      <p class="story-kicker">Artist discovery · Creative technology · 2026</p>
+      <h1>Art in<br />Every Corner</h1>
+      <div class="hero-bottom">
+        <p>An urge to discover artists beyond the familiar art-world routes, turned into a small planet you can play with.</p>
+        <a class="story-button" href="/lab/art-in-every-corner">Explore the globe <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+    <figure class="story-image story-image--hero">
+      <img src={`${media}/globe-quito.webp`} alt="The globe focused on Ecuador, with Adrián Balseca’s place, practice and links in the artist card" width="1200" height="510" fetchpriority="high" />
+      <figcaption>A working view of the experiment: a place, an artist, and a path into their practice.</figcaption>
+    </figure>
+    <dl class="story-facts">
+      <div><dt>Role</dt><dd>Concept, design & development<br />Abodid Sahoo</dd></div>
+      <div><dt>Format</dt><dd>Interactive web experiment</dd></div>
+      <div><dt>Starting point</dt><dd>216 artist profiles</dd></div>
+      <div><dt>Made with</dt><dd>Astro · React · Three.js · Supabase</dd></div>
+    </dl>
+    <section class="story-split story-why" aria-labelledby="why-heading">
+      <div><p class="story-kicker">Why I made it</p><h2>Curiosity needs<br />room to wander.</h2></div>
+      <div class="story-prose">
+        <p>I keep wanting to discover an artist I don’t already know, spend time with their work, and share that discovery with someone else. I wanted to give that impulse a place to live.</p>
+        <p>New York, London and Berlin are familiar coordinates in the art world. My curiosity also takes me towards regional cities, smaller towns, and practices outside those well-travelled circuits. Even a country I think I know can hold an entirely unfamiliar world of work.</p>
+        <p>I built this globe to make those detours feel inviting. A place can become a way into a practice. One unexpected encounter can lead to a website, a body of work, or a name worth passing on.</p>
+      </div>
+    </section>
+    <section class="story-play" aria-labelledby="play-heading">
+      <p class="story-kicker">A playful way in</p>
+      <h2>A little chance.<br />A new connection.</h2>
+      <p class="section-intro">The experience begins with movement. I wanted it to feel like handling a small, curious object: a planet with weight, a die to flick, and mechanical counters to turn.</p>
+      <ol class="gesture-grid">
+        {gestures.map(([number, title, copy]) => <li><span>{number}</span><h3>{title}</h3><p>{copy}</p></li>)}
+      </ol>
+      <p class="play-footnote">You can also open the artist index and search by name, country, place or practice. Chance and deliberate searching share the same map.</p>
+    </section>
+    <figure class="story-image">
+      <img src={`${media}/globe-tashkent.webp`} alt="The globe discovering experimental film and video artist Saodat Ismailova in Tashkent, Uzbekistan" width="1200" height="510" loading="lazy" decoding="async" />
+      <figcaption>Another turn, another context: Saodat Ismailova in Tashkent, Uzbekistan.</figcaption>
+    </figure>
+    <section class="story-split story-making" aria-labelledby="making-heading">
+      <div><p class="story-kicker">How it is made</p><h2>Objects you can feel.<br />A browser you can open.</h2></div>
+      <div class="story-prose">
+        <p>The globe is a lightweight, faceted 3D surface with artist markers placed around it. A damped spring gives dragging its gentle pull and release; bounded zoom keeps the planet comfortably in view. Country labels make way for smaller place names as you move closer.</p>
+        <p>The die shares the globe’s 3D library. Its rounded body, shallow pips and studio lighting are generated locally. The latitude and longitude controls are CSS 3D drums: vertical movement adjusts north and south; horizontal movement adjusts east and west.</p>
+        <p>I kept the visual language bright and limited: cream, cobalt, yellow and pink. The map leads, the artist card stays beside it, and the details remain available when you want to follow them.</p>
+      </div>
+    </section>
+    <section class="story-stack" aria-labelledby="stack-heading">
+      <p class="story-kicker">What it is made with</p><h2>A small stack, with a job for each part.</h2>
+      <div class="stack-grid">{stack.map(([title, copy]) => <article><h3>{title}</h3><p>{copy}</p></article>)}</div>
+      <p class="data-note">The current collection is a starting point rather than a complete survey. Available links are shown in each profile; some map placements are approximate at city or country level. The place is a doorway into the work.</p>
+    </section>
+    <footer class="story-outro"><p>Where will curiosity take you?</p><a class="story-button" href="/lab/art-in-every-corner">Take a turn around the globe <span aria-hidden="true">↗</span></a></footer>
+  </article>
+</BaseLayout>
+
+<style is:global>
+  body.artist-globe-story-page { background: var(--pop-blue); color: var(--pop-ink); }
+</style>
+<style>
+  .globe-story { padding: 8px; background: var(--pop-blue); color: var(--pop-ink); }
+  .globe-story :is(h1,h2,h3,p,figure,dl,ol) { margin: 0; color: inherit; }
+  .globe-story a { color: inherit; }
+  .story-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .5rem clamp(1rem,4vw,4rem); border: 1px solid var(--pop-ink); border-radius: 22px 22px 0 0; background: var(--pop-cream); font: 700 .72rem/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: .05em; }
+  .story-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+  .story-hero { padding: clamp(2rem,5vw,5rem); background: var(--pop-pink); border: 1px solid var(--pop-ink); border-top: 0; }
+  .story-kicker { font: 700 .7rem/1.4 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+  .story-hero h1 { margin: clamp(3rem,7vw,7rem) 0 2.5rem; font: 660 clamp(3.5rem,10vw,10rem)/.85 var(--font-display); letter-spacing: -.06em; }
+  .hero-bottom { display: flex; justify-content: space-between; align-items: end; gap: 2rem; }
+  .hero-bottom p { max-width: 36rem; font: 450 clamp(1.2rem,2vw,1.8rem)/1.4 var(--font-body); }
+  .story-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 2rem; min-height: 48px; padding: .9rem 1.2rem; border: 1px solid var(--pop-ink); border-radius: 12px; background: var(--pop-yellow); font: 700 .8rem/1.4 var(--font-mono); text-decoration: none; }
+  .story-button:hover { background: var(--pop-cream); }
+  .story-button:focus-visible,.story-nav a:focus-visible { outline: 3px solid var(--pop-blue); outline-offset: 4px; }
+  .story-image { padding: clamp(1rem,4vw,4rem); border: 1px solid var(--pop-ink); border-top: 0; background: var(--pop-cream); }
+  .story-image img { display: block; width: 100%; height: auto; border-radius: 12px; }
+  .story-image figcaption { margin-top: 1rem; max-width: 60rem; font: 500 .8rem/1.5 var(--font-body); }
+  .story-facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); border: 1px solid var(--pop-ink); border-top: 0; background: var(--pop-yellow); }
+  .story-facts div { padding: clamp(1rem,3vw,3rem); border-right: 1px solid var(--pop-ink); }
+  .story-facts div:last-child { border: 0; }
+  .story-facts dt { margin-bottom: 1rem; font: 700 .68rem/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+  .story-facts dd { margin: 0; font: 500 1rem/1.5 var(--font-body); }
+  .story-split,.story-play,.story-stack { padding: clamp(3rem,6vw,6rem) clamp(1.2rem,5vw,5rem); border: 1px solid var(--pop-ink); border-top: 0; background: var(--pop-cream); }
+  .story-split { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(2rem,6vw,6rem); }
+  .globe-story h2 { margin-top: 1.2rem; max-width: 18ch; font: 600 clamp(2.1rem,4vw,4.2rem)/1 var(--font-display); letter-spacing: -.045em; text-wrap: balance; }
+  .story-prose { display: grid; gap: 1.3rem; align-content: start; }
+  .story-prose p,.section-intro,.play-footnote,.data-note { max-width: 65ch; font: 450 clamp(1rem,1.25vw,1.15rem)/1.7 var(--font-body); }
+  .story-play { background: var(--pop-yellow); }
+  .section-intro { margin-top: 2rem !important; }
+  .gesture-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); list-style: none; padding: 0; margin: 3rem 0 2rem !important; border: 1px solid var(--pop-ink); border-radius: 16px; overflow: hidden; }
+  .gesture-grid li { padding: clamp(1.2rem,3vw,3rem); border-right: 1px solid var(--pop-ink); }
+  .gesture-grid li:last-child { border: 0; }
+  .gesture-grid li > span { font: 700 .75rem/1 var(--font-mono); }
+  .globe-story h3 { margin: 1.2rem 0 1rem; font: 600 1.6rem/1.1 var(--font-display); letter-spacing: -.03em; }
+  .gesture-grid p,.stack-grid p { font: 450 1rem/1.6 var(--font-body); }
+  .story-making { background: var(--pop-pink); }
+  .stack-grid { margin-top: 3rem; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .stack-grid article { padding: clamp(1.2rem,3vw,3rem); border: 1px solid var(--pop-ink); border-radius: 16px; }
+  .stack-grid h3 { margin-top: 0; }
+  .data-note { margin-top: 2rem !important; font-size: .9rem; }
+  .story-outro { padding: clamp(2rem,5vw,5rem); display: flex; justify-content: space-between; align-items: center; gap: 2rem; border: 1px solid var(--pop-ink); border-top: 0; border-radius: 0 0 22px 22px; background: var(--pop-yellow); }
+  .story-outro p { font: 600 clamp(1.4rem,3vw,3rem)/1.1 var(--font-display); letter-spacing: -.04em; }
+  @media(max-width:760px) { .hero-bottom,.story-outro { align-items: start; flex-direction: column; } .story-split { grid-template-columns: 1fr; } .story-facts,.stack-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .story-facts div:nth-child(2) { border-right: 0; } .story-facts div:nth-child(-n+2) { border-bottom: 1px solid var(--pop-ink); } .gesture-grid { grid-template-columns: 1fr; } .gesture-grid li { border-right: 0; border-bottom: 1px solid var(--pop-ink); } }
+  @media(max-width:420px) { .story-facts,.stack-grid { grid-template-columns: 1fr; } .story-facts div { border-right: 0; border-bottom: 1px solid var(--pop-ink); } .story-nav { font-size: .62rem; } }
+</style>

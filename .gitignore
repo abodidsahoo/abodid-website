@@ -46,3 +46,6 @@ public/downloads/photography-portfolios/collections/abodid-complete-photography-
 photography-webp-migration-*/
 moodboard-webp-migration-*/
 video-thumbnail-migration-*/
+
+# Generated Chrome Web Store ZIPs, audit receipts and store screenshots.
+extension/releases/

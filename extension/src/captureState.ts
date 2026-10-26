@@ -5,6 +5,8 @@ export type CaptureState = {
     tabId?: number;
     url?: string;
     title?: string;
+    userId?: string;
+    operationId?: string;
     result?: any;
     error?: string;
 };

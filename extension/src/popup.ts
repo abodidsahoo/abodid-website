@@ -32,6 +32,7 @@ const dashboardButton = byId<HTMLButtonElement>('dashboard-btn');
 let activeTab: any = null;
 let authResolved = false;
 let signedIn = false;
+let signedInUserId: string | null = null;
 let isCapturing = false;
 let currentCaptureState: CaptureState | null = null;
 let captureStateRevision = 0;
@@ -118,20 +119,25 @@ const normalizePageUrl = (value: unknown) => {
 };
 
 const applyAuthState = (state: any) => {
-    signedIn = Boolean(state?.signedIn);
+    const nextUserId = state?.signedIn && typeof state.userId === 'string' ? state.userId : null;
+    const accountChanged = nextUserId !== signedInUserId;
+    signedInUserId = nextUserId;
+    signedIn = Boolean(nextUserId);
     authResolved = true;
     authPanel.classList.toggle('hidden', signedIn);
     capturePanel.classList.toggle('hidden', !signedIn);
     profileRow.classList.toggle('hidden', !signedIn);
     profileRow.classList.remove('is-pending');
     if (signedIn) renderProfile(state.profile);
-    if (!signedIn) {
+    if (!signedIn || accountChanged) {
         currentCaptureState = null;
+        isCapturing = false;
         result.classList.add('hidden');
         captureProgress.classList.add('hidden');
         if (capturePollTimer) clearTimeout(capturePollTimer);
     }
     syncSaveButton();
+    if (signedIn && accountChanged) void restoreCaptureState();
 };
 
 const formatResultDeadline = (deadlineAt: unknown, deadlineRaw: unknown) => {
@@ -160,6 +166,7 @@ const formatResultDeadline = (deadlineAt: unknown, deadlineRaw: unknown) => {
 };
 
 const applyCaptureState = (state: CaptureState | null) => {
+    if (state && (!signedInUserId || state.userId !== signedInUserId)) return;
     if (state && currentCaptureState) {
         if (state.startedAt < currentCaptureState.startedAt) return;
         if (state.id === currentCaptureState.id && currentCaptureState.status === 'success' && state.status !== 'success') return;
@@ -226,7 +233,7 @@ const openDashboard = async () => {
 
 const renderCachedAuth = async () => {
     const cached = await webext.storage.local.get(AUTH_CACHE_KEY);
-    if (cached?.[AUTH_CACHE_KEY]?.signedIn) applyAuthState(cached[AUTH_CACHE_KEY]);
+    if (cached?.[AUTH_CACHE_KEY]?.signedIn && cached[AUTH_CACHE_KEY].userId) applyAuthState(cached[AUTH_CACHE_KEY]);
 };
 
 const renderState = async () => {
@@ -339,7 +346,7 @@ saveButton.addEventListener('click', async () => {
     captureStateRevision += 1;
     clearStatus();
     result.classList.add('hidden');
-    applyCaptureState({ id: 'pending', status: 'capturing', startedAt: Date.now(), url: activeTab?.url, title: activeTab?.title });
+    applyCaptureState({ id: 'pending', userId: signedInUserId || undefined, status: 'capturing', startedAt: Date.now(), url: activeTab?.url, title: activeTab?.title });
 
     try {
         const captureTab = await loadActiveTab();
@@ -355,6 +362,7 @@ saveButton.addEventListener('click', async () => {
     } catch (error) {
         applyCaptureState({
             id: 'failed',
+            userId: signedInUserId || undefined,
             status: 'error',
             startedAt: Date.now(),
             error: error instanceof Error ? error.message : 'Opportunity could not be captured',

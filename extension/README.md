@@ -108,3 +108,17 @@ Session checks, sign-in/logout buttons, sending and queued capture status use th
 ### Clean waiting states (2.1.10)
 
 Busy labels use direct status text without trailing ellipses, with wave dots centered beneath the label. Initial page/account placeholders and queued capture copy follow the same pattern. Persistent progress, reduced-motion behavior and permissions are unchanged.
+
+## Chrome Store release packaging
+
+Run `node scripts/package-opportunity-extension.mjs` from the repository root. This produces `extension/releases/opportunity-tracker-2.1.12-chrome.zip` and its file/hash audit. The ZIP contains only the built Chrome runtime, manifest and icons. Generated releases are ignored by Git. The local free-model benchmark is not part of this package; extraction continues on the existing server configuration.
+
+Right-click captures now persist the latest receipt and schedule completion checks just like toolbar captures. Link captures do not reuse their parent page title. Startup restores queued checks; logout prevents late completions from resurrecting removed receipts, and capture token retries reject account changes.
+
+Upload the ZIP as an unpublished Chrome Developer Dashboard draft to obtain the store item ID. Configure that exact identity callback in Supabase and test login BEFORE submitting for review. The draft's public key can stabilize the unpacked ID for that test: https://developer.chrome.com/docs/extensions/reference/manifest/key. Follow the remaining release gates in the root CHROMEWEBSTORE.md; this command does not upload or publish.
+
+## Release audit follow-up (2.1.12)
+
+Latest main base: 15a4afc. Chrome requires 120+ and uses gesture-scoped activeTab metadata access; it no longer requests tabs. Firefox/Safari retain their existing tabs declarations. Save/status receipts and display identity are account-bound, simultaneous toolbar saves share one handoff, and unsupported pages are disabled. Backend URL capture resolves duplicate inserts without replacing an already saved row; deploy that separate server change only after approval.
+
+The release candidate is `extension/releases/opportunity-tracker-2.1.12-chrome.zip`. Read the CURRENT 2.1.12 section of CHROMEWEBSTORE.md for executed tests and outstanding browser/OAuth/screenshot/privacy gates; historical 2.1.11 checks are not evidence that this release is fully accepted. No submission or publication is performed by the package command.

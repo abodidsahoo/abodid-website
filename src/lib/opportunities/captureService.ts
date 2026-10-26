@@ -65,6 +65,27 @@ const throwSaveFailure = (
     );
 };
 
+/** The unique constraint settles concurrent captures without overwriting edits. */
+export const insertCapturedOpportunity = async (
+    client: SupabaseClient,
+    insert: ReturnType<typeof opportunityToSavedInsert>,
+    context: { userId: string; canonicalUrl: string; source: 'curated' | 'extracted' },
+): Promise<OpportunityCaptureResult> => {
+    const { data, error } = await client.from('saved_opportunities')
+        .insert(insert).select(PRIVATE_SAVED_SELECT).single();
+    if (error?.code === '23505') {
+        const existing = await client.from('saved_opportunities')
+            .select(PRIVATE_SAVED_SELECT)
+            .eq('user_id', context.userId).eq('canonical_url', context.canonicalUrl).maybeSingle();
+        if (!existing.error && existing.data) {
+            return { is_duplicate: true, opportunity: savedRowToOpportunity(existing.data as unknown as SavedOpportunityRow) };
+        }
+        throwSaveFailure(existing.error || error, context);
+    }
+    if (error || !data) throwSaveFailure(error, context);
+    return { is_duplicate: false, opportunity: savedRowToOpportunity(data as unknown as SavedOpportunityRow) };
+};
+
 /**
  * Shared URL capture orchestration used by the synchronous compatibility API
  * and the durable background-job processor. Every user-owned query includes an
@@ -119,18 +140,10 @@ export const captureOpportunityFromUrl = async ({
 
     if (curated) {
         const insert = opportunityToSavedInsert(userId, curated as Opportunity);
-        const { data, error } = await userClient
-            .from('saved_opportunities')
-            .upsert(insert, { onConflict: 'user_id,canonical_url', ignoreDuplicates: false })
-            .select(PRIVATE_SAVED_SELECT)
-            .single();
-        if (error || !data) {
-            throwSaveFailure(error, { userId, canonicalUrl, source: 'curated' });
-        }
+        const result = await insertCapturedOpportunity(userClient, insert, { userId, canonicalUrl, source: 'curated' });
         return {
-            is_duplicate: false,
+            ...result,
             reused_curated_record: true,
-            opportunity: savedRowToOpportunity(data as unknown as SavedOpportunityRow),
         };
     }
 
@@ -240,18 +253,5 @@ export const captureOpportunityFromUrl = async ({
     } as Opportunity;
 
     const insert = opportunityToSavedInsert(userId, opportunity);
-    const { data, error } = await userClient
-        .from('saved_opportunities')
-        .upsert(insert, { onConflict: 'user_id,canonical_url', ignoreDuplicates: false })
-        .select(PRIVATE_SAVED_SELECT)
-        .single();
-
-    if (error || !data) {
-        throwSaveFailure(error, { userId, canonicalUrl, source: 'extracted' });
-    }
-
-    return {
-        is_duplicate: false,
-        opportunity: savedRowToOpportunity(data as unknown as SavedOpportunityRow),
-    };
+    return insertCapturedOpportunity(userClient, insert, { userId, canonicalUrl, source: 'extracted' });
 };

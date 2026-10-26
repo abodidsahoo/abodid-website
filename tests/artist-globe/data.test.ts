@@ -6,7 +6,6 @@ import {
 } from "../../src/lib/artist-globe/data";
 import {
   angularVisibility,
-  EARTH_RADIUS_KM,
   MIN_CAMERA_RADIUS,
   MAX_CAMERA_RADIUS,
   nearestArtistIndex,
@@ -55,9 +54,22 @@ describe("artist atlas data and geography", () => {
       expect(end.bearing).toBeCloseTo(0);
     }
   });
-  it("limits close views to 500 km and retains a comfortably visible distant globe", () => {
-    expect((MIN_CAMERA_RADIUS - 1) * EARTH_RADIUS_KM).toBeCloseTo(500);
-    expect(MAX_CAMERA_RADIUS).toBeLessThan(5);
+  it("limits magnification to slightly beyond the frame and keeps the distant globe visible", () => {
+    const diameterFraction =
+      1 /
+      (Math.sqrt(MIN_CAMERA_RADIUS ** 2 - 1) * Math.tan((19 * Math.PI) / 180));
+    expect(diameterFraction).toBeGreaterThan(1);
+    expect(diameterFraction).toBeLessThan(1.6);
+    const closestGrowth = Math.sqrt(
+      (2.3 ** 2 - 1) / (MIN_CAMERA_RADIUS ** 2 - 1),
+    );
+    expect(closestGrowth).toBeGreaterThan(1.09);
+    expect(closestGrowth).toBeLessThan(1.12);
+    const overviewDiameter =
+      1 /
+      (Math.sqrt(MAX_CAMERA_RADIUS ** 2 - 1) * Math.tan((19 * Math.PI) / 180));
+    expect(overviewDiameter).toBeGreaterThan(0.5);
+    expect(overviewDiameter).toBeLessThan(0.6);
   });
   it("spotlights the artist nearest the viewing direction", () => {
     const points = [

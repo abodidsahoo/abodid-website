@@ -15,6 +15,7 @@ export type LabExperiment = {
   href: string;
   destinationLabel: string;
   thumbnail: string;
+  thumbnailPoster?: string;
   video?: string;
   thumbnailAlt: string;
   surface: "pink" | "blue" | "yellow" | "cream" | "lime";
@@ -79,15 +80,16 @@ const artistGlobeExperiment: Omit<LabExperiment, "index"> = {
   id: "art-in-every-corner",
   title: "Art in Every Corner",
   description:
-    "Spin a small planet to discover artistic practices across the world. A playful 3D atlas with clearly labelled fictional demo profiles while the archive takes shape.",
+    "An urge to discover artists beyond the familiar art-world routes, turned into a playful globe. Wander, roll the die, and follow a new practice into the world.",
   discipline: "Artist atlas · Spatial discovery",
-  status: "Interactive prototype",
+  status: "Interactive experiment",
   year: "2026",
-  href: "/lab/art-in-every-corner",
-  destinationLabel: "Explore the globe",
-  thumbnail: "/images/lab/art-in-every-corner.png",
+  href: "/lab/art-in-every-corner/about",
+  destinationLabel: "Read the story & explore",
+  thumbnail: "/images/lab/art-in-every-corner/discovery-loop.gif",
+  thumbnailPoster: "/images/lab/art-in-every-corner/globe-quito.webp",
   thumbnailAlt:
-    "Cobalt and cream artist globe with glowing location points and delicate orbital lines",
+    "Four views of the working globe, discovering artists across Ecuador, Uzbekistan, South Africa and Australia",
   surface: "cream",
   cardVariant: "media",
 };
@@ -234,6 +236,12 @@ const restoreRequiredLocalExperiments = (
     !restored.some((experiment) => experiment.id === artistGlobeExperiment.id)
   ) {
     restored.push(artistGlobeExperiment);
+  } else if (import.meta.env.DEV) {
+    // Preview this project's new story locally without publishing catalogue edits.
+    const index = restored.findIndex(
+      (experiment) => experiment.id === artistGlobeExperiment.id,
+    );
+    restored[index] = { ...restored[index], ...artistGlobeExperiment };
   }
   return restored;
 };

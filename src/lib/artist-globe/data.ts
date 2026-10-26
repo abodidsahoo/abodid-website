@@ -5,8 +5,13 @@ export interface Artist {
   origin: string;
   current_city: string;
   country: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
+  map_pin_ready?: boolean;
+  map_placement?: "city" | "country";
+  source_latitude?: number | null;
+  source_longitude?: number | null;
+  verification_status?: string;
   disciplines: string[];
   tags: string[];
   biography: string;
@@ -110,7 +115,8 @@ export const demoArtists: Artist[] = places.map(
     is_demo: true,
   }),
 );
-export function validArtist(value: unknown): value is Artist {
+export type MappedArtist = Artist & { latitude: number; longitude: number };
+export function validProfile(value: unknown): value is Artist {
   const a = value as Artist;
   return (
     !!a &&
@@ -119,10 +125,13 @@ export function validArtist(value: unknown): value is Artist {
     a.name.length > 0 &&
     typeof a.current_city === "string" &&
     typeof a.country === "string" &&
-    Number.isFinite(a.latitude) &&
-    Math.abs(a.latitude) <= 90 &&
-    Number.isFinite(a.longitude) &&
-    Math.abs(a.longitude) <= 180 &&
+    ((a.latitude === null && a.longitude === null) ||
+      (typeof a.latitude === "number" &&
+        Number.isFinite(a.latitude) &&
+        Math.abs(a.latitude) <= 90 &&
+        typeof a.longitude === "number" &&
+        Number.isFinite(a.longitude) &&
+        Math.abs(a.longitude) <= 180)) &&
     Array.isArray(a.disciplines) &&
     a.disciplines.every((x) => typeof x === "string") &&
     Array.isArray(a.tags) &&
@@ -140,6 +149,17 @@ export function validArtist(value: unknown): value is Artist {
     Array.isArray(a.sources) &&
     a.sources.every((x) => typeof x === "string") &&
     typeof a.is_demo === "boolean"
+  );
+}
+export function validArtist(value: unknown): value is MappedArtist {
+  return (
+    validProfile(value) &&
+    value.latitude !== null &&
+    value.longitude !== null &&
+    (value.is_demo ||
+      value.map_pin_ready !== false ||
+      value.map_placement === "city" ||
+      value.map_placement === "country")
   );
 }
 export function safeUrl(value: string | null): string | undefined {

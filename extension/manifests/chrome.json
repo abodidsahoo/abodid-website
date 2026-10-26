@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
+  "minimum_chrome_version": "120",
   "name": "Opportunity Tracker",
-  "version": "2.1.10",
+  "version": "2.1.12",
   "description": "Save open calls, residencies, fellowships, grants and jobs. AI summarizes key details and important dates so you stay on track.",
-  "permissions": ["activeTab", "tabs", "scripting", "storage", "contextMenus", "identity", "notifications", "alarms"],
+  "permissions": ["activeTab", "scripting", "storage", "contextMenus", "identity", "notifications", "alarms"],
   "host_permissions": ["https://abodid.com/*"],
   "background": { "service_worker": "background.js", "type": "module" },
   "action": {

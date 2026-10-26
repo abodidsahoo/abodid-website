@@ -48,6 +48,11 @@ const labExperiments = await getLabExperiments();
                     cta={experiment.previewCta || experiment.destinationLabel}
                     ariaLabel={`Interactive preview of ${experiment.title}`}
                   />
+                ) : experiment.thumbnailPoster ? (
+                  <picture>
+                    <source media="(prefers-reduced-motion: reduce)" srcset={experiment.thumbnailPoster} type="image/webp" />
+                    <img src={experiment.thumbnail} alt={experiment.thumbnailAlt} width={960} height={408} loading="lazy" decoding="async" />
+                  </picture>
                 ) : experiment.video || experiment.thumbnail?.endsWith(".mp4") ? (
                   <LazyAutoplayVideo
                     src={experiment.video || experiment.thumbnail}
@@ -233,6 +238,11 @@ const labExperiments = await getLabExperiments();
     object-fit: cover;
     object-position: center;
     transition: transform 550ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .lab-card__media picture {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .lab-card__media--interactive {
