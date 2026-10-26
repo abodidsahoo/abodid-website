@@ -9,6 +9,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Artist } from "../../lib/artist-globe/data";
 import {
   angularVisibility,
+  globeZoomAtLatitude,
   altitudeKm,
   maxRegionalZoom,
   spinPose,
@@ -109,13 +110,20 @@ export async function createGlobe(
   surface.className = "map-surface";
   host.prepend(surface);
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-  const worldZoom = () =>
-    Math.log2(Math.min(host.clientWidth, host.clientHeight) / 512) + 1.42;
+  const worldZoom = (latitude = 0) =>
+    globeZoomAtLatitude(
+      Math.log2(Math.min(host.clientWidth, host.clientHeight) / 512) + 1.42,
+      latitude,
+    );
+  const initialCenter: [number, number] = [
+    Math.random() * 360 - 180,
+    Math.random() * 50 - 25,
+  ];
   const map = new Map({
     container: surface,
     style,
-    center: [Math.random() * 360 - 180, Math.random() * 50 - 25],
-    zoom: worldZoom(),
+    center: initialCenter,
+    zoom: worldZoom(initialCenter[1]),
     minZoom: worldZoom() - 0.1,
     maxZoom: 15,
     maxPitch: 0,
@@ -243,6 +251,8 @@ export async function createGlobe(
         p.y < 0 ||
         p.x > width ||
         p.y > height ||
+        (p.x < 170 && p.y < 80) ||
+        p.y > height - 45 ||
         (a.id !== focusId &&
           occupied.some(([x, y]) => Math.hypot(x - p.x, y - p.y) < 36));
       button.hidden = hidden;
@@ -285,7 +295,8 @@ export async function createGlobe(
     const before = map.getMinZoom();
     map.resize();
     map.setMinZoom(worldZoom() - 0.1);
-    if (map.getZoom() < before + 0.25) map.setZoom(worldZoom());
+    if (map.getZoom() < globeZoomAtLatitude(before, map.getCenter().lat) + 0.25)
+      map.setZoom(worldZoom(map.getCenter().lat));
     update();
   });
   resize.observe(host);
@@ -320,7 +331,13 @@ export async function createGlobe(
       map.easeTo({
         center: [artist.longitude, artist.latitude],
         bearing: 0,
-        zoom: Math.min(map.getZoom(), 5),
+        zoom: globeZoomAtLatitude(
+          Math.min(
+            map.getZoom() - globeZoomAtLatitude(0, map.getCenter().lat),
+            5,
+          ),
+          artist.latitude,
+        ),
         duration: reduced.matches ? 0 : 650,
       });
     },
@@ -333,7 +350,7 @@ export async function createGlobe(
     reset() {
       stopSpin();
       map.easeTo({
-        zoom: worldZoom(),
+        zoom: worldZoom(map.getCenter().lat),
         bearing: 0,
         duration: reduced.matches ? 0 : 700,
       });
@@ -351,7 +368,7 @@ export async function createGlobe(
       if (reduced.matches) {
         map.jumpTo({
           center: [target.lng, target.lat],
-          zoom: worldZoom(),
+          zoom: worldZoom(target.lat),
           bearing: 0,
         });
         return true;
@@ -363,7 +380,7 @@ export async function createGlobe(
       map.dragPan.disable();
       map.scrollZoom.disable();
       map.touchZoomRotate.disable();
-      const initialZoom = map.getZoom();
+      const initialZoom = map.getZoom() - globeZoomAtLatitude(0, start.lat);
       const promise = new Promise<boolean>((resolve) => {
         spinResolve = resolve;
       });
@@ -376,14 +393,17 @@ export async function createGlobe(
         map.jumpTo({
           center: [pose.lng, Math.max(-80, Math.min(80, pose.lat))],
           bearing: pose.bearing,
-          zoom: initialZoom + (worldZoom() - initialZoom) * Math.min(1, p * 5),
+          zoom: globeZoomAtLatitude(
+            initialZoom + (worldZoom() - initialZoom) * Math.min(1, p * 5),
+            Math.max(-80, Math.min(80, pose.lat)),
+          ),
         });
         if (p < 1) spinFrame = requestAnimationFrame(animateSpin);
         else {
           map.jumpTo({
             center: [target.lng, target.lat],
             bearing: 0,
-            zoom: worldZoom(),
+            zoom: worldZoom(target.lat),
           });
           stopSpin(true);
         }

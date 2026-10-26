@@ -59,3 +59,12 @@ export function spinPose(
       direction * 65 * Math.sin(eased * Math.PI * 4) * (1 - eased),
   };
 }
+
+// Globe zoom is latitude-dependent in MapLibre. Normalize it to keep the
+// planet at the same apparent size when discovery changes hemispheres.
+export function globeZoomAtLatitude(baseZoom: number, latitude: number) {
+  return (
+    baseZoom +
+    Math.log2(Math.cos((Math.min(85, Math.abs(latitude)) * Math.PI) / 180))
+  );
+}

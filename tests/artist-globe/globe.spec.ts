@@ -9,6 +9,13 @@ async function ready(page: import("@playwright/test").Page) {
     timeout: 25000,
   });
   await expect(page.locator("canvas")).toBeVisible();
+  const dimensions = await page.locator(".globe-stage").evaluate((el) => ({
+    stage: el.clientHeight,
+    surface: (el.querySelector(".map-surface") as HTMLElement)?.clientHeight,
+    canvas: (el.querySelector("canvas") as HTMLElement)?.clientHeight,
+  }));
+  expect(Math.abs(dimensions.surface - dimensions.stage)).toBeLessThan(2);
+  expect(Math.abs(dimensions.canvas - dimensions.stage)).toBeLessThan(2);
   await expect(page.locator("[data-marker]:visible").first()).toBeVisible();
 }
 test("clean title, markers, independent profile, numbering, pin and search", async ({
@@ -361,4 +368,56 @@ test("a centred artist takes priority over neighbouring markers", async ({
   expect(Math.abs(selected.y + 22 - stage.y - stage.height / 2)).toBeLessThan(
     3,
   );
+});
+test("late SDK CSS cannot collapse the map viewport", async ({ page }) => {
+  await ready(page);
+  await page.addStyleTag({
+    content: ".maplibregl-map { position: relative; }",
+  });
+  const rects = await page.locator(".globe-stage").evaluate((el) => ({
+    stage: el.getBoundingClientRect().height,
+    surface: el.querySelector(".map-surface")!.getBoundingClientRect().height,
+    position: getComputedStyle(el.querySelector(".map-surface")!).position,
+  }));
+  expect(rects.position).toBe("absolute");
+  expect(Math.abs(rects.stage - rects.surface)).toBeLessThan(2);
+});
+test("the complete globe remains visible when centring a high-latitude artist", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await ready(page);
+  await page.getByRole("button", { name: "Browse artist index +" }).click();
+  await page.getByRole("searchbox").fill("Iceland");
+  await page.locator(".artist-directory li button").click();
+  await expect(page.locator(".artist-panel h2")).toHaveText("Lena Frost");
+  await page.waitForTimeout(600);
+  const sharp = (await import("sharp")).default;
+  const image = await page.locator(".globe-workspace").screenshot();
+  const { data, info } = await sharp(image)
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  let blue = 0,
+    minX = info.width,
+    minY = info.height,
+    maxX = 0,
+    maxY = 0;
+  for (let y = 0; y < info.height; y++)
+    for (let x = 0; x < info.width; x++) {
+      const i = (y * info.width + x) * info.channels;
+      if (data[i + 2] > 140 && data[i + 2] > data[i] * 1.8) {
+        blue++;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  expect(blue).toBeGreaterThan(1000);
+  expect(minX).toBeGreaterThan(20);
+  expect(minY).toBeGreaterThan(20);
+  expect(maxX).toBeLessThan(info.width - 20);
+  expect(maxY).toBeLessThan(info.height - 20);
 });

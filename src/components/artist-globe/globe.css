@@ -946,3 +946,12 @@ canvas:focus-visible {
 .globe-stage .maplibregl-ctrl-attrib-button {
   background-position: center;
 }
+
+/* The map SDK loads its CSS lazily. Outrank its relative-position root rule
+   so the canvas cannot collapse when that stylesheet arrives after ours. */
+.globe-stage > .map-surface.maplibregl-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
