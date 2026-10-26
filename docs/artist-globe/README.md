@@ -2,14 +2,14 @@
 
 Live route: https://abodid.com/lab/art-in-every-corner
 
-Astro page with a lazy-loaded MapLibre GL JS vector globe and React artist, nomination, and community interfaces. The page uses the saved cream, ink, cobalt, pink, yellow and lime palette. Its square globe and rectangular profile are independent cards, with a single-line title above them. On phones, identity appears beneath the globe and the story remains available by scrolling.
+Astro page with a lazy-loaded Three.js faceted globe and React artist, nomination, and community interfaces. The page uses the saved cream, ink, cobalt, pink, yellow and lime palette. Its wide rectangular globe and permanently visible artist profile are independent cards, with a single-line title above them. On phones, identity appears beneath the globe and the story remains available by scrolling.
 
 ## Artist records and permanent numbering
 
 In the existing `abodid-website` Supabase project, open **Table Editor → art_globe_artists**. Insert one row per artist:
 
 - `id`: your unique text ID; never reuse an existing ID.
-- `artist_number`: automatically generated permanent number. Leave this field alone; the UI renders “Great artist 001”, etc. Numbers do not change when artists are added or sorted.
+- `artist_number`: automatically generated permanent number. Leave this field alone; numbers remain internal metadata and are no longer shown in the profile. Numbers do not change when artists are added or sorted.
 - `name`, `current_city`, `country`, `latitude`, `longitude`: public identity and decimal coordinates (south/west negative). Published profiles must have coordinates.
 - `disciplines`, `tags`, `artwork_urls`, `sources`: arrays. Use JSON arrays in imports or PostgreSQL array syntax in SQL.
 - `origin`, `biography`, `artist_statement`: plain text.
@@ -41,17 +41,20 @@ In Supabase, inspect the monthly ranking and set `awarded=true` on your selected
 
 RLS is enabled and public grants are revoked on the score table. Its two RPCs run as SECURITY INVOKER and are executable only by service_role. The API exposes only public names/times and the current visitor’s own record. Namespaced rate limits reuse the existing rate-limit storage without changing contact-form functions or deleting records. `community.sql` records the additive changes applied on 26 October 2026; `schema.sql` and `seed.sql` describe the first-pass setup.
 
-## Globe interactions and map data
+## Globe interactions and local geography
 
-- Drag to rotate/pan with inertia; keyboard arrows and +/- are supported.
-- Wheel, trackpad pinch, touch pinch, and controls change the map inside its viewport. Native page zoom/scroll is not disabled globally. Touch listeners cover marker hit areas as well as canvas, and Safari gesture events are handled locally.
-- Zoom out stops at a comfortably visible whole globe. Deep zoom loads vector coastline, regional boundaries, rivers, roads, and place names. Maximum zoom adapts to latitude and viewport size for an **approximate 5 km camera height**; this is not a terrain/satellite altitude guarantee. A scale bar shows actual map distance. The whole-globe control resets the view.
-- **Discover an Artist!** makes a three-second multi-axis spin with fast initial motion, a heavy eased stop, and an artist exactly at the viewport centre. Reduced motion lands directly without spinning. Random starting views remain enabled on each fresh load. Latitude-adjusted zoom keeps the whole globe the same size when discovery lands near the poles.
-- Projected marker buttons have geographic occlusion and decluttering; the selected artist has priority over nearby points. The searchable index gives keyboard/touch access to every artist, including points on the rear side.
-- Profiles can be pinned to resist background dismissal; independent card sizing is preserved. Escape/Close dismisses the profile. Missing WebGL leaves the index functional.
-- MapLibre redraws on demand rather than running a permanent render loop. Resolution is capped at 1.75×. The map container uses an explicit full-size positioned selector that outranks lazily loaded SDK CSS, preventing a production-only collapsed viewport. Spin pauses when the tab is hidden. Observer/listener/map/worker resources are cleaned up on unmount.
+- The local Three.js globe restores flat polygon shading, directional light and natural flick inertia. Drag or flick to rotate; keyboard arrows rotate and +/- zoom. Rotation slows with frame-rate-aware damping. Rendering sleeps when settled, offscreen, or hidden.
+- Every visit chooses a random initial artist, centres the globe on their point, and displays their profile from the beginning. The profile is always pinned; its number, Pin and Close controls have been removed.
+- A central radar, subtle connector, glowing nearest marker, and live name identify the artist closest to the viewing direction. The sidebar updates immediately as the globe turns, including during fast flicks and discovery spins. Automatic selection never scrolls the page or re-centres the globe against the visitor's gesture.
+- **Discover an Artist!** is a compact 44px touch target in the lower centre of the globe. It makes a three-second multi-axis spin with a heavy eased stop. Reduced motion lands directly without spinning.
+- Wheel, trackpad pinch, touch pinch, and controls zoom only inside the globe. Close zoom is capped at a real camera radius equivalent to **500 km above the Earth** (Earth radius 6,371 km), showing regional names and major cities. There are no streets, buildings, satellite imagery, or detailed cityscapes. The zoom-out limit keeps a smaller, comfortably visible whole planet.
+- Small artist dots remain visible on the facing hemisphere. The active dot has a radar halo. No screen-distance decluttering hides neighbouring dots; the searchable index remains the accessible alternative for close clusters and rear-side points.
+- On phones the globe remains first, followed by the compact name/practice/location summary and the story lower down. The sidebar cannot dismiss accidentally. Escape closes only the artist index.
+- Resolution is capped at 1.75×. Geometries, materials, render loop, observers, labels and event listeners are released on unmount. WebGL failure leaves the artist index, default profile and community forms available.
 
-MapLibre uses [OpenFreeMap](https://openfreemap.org/quick_start/) vector tiles, with OpenMapTiles/OpenStreetMap attribution inside the viewport. The public service requires no API key or paid account. Detailed geography requires that external service/network; it is not an offline map. The original public-domain Natural Earth snapshot remains in the repository as a historical asset, but is no longer loaded by the globe. No satellite imagery, Street View, artist scraping, or AI discovery service runs.
+**Local assets, no map-provider overlay:** the globe no longer loads MapLibre, OpenFreeMap, OpenMapTiles, remote tiles, or map fonts. Its public-domain [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/) land snapshot is triangulated and subdivided into 55,786 curved triangles with 30,480 quantized vertices. `node scripts/build-artist-globe-land.mjs` regenerates `land-mesh.json` from the existing `land.json`; the JSON is approximately 1.4 MB before HTTP compression and the GPU geometry uses shared vertex indices. The faceted coastline is intentionally simplified, not survey/cartographic detail.
+
+`labels.json` contains 5,805 regional and major-city labels. Regional label positions/names come from Natural Earth's public-domain [admin-1 dataset](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_admin_1_states_provinces.geojson); major cities come from the existing GeoNames snapshot (CC BY 4.0, credited on the page). Labels are fetched only when zooming in. At most 28 DOM labels are placed in a reused pool with collision avoidance. No street network is downloaded. This phase changes no database tables, credentials, nomination workflow or leaderboard storage.
 
 ## Validation
 
@@ -61,6 +64,4 @@ MapLibre uses [OpenFreeMap](https://openfreemap.org/quick_start/) vector tiles, 
 
 The standard browser suite starts/reuses the workspace server on port 4321. For another review server, set `ARTIST_GLOBE_TEST_URL` to its URL; this release was also checked on an isolated review server on port 4322. Production builds require Node 24 (`npm run build`).
 
-Browser checks cover nine widths from 320px to 1440px, independent card layout, a single-line title, no horizontal overflow, marker/profile interactions, permanent numbering, spin duration/centering, approximate five-kilometre zoom, globe reset, location autocomplete and payload, opt-in/leave flows, simulated mobile pinch without page magnification, reduced motion, WebGL fallback, long names/tags, and API rejection paths. Database transaction checks verify score credits, duplicate/idle heartbeats, rate limiting, service-role draft inserts, and anonymous draft occlusion, then roll back all QA records. Physical-device GPU performance and real identities are not certified by automation. Repository-wide TypeScript diagnostics in unrelated areas predate these changes.
-
-Release validation: 21 browser tests and 14 unit/API tests passed, plus the production build. New atlas files have no TypeScript diagnostics; the global check continues to report pre-existing issues elsewhere.
+Browser checks cover nine widths from 320px to 1440px, rectangular layouts, a default permanent artist card, no provider requests or overlay, compact in-globe discovery placement, flick inertia, live radar/card agreement, a 500 km zoom floor, regional labels, spin/name changes, mobile pinch without page magnification, reduced motion, WebGL fallback, long content, and the existing nomination/leaderboard flows. Data tests verify the nearest-direction selection and physical camera limits. The compiled production assets are also rendered separately before publishing. Physical-device GPU performance and real identities are not certified by automation. Repository-wide TypeScript diagnostics in unrelated areas predate these changes.

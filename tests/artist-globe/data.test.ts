@@ -6,8 +6,10 @@ import {
 } from "../../src/lib/artist-globe/data";
 import {
   angularVisibility,
-  altitudeKm,
-  maxRegionalZoom,
+  EARTH_RADIUS_KM,
+  MIN_CAMERA_RADIUS,
+  MAX_CAMERA_RADIUS,
+  nearestArtistIndex,
   spinPose,
 } from "../../src/lib/artist-globe/geography";
 import {
@@ -53,12 +55,19 @@ describe("artist atlas data and geography", () => {
       expect(end.bearing).toBeCloseTo(0);
     }
   });
-  it("allows approximate five kilometre close views across latitudes and screen sizes", () => {
-    for (const latitude of [0, 45, 75])
-      for (const height of [300, 660])
-        expect(
-          altitudeKm(maxRegionalZoom(latitude, height), latitude, height),
-        ).toBeCloseTo(5, 0);
+  it("limits close views to 500 km and retains a comfortably visible distant globe", () => {
+    expect((MIN_CAMERA_RADIUS - 1) * EARTH_RADIUS_KM).toBeCloseTo(500);
+    expect(MAX_CAMERA_RADIUS).toBeLessThan(5);
+  });
+  it("spotlights the artist nearest the viewing direction", () => {
+    const points = [
+      { x: -1, y: 0, z: 0 },
+      { x: 1, y: 1, z: 0 },
+      { x: 1, y: 0, z: 0 },
+    ];
+    expect(nearestArtistIndex({ x: 1, y: 0, z: 0 }, points)).toBe(2);
+    expect(nearestArtistIndex({ x: 0, y: 1, z: 0 }, points)).toBe(1);
+    expect(nearestArtistIndex({ x: 0, y: 0, z: 1 }, [])).toBe(-1);
   });
 });
 describe("community inputs", () => {

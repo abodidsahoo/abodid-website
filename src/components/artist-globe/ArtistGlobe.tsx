@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   demoArtists,
   safeUrl,
@@ -6,14 +6,15 @@ import {
   type Artist,
 } from "../../lib/artist-globe/data";
 import type { createGlobe } from "./scene";
-import NominateArtist from "./NominateArtist";
-import Wanderers from "./Wanderers";
+import NominateArtistForm from "./NominateArtist";
+import WanderersBoard from "./Wanderers";
+const NominateArtist = memo(NominateArtistForm);
+const Wanderers = memo(WanderersBoard);
 type Globe = Awaited<ReturnType<typeof createGlobe>>;
 export default function ArtistGlobe() {
   const [artists, setArtists] = useState(demoArtists);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [selected, setSelected] = useState<Artist | null>(null);
-  const [pinned, setPinned] = useState(false);
+  const [selected, setSelected] = useState<Artist>(demoArtists[0]);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [discovering, setDiscovering] = useState(false);
@@ -25,7 +26,6 @@ export default function ArtistGlobe() {
   const host = useRef<HTMLDivElement>(null),
     scene = useRef<Globe>();
   const panel = useRef<HTMLElement>(null);
-  const lastTrigger = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const abort = new AbortController();
     fetch("/api/artist-globe/artists", {
@@ -78,7 +78,12 @@ export default function ArtistGlobe() {
           () => {
             if (!cancelled) setReady(true);
           },
-          () => {},
+          (artist) => {
+            if (!cancelled)
+              setSelected((previous) =>
+                previous === artist ? previous : artist,
+              );
+          },
         );
       })
       .then((result) => {
@@ -101,58 +106,23 @@ export default function ArtistGlobe() {
     };
   }, [artists, dataLoaded]);
   useEffect(() => {
-    if (selected && matchMedia("(max-width:720px)").matches) {
-      const frame = requestAnimationFrame(() =>
-        panel.current?.querySelector(".artist-summary")?.scrollIntoView({
-          block: "end",
-          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-            ? "instant"
-            : "smooth",
-        }),
-      );
-      return () => cancelAnimationFrame(frame);
-    }
-  }, [selected]);
-  const close = () => {
-    setSelected(null);
-    setPinned(false);
-    lastTrigger.current?.focus({ preventScroll: true });
-  };
-  useEffect(() => {
-    if (!selected || pinned) return;
-    const outside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (
-        !panel.current?.contains(target) &&
-        !target.closest("button,a,input")
-      ) {
-        setSelected(null);
-        setPinned(false);
-      }
-    };
-    document.addEventListener("click", outside);
-    return () => document.removeEventListener("click", outside);
-  }, [selected, pinned]);
-  useEffect(() => {
     const escape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSelected(null);
-        setPinned(false);
+      if (e.key === "Escape" && directory) {
         setDirectory(false);
-        lastTrigger.current?.focus({ preventScroll: true });
+        document
+          .querySelector<HTMLButtonElement>(".directory-toggle")
+          ?.focus({ preventScroll: true });
       }
     };
     document.addEventListener("keydown", escape);
     return () => document.removeEventListener("keydown", escape);
-  }, []);
+  }, [directory]);
   const select = (
     artist: Artist,
-    event?: React.MouseEvent<HTMLElement>,
+    _event?: React.MouseEvent<HTMLElement>,
     focus = false,
   ) => {
-    if (event) lastTrigger.current = event.currentTarget;
     setSelected(artist);
-    scene.current?.prioritize(artist);
     setHover(null);
     if (focus) {
       scene.current?.focus(artist);
@@ -170,7 +140,6 @@ export default function ArtistGlobe() {
       const completed = await scene.current?.discover(artist);
       if (completed) {
         setSelected(artist);
-        setPinned(false);
       }
     } finally {
       setDiscovering(false);
@@ -185,21 +154,8 @@ export default function ArtistGlobe() {
   return (
     <div className="artist-atlas">
       <h1 className="atlas-title">Art in Every Corner</h1>
-      <section
-        className={`observatory ${pinned && selected ? "is-pinned" : ""}`}
-        aria-label="Artist globe explorer"
-      >
-        <div
-          className="globe-workspace"
-          onClick={(e) => {
-            if (
-              e.target === host.current ||
-              e.target instanceof HTMLCanvasElement
-            ) {
-              if (!pinned && selected) close();
-            }
-          }}
-        >
+      <section className="observatory" aria-label="Artist globe explorer">
+        <div className="globe-workspace">
           <div className="globe-stage" ref={host}>
             {artists.map((a) => (
               <button
@@ -210,7 +166,7 @@ export default function ArtistGlobe() {
                 hidden={!ready || failed}
                 aria-label={`${a.name}, ${a.current_city}, ${a.disciplines.join(" and ")}${a.is_demo ? ", demo artist" : ""}`}
                 aria-pressed={selected?.id === a.id}
-                onClick={(e) => select(a, e)}
+                onClick={(e) => select(a, e, true)}
                 onMouseEnter={() => setHover(a)}
                 onMouseLeave={() => setHover(null)}
                 onFocus={() => setHover(a)}
@@ -249,6 +205,25 @@ export default function ArtistGlobe() {
               </span>
             </div>
           )}
+          <svg className="radar-link" aria-hidden="true">
+            <line />
+          </svg>
+          <div className="radar" aria-hidden="true">
+            <span className="radar-orbit" />
+            <span className="radar-centre" />
+          </div>
+          <div className="spotlight-name" aria-hidden="true">
+            <strong>{selected.name}</strong>
+            <span>{selected.current_city}</span>
+          </div>
+          <button
+            className={`discover-button ${discovering ? "is-spinning" : ""}`}
+            disabled={!ready || discovering}
+            onClick={discover}
+          >
+            <span aria-hidden="true">↻</span>{" "}
+            {discovering ? "Discovering…" : "Discover an Artist!"}
+          </button>
           <div className="workspace-bottom">
             <div className="globe-controls" aria-label="Globe controls">
               <button
@@ -273,40 +248,13 @@ export default function ArtistGlobe() {
           </div>
         </div>
         <div className="artist-rail">
-          <button
-            className={`discover-button ${discovering ? "is-spinning" : ""}`}
-            disabled={!ready || discovering}
-            onClick={discover}
-          >
-            <span aria-hidden="true">↻</span>{" "}
-            {discovering ? "Discovering…" : "Discover an Artist!"}
-          </button>
           {selected ? (
             <aside
               className="artist-panel"
               ref={panel}
               aria-label="Selected artist"
             >
-              <div className="panel-tools">
-                <span className="micro">
-                  Great artist{" "}
-                  {String(
-                    selected.artist_number ?? artists.indexOf(selected) + 1,
-                  ).padStart(3, "0")}
-                </span>
-                <div>
-                  <button
-                    aria-pressed={pinned}
-                    onClick={() => setPinned(!pinned)}
-                  >
-                    {pinned ? "Unpin" : "Pin"}
-                  </button>
-                  <button aria-label="Close artist details" onClick={close}>
-                    ×
-                  </button>
-                </div>
-              </div>
-              <div className="artist-summary" aria-live="polite">
+              <div className="artist-summary">
                 <span className="profile-symbol" aria-hidden="true">
                   ✳
                 </span>

@@ -2,80 +2,84 @@ import { test, expect } from "@playwright/test";
 test.use({
   baseURL: process.env.ARTIST_GLOBE_TEST_URL || "http://localhost:4321",
 });
-const route = "/lab/art-in-every-corner";
+const base = process.env.ARTIST_GLOBE_TEST_URL || "http://localhost:4321",
+  route = "/lab/art-in-every-corner";
 async function ready(page: import("@playwright/test").Page) {
   await page.goto(route);
+  await expect(page.locator(".artist-panel h2")).toBeVisible();
   await expect(page.locator(".globe-loader")).toHaveCount(0, {
     timeout: 25000,
   });
   await expect(page.locator("canvas")).toBeVisible();
-  const dimensions = await page.locator(".globe-stage").evaluate((el) => ({
-    stage: el.clientHeight,
-    surface: (el.querySelector(".map-surface") as HTMLElement)?.clientHeight,
-    canvas: (el.querySelector("canvas") as HTMLElement)?.clientHeight,
-  }));
-  expect(Math.abs(dimensions.surface - dimensions.stage)).toBeLessThan(2);
-  expect(Math.abs(dimensions.canvas - dimensions.stage)).toBeLessThan(2);
   await expect(page.locator("[data-marker]:visible").first()).toBeVisible();
+  const dims = await page
+    .locator(".globe-stage")
+    .evaluate((el) => ({
+      stage: el.clientHeight,
+      canvas: el.querySelector("canvas")!.getBoundingClientRect().height,
+    }));
+  expect(Math.abs(dims.canvas - dims.stage)).toBeLessThan(2);
 }
-test("clean title, markers, independent profile, numbering, pin and search", async ({
+test("starts with a default artist, a permanent card and an in-globe discovery control", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
+  const mapRequests: string[] = [];
+  page.on("request", (r) => {
+    if (/openfreemap|openmaptiles|maplibre/.test(r.url()))
+      mapRequests.push(r.url());
+  });
   await ready(page);
   await expect(page.locator("h1")).toHaveText("Art in Every Corner");
+  await expect(page.locator(".panel-tools")).toHaveCount(0);
   await expect(
-    page.locator(
-      ".atlas-intro,.atlas-topline,.space-meta,.atlas-invitation,.desktop-data",
-    ),
+    page.getByRole("button", { name: "Pin", exact: true }),
   ).toHaveCount(0);
-  const marker = page.locator("[data-marker]:visible").first();
-  await marker.hover();
-  await expect(page.locator(".marker-tooltip")).toBeVisible();
-  await marker.click();
-  await expect(page.locator(".panel-tools .micro")).toHaveText(
-    /Great artist \d{3}/,
+  await expect(page.getByText(/Great artist \d/)).toHaveCount(0);
+  expect(mapRequests).toEqual([]);
+  await expect(page.locator(".spotlight-name strong")).toHaveText(
+    await page.locator(".artist-panel h2").innerText(),
   );
   const globe = (await page.locator(".globe-workspace").boundingBox())!,
+    button = (await page
+      .getByRole("button", { name: "Discover an Artist!", exact: true })
+      .boundingBox())!,
     panel = (await page.locator(".artist-panel").boundingBox())!;
+  expect(globe.width).toBeGreaterThan(globe.height * 1.2);
   expect(panel.x).toBeGreaterThan(globe.x + globe.width);
-  await page.getByRole("button", { name: "Pin", exact: true }).click();
+  expect(
+    Math.abs(button.x + button.width / 2 - globe.x - globe.width / 2),
+  ).toBeLessThan(2);
+  expect(button.y).toBeGreaterThan(globe.y + globe.height - 75);
+  expect(button.width).toBeLessThan(220);
   await page.locator("h1").click();
-  await expect(page.locator(".artist-panel")).toBeVisible();
-  await page.getByRole("button", { name: "Unpin", exact: true }).click();
-  await page.locator("h1").click();
-  await expect(page.locator(".artist-panel")).toHaveCount(0);
-  await page.getByRole("button", { name: "Browse artist index +" }).click();
-  await page.getByRole("searchbox").fill("Kyoto");
-  await page.locator(".artist-directory li button").click();
-  await expect(page.locator(".artist-panel h2")).toHaveText("Aya Mori");
   await page.keyboard.press("Escape");
-  await expect(page.locator(".artist-panel")).toHaveCount(0);
+  await expect(page.locator(".artist-panel h2")).toBeVisible();
 });
-test("discover spins for three seconds and centres the selected artist", async ({
+test("flick keeps rotating with inertia and updates the closest artist spotlight", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await ready(page);
-  const start = Date.now();
-  await page
-    .getByRole("button", { name: "Discover an Artist!", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Discovering…" }),
-  ).toBeDisabled();
-  await expect(page.locator(".artist-panel h2")).toBeVisible({ timeout: 8000 });
-  expect(Date.now() - start).toBeGreaterThan(2800);
-  const selected = (await page
-      .locator(".artist-marker.is-selected")
-      .boundingBox())!,
-    stage = (await page.locator(".globe-stage").boundingBox())!;
-  expect(Math.abs(selected.x + 22 - stage.x - stage.width / 2)).toBeLessThan(3);
-  expect(Math.abs(selected.y + 22 - stage.y - stage.height / 2)).toBeLessThan(
-    3,
+  const canvas = page.locator("canvas"),
+    box = (await canvas.boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.4, box.y + box.height * 0.5);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.7, box.y + box.height * 0.6, {
+    steps: 8,
+  });
+  await page.mouse.up();
+  const released = await page.locator(".globe-stage").getAttribute("data-view");
+  await page.waitForTimeout(220);
+  expect(await page.locator(".globe-stage").getAttribute("data-view")).not.toBe(
+    released,
   );
+  await expect(page.locator(".spotlight-name strong")).toHaveText(
+    await page.locator(".artist-panel h2").innerText(),
+  );
+  await expect(page.locator(".artist-panel h2")).toBeVisible();
 });
-test("deep zoom has regional detail and resets to a bounded globe", async ({
+test("regional zoom stops at 500 km, reveals labels and zooms back to a smaller globe", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -83,7 +87,8 @@ test("deep zoom has regional detail and resets to a bounded globe", async ({
   await page.getByRole("button", { name: "Browse artist index +" }).click();
   await page.getByRole("searchbox").fill("Kyoto");
   await page.locator(".artist-directory li button").click();
-  for (let i = 0; i < 20; i++)
+  await page.waitForTimeout(100);
+  for (let i = 0; i < 22; i++)
     await page.getByRole("button", { name: "Zoom in", exact: true }).click();
   await expect
     .poll(async () =>
@@ -91,23 +96,62 @@ test("deep zoom has regional detail and resets to a bounded globe", async ({
         await page.locator(".globe-stage").getAttribute("data-altitude-km"),
       ),
     )
-    .toBeLessThan(8);
-  const altitude = Number(
-    await page.locator(".globe-stage").getAttribute("data-altitude-km"),
-  );
-  expect(altitude).toBeGreaterThanOrEqual(4.8);
-  await expect(page.locator(".maplibregl-ctrl-scale")).toBeVisible();
+    .toBeLessThan(501);
+  expect(
+    Number(await page.locator(".globe-stage").getAttribute("data-altitude-km")),
+  ).toBeGreaterThanOrEqual(499.9);
+  await expect(
+    page.locator(".geo-labels span:not([hidden])").first(),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Show whole globe" }).click();
   await expect
     .poll(async () =>
-      Number(await page.locator(".globe-stage").getAttribute("data-zoom")),
+      Number(await page.locator(".globe-stage").getAttribute("data-radius")),
     )
-    .toBeLessThan(2.5);
-  for (let i = 0; i < 8; i++)
+    .toBeGreaterThan(4);
+  for (let i = 0; i < 10; i++)
     await page.getByRole("button", { name: "Zoom out", exact: true }).click();
   expect(
-    Number(await page.locator(".globe-stage").getAttribute("data-zoom")),
-  ).toBeGreaterThan(0.5);
+    Number(await page.locator(".globe-stage").getAttribute("data-radius")),
+  ).toBeCloseTo(4.8, 1);
+});
+test("discovery sweeps through artists before landing in the radar", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await ready(page);
+  await page.evaluate(() => {
+    const names = new Set<string>();
+    (window as any).seenArtistNames = names;
+    const node = document.querySelector(".artist-panel h2")!;
+    new MutationObserver(() => names.add(node.textContent || "")).observe(
+      node,
+      { childList: true, subtree: true, characterData: true },
+    );
+  });
+  await page
+    .getByRole("button", { name: "Discover an Artist!", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Discovering…" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Discover an Artist!", exact: true }),
+  ).toBeEnabled({ timeout: 10000 });
+  expect(
+    await page.evaluate(() => (window as any).seenArtistNames.size),
+  ).toBeGreaterThan(2);
+  const metrics = await page.locator(".globe-stage").evaluate((el) => {
+    const s = el.getBoundingClientRect(),
+      d = el.querySelector('[data-spotlight="true"]')!.getBoundingClientRect();
+    return {
+      distance: Math.hypot(
+        d.x + d.width / 2 - s.x - s.width / 2,
+        d.y + d.height / 2 - s.y - s.height / 2,
+      ),
+    };
+  });
+  expect(metrics.distance).toBeLessThan(3);
 });
 for (const [width, height] of [
   [1440, 900],
@@ -132,31 +176,19 @@ for (const [width, height] of [
       ),
     ).toBe(true);
     const title = (await page.locator("h1").boundingBox())!,
-      fontSize = await page
+      size = await page
         .locator("h1")
         .evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
-    expect(title.height).toBeLessThan(fontSize * 1.3);
-    const globe = (await page.locator(".globe-workspace").boundingBox())!;
-    expect(Math.abs(globe.width - globe.height)).toBeLessThan(2);
-    await page.locator("[data-marker]:visible").first().click();
-    const panel = (await page.locator(".artist-panel").boundingBox())!,
-      afterGlobe = (await page.locator(".globe-workspace").boundingBox())!;
-    if (width <= 980)
-      expect(panel.y).toBeGreaterThan(afterGlobe.y + afterGlobe.height);
-    else expect(panel.x).toBeGreaterThan(afterGlobe.x + afterGlobe.width);
-    if (width <= 720) {
-      await expect(page.locator(".artist-summary")).toBeInViewport();
-      await expect(page.getByText("Scroll for their story ↓")).toBeVisible();
-    }
-    expect(
-      await page.evaluate(
-        () =>
-          document.documentElement.scrollWidth <=
-          document.documentElement.clientWidth,
-      ),
-    ).toBe(true);
+    expect(title.height).toBeLessThan(size * 1.3);
+    const globe = (await page.locator(".globe-workspace").boundingBox())!,
+      panel = (await page.locator(".artist-panel").boundingBox())!;
+    expect(globe.width).toBeGreaterThan(globe.height);
+    if (width <= 980) expect(panel.y).toBeGreaterThan(globe.y + globe.height);
+    else expect(panel.x).toBeGreaterThan(globe.x + globe.width);
+    if (width <= 720)
+      await expect(page.locator(".artist-panel h2")).toBeInViewport();
     await page.screenshot({
-      path: `/tmp/globe-v2-${width}.png`,
+      path: `/tmp/globe-v3-${width}.png`,
       fullPage: true,
     });
   });
@@ -223,7 +255,7 @@ test("public leaderboard is opt-in and can be left", async ({ page }) => {
     page.getByRole("button", { name: "Join this month ↗" }),
   ).toBeVisible();
 });
-test("pinch stays inside the map and page scrolling still works", async ({
+test("phone pinch changes only globe zoom and ordinary page scrolling remains available", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -233,20 +265,18 @@ test("pinch stays inside the map and page scrolling still works", async ({
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
-  await page.goto(
-    (process.env.ARTIST_GLOBE_TEST_URL || "http://localhost:4321") + route,
-  );
+  await page.goto(base + route);
   await expect(page.locator(".globe-loader")).toHaveCount(0, {
     timeout: 25000,
   });
-  const client = await context.newCDPSession(page),
+  const cdp = await context.newCDPSession(page),
     box = (await page.locator("canvas").boundingBox())!,
     x = box.x + box.width / 2,
     y = box.y + box.height / 2;
   const before = Number(
-    await page.locator(".globe-stage").getAttribute("data-zoom"),
+    await page.locator(".globe-stage").getAttribute("data-altitude-km"),
   );
-  await client.send("Input.dispatchTouchEvent", {
+  await cdp.send("Input.dispatchTouchEvent", {
     type: "touchStart",
     touchPoints: [
       { x: x - 30, y },
@@ -254,22 +284,24 @@ test("pinch stays inside the map and page scrolling still works", async ({
     ],
   });
   for (let d = 35; d <= 100; d += 5)
-    await client.send("Input.dispatchTouchEvent", {
+    await cdp.send("Input.dispatchTouchEvent", {
       type: "touchMove",
       touchPoints: [
         { x: x - d, y },
         { x: x + d, y },
       ],
     });
-  await client.send("Input.dispatchTouchEvent", {
+  await cdp.send("Input.dispatchTouchEvent", {
     type: "touchEnd",
     touchPoints: [],
   });
   await expect
     .poll(async () =>
-      Number(await page.locator(".globe-stage").getAttribute("data-zoom")),
+      Number(
+        await page.locator(".globe-stage").getAttribute("data-altitude-km"),
+      ),
     )
-    .toBeGreaterThan(before + 0.3);
+    .toBeLessThan(before * 0.8);
   expect(await page.evaluate(() => visualViewport?.scale)).toBe(1);
   await page
     .getByRole("button", { name: "Submit nomination ↗" })
@@ -277,15 +309,28 @@ test("pinch stays inside the map and page scrolling still works", async ({
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(0);
   await context.close();
 });
-test("reduced motion and WebGL fallback keep the directory usable", async ({
+test("keyboard rotation and reduced-motion discovery remain usable", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await ready(page);
+  const before = await page.locator(".globe-stage").getAttribute("data-view");
+  await page.locator("canvas").focus();
+  await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(() => page.locator(".globe-stage").getAttribute("data-view"))
+    .not.toBe(before);
   await page
     .getByRole("button", { name: "Discover an Artist!", exact: true })
     .click();
+  await expect(
+    page.getByRole("button", { name: "Discover an Artist!", exact: true }),
+  ).toBeEnabled();
   await expect(page.locator(".artist-panel h2")).toBeVisible();
+});
+test("WebGL failure leaves the artist index, profile and community forms usable", async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (
@@ -297,9 +342,10 @@ test("reduced motion and WebGL fallback keep the directory usable", async ({
       return original.apply(this, [type, ...args] as any);
     } as any;
   });
-  await page.reload();
+  await page.goto(route);
   await expect(page.locator(".globe-fallback")).toBeVisible();
   await expect(page.locator(".artist-directory")).toBeVisible();
+  await expect(page.locator(".artist-panel h2")).toBeVisible();
 });
 test("API rejects cross-site nominations and invalid input without saving", async ({
   request,
@@ -314,7 +360,7 @@ test("API rejects cross-site nominations and invalid input without saving", asyn
   });
   expect(invalid.status()).toBe(400);
 });
-test("long artist names and tags reflow without image placeholders", async ({
+test("long names and tags reflow in the permanently visible profile", async ({
   page,
 }) => {
   const { demoArtists } = await import("../../src/lib/artist-globe/data");
@@ -331,14 +377,7 @@ test("long artist names and tags reflow without image placeholders", async ({
   );
   await page.setViewportSize({ width: 320, height: 568 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(route);
-  await expect(page.locator(".globe-loader")).toHaveCount(0, {
-    timeout: 25000,
-  });
-  await expect(page.locator("canvas")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Discover an Artist!", exact: true })
-    .click();
+  await ready(page);
   await expect(page.locator(".artist-panel h2")).toHaveText(artist.name);
   expect(
     await page.evaluate(
@@ -349,75 +388,4 @@ test("long artist names and tags reflow without image placeholders", async ({
   ).toBe(true);
   await expect(page.locator(".artist-tags span")).toHaveCount(15);
   await expect(page.locator(".artwork-gallery")).toHaveCount(0);
-});
-test("a centred artist takes priority over neighbouring markers", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await ready(page);
-  await page.getByRole("button", { name: "Browse artist index +" }).click();
-  await page.getByRole("searchbox").fill("Paris");
-  await page.locator(".artist-directory li button").click();
-  await expect(page.locator(".artist-panel h2")).toHaveText("Remy Blue");
-  await expect(page.locator('[data-marker="demo-018"]')).toBeVisible();
-  const selected = (await page
-      .locator('[data-marker="demo-018"]')
-      .boundingBox())!,
-    stage = (await page.locator(".globe-stage").boundingBox())!;
-  expect(Math.abs(selected.x + 22 - stage.x - stage.width / 2)).toBeLessThan(3);
-  expect(Math.abs(selected.y + 22 - stage.y - stage.height / 2)).toBeLessThan(
-    3,
-  );
-});
-test("late SDK CSS cannot collapse the map viewport", async ({ page }) => {
-  await ready(page);
-  await page.addStyleTag({
-    content: ".maplibregl-map { position: relative; }",
-  });
-  const rects = await page.locator(".globe-stage").evaluate((el) => ({
-    stage: el.getBoundingClientRect().height,
-    surface: el.querySelector(".map-surface")!.getBoundingClientRect().height,
-    position: getComputedStyle(el.querySelector(".map-surface")!).position,
-  }));
-  expect(rects.position).toBe("absolute");
-  expect(Math.abs(rects.stage - rects.surface)).toBeLessThan(2);
-});
-test("the complete globe remains visible when centring a high-latitude artist", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await ready(page);
-  await page.getByRole("button", { name: "Browse artist index +" }).click();
-  await page.getByRole("searchbox").fill("Iceland");
-  await page.locator(".artist-directory li button").click();
-  await expect(page.locator(".artist-panel h2")).toHaveText("Lena Frost");
-  await page.waitForTimeout(600);
-  const sharp = (await import("sharp")).default;
-  const image = await page.locator(".globe-workspace").screenshot();
-  const { data, info } = await sharp(image)
-    .removeAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-  let blue = 0,
-    minX = info.width,
-    minY = info.height,
-    maxX = 0,
-    maxY = 0;
-  for (let y = 0; y < info.height; y++)
-    for (let x = 0; x < info.width; x++) {
-      const i = (y * info.width + x) * info.channels;
-      if (data[i + 2] > 140 && data[i + 2] > data[i] * 1.8) {
-        blue++;
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x);
-        maxY = Math.max(maxY, y);
-      }
-    }
-  expect(blue).toBeGreaterThan(1000);
-  expect(minX).toBeGreaterThan(20);
-  expect(minY).toBeGreaterThan(20);
-  expect(maxX).toBeLessThan(info.width - 20);
-  expect(maxY).toBeLessThan(info.height - 20);
 });

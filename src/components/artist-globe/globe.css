@@ -139,46 +139,9 @@ canvas:focus-visible {
   height: 100%;
   isolation: isolate;
 }
-.map-surface {
-  position: absolute;
-  inset: 0;
-}
+
 .globe-stage canvas {
   touch-action: none;
-}
-.globe-stage .maplibregl-canvas-container {
-  touch-action: none;
-}
-.globe-stage .maplibregl-ctrl-attrib {
-  font-family: inherit;
-  font-size: 9px;
-  background: var(--cream);
-  color: var(--ink);
-}
-.globe-stage .maplibregl-ctrl-attrib a {
-  color: inherit;
-}
-.globe-stage .maplibregl-ctrl-attrib-button {
-  min-width: 44px;
-  min-height: 44px;
-  width: 44px;
-  height: 44px;
-  border: 0;
-}
-.globe-stage .maplibregl-ctrl-scale {
-  font:
-    10px Satoshi,
-    sans-serif;
-  background: var(--cream);
-  border-color: var(--ink);
-}
-.globe-stage .maplibregl-ctrl-bottom-left {
-  bottom: 4px;
-  left: 4px;
-}
-.globe-stage .maplibregl-ctrl-bottom-right {
-  bottom: 4px;
-  right: 4px;
 }
 .artist-marker {
   position: absolute;
@@ -906,12 +869,6 @@ canvas:focus-visible {
   .atlas-community h2 {
     margin-bottom: 20px;
   }
-  .globe-stage .maplibregl-ctrl-scale {
-    font-size: 9px;
-  }
-  .globe-stage .maplibregl-ctrl-attrib {
-    max-width: calc(100vw - 100px);
-  }
   .atlas-footer {
     font-size: 10px;
     line-height: 1.6;
@@ -939,19 +896,263 @@ canvas:focus-visible {
   top: 70px;
 }
 
-.globe-stage .maplibregl-ctrl-attrib {
-  min-height: 44px;
-  padding-right: 44px;
+/* The sculptural globe and the always-visible artist card share the wider frame. */
+.artist-atlas {
+  max-width: 1536px;
+  padding-inline: clamp(16px, 3vw, 48px);
 }
-.globe-stage .maplibregl-ctrl-attrib-button {
-  background-position: center;
+.observatory {
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 25vw, 360px);
+  gap: 20px;
+  justify-content: stretch;
 }
-
-/* The map SDK loads its CSS lazily. Outrank its relative-position root rule
-   so the canvas cannot collapse when that stylesheet arrives after ours. */
-.globe-stage > .map-surface.maplibregl-map {
+.globe-workspace {
+  aspect-ratio: auto;
+  height: clamp(420px, calc(100svh - 230px), 660px);
+}
+.globe-stage > .globe-surface {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+}
+.globe-surface canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+.globe-surface canvas:active {
+  cursor: grabbing;
+}
+.discover-button {
+  position: absolute;
+  z-index: 5;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: 44px;
+  padding: 7px 15px;
+  border-radius: 12px;
+  font-size: 12px;
+  gap: 8px;
+  white-space: nowrap;
+  background: var(--yellow);
+}
+.discover-button > span {
+  font-size: 23px;
+}
+.artist-rail {
+  gap: 0;
+}
+.artist-panel {
+  width: 100%;
+  display: block;
+}
+.artist-summary {
+  padding: 24px;
+}
+.artist-story {
+  max-height: 380px;
+}
+.artist-marker[data-spotlight="true"] > span {
+  background: var(--pink);
+  width: 10px;
+  height: 10px;
+  box-shadow:
+    0 0 0 8px rgb(255 126 181 / 0.24),
+    0 0 0 17px rgb(36 68 202 / 0.12);
+}
+.artist-marker[data-spotlight="true"]:after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--blue);
+  border-radius: 50%;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.radar {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  width: 92px;
+  height: 92px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgb(36 68 202 / 0.22);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.radar:before,
+.radar:after {
+  content: "";
+  position: absolute;
+  background: var(--blue);
+  opacity: 0.25;
+}
+.radar:before {
+  left: -15px;
+  right: -15px;
+  top: 50%;
+  height: 1px;
+}
+.radar:after {
+  top: -15px;
+  bottom: -15px;
+  left: 50%;
+  width: 1px;
+}
+.radar-orbit {
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgb(36 68 202 / 0.22);
+  border-radius: 50%;
+}
+.radar-centre {
+  position: absolute;
+  left: calc(50% - 2px);
+  top: calc(50% - 2px);
+  width: 4px;
+  height: 4px;
+  background: var(--blue);
+  border-radius: 50%;
+}
+.spotlight-name {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: calc(50% + 66px);
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  background: var(--cream);
+  border: 1px solid rgb(21 19 15 / 0.2);
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-size: 12px;
+  max-width: 70%;
+  line-height: 1.35;
+}
+.spotlight-name span {
+  display: block;
+  font-size: 10px;
+  margin-top: 2px;
+}
+.geo-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+.geo-labels > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 11px;
+  font-weight: 550;
+  background: rgb(255 248 232 / 0.9);
+  padding: 2px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.geo-labels .region {
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.globe-stage[data-moving="true"] ~ .radar .radar-orbit {
+  animation: radar-breathe 1s ease-in-out infinite alternate;
+}
+@keyframes radar-breathe {
+  to {
+    inset: 4px;
+    opacity: 0.35;
+  }
+}
+@media (max-width: 980px) {
+  .observatory {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .globe-workspace {
+    height: clamp(360px, 68vw, 560px);
+  }
+  .artist-summary {
+    padding: 22px 24px;
+  }
+  .artist-story {
+    max-height: none;
+  }
+  .artist-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  }
+  .atlas-readout {
+    max-width: none;
+  }
+}
+@media (max-width: 720px) {
+  .globe-workspace {
+    height: clamp(260px, 78vw, 400px);
+  }
+  .artist-panel {
+    display: block;
+  }
+  .artist-summary {
+    padding: 20px;
+  }
+  .artist-story {
+    overflow: visible;
+  }
+  .discover-button {
+    bottom: 12px;
+    font-size: 11px;
+    padding: 6px 12px;
+    min-height: 44px;
+  }
+  .spotlight-name {
+    font-size: 11px;
+    top: calc(50% + 55px);
+  }
+  .radar {
+    width: 76px;
+    height: 76px;
+  }
+  .profile-symbol {
+    font-size: 24px;
+  }
+  .artist-summary h2 {
+    font-size: 30px;
+  }
+  .observatory {
+    gap: 12px;
+  }
+}
+
+.radar-link {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+.radar-link line {
+  stroke: var(--ink);
+  stroke-opacity: 0.22;
+  stroke-width: 1;
+  stroke-dasharray: 3 6;
+}
+.artist-rail {
+  position: sticky;
+  top: 24px;
+}
+@media (max-width: 980px) {
+  .artist-rail {
+    position: static;
+  }
 }
