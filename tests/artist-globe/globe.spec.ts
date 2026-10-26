@@ -343,3 +343,22 @@ test("long artist names and tags reflow without image placeholders", async ({
   await expect(page.locator(".artist-tags span")).toHaveCount(15);
   await expect(page.locator(".artwork-gallery")).toHaveCount(0);
 });
+test("a centred artist takes priority over neighbouring markers", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await ready(page);
+  await page.getByRole("button", { name: "Browse artist index +" }).click();
+  await page.getByRole("searchbox").fill("Paris");
+  await page.locator(".artist-directory li button").click();
+  await expect(page.locator(".artist-panel h2")).toHaveText("Remy Blue");
+  await expect(page.locator('[data-marker="demo-018"]')).toBeVisible();
+  const selected = (await page
+      .locator('[data-marker="demo-018"]')
+      .boundingBox())!,
+    stage = (await page.locator(".globe-stage").boundingBox())!;
+  expect(Math.abs(selected.x + 22 - stage.x - stage.width / 2)).toBeLessThan(3);
+  expect(Math.abs(selected.y + 22 - stage.y - stage.height / 2)).toBeLessThan(
+    3,
+  );
+});

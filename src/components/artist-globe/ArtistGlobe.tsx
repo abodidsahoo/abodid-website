@@ -152,6 +152,7 @@ export default function ArtistGlobe() {
   ) => {
     if (event) lastTrigger.current = event.currentTarget;
     setSelected(artist);
+    scene.current?.prioritize(artist);
     setHover(null);
     if (focus) {
       scene.current?.focus(artist);

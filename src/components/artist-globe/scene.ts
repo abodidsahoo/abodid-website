@@ -200,6 +200,7 @@ export async function createGlobe(
       `[data-marker="${CSS.escape(a.id)}"]`,
     ),
   );
+  let focusId: string | null = null;
   let destroyed = false,
     spinning = false,
     spinFrame = 0,
@@ -227,7 +228,10 @@ export async function createGlobe(
     if (Math.abs(map.getMaxZoom() - maximum) > 0.1) map.setMaxZoom(maximum);
     host.dataset.zoom = zoom.toFixed(3);
     host.dataset.altitudeKm = altitudeKm(zoom, center.lat, height).toFixed(1);
-    artists.forEach((a, i) => {
+    const ordered = artists
+      .map((a, i) => ({ a, i }))
+      .sort((x, y) => Number(y.a.id === focusId) - Number(x.a.id === focusId));
+    ordered.forEach(({ a, i }) => {
       const button = buttons[i];
       if (!button) return;
       const p = map.project([a.longitude, a.latitude]);
@@ -239,7 +243,8 @@ export async function createGlobe(
         p.y < 0 ||
         p.x > width ||
         p.y > height ||
-        occupied.some(([x, y]) => Math.hypot(x - p.x, y - p.y) < 36);
+        (a.id !== focusId &&
+          occupied.some(([x, y]) => Math.hypot(x - p.x, y - p.y) < 36));
       button.hidden = hidden;
       if (!hidden) {
         occupied.push([p.x, p.y]);
@@ -305,7 +310,12 @@ export async function createGlobe(
   });
   observer.observe(host);
   return {
+    prioritize(artist: Artist) {
+      focusId = artist.id;
+      update();
+    },
     focus(artist: Artist) {
+      focusId = artist.id;
       stopSpin();
       map.easeTo({
         center: [artist.longitude, artist.latitude],
@@ -329,6 +339,7 @@ export async function createGlobe(
       });
     },
     async discover(artist: Artist) {
+      focusId = artist.id;
       stopSpin();
       map.stop();
       const start = {
