@@ -75,6 +75,23 @@ const moodboardCaptureExperiment: Omit<LabExperiment, "index"> = {
   cardVariant: "media",
 };
 
+const artistGlobeExperiment: Omit<LabExperiment, "index"> = {
+  id: "art-in-every-corner",
+  title: "Art in Every Corner",
+  description:
+    "Spin a small planet to discover artistic practices across the world. A playful 3D atlas with clearly labelled fictional demo profiles while the archive takes shape.",
+  discipline: "Artist atlas · Spatial discovery",
+  status: "Interactive prototype",
+  year: "2026",
+  href: "/lab/art-in-every-corner",
+  destinationLabel: "Explore the globe",
+  thumbnail: "/images/lab/art-in-every-corner.png",
+  thumbnailAlt:
+    "Cobalt and cream artist globe with glowing location points and delicate orbital lines",
+  surface: "cream",
+  cardVariant: "media",
+};
+
 const fallbackLabExperiments: Omit<LabExperiment, "index">[] = [
   {
     id: "punctum",
@@ -136,8 +153,7 @@ const fallbackLabExperiments: Omit<LabExperiment, "index">[] = [
     destinationLabel: "Open experiment",
     thumbnail:
       "https://assets.abodid.com/videos/landing-page/sequence-room.mp4",
-    video:
-      "https://assets.abodid.com/videos/landing-page/sequence-room.mp4",
+    video: "https://assets.abodid.com/videos/landing-page/sequence-room.mp4",
     thumbnailAlt: "Interactive Sequence Room photo workspace preview",
     surface: "cream",
     cardVariant: "media",
@@ -173,14 +189,14 @@ const fallbackLabExperiments: Omit<LabExperiment, "index">[] = [
     destinationLabel: "Launch instrument",
     thumbnail:
       "https://assets.abodid.com/videos/landing-page/audio-spectrum.mp4",
-    video:
-      "https://assets.abodid.com/videos/landing-page/audio-spectrum.mp4",
+    video: "https://assets.abodid.com/videos/landing-page/audio-spectrum.mp4",
     thumbnailAlt:
       "Audio Visualiser showing a glowing magnetic waveform responding to sound beside live tuning controls",
     surface: "blue",
     cardVariant: "media",
   },
   moodboardCaptureExperiment,
+  artistGlobeExperiment,
 ];
 
 const numberExperiments = (
@@ -195,19 +211,36 @@ const restoreRequiredLocalExperiments = (
   experiments: Omit<LabExperiment, "index">[],
 ): Omit<LabExperiment, "index">[] => {
   const restored = [...experiments];
-  if (!restored.some((experiment) => experiment.id === obsidianVaultExperiment.id)) {
+  if (
+    !restored.some((experiment) => experiment.id === obsidianVaultExperiment.id)
+  ) {
     const explorerIndex = restored.findIndex(
       (experiment) => experiment.id === "obsidian-tags-interactive-explorer",
     );
-    restored.splice(explorerIndex >= 0 ? explorerIndex : restored.length, 0, obsidianVaultExperiment);
+    restored.splice(
+      explorerIndex >= 0 ? explorerIndex : restored.length,
+      0,
+      obsidianVaultExperiment,
+    );
   }
-  if (!restored.some((experiment) => experiment.id === moodboardCaptureExperiment.id)) {
+  if (
+    !restored.some(
+      (experiment) => experiment.id === moodboardCaptureExperiment.id,
+    )
+  ) {
     restored.push(moodboardCaptureExperiment);
+  }
+  if (
+    !restored.some((experiment) => experiment.id === artistGlobeExperiment.id)
+  ) {
+    restored.push(artistGlobeExperiment);
   }
   return restored;
 };
 
-const mapCatalogueRow = (row: LabCatalogueRow): Omit<LabExperiment, "index"> => ({
+const mapCatalogueRow = (
+  row: LabCatalogueRow,
+): Omit<LabExperiment, "index"> => ({
   id: row.entry_key,
   title: row.title,
   description: row.description,
@@ -239,7 +272,9 @@ export async function getLabExperiments(): Promise<LabExperiment[]> {
     if (!data?.length) return [];
 
     return numberExperiments(
-      restoreRequiredLocalExperiments((data as LabCatalogueRow[]).map(mapCatalogueRow)),
+      restoreRequiredLocalExperiments(
+        (data as LabCatalogueRow[]).map(mapCatalogueRow),
+      ),
     );
   } catch (error) {
     console.warn(
