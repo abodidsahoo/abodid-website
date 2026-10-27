@@ -51,7 +51,7 @@ const labExperiments = await getLabExperiments();
                 ) : experiment.thumbnailPoster ? (
                   <picture>
                     <source media="(prefers-reduced-motion: reduce)" srcset={experiment.thumbnailPoster} type="image/webp" />
-                    <img src={experiment.thumbnail} alt={experiment.thumbnailAlt} width={960} height={408} loading="lazy" decoding="async" />
+                    <img src={experiment.thumbnail} alt={experiment.thumbnailAlt} width={960} height={486} loading="lazy" decoding="async" />
                   </picture>
                 ) : experiment.video || experiment.thumbnail?.endsWith(".mp4") ? (
                   <LazyAutoplayVideo
@@ -243,6 +243,9 @@ const labExperiments = await getLabExperiments();
     display: block;
     width: 100%;
     height: 100%;
+  }
+  .lab-card__media picture img {
+    object-fit: contain;
   }
 
   .lab-card__media--interactive {

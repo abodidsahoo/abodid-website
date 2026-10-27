@@ -23,7 +23,7 @@ export const GET: APIRoute = async () => {
         .abortSignal(AbortSignal.timeout(4000));
       if (!error && data?.length) {
         artists = data.filter(validProfile);
-        if (preview && artists.some((a) => a.id.startsWith("atlas-csv-")))
+        if (artists.some((a) => !a.is_demo))
           artists = artists.filter((a) => !a.is_demo);
         mode = artists.every((a) => a.is_demo) ? "demo" : "live";
       }
@@ -42,11 +42,9 @@ export const GET: APIRoute = async () => {
     artists = snapshot.filter(validProfile);
     mode = "research-preview";
   }
-  if (preview) {
-    const { placeArtistsOnMap } =
-      await import("../../../lib/artist-globe/map-placement");
-    artists = placeArtistsOnMap(artists);
-  }
+  const { placeArtistsOnMap } =
+    await import("../../../lib/artist-globe/map-placement");
+  artists = placeArtistsOnMap(artists);
   return Response.json(
     {
       artists,

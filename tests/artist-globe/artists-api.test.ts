@@ -45,6 +45,34 @@ describe("atlas publication boundary", () => {
     expect(body.mode).toBe("demo");
     expect(body.artists.every((a: any) => a.is_demo)).toBe(true);
   });
+  it("production maps every published real profile and suppresses fictional demos", async () => {
+    vi.stubEnv("DEV", false);
+    mocks.result.mockResolvedValue({
+      data: [...demoArtists, ...candidates],
+      error: null,
+    });
+    const body = await (await GET({} as any)).json();
+    expect(mocks.eq).toHaveBeenCalledWith("published", true);
+    expect(body.mode).toBe("live");
+    expect(body.artists).toHaveLength(216);
+    expect(
+      body.artists.every(
+        (a: any) =>
+          !a.is_demo &&
+          Number.isFinite(a.latitude) &&
+          Number.isFinite(a.longitude),
+      ),
+    ).toBe(true);
+    expect(
+      body.artists.filter((a: any) => a.map_placement === "city"),
+    ).toHaveLength(86);
+    expect(
+      body.artists.filter((a: any) => a.map_placement === "country"),
+    ).toHaveLength(130);
+    expect(
+      body.artists.filter((a: any) => a.source_latitude === null),
+    ).toHaveLength(152);
+  });
   it("development exposes the research preview and never substitutes proxy pins", async () => {
     vi.stubEnv("DEV", true);
     mocks.result.mockResolvedValue({

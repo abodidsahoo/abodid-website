@@ -2,7 +2,7 @@
 
 Local preview: http://localhost:4321/lab/art-in-every-corner
 
-An Astro/React atlas with a local Three.js globe. Current changes are for localhost review; no push or deployment is authorized. The existing live route remains https://abodid.com/lab/art-in-every-corner.
+An Astro/React atlas with a Three.js globe. Public route: https://abodid.com/lab/art-in-every-corner. The user authorized committing, deploying and publishing the imported profiles on 27 October 2026. The Lab project story lives at `/lab/art-in-every-corner/about`.
 
 ## Current interface
 
@@ -87,7 +87,7 @@ All 216 remain unpublished and pending. Their IDs, permanent numbers, creation t
 
 At the user's request, location verification no longer gates map visibility in the local preview. All 216 profiles are plotted and eligible for discovery. The 64 existing coordinate pairs are used as supplied, 22 further cities are matched against the local GeoNames snapshot, and the remaining 130 profiles use explicitly approximate country-level placements. Country-level points are deterministically distributed inside the country's main land polygon so a whole country's artists do not collapse into one dot. No research-city proxies are used as claimed artist locations.
 
-`map-placement.ts` runs only on the server and only for development preview. The response includes `map_placement` (`city` or `country`) and retains original coordinates in `source_latitude`/`source_longitude`. It does not change any Supabase latitude, longitude, review, publication, or verification fields. Original import counts and verification flags elsewhere in this document describe stored research evidence, not the number of displayed preview pins. The preview now displays 86 city-level and 130 country-level placements, with no awaiting-verification message.
+`map-placement.ts` runs on the server in both development and production. The response includes `map_placement` (`city` or `country`) and retains original coordinates in `source_latitude`/`source_longitude`. It does not change any Supabase latitude, longitude, review, publication, or verification fields. Original import counts and verification flags elsewhere in this document describe stored research evidence, not the number of displayed pins. The imported collection displays 86 city-level and 130 country-level placements, with no awaiting-verification message.
 
 Pins sharing city coordinates are visually fanned around their shared location; the selected pin stays at the crosshair. The fan contracts near the globe's rim. Every artist has a marker, while the globe naturally hides its rear hemisphere. The bottom-left readout shows the local clock, followed by “Designed and developed by Abodid Sahoo.” The name links to https://abodid.com/. Artist-count and “your local time” labels are omitted. The credit wraps on narrow screens to leave room for the coordinate counters, and its link remains interactive above the globe.
 
@@ -112,3 +112,9 @@ Camera navigation is fixed north-up yaw/pitch with a ±85° latitude limit. The 
 ## Country-first profile hierarchy — 27 October 2026
 
 The pink summary shows the artist name, a smaller regular-weight country name aligned to the same left edge, and the city on its own line underneath. The larger flag appears below the globe settings button instead of beside the country text. Country type uses bounded, font-relative sizing; unusually long country names can wrap rather than overflow small screens. The specific practice is in the cream body. A 24px gap and a thin rule separate practice content from the links only when that practice exists; otherwise no rule appears. Instagram, websites, professional email, and source links all use the same font size, weight, underline thickness and spacing. The Google search action remains a separate button.
+
+## Public release and Lab project — 27 October 2026
+
+The former production mismatch came from two development-only paths: imported `atlas-csv-*` profiles were visible locally before publication, and approximate map placements were only applied in development. Production now retains its `published=true` database query, filters out fictional demo records whenever real profiles are available, and applies the same presentation placements as localhost. Publishing the 216 imported rows changes only their publication flag; source coordinates, verification status and review notes remain intact. RLS remains enabled with the existing published-profile SELECT policy.
+
+The globe uses the shared `SiteHeader` through `BaseLayout`, with a flex layout that accounts for the header's actual height. Its own footer and newsletter popup remain hidden. The Lab entry leads to a project story about discovering and sharing artists beyond familiar art-world routes, with the current interactions and technical stack explained. Two cropped WebP screenshots show only the working globe and artist card. The 960×486 GIF cycles four actual artist views (Quito, Tashkent, Cape Town and Australia) and weighs about 308 KB; reduced-motion visitors receive a static WebP through `<picture>` instead. Published catalogue copy remains editable in Supabase.

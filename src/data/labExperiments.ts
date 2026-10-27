@@ -236,12 +236,16 @@ const restoreRequiredLocalExperiments = (
     !restored.some((experiment) => experiment.id === artistGlobeExperiment.id)
   ) {
     restored.push(artistGlobeExperiment);
-  } else if (import.meta.env.DEV) {
-    // Preview this project's new story locally without publishing catalogue edits.
+  } else {
+    // The still alternative is local media; published catalogue copy stays editable.
     const index = restored.findIndex(
       (experiment) => experiment.id === artistGlobeExperiment.id,
     );
-    restored[index] = { ...restored[index], ...artistGlobeExperiment };
+    restored[index] = {
+      ...restored[index],
+      ...(import.meta.env.DEV ? artistGlobeExperiment : {}),
+      thumbnailPoster: artistGlobeExperiment.thumbnailPoster,
+    };
   }
   return restored;
 };
