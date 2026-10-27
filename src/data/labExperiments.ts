@@ -84,8 +84,8 @@ const artistGlobeExperiment: Omit<LabExperiment, "index"> = {
   discipline: "Artist atlas · Spatial discovery",
   status: "Interactive experiment",
   year: "2026",
-  href: "/lab/art-in-every-corner/about",
-  destinationLabel: "Read the story & explore",
+  href: "/lab/art-in-every-corner",
+  destinationLabel: "Explore the globe",
   thumbnail: "/images/lab/art-in-every-corner/discovery-loop.gif",
   thumbnailPoster: "/images/lab/art-in-every-corner/globe-quito.webp",
   thumbnailAlt:

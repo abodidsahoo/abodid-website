@@ -33,6 +33,7 @@ export default function ArtistGlobe() {
     lastCardFade = useRef(0);
   const dialog = useRef<HTMLDialogElement>(null),
     menu = useRef<HTMLDetailsElement>(null);
+  const projectInfo = useRef<HTMLDialogElement>(null);
   const mapped = useMemo(() => artists.filter(validArtist), [artists]);
   const filtered = useMemo(
     () => searchArtists(artists, query),
@@ -384,6 +385,15 @@ export default function ArtistGlobe() {
               Designed and developed by{" "}
               <a href="https://abodid.com/">Abodid Sahoo</a>.
             </p>
+            <button
+              className="project-info-toggle"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="atlas-project-info"
+              onClick={() => projectInfo.current?.showModal()}
+            >
+              Project Info
+            </button>
           </div>
         </div>
         <aside className="artist-panel" ref={card} aria-label="Selected artist">
@@ -449,6 +459,68 @@ export default function ArtistGlobe() {
           )}
         </aside>
       </section>
+      <dialog
+        className="atlas-project-info"
+        id="atlas-project-info"
+        ref={projectInfo}
+        aria-labelledby="project-info-title"
+      >
+        <div className="project-info-heading">
+          <h2 id="project-info-title">Project Info</h2>
+          <form method="dialog">
+            <button aria-label="Close project info" autoFocus>
+              ×
+            </button>
+          </form>
+        </div>
+        <div className="project-info-body" tabIndex={0}>
+          <section>
+            <h3>Why this project?</h3>
+            <p>
+              I made Art in Every Corner out of an urge to discover new artists
+              and share their work with the world. Research often leads us back
+              to familiar places: New York, London, Berlin. When we keep looking
+              in the same localities, we miss extraordinary practices taking
+              shape elsewhere.
+            </p>
+            <p>
+              This globe is an invitation to follow your curiosity beyond those
+              hotspots and meet artists you might otherwise never encounter.
+            </p>
+          </section>
+          <section>
+            <h3>A little discovery, every day</h3>
+            <p>
+              Wander around the world, roll the die, and let an unfamiliar name
+              become a new connection. I want this to be a playful experience
+              people return to each day, finding another artist and following
+              their work wherever it lives online.
+            </p>
+          </section>
+          <section>
+            <h3>Where it could go</h3>
+            <p>
+              In the future, people will be able to nominate amazing artists
+              from their own locality. The ambition is to grow this into a
+              repository of 100,000 emerging artists over the next three years,
+              shaped by the people who know their communities best.
+            </p>
+          </section>
+          <section>
+            <h3>Made with</h3>
+            <p>
+              Astro and React power the experience, Three.js brings the globe
+              and die to life, and Supabase holds the artist directory.
+              Geographic data comes from Natural Earth and GeoNames.
+            </p>
+          </section>
+          <section className="project-info-role">
+            <h3>My role</h3>
+            <p>Concept, creative technology, design &amp; development.</p>
+            <a href="https://abodid.com/">Abodid Sahoo ↗</a>
+          </section>
+        </div>
+      </dialog>
       <dialog
         className="artist-directory"
         id="artist-directory"
