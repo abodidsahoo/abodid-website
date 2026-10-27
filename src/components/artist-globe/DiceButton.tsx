@@ -4,9 +4,11 @@ import type { createDie, DieFlick } from "./die-scene";
 export default function DiceButton({
   disabled,
   onRoll,
+  animate = true,
 }: {
   disabled: boolean;
   onRoll: (direction?: number) => Promise<void>;
+  animate?: boolean;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const model = useRef<ReturnType<typeof createDie>>();
@@ -38,6 +40,25 @@ export default function DiceButton({
       cancelled = true;
       model.current?.dispose();
       model.current = undefined;
+    };
+  }, []);
+  useEffect(() => {
+    const button = canvas.current?.closest("button");
+    if (!button) return;
+    let visible = true;
+    const sync = () => {
+      button.dataset.motionSuspended = String(document.hidden || !visible);
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer.observe(button);
+    document.addEventListener("visibilitychange", sync);
+    sync();
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", sync);
     };
   }, []);
   const roll = async (flick: DieFlick = { x: 0, y: 0 }) => {
@@ -119,6 +140,7 @@ export default function DiceButton({
       aria-busy={busy}
       data-rolling={busy}
       data-model-ready={loaded}
+      data-motion-enabled={animate}
       title="Roll to discover an artist · click or flick"
       onPointerDown={down}
       onPointerMove={move}
@@ -143,17 +165,19 @@ export default function DiceButton({
       }}
     >
       <span className="die-shadow" aria-hidden="true" />
-      {!loaded && (
-        <span className="die-fallback" aria-hidden="true">
-          ⚄
-        </span>
-      )}
-      <canvas
-        ref={canvas}
-        className="die-model"
-        aria-hidden="true"
-        style={{ visibility: loaded ? "visible" : "hidden" }}
-      />
+      <span className="die-float">
+        {!loaded && (
+          <span className="die-fallback" aria-hidden="true">
+            <span />
+          </span>
+        )}
+        <canvas
+          ref={canvas}
+          className="die-model"
+          aria-hidden="true"
+          style={{ visibility: loaded ? "visible" : "hidden" }}
+        />
+      </span>
     </button>
   );
 }

@@ -253,6 +253,45 @@ body.artist-globe-page #main-content {
   pointer-events: none;
   transition: transform 180ms ease-out;
 }
+.die-float {
+  position: relative;
+  display: block;
+  width: 112px;
+  height: 112px;
+  transform-origin: 50% 60%;
+  animation: die-float 6.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes die-float {
+  0%,
+  100% {
+    transform: translate3d(0, -5px, 0) rotate(-4deg);
+  }
+  50% {
+    transform: translate3d(0, -13px, 0) rotate(4deg);
+  }
+}
+@keyframes die-shadow-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.55;
+  }
+}
+.discovery-die:is(
+    :disabled,
+    :active,
+    .is-dragging,
+    [data-motion-enabled="false"],
+    [data-motion-suspended="true"]
+  )
+  :is(.die-float, .die-shadow) {
+  animation-play-state: paused;
+}
 .discovery-die:hover:not(:disabled) .die-model {
   transform: translateY(-3px);
 }
@@ -265,16 +304,39 @@ body.artist-globe-page #main-content {
   border-radius: 50%;
   background: radial-gradient(ellipse, rgb(21 19 15 / 0.2), transparent 70%);
   pointer-events: none;
+  animation: die-shadow-breathe 6.8s ease-in-out infinite;
 }
 .die-fallback {
   position: absolute;
   inset: 14px;
-  color: var(--blue);
-  font-size: 80px;
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: #c60014;
+  box-shadow:
+    inset 2px 2px 4px rgb(255 255 255 / 0.4),
+    inset -4px -4px 5px rgb(70 0 10 / 0.25);
   pointer-events: none;
 }
+.die-fallback > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: white;
+  box-shadow:
+    -19px -19px white,
+    19px -19px white,
+    -19px 19px white,
+    19px 19px white;
+}
 @media (prefers-reduced-motion: reduce) {
+  .die-float {
+    animation: none;
+    transform: translateY(-6px);
+  }
+  .die-shadow {
+    animation: none;
+  }
   .die-model {
     transition: none;
   }

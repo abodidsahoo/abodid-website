@@ -270,6 +270,33 @@ test("every research artist is selectable without filler descriptions", async ({
   await expect(page.locator(".location-note")).toHaveCount(0);
   await expect(page.locator("[data-marker]")).toHaveCount(216);
 });
+test("idle die float can be paused in the menu and respects reduced motion", async ({
+  page,
+}) => {
+  await ready(page);
+  const float = page.locator(".die-float");
+  await expect
+    .poll(() => float.evaluate((el) => getComputedStyle(el).animationPlayState))
+    .toBe("running");
+  await page.getByLabel("Globe menu", { exact: true }).click();
+  await page
+    .getByRole("checkbox", { name: "Float the die", exact: true })
+    .uncheck();
+  expect(
+    await float.evaluate((el) => getComputedStyle(el).animationPlayState),
+  ).toBe("paused");
+  await page
+    .getByRole("checkbox", { name: "Float the die", exact: true })
+    .check();
+  await expect
+    .poll(() => float.evaluate((el) => getComputedStyle(el).animationPlayState))
+    .toBe("running");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await float.evaluate((el) => getComputedStyle(el).animationName)).toBe(
+    "none",
+  );
+});
+
 test("discovery lands in three seconds with monotonic latitude and no wobble", async ({
   page,
 }) => {

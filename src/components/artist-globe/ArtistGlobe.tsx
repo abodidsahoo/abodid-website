@@ -24,6 +24,7 @@ export default function ArtistGlobe() {
     [query, setQuery] = useState("");
   const [countries, setCountries] = useState(true),
     [places, setPlaces] = useState(true);
+  const [dieMotion, setDieMotion] = useState(true);
   const [time, setTime] = useState(""),
     [hover, setHover] = useState<Artist | null>(null);
   const host = useRef<HTMLDivElement>(null),
@@ -259,6 +260,14 @@ export default function ArtistGlobe() {
               <button className="directory-toggle" onClick={openIndex}>
                 Artist index <span aria-hidden="true">↗</span>
               </button>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={dieMotion}
+                  onChange={(e) => setDieMotion(e.target.checked)}
+                />
+                Float the die
+              </label>
               <div className="map-credits">
                 Dots include approximate city/country placements. Map data:{" "}
                 <a
@@ -300,7 +309,11 @@ export default function ArtistGlobe() {
               }}
             />
           )}
-          <DiceButton disabled={!ready || discovering} onRoll={discover} />
+          <DiceButton
+            disabled={!ready || discovering}
+            onRoll={discover}
+            animate={dieMotion}
+          />
           <div
             className="globe-coordinates"
             aria-label="Central pointer coordinates"

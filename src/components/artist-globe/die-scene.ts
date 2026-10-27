@@ -42,16 +42,16 @@ export function createDie(canvas: HTMLCanvasElement) {
   scene.add(die);
   const geometry = new RoundedBoxGeometry(1, 1, 1, 8, 0.14);
   const plastic = new THREE.MeshPhysicalMaterial({
-    color: 0xffed8f,
+    color: 0xc60014,
     roughness: 0.2,
     metalness: 0,
     clearcoat: 1,
     clearcoatRoughness: 0.1,
-    envMapIntensity: 0.75,
+    envMapIntensity: 0.45,
   });
-  const ink = new THREE.MeshStandardMaterial({
-    color: 0x171f48,
-    roughness: 0.4,
+  const pipMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.3,
   });
   die.add(new THREE.Mesh(geometry, plastic));
   const pipGeometry = new THREE.SphereGeometry(0.069, 24, 16);
@@ -104,7 +104,7 @@ export function createDie(canvas: HTMLCanvasElement) {
       new THREE.Vector3().fromArray(face.normal),
     );
     for (const [x, y] of dots[face.number - 1]) {
-      const pip = new THREE.Mesh(pipGeometry, ink);
+      const pip = new THREE.Mesh(pipGeometry, pipMaterial);
       pip.scale.z = 0.12;
       pip.position.set(x * 0.23, y * 0.23, 0.499);
       panel.add(pip);
@@ -204,7 +204,7 @@ export function createDie(canvas: HTMLCanvasElement) {
       geometry.dispose();
       pipGeometry.dispose();
       plastic.dispose();
-      ink.dispose();
+      pipMaterial.dispose();
       lighting.dispose();
       renderer.dispose();
     },
