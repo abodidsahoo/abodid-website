@@ -319,7 +319,78 @@ function getContrastTextColor(hex) {
     return lum > 0.36 ? '#15130f' : '#ffffff';
 }
 
-export default function MoodboardGallery({
+function MoodboardImage({ item, index, isLoaded, aspectRatio, onReady }) {
+    // Keep the actual DOM ref stable, not just a factory that returns a new ref
+    // every render. Reattaching a cached image ref used to enqueue gallery state
+    // updates during every commit and could exhaust React's nested-update limit.
+    const imageRef = useCallback((node) => {
+        if (node?.complete && node.naturalWidth > 0) onReady(item, node);
+    }, [item, onReady]);
+
+    return (
+        <img
+            ref={imageRef}
+            src={item.thumbnailUrl}
+            alt={item.title}
+            loading={index < 8 ? 'eager' : 'lazy'}
+            fetchpriority={index < 4 ? 'high' : 'low'}
+            decoding={index < 8 ? 'sync' : 'async'}
+            onLoad={(event) => onReady(item, event.currentTarget)}
+            className={`boudoir-photo-img ${isLoaded ? 'is-loaded' : ''}`}
+            style={aspectRatio ? { aspectRatio: String(aspectRatio) } : undefined}
+        />
+    );
+}
+
+class MoodboardRecoveryBoundary extends React.Component {
+    state = { hasError: false };
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, info) {
+        console.error('Moodboard interaction failed:', error, info);
+    }
+
+    render() {
+        if (!this.state.hasError) return this.props.children;
+
+        // Keep the archive usable even if a future interactive feature fails.
+        // This view deliberately uses plain links and images, with no load state.
+        const items = Array.isArray(this.props.items) ? this.props.items : [];
+        return (
+            <div>
+                <div role="alert" style={{ padding: '1rem' }}>
+                    <p>The interactive view paused. You can still browse the images below.</p>
+                    <button type="button" onClick={() => this.setState({ hasError: false })}>
+                        Restore interactive view
+                    </button>
+                </div>
+                <div
+                    aria-label="Moodboard images"
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(180px, 100%), 1fr))', gap: '8px', padding: '8px' }}
+                >
+                    {items.filter((item) => item?.id && item?.imageUrl && item?.thumbnailUrl).map((item) => (
+                        <a key={item.id} href={item.imageUrl} aria-label={`Open ${item.title}`}>
+                            <img src={item.thumbnailUrl} alt={item.title} loading="lazy" style={{ width: '100%', height: 'auto' }} />
+                        </a>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+}
+
+export default function MoodboardGallery(props) {
+    return (
+        <MoodboardRecoveryBoundary items={props.items}>
+            <MoodboardGalleryContent {...props} />
+        </MoodboardRecoveryBoundary>
+    );
+}
+
+function MoodboardGalleryContent({
     items = [],
     deepLinkParam = 'photo',
     showTitles = true,
@@ -347,6 +418,7 @@ export default function MoodboardGallery({
     const [placeholderExiting, setPlaceholderExiting] = useState(false);
 
     const assetCacheRef = useRef({});
+    const readyImageDimensionsRef = useRef(new WeakMap());
     const gradientRef = useRef(null);
     const trackRectRef = useRef(null);
     const isPointerDownRef = useRef(false);
@@ -412,39 +484,19 @@ export default function MoodboardGallery({
     }, []);
 
     const handleImageReady = useCallback((item, image) => {
-        if (!image) return;
-
-        // Always mark as loaded so the fade-in works regardless of decode timing.
+        if (!image?.naturalWidth || !image.naturalHeight) return;
+        const naturalRatio = getUsableAspectRatio(image.naturalWidth / image.naturalHeight) || 1;
+        const previous = readyImageDimensionsRef.current.get(image);
+        // A cached image can report through both its ref and onLoad. Do not
+        // enqueue even a no-op state update again for the same image dimensions.
+        if (previous?.id === item.id && previous.ratio === naturalRatio) return;
+        readyImageDimensionsRef.current.set(image, { id: item.id, ratio: naturalRatio });
         markImageLoaded(item.id);
-
-        const tryResolveRatio = () => {
-            if (!image.naturalWidth || !image.naturalHeight) return;
-            const naturalRatio = getUsableAspectRatio(image.naturalWidth / image.naturalHeight) || 1;
-            setResolvedAspectRatios((prev) => {
-                if (prev[item.id] === naturalRatio) return prev;
-                return { ...prev, [item.id]: naturalRatio };
-            });
-        };
-
-        // Dimensions may not be available yet when decoding="async"; retry on next frame.
-        if (image.naturalWidth > 0 && image.naturalHeight > 0) {
-            tryResolveRatio();
-        } else {
-            requestAnimationFrame(tryResolveRatio);
-        }
+        setResolvedAspectRatios((prev) => {
+            if (prev[item.id] === naturalRatio) return prev;
+            return { ...prev, [item.id]: naturalRatio };
+        });
     }, [markImageLoaded]);
-
-    // Returns a ref callback for <img> nodes.
-    // Browsers do NOT re-fire onLoad for cached images — the event fires before React
-    // attaches its synthetic listener. This ref callback runs synchronously when React
-    // mounts the DOM node, so if the image is already complete (cached) we call
-    // handleImageReady immediately and skip waiting for onLoad.
-    const makeImgRef = useCallback((item) => (node) => {
-        if (!node) return;
-        if (node.complete && node.naturalWidth > 0) {
-            handleImageReady(item, node);
-        }
-    }, [handleImageReady]);
 
     const syncUrl = useCallback((id) => {
         if (typeof window === 'undefined' || !deepLinkParam) return;
@@ -939,16 +991,12 @@ export default function MoodboardGallery({
                                         onFocus={() => preloadViewerImage(item)}
                                         aria-label={`Open ${item.title}`}
                                     >
-                                        <img
-                                            ref={makeImgRef(item)}
-                                            src={item.thumbnailUrl}
-                                            alt={item.title}
-                                            loading={index < 8 ? 'eager' : 'lazy'}
-                                            fetchpriority={index < 4 ? 'high' : 'low'}
-                                            decoding={index < 8 ? 'sync' : 'async'}
-                                            onLoad={(event) => handleImageReady(item, event.currentTarget)}
-                                            className={`boudoir-photo-img ${isLoaded ? 'is-loaded' : ''}`}
-                                            style={aspectRatio ? { aspectRatio: String(aspectRatio) } : undefined}
+                                        <MoodboardImage
+                                            item={item}
+                                            index={index}
+                                            isLoaded={isLoaded}
+                                            aspectRatio={aspectRatio}
+                                            onReady={handleImageReady}
                                         />
                                     </button>
                                 </div>
