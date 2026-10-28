@@ -29,10 +29,75 @@ test.beforeEach(async ({ page }) => {
     await page.route('**/moodboard-regression.js', (route) => route.fulfill({
         contentType: 'text/javascript', body: bundle,
     }));
-    await page.route('**/moodboard-regression', (route) => route.fulfill({
+    await page.route(/\/moodboard-regression(?:\?.*)?$/, (route) => route.fulfill({
         contentType: 'text/html',
         body: '<div id="root"></div><script type="module" src="/moodboard-regression.js"></script>',
     }));
+});
+
+test('new tags are loaded once from the static file and filtering stays local', async ({ page }) => {
+    let reads = 0;
+    await page.route('**/moodboard-search-snapshot.json', async (route) => {
+        reads += 1;
+        await route.fulfill({ json: {
+            schemaVersion: 1, revision: 2, generatedAt: '2026-10-28T12:00:00Z',
+            items: Array.from({ length: 1440 }, (_, index) => ({
+                id: `photo-${index}`, title: `Reference ${index}`, artistName: index % 2 ? 'Mira' : 'Anu',
+                tags: index === 2 ? ['newly saved concept'] : [index % 2 ? 'Architecture' : 'Portrait'],
+            })),
+        } });
+    });
+    await page.goto('/moodboard-regression?snapshot');
+    await page.getByRole('searchbox').fill('newly saved concept');
+    await expect(page.locator('[data-photo-id]')).toHaveCount(1);
+    await expect(page.locator('[data-photo-id="photo-2"]')).toBeVisible();
+    await page.locator('[data-photo-id="photo-2"]').click();
+    await expect(page.locator('.moodboard-polaroid-overlay')).toBeVisible();
+    await page.getByRole('button', { name: 'Close photo', exact: true }).click();
+    await page.getByRole('searchbox').fill('architecture');
+    await expect(page.locator('[data-photo-id]')).toHaveCount(720);
+    await page.getByRole('searchbox').fill('');
+    await expect(page.locator('[data-photo-id]')).toHaveCount(1440);
+    expect(reads).toBe(1);
+});
+
+test('unavailable or malformed metadata preserves the built gallery and its search', async ({ page }) => {
+    for (const response of [{ status: 503, body: 'Unavailable' }, { status: 200, json: { items: [] } }]) {
+        await page.route('**/moodboard-search-snapshot.json', (route) => route.fulfill(response));
+        await page.goto('/moodboard-regression?snapshot');
+        await expect(page.locator('.boudoir-photo-img')).toHaveCount(1440);
+        await page.getByRole('searchbox').fill('portrait');
+        await expect(page.locator('.boudoir-photo-img')).toHaveCount(720);
+        await expect(page.getByRole('alert')).toHaveCount(0);
+        await page.unroute('**/moodboard-search-snapshot.json');
+    }
+});
+
+test('metadata arriving during image navigation preserves the selected photo', async ({ page }) => {
+    let release: () => void;
+    const ready = new Promise<void>((resolve) => { release = resolve; });
+    await page.route('**/moodboard-search-snapshot.json', async (route) => {
+        await ready;
+        await route.fulfill({ json: {
+            schemaVersion: 1, revision: 3, generatedAt: '2026-10-28T12:00:00Z',
+            items: Array.from({ length: 1440 }, (_, index) => ({
+                id: `photo-${index}`, title: `Reference ${index}`, artistName: index % 2 ? 'Mira' : 'Anu',
+                tags: index % 2 ? ['Architecture'] : index === 2 ? ['Portrait', 'freshlytagged'] : ['Portrait'],
+            })),
+        } });
+    });
+    await page.goto('/moodboard-regression?snapshot');
+    await page.getByRole('searchbox').fill('portrait');
+    await page.locator('[data-photo-id="photo-2"]').click();
+    await expect(page.locator('.moodboard-polaroid-overlay')).toBeVisible();
+    release!();
+    await page.waitForResponse('**/moodboard-search-snapshot.json');
+    await expect(page).toHaveURL(/photo=photo-2/);
+    await expect(page.locator('.moodboard-polaroid-overlay img')).toHaveAttribute('alt', 'Reference 2');
+    await page.getByRole('button', { name: 'Close photo', exact: true }).click();
+    await page.getByRole('searchbox').fill('freshlytagged');
+    await expect(page.locator('[data-photo-id]')).toHaveCount(1);
+    await expect(page.locator('[data-photo-id="photo-2"]')).toBeVisible();
 });
 
 test('cached images survive repeated search, colour filtering, and viewer navigation', async ({ page }) => {

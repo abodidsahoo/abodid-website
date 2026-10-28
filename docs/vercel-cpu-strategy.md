@@ -12,6 +12,11 @@ At idle this removes up to 2,880 function requests per day, or 86,400 per 30-day
 
 Fixed public and archive routes that do not require per-request identity are prerendered during deployment. Vercel can serve those files from its CDN without starting the Astro server function. Authenticated pages, APIs, previews, and routes whose result truly depends on request-time state remain server-rendered.
 
+The moodboard keeps its static HTML and fetches current tag metadata directly
+from a public Supabase Storage JSON file. A change-driven Supabase publisher
+updates it; public searches do not invoke Vercel or query the database. See
+[moodboard search publication](./moodboard-search-publication.md).
+
 PDF parsing and FFmpeg discovery in opportunity capture are also dynamically loaded. Normal URL, pasted-text, and image captures therefore avoid initializing those heavy modules.
 
 ## 3. Reject automated noise at the edge

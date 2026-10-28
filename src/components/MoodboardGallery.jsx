@@ -2,6 +2,7 @@ import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useSt
 import MoodboardPolaroidViewer from './MoodboardPolaroidViewer.jsx';
 import { getClosestNamedColor } from '../lib/colorNaming.js';
 import { matchesMoodboardQuery } from '../lib/moodboardDiscovery.js';
+import { applyMoodboardSearchSnapshot, fetchMoodboardSearchSnapshot } from '../lib/moodboardSearchSnapshot.js';
 
 // --- COLOR SPACE MATH & CONVERSIONS ---
 function parseColorToRgb(str) {
@@ -394,12 +395,32 @@ function MoodboardGalleryContent({
     items = [],
     deepLinkParam = 'photo',
     showTitles = true,
+    searchSnapshotUrl = '',
 }) {
+    const [searchSnapshot, setSearchSnapshot] = useState(null);
+    useEffect(() => {
+        if (!searchSnapshotUrl) return undefined;
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), 10_000);
+        fetchMoodboardSearchSnapshot(searchSnapshotUrl, controller.signal)
+            .then((snapshot) => {
+                if (!controller.signal.aborted) setSearchSnapshot(snapshot);
+            })
+            .catch((error) => {
+                if (!controller.signal.aborted) console.warn('Using the saved moodboard search data:', error);
+            })
+            .finally(() => window.clearTimeout(timer));
+        return () => {
+            controller.abort();
+            window.clearTimeout(timer);
+        };
+    }, [searchSnapshotUrl]);
+
     const photos = useMemo(
-        () => (Array.isArray(items) ? items : []).filter(
+        () => applyMoodboardSearchSnapshot(Array.isArray(items) ? items : [], searchSnapshot).filter(
             (item) => item?.id && item?.imageUrl && item?.thumbnailUrl,
         ),
-        [items],
+        [items, searchSnapshot],
     );
 
     const [activeId, setActiveId] = useState(null);
@@ -1016,7 +1037,7 @@ function MoodboardGalleryContent({
                 )}
             </div>
 
-            {activeId && (
+            {activeId && photos.length > 0 && (
                 <MoodboardPolaroidViewer
                     items={filteredPhotos.length ? filteredPhotos : photos}
                     activeId={activeId}

@@ -1,5 +1,9 @@
 project_id = "personal-site"
 
+[functions.moodboard-search-publisher]
+# Authenticates a one-use private database dispatch token before reading/uploading.
+verify_jwt = false
+
 [functions.daily-reading-digest]
 # The function authenticates either the Vault-backed x-cron-secret or an
 # authenticated Supabase admin. This permits pg_net Cron calls without placing

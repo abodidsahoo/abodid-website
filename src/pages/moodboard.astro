@@ -3,6 +3,9 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MoodboardGallery from "../components/MoodboardGallery.jsx";
 import { getPublishedMoodboardItems } from "../lib/services/moodboard";
+import { getMoodboardSearchSnapshotUrl } from "../lib/moodboardSearchSnapshot.js";
+
+const searchSnapshotUrl = getMoodboardSearchSnapshotUrl(import.meta.env.PUBLIC_SUPABASE_URL);
 
 const title = "Mood Board — Abodid Sahoo";
 const description =
@@ -25,15 +28,8 @@ const interactiveItems = shuffledItems.map((item) => ({
   paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(item.thumbnailUrl || item.imageUrl)}`,
 }));
 
-// Moodboard items are managed directly in the admin, so keep the edge cache responsive while preserving zero cold-start delay for visitors.
-Astro.response.headers.set(
-  "Cache-Control",
-  "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
-);
-Astro.response.headers.set(
-  "Vercel-CDN-Cache-Control",
-  "s-maxage=60, stale-while-revalidate=300",
-);
+// Keep the HTML static. Current tags arrive directly from Supabase Storage's
+// public CDN, without a visitor request to an Astro/Vercel function.
 ---
 
 <BaseLayout
@@ -65,6 +61,7 @@ Astro.response.headers.set(
               items={interactiveItems}
               deepLinkParam="photo"
               showTitles={false}
+              searchSnapshotUrl={searchSnapshotUrl}
               client:load
             />
           ) : (

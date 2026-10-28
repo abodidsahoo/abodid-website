@@ -20,4 +20,5 @@ await Promise.all(imageUrls.map(async (url) => {
     cachedImage.src = url;
     await cachedImage.decode();
 }));
-createRoot(document.getElementById('root')).render(<MoodboardGallery items={items} />);
+const searchSnapshotUrl = new URLSearchParams(location.search).has('snapshot') ? '/moodboard-search-snapshot.json' : '';
+createRoot(document.getElementById('root')).render(<MoodboardGallery items={items} searchSnapshotUrl={searchSnapshotUrl} />);
