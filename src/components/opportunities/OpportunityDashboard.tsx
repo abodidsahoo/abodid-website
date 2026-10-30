@@ -463,7 +463,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             setCaptureError('');
             const loaded = await fetchOpportunities(true);
             const saved = loaded.find((opportunity) => opportunity.id === job.opportunity_id) || null;
-            if (saved) setCaptureResult(saved);
+            if (saved) {
+                setCaptureResult(saved);
+                setCaptureUrl((current) => job.input_kind === 'text' ? '' : current);
+            }
             showToast(job.is_duplicate ? '✓ Already on your radar' : '✓ Opportunity saved in the background');
         } catch (error) {
             if (latestCaptureJobIdRef.current !== jobId) return;
@@ -714,7 +717,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 }
 
                 latestCaptureJobIdRef.current = job.id;
-                setCaptureUrl((current) => clearSubmittedCaptureUrl(current, submittedInput));
+                // Keep note text while background extraction runs; do not lose it on failure.
+                // It is cleared only after a confirmed save.
                 clearCaptureAttachments();
                 setCaptureProgress(captureNotice(
                     'Capture received',
