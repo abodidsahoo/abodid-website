@@ -102,6 +102,6 @@ export const buildExtractedOpportunityPayload = ({
         application_fee: draft.application_fee || '',
         summary: draft.summary || '',
         notes: input.trim().slice(0, 20_000),
-        reminder_at_target: /\bremind\s+me\b/i.test(input),
+        reminder_at_target: /\b(?:remind\s+me|reminder)\b/i.test(input),
     };
 };
