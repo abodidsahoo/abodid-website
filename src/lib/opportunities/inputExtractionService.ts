@@ -12,6 +12,7 @@ import {
     resolveOpportunityDeadline,
 } from './extractor';
 import { consumeOpportunityAiLimit } from './rateLimit';
+import { parseSimpleReminder } from './simpleReminder';
 import { prioritizeOpportunityText } from './scraper';
 import type { OpportunityInputDraft } from './unifiedInput';
 import { formatOpportunityTitle } from './ui-helpers';
@@ -142,6 +143,12 @@ export const extractOpportunityFromInput = async ({
             400,
             'EMPTY_CAPTURE',
         );
+    }
+
+    // Exact relative reminders need neither AI nor monthly allowance.
+    if (attachments.length === 0) {
+        const reminder = parseSimpleReminder(submittedText, capturedAt);
+        if (reminder) return { model: 'local/reminder', draft: reminder };
     }
 
     const readableSections: string[] = [];
