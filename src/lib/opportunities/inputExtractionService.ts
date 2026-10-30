@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
     extractOpportunityWithLLM,
+    OpportunityExtractionTruncatedError,
     parseEventDate,
     resolveOpportunityDeadline,
 } from './extractor';
@@ -229,6 +230,13 @@ export const extractOpportunityFromInput = async ({
         };
     } catch (error) {
         if (error instanceof OpportunityInputExtractionError) throw error;
+        if (error instanceof OpportunityExtractionTruncatedError) {
+            throw new OpportunityInputExtractionError(
+                'The AI response was cut short. Try a shorter description or save manually.',
+                422,
+                'EXTRACTION_TRUNCATED',
+            );
+        }
         throw new OpportunityInputExtractionError(
             'The opportunity details could not be extracted. Review the input and try again.',
             502,
