@@ -73,12 +73,12 @@ export default function OpportunityLanding() {
 
     return (
         <section className="opp-landing-shell" aria-labelledby="opportunities-title">
-            <div className="opp-landing-card">
+            <div className="opp-landing-card" data-pop-surface="cream">
                 <div className="opp-landing-copy">
                     <h1 id="opportunities-title" className="opp-landing-brand">
                         <span className="opp-landing-brand-title">Opportunity</span>
                         <span className="opp-landing-brand-product">Tracker</span>
-                        <span className="opp-landing-brand-by">by Abodid.</span>
+                        <span className="opp-landing-brand-by">Abodid &amp; Co.</span>
                     </h1>
                     <div className="opp-landing-divider" aria-hidden="true" />
                     <p className="opp-landing-promise">One Click. Every opportunity organized.</p>
@@ -87,14 +87,14 @@ export default function OpportunityLanding() {
                 <div className="opp-landing-action">
                     <span className="opp-landing-action-label">WELCOME TO OPPORTUNITY TRACKER</span>
                     <p className="opp-landing-signin-copy">Sign in to save and organise opportunities across devices.</p>
-                    <button type="button" className={`opp-google-signin ${checking || signingIn ? 'opp-waiting' : ''}`} aria-busy={checking || signingIn} onClick={signIn} disabled={checking || signingIn}>
-                        <span className="opp-google-mark" aria-hidden="true">G</span>
-                        <span>{checking ? <OpportunityBusy inline>Checking session</OpportunityBusy> : signingIn ? <OpportunityBusy inline>Connecting to Google</OpportunityBusy> : 'Continue with Google'}</span>
-                        <span aria-hidden="true">→</span>
+                    <button type="button" className="opp-google-signin" aria-busy={checking || signingIn} onClick={signIn} disabled={checking || signingIn}>
+                        <img className="opp-google-mark" src="/images/google/g-logo.png" width="20" height="20" alt="" aria-hidden="true" />
+                        <span className="opp-google-label">{checking ? <OpportunityBusy inline>Checking session</OpportunityBusy> : signingIn ? <OpportunityBusy inline>Connecting to Google</OpportunityBusy> : 'Continue with Google'}</span>
+                        <span className="opp-google-arrow" aria-hidden="true">→</span>
                     </button>
                     <OpportunityProductUpdatesOptIn checked={productUpdatesOptIn} onChange={setProductUpdatesOptIn} disabled={checking || signingIn} />
                     <a className="opp-public-collection-link" href={OPPORTUNITY_CURATED_COLLECTION_PATH}>
-                        <span>Explore opportunities · no AI credits</span>
+                        <span>Browse opportunities</span>
                         <span aria-hidden="true">→</span>
                     </a>
                     {error && <p className="opp-auth-error" role="alert">{error}</p>}

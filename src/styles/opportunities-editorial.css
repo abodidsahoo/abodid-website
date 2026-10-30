@@ -48,6 +48,13 @@ body.opportunities-editorial-page {
   box-sizing: border-box;
 }
 
+/* Use the site's semantic surface contract even for body-mounted overlays.
+   Native form controls must also stay light on these cream/yellow surfaces. */
+body.opportunities-editorial-page :is([data-pop-surface="cream"], [data-pop-surface="yellow"]) {
+  color-scheme: light;
+  --bg-surface: #fff;
+}
+
 /* ==========================================================================
    1. ENLARGED OPPORTUNITY RADAR HERO DECK
    ========================================================================== */
@@ -1375,42 +1382,85 @@ body.opportunities-editorial-page {
 
 .opp-landing-action-label { margin-bottom: 1rem; }
 
-.opp-google-signin {
-  width: 100%;
-  min-height: 68px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border: 1.5px solid var(--opp-ink);
-  border-radius: 14px;
-  background: var(--opp-ink);
-  color: var(--opp-cream);
-  box-shadow: none;
-  font: 750 clamp(0.95rem, 1.2vw, 1.05rem)/1.2 var(--opp-font);
-  text-align: left;
-  cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+@font-face {
+  font-family: "Google Sans Sign In";
+  src: url("/fonts/google-sans/GoogleSans-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
-.opp-google-signin > span:nth-child(2) {
-  flex: 1;
-  white-space: nowrap;
+/* Google sign-in uses the tracker’s rounded action shape and official Google assets. */
+.opp-google-signin {
+  --pop-ink: #1f1f1f;
+  width: 100%;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 11px 16px;
+  border: 1.5px solid var(--opp-ink);
+  border-radius: 14px;
+  background: #fff;
+  color: #1f1f1f;
+  box-shadow: none;
+  font: 500 14px/20px "Google Sans Sign In", Arial, sans-serif;
+  letter-spacing: .25px;
+  text-align: left;
+  color-scheme: light;
+  cursor: pointer;
+  translate: 0 0;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.opp-google-signin > .opp-google-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: inherit;
+  font: inherit;
+  white-space: normal;
+}
+
+.opp-google-signin > .opp-google-arrow {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  color: inherit;
+  font: 750 1rem/1 var(--opp-font);
+  translate: 0 0;
+}
+
+/* A brief interaction cue; static at rest and when reduced motion is preferred. */
+@media (prefers-reduced-motion: no-preference) {
+  .opp-google-signin {
+    transition: translate 160ms cubic-bezier(.22, 1, .36, 1), background-color 160ms ease, box-shadow 160ms ease;
+  }
+  .opp-google-signin > .opp-google-arrow {
+    transition: translate 160ms cubic-bezier(.22, 1, .36, 1);
+  }
+  .opp-google-signin:focus-visible:not(:disabled) { translate: 0 -1px; }
+  .opp-google-signin:focus-visible:not(:disabled) > .opp-google-arrow { translate: 2px 0; }
+  @media (hover: hover) and (pointer: fine) {
+    .opp-google-signin:hover:not(:disabled) { translate: 0 -1px; }
+    .opp-google-signin:hover:not(:disabled) > .opp-google-arrow { translate: 2px 0; }
+  }
 }
 
 .opp-google-signin:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 4px 4px 0 rgba(21, 19, 15, 0.28);
+  background: #f8faff;
+  box-shadow: 0 1px 2px rgb(60 64 67 / .15);
 }
 
 .opp-google-signin:focus-visible {
-  outline: 3px solid var(--opp-purple);
-  outline-offset: 4px;
+  outline: 2px solid #1a73e8;
+  outline-offset: 3px;
 }
 
 .opp-google-signin:disabled {
-  opacity: 0.68;
+  --pop-ink: #3c4043;
+  color: #3c4043;
+  background: #f8f9fa;
+  opacity: 1;
   cursor: wait;
 }
 
@@ -1448,22 +1498,12 @@ body.opportunities-editorial-page {
   text-decoration: none;
 }
 
-.opp-google-signin[disabled] {
-  color: var(--opp-ink);
-  background: rgba(255, 248, 232, 0.7);
-}
-
 .opp-google-mark {
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--opp-ink);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--opp-ink);
-  font-weight: 850;
-  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  display: block;
+  object-fit: contain;
+  flex: 0 0 20px;
 }
 
 .opp-landing-action > small { margin-top: 1rem; color: var(--opp-ink); font-weight: 650; }
@@ -1562,19 +1602,6 @@ body.opportunities-editorial-page {
   .opp-landing-brand-product { font-size: clamp(2.15rem, 10vw, 3rem); }
   .opp-landing-brand-by { font-size: clamp(1.2rem, 6vw, 1.7rem); }
   .opp-landing-action { padding: 1.5rem; }
-}
-
-@media (max-width: 360px) {
-  .opp-google-signin {
-    gap: 8px;
-    padding-inline: 10px;
-    font-size: 0.88rem;
-  }
-
-  .opp-google-mark {
-    width: 28px;
-    height: 28px;
-  }
 }
 
 /* Sign-in handoff for saving a public opportunity */
@@ -8500,7 +8527,6 @@ button.opp-detail-deadline-card,
 @media (max-height: 620px) { .opp-quick-tour { padding: 14px 16px; } .opp-quick-tour h2 { font-size: 1.22rem; margin-top: 8px; } .opp-quick-tour p { font-size: .78rem; line-height: 1.4; } .opp-tour-actions { margin-top: 10px; } }
 @media (max-height: 500px) { .opp-quick-tour { overflow-y: auto; } }
 .opp-auth-loading .opp-busy-line { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 750; }
-.opp-google-signin > span:nth-child(2) { min-width: 0; white-space: normal; }
 
 /* Keep the public collection save action quiet and right-aligned. */
 .opp-card .opp-card-links { flex: 0 1 auto; margin-inline-start: auto; }
@@ -8707,17 +8733,26 @@ button.opp-detail-deadline-card,
   .has-quick-access .opp-user-menu-trigger > svg { width: 20px; height: 20px; }
 }
 
-/* Allowance and first-run guidance reuse the tracker’s editorial palette. */
-.opp-allowance { background:var(--opp-cream);color:var(--opp-ink);border:1.5px solid var(--opp-ink);border-radius:14px;padding:20px;margin-block:16px 24px; }
-.opp-allowance strong { font-size:1.25rem; }
-.opp-allowance p { margin-block:8px; }
-.opp-allowance-actions { display:flex;flex-wrap:wrap;gap:10px;margin-block:14px; }
-.opp-allowance details { margin-block-start:16px; }
-.opp-allowance summary { cursor:pointer;min-height:44px;display:flex;align-items:center; }
-.opp-allowance blockquote { border-inline-start:3px solid var(--opp-yellow);padding-inline-start:16px;margin:12px 0; }
+/* Credit requests reuse the tracker’s editorial palette. */
 .opp-credit-dialog textarea { display:block;width:100%;min-height:130px;margin-block:8px 16px;padding:12px;border:1px solid var(--opp-ink);border-radius:10px;font:inherit;box-sizing:border-box;resize:vertical; }
 .opp-credit-dialog label { display:block;font-weight:700; }
 .opp-credit-dialog button { min-height:44px; }
 .opp-credit-dialog { max-height:calc(100dvh - 32px);overflow:auto; }
 .opp-credit-dialog textarea { background:#fff;color:var(--opp-ink); }
 .opp-credit-dialog textarea:focus-visible { outline:3px solid var(--opp-purple);outline-offset:3px; }
+
+/* Secondary radar tools live in Settings instead of the main opportunity feed. */
+.opp-radar-settings-dialog { max-block-size:calc(100dvh - 32px);overflow:auto; }
+.opp-radar-settings-close { margin-inline-start:auto; }
+.opp-radar-settings-dialog h2 { margin-block:16px;font-size:1.5rem;line-height:1.15; }
+.opp-radar-settings-dialog .opp-btn { max-inline-size:100%;white-space:normal;text-align:center; }
+.opp-radar-usage { display:grid;gap:14px;margin-block:24px; }
+.opp-radar-usage > div { display:grid;gap:4px; }
+.opp-radar-usage dt { font-size:.85rem;color:var(--opp-muted); }
+.opp-radar-usage dd { margin:0;font-weight:750; }
+.opp-radar-telegram-help { margin-block-start:24px; }
+.opp-radar-telegram-help summary { cursor:pointer;min-block-size:44px;align-content:center; }
+.opp-radar-telegram-help p,.opp-radar-telegram-help blockquote { font-size:.9rem;line-height:1.5; }
+.opp-radar-telegram-help blockquote { margin-inline:0;padding-inline-start:14px;border-inline-start:3px solid var(--opp-yellow); }
+.opp-radar-settings-dialog:modal { overscroll-behavior:contain; }
+.opp-radar-settings-dialog::backdrop { overflow:hidden;overscroll-behavior:contain; }

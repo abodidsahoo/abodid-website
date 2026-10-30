@@ -99,7 +99,7 @@ export const OpportunityProfileDialog: React.FC<OpportunityProfileDialogProps> =
     return (
         <dialog
             ref={dialogRef}
-            className="opp-profile-dialog"
+            className="opp-profile-dialog" data-pop-surface="cream"
             aria-labelledby="opp-profile-dialog-title"
             aria-describedby="opp-profile-dialog-description"
             onClose={onClose}

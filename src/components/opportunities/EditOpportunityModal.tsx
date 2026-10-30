@@ -95,7 +95,7 @@ export const EditOpportunityModal: React.FC<EditOpportunityModalProps> = ({
 
     return (
         <div className="opp-modal-overlay" onClick={onClose}>
-            <div className="opp-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="opp-modal" data-pop-surface="cream" onClick={(e) => e.stopPropagation()}>
                 <div className="opp-modal-header">
                     <h2 className="opp-modal-title">Edit Opportunity</h2>
                     <button type="button" className="opp-btn opp-btn-secondary opp-btn-sm" onClick={onClose}>

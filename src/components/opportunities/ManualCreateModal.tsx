@@ -257,7 +257,7 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
                 if (event.target === event.currentTarget && !isBusy) onClose();
             }}
         >
-            <div ref={dialogRef} className="opp-modal opp-create-modal" role="dialog" aria-modal="true" aria-labelledby="opp-create-title">
+            <div ref={dialogRef} className="opp-modal opp-create-modal" data-pop-surface="cream" role="dialog" aria-modal="true" aria-labelledby="opp-create-title">
                 <div className="opp-modal-header opp-create-modal-header">
                     <div>
                         <span className="opp-create-kicker">Opportunity tracker</span>

@@ -416,7 +416,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
     return (
         <dialog
             ref={dialogRef}
-            className="opp-detail-dialog"
+            className="opp-detail-dialog" data-pop-surface="cream"
             aria-labelledby="opp-detail-title"
             onCancel={(event) => {
                 event.preventDefault();

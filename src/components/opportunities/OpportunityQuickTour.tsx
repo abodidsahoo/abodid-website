@@ -107,7 +107,7 @@ export function OpportunityQuickTour({ username, replayKey, suspended = false }:
         : OPPORTUNITY_TOUR_STEPS[step];
     return createPortal(<>
         {geometry && <div className="opp-tour-spotlight" style={geometry} aria-hidden="true" />}
-        <div ref={cardRef} className="opp-quick-tour" role="dialog" aria-labelledby="opp-tour-title" aria-describedby="opp-tour-copy">
+        <div ref={cardRef} className="opp-quick-tour" data-pop-surface="cream" role="dialog" aria-labelledby="opp-tour-title" aria-describedby="opp-tour-copy">
             <div className="opp-tour-heading"><span>{step + 1} / {OPPORTUNITY_TOUR_STEPS.length}</span><button type="button" onClick={finish} aria-label="Close quick tour"><X size={18} aria-hidden="true" /></button></div>
             <h2 id="opp-tour-title">{content.title}</h2>
             <p id="opp-tour-copy">{content.copy.replace(/ (\S+) (\S+)$/, ' $1\u00a0$2')}</p>

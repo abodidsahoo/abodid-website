@@ -1,14 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
+import { OPPORTUNITY_CURATED_COLLECTION_PATH } from "../../lib/opportunities/routes";
 const sample =
   "Keep track of the Google Creative Art Residency in India whose application deadline is 12th April, 2027.";
 export function OpportunityAllowance({
   accessToken,
   savedCount,
   error,
+  radarOpen,
+  onClose,
 }: {
   accessToken: string | null;
-  savedCount: number;
+  savedCount?: number;
   error: string;
+  radarOpen: boolean;
+  onClose: () => void;
 }) {
   const [usage, setUsage] = useState<any>(null),
     [open, setOpen] = useState(false),
@@ -17,21 +22,31 @@ export function OpportunityAllowance({
   const [message, setMessage] = useState(
     "Hello Support team of Abodid & Co., I’m enjoying the opportunity tracker and reminder features, and I’d love a higher monthly AI allowance.",
   );
-  const [connectUrl, setConnectUrl] = useState("");
+  const [usageError, setUsageError] = useState("");
+  const [requestSent, setRequestSent] = useState(false);
+  const radarDialog = useRef<HTMLDialogElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { setUsage(null); setRequestSent(false); }, [accessToken]);
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || (!radarOpen && !open)) return;
+    setUsageError("");
     const controller = new AbortController();
     fetch("/api/opportunities/usage", {
       headers: { Authorization: `Bearer ${accessToken}` },
       signal: controller.signal,
     })
       .then(async (r) => {
-        if (r.ok) setUsage(await r.json());
+        if (!r.ok) throw new Error("Usage unavailable. Close and reopen to retry.");
+        const nextUsage = await r.json();
+        if (!controller.signal.aborted) setUsage(nextUsage);
       })
-      .catch(() => {});
+      .catch((error) => { if (!controller.signal.aborted) setUsageError(error.message); });
     return () => controller.abort();
-  }, [accessToken, savedCount, error, open]);
+  }, [accessToken, savedCount, error, open, radarOpen]);
+  useEffect(() => {
+    if (radarOpen && !radarDialog.current?.open) radarDialog.current?.showModal();
+    if (!radarOpen && radarDialog.current?.open) radarDialog.current.close();
+  }, [radarOpen]);
   useEffect(() => {
     if (/this month|monthly.*allowance/i.test(error)) {
       setStatus("");
@@ -58,7 +73,8 @@ export function OpportunityAllowance({
       setStatus(
         "Your request has been sent to the Support team of Abodid & Co.",
       );
-      setUsage((v: any) => ({ ...v, request: { delivery_status: "sent" } }));
+      setRequestSent(true);
+      setUsage((v: any) => v ? { ...v, request: { delivery_status: "sent" } } : v);
     } catch (e) {
       setStatus(
         e instanceof Error
@@ -69,117 +85,44 @@ export function OpportunityAllowance({
       setSending(false);
     }
   };
-  const connect = async () => {
-    setStatus("");
-    try {
-      const r = await fetch("/api/integrations/telegram/connection", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        }),
-      });
-      const b = await r.json();
-      if (!r.ok) throw new Error(b.error);
-      setConnectUrl(b.connect_url);
-    } catch (e) {
-      setStatus(
-        e instanceof Error ? e.message : "Telegram could not be prepared.",
-      );
-    }
-  };
   const exhausted = usage && usage.used >= usage.limit;
+  const count = usage?.saved ?? savedCount;
   return (
-    <section className="opp-allowance" aria-label="Your radar and AI allowance">
-      <div>
-        <strong>
-          {savedCount === 0
-            ? "Start with something worth keeping."
-            : "Keep your radar close."}
-        </strong>
-        <p>
-          Add opportunities from Abodid’s collection without using AI credits.
-          Then connect Telegram to share links, PDFs, images and voice notes.
-        </p>
-        <div className="opp-allowance-actions">
-          <a className="opp-btn opp-btn-secondary" href="/opportunities/abodid">
-            Explore opportunities · no AI credits
-          </a>
-          {savedCount > 0 && (
-            <button
-              type="button"
-              className="opp-btn opp-btn-secondary"
-              onClick={() => void connect()}
-            >
-              Connect Telegram
-            </button>
-          )}
-          {connectUrl && (
-            <a
-              className="opp-btn opp-btn-primary"
-              href={connectUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open Telegram to connect ↗
-            </a>
-          )}
-        </div>
-      </div>
-      <p>
-        {usage
-          ? `${usage.used} / ${usage.limit} AI attempts this month · ${savedCount} / 100 saved`
-          : "New AI captures use your monthly allowance. You can keep up to 100 opportunities."}
-      </p>
-      {exhausted && (
-        <p>
-          Your monthly AI allowance is used. Your saved opportunities and
-          reminders remain available. Resets{" "}
-          {new Date(usage.resets_at).toLocaleDateString(undefined, {
-            dateStyle: "long",
-          })}
-          .
-        </p>
-      )}
-      {savedCount >= 100 && (
-        <p>
-          Your radar has 100 opportunities. Delete one to make room. Deleting
-          does not restore AI credits.
-        </p>
-      )}
-      <button
-        type="button"
-        className="opp-btn opp-btn-secondary"
-        onClick={() => {
-          setStatus("");
-          setOpen(true);
-        }}
+    <>
+      <dialog
+        ref={radarDialog}
+        className="opp-radar-auth-dialog opp-radar-settings-dialog"
+        data-pop-surface="cream"
+        aria-labelledby="opp-radar-settings-title"
+        onClose={onClose}
       >
-        Request more AI credits
-      </button>
-      {savedCount > 0 && (
-        <details>
-          <summary>What can I send on Telegram?</summary>
-          <p>
-            Share a link, PDF or image, or speak it out as a voice note. Try
-            this example:
-          </p>
+        <button type="button" className="opp-btn opp-btn-secondary opp-radar-settings-close"
+          aria-label="Close your usage settings" onClick={() => radarDialog.current?.close()}>Close</button>
+        <h2 id="opp-radar-settings-title">Your usage</h2>
+        <a className="opp-btn opp-btn-secondary" href={OPPORTUNITY_CURATED_COLLECTION_PATH}>
+          Browse opportunities
+        </a>
+        <dl className="opp-radar-usage" aria-live="polite">
+          <div><dt>AI attempts this month</dt><dd>{usage ? `${usage.used} of ${usage.limit} used` : usageError || "Loading…"}</dd></div>
+          <div><dt>Saved opportunities</dt><dd>{count === undefined ? "Loading…" : `${count} of 100`}</dd></div>
+        </dl>
+        {exhausted && <p>Resets {new Date(usage.resets_at).toLocaleDateString(undefined, { dateStyle: "long" })}. Your saved opportunities remain available.</p>}
+        {count !== undefined && count >= 100 && <p>Delete an opportunity to make room. Deleting does not restore AI attempts.</p>}
+        <button type="button" className="opp-btn opp-btn-secondary" onClick={() => { setStatus(""); setOpen(true); }}>
+          Request more AI credits
+        </button>
+        <details className="opp-radar-telegram-help">
+          <summary>Using Telegram</summary>
+          <p>Connect from Settings, then send a link, file or voice note. For example:</p>
           <blockquote>{sample}</blockquote>
-          <small>
-            Example only; this is not a verified opportunity listing. AI
-            messages use the same monthly allowance.
-          </small>
+          <small>Example only. AI processing uses the same monthly allowance.</small>
         </details>
-      )}
-      {!open && status && <p role="status">{status}</p>}
+      </dialog>
       <dialog
         ref={dialog}
-        className="opp-radar-auth-dialog opp-credit-dialog"
+        className="opp-radar-auth-dialog opp-credit-dialog" data-pop-surface="cream"
         aria-labelledby="opp-credit-title"
-        onClose={() => setOpen(false)}
+        onClose={() => { setOpen(false); if (!radarOpen) onClose(); }}
       >
         <button
           type="button"
@@ -210,13 +153,13 @@ export function OpportunityAllowance({
           disabled={
             sending ||
             message.trim().length < 10 ||
-            usage?.request?.delivery_status === "sent"
+            requestSent || usage?.request?.delivery_status === "sent"
           }
           onClick={() => void send()}
         >
           {sending
             ? "Sending…"
-            : usage?.request?.delivery_status === "sent"
+            : requestSent || usage?.request?.delivery_status === "sent"
               ? "Request sent"
               : "Send request"}
         </button>
@@ -225,6 +168,6 @@ export function OpportunityAllowance({
           Email the Support team of Abodid &amp; Co.
         </a>
       </dialog>
-    </section>
+    </>
   );
 }

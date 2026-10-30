@@ -1,11 +1,11 @@
 import { createPortal } from 'react-dom';
+import { OpportunityAllowance } from './OpportunityAllowance';
 import { Chrome, Send, Settings, ArrowUpRight, CheckCircle2, Copy, ChevronDown } from 'lucide-react';
 import { OpportunityExtensionHelp } from './OpportunityExtensionHelp';
 import { OpportunityBusy } from './OpportunityBusy';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { getOpportunityMenuPosition, type OpportunityMenuPosition } from '../../lib/opportunities/menuPosition';
 import {
-    OPPORTUNITY_CURATED_COLLECTION_PATH,
     OPPORTUNITY_PRIVACY_PATH,
 } from '../../lib/opportunities/routes';
 
@@ -17,6 +17,8 @@ interface TelegramConnectionPreparation {
 
 interface OpportunitySettingsMenuProps {
     showQuickAccess?: boolean;
+    savedCount?: number;
+    captureError?: string;
     accessToken: string | null;
     isPublic: boolean;
     username: string;
@@ -34,6 +36,8 @@ const INTERACTIVE_ITEM_SELECTOR = [
 
 export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = ({
     showQuickAccess = false,
+    savedCount,
+    captureError = '',
     accessToken,
     isPublic,
     username,
@@ -44,6 +48,7 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
     onVisibilityChange,
 }) => {
     const [isExtensionHelpOpen, setIsExtensionHelpOpen] = useState(false);
+    const [isRadarOpen, setIsRadarOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [isSavingVisibility, setIsSavingVisibility] = useState(false);
     const [telegramStatus, setTelegramStatus] = useState<'loading' | 'active' | 'pending' | 'disconnected' | 'unavailable'>('loading');
@@ -333,17 +338,19 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
                     <span><strong>{telegramStatus === 'active' ? 'Telegram connected' : 'Connect to Telegram'}</strong><small>{isUpdatingTelegram ? <OpportunityBusy>{telegramStatus === 'active' ? 'Disconnecting' : 'Connecting'}</OpportunityBusy> : telegramStatus === 'loading' ? <OpportunityBusy>Checking connection</OpportunityBusy> : telegramStatus === 'active' ? 'Send opportunities from Telegram.' : telegramStatus === 'unavailable' ? 'Check connection setup in Settings.' : 'Capture messages and voice notes.'}</small></span>
                     {telegramStatus === 'active' ? <ChevronDown size={18} aria-hidden="true" /> : <ArrowUpRight size={18} aria-hidden="true" />}
                 </button>
-                {telegramMenuOpen && telegramStatus === 'active' && <div className="opp-telegram-quick-dropdown" role="menu" aria-label="Telegram connection" onKeyDown={(event) => {
+                {telegramMenuOpen && telegramStatus === 'active' && <div className="opp-telegram-quick-dropdown" data-pop-surface="cream" role="menu" aria-label="Telegram connection" onKeyDown={(event) => {
                     if (event.key === 'Escape' || event.key === 'Tab') { setTelegramMenuOpen(false); if (event.key === 'Escape') { event.preventDefault(); telegramTriggerRef.current?.focus(); } }
                 }}><button type="button" role="menuitem" disabled={isUpdatingTelegram} onClick={() => void updateTelegramConnection()}>{isUpdatingTelegram ? <OpportunityBusy>Disconnecting</OpportunityBusy> : 'Disconnect Telegram'}</button></div>}
                 </div>
             </div>}
+            <OpportunityAllowance accessToken={accessToken} savedCount={savedCount} error={captureError}
+                radarOpen={isRadarOpen} onClose={() => { setIsRadarOpen(false); focusTrigger(); }} />
             <OpportunityExtensionHelp open={isExtensionHelpOpen} onClose={() => setIsExtensionHelpOpen(false)} />
             {isOpen && createPortal(
                 <div
                     ref={menuRef}
                     id="opportunity-settings-menu"
-                    className="opp-user-menu-popover"
+                    className="opp-user-menu-popover" data-pop-surface="cream"
                     role="menu"
                     aria-label="Opportunity Tracker settings"
                     onKeyDown={handleMenuKeyDown}
@@ -413,9 +420,9 @@ export const OpportunitySettingsMenu: React.FC<OpportunitySettingsMenuProps> = (
 
                     {onStartTour && <button type="button" role="menuitem" onClick={() => { closeMenu(false); onStartTour(); }}><span>Quick tour</span><span aria-hidden="true">↗</span></button>}
                     <button type="button" role="menuitem" className="opp-settings-extension" onClick={() => { closeMenu(false); setIsExtensionHelpOpen(true); }}><span>Install Chrome extension</span><span aria-hidden="true">↗</span></button>
-                    <a role="menuitem" href={OPPORTUNITY_CURATED_COLLECTION_PATH} onClick={() => setIsOpen(false)}>
-                        <span>View Abodid’s curated list</span><span aria-hidden="true">→</span>
-                    </a>
+                    <button type="button" role="menuitem" onClick={() => { closeMenu(false); setIsRadarOpen(true); }}>
+                        <span>Your usage</span><span aria-hidden="true">→</span>
+                    </button>
                     <a role="menuitem" href={OPPORTUNITY_PRIVACY_PATH} onClick={() => setIsOpen(false)}>
                         <span>Privacy &amp; Data</span><span aria-hidden="true">→</span>
                     </a>

@@ -37,7 +37,7 @@ export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialog
     return (
         <dialog
             ref={dialogRef}
-            className="opp-radar-auth-dialog"
+            className="opp-radar-auth-dialog" data-pop-surface="cream"
             aria-labelledby="opp-radar-auth-title"
             aria-describedby="opp-radar-auth-description"
             onClose={onClose}
@@ -59,11 +59,12 @@ export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialog
                     className="opp-google-signin opp-radar-auth-google"
                     onClick={() => onContinue(productUpdatesOptIn)}
                     disabled={isStarting}
+                    aria-busy={isStarting}
                     autoFocus
                 >
-                    <span className="opp-google-mark" aria-hidden="true">G</span>
-                    <span>{isStarting ? <OpportunityBusy inline>Connecting to Google</OpportunityBusy> : 'Continue with Google'}</span>
-                    <span aria-hidden="true">→</span>
+                    <img className="opp-google-mark" src="/images/google/g-logo.png" width="20" height="20" alt="" aria-hidden="true" />
+                    <span className="opp-google-label">{isStarting ? <OpportunityBusy inline>Connecting to Google</OpportunityBusy> : 'Continue with Google'}</span>
+                        <span className="opp-google-arrow" aria-hidden="true">→</span>
                 </button>
                 <button type="button" className="opp-radar-auth-cancel" onClick={closeDialog} disabled={isStarting}>
                     Not now

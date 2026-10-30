@@ -1,4 +1,3 @@
-import { OpportunityAllowance } from './OpportunityAllowance';
 import { OpportunityCaptureExamples } from './OpportunityCaptureExamples';
 import { validateOpportunityAttachmentMetadata, isOpportunityImageFile, isOpportunityVideoFile } from '../../lib/opportunities/attachmentValidation';
 import { OpportunityQuickTour } from './OpportunityQuickTour';
@@ -1102,7 +1101,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     return (
         <div className="opportunities-shell">
             {/* Enlarged Curated Opportunities Hero Deck */}
-            <header className={`opp-hero-deck ${isOwner ? 'has-quick-access' : ''}`}>
+            <header className={`opp-hero-deck ${isOwner ? 'has-quick-access' : ''}`} data-pop-surface="cream">
                 <div className="opp-hero-main">
                     <div className="opp-hero-header-row">
                         <div className="opp-hero-branding">
@@ -1131,7 +1130,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 method="post"
                                 onSubmit={handleCapture}
                                 id="opportunity-save-form"
-                                className={`opp-hero-capture-bar ${captureFiles.length ? 'has-attachments' : ''} ${isCapturing || captureProgress ? 'opp-waiting' : ''}`}
+                                className={`opp-hero-capture-bar ${captureFiles.length ? 'has-attachments' : ''}`}
+                                aria-busy={Boolean(isCapturing || captureProgress)}
                             >
                                 <div className="opp-capture-input-shell" data-replicated-value={captureUrl}>
                                     <textarea
@@ -1287,6 +1287,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 )}
                                 <OpportunitySettingsMenu
                                     accessToken={accessToken}
+                                    savedCount={isOwner ? opportunities.length : undefined}
+                                    captureError={isOwner ? captureError : ''}
                                     isPublic={profileVisibility}
                                     username={activeViewerProfile.username}
                                     showQuickAccess={isOwner}
@@ -1313,8 +1315,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     <span>Add it to your private radar.</span>
                 </aside>
             )}
-
-            {isOwner && accessToken && <OpportunityAllowance accessToken={accessToken} savedCount={opportunities.length} error={captureError} />}
 
             {/* Primary opportunity views & filter popover toggle */}
             <div className="opp-rail-wrapper">
@@ -1414,7 +1414,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                 className="opp-popover-backdrop"
                                 onClick={() => setIsFilterTrayOpen(false)}
                             />
-                            <div className="opp-filter-popover" role="dialog" aria-label="Filter Opportunities">
+                            <div className="opp-filter-popover" data-pop-surface="cream" role="dialog" aria-label="Filter Opportunities">
                                 <div className="opp-popover-header">
                                     <span className="opp-popover-title">Refine Radar</span>
                                     {activeSecondaryFiltersCount > 0 && (

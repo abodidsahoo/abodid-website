@@ -9,7 +9,7 @@ export function OpportunityExtensionHelp({ open, onClose }: { open: boolean; onC
         if (open && !dialog.current?.open) dialog.current?.showModal();
         if (!open && dialog.current?.open) dialog.current.close();
     }, [open]);
-    return <dialog ref={dialog} className="opp-extension-help" aria-labelledby="opp-extension-help-title" onClose={onClose} onCancel={onClose}>
+    return <dialog ref={dialog} className="opp-extension-help" data-pop-surface="cream" aria-labelledby="opp-extension-help-title" onClose={onClose} onCancel={onClose}>
         <button type="button" className="opp-extension-help-close" aria-label="Close installation instructions" onClick={onClose}><X size={20} aria-hidden="true" /></button>
         <h2 id="opp-extension-help-title">Install Chrome Extension</h2>
         <p>The store release is coming soon. Local installation is available through the project’s setup guide.</p>

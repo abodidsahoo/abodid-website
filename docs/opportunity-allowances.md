@@ -21,9 +21,9 @@ RLS continues to enforce saved-record ownership. Normal users have no access to 
 
 ## Interface
 
-- Explore opportunities is highlighted as using no AI credits.
-- The private dashboard includes collection/AI usage, the curated collection action, and a Telegram connection nudge after a first saved item. Telegram link preparation uses the existing signed account-link endpoint and requires a deliberate Open Telegram action.
-- The Telegram welcome and dashboard example use exactly: “Keep track of the Google Creative Art Residency in India whose application deadline is 12th April, 2027.” This is identified as example text rather than a verified listing.
+- The discovery link is labelled “Browse opportunities”, without a personal name or a credit-related tagline.
+- The dashboard stays focused on saving and listing opportunities. Settings → Your usage contains the browse link, collection/AI usage and credit-request action. Telegram connection controls remain in Settings; the example is collapsed under “Using Telegram”. Link preparation uses the existing signed account-link endpoint and requires a deliberate Open Telegram action.
+- The Telegram welcome and Settings example use exactly: “Keep track of the Google Creative Art Residency in India whose application deadline is 12th April, 2027.” This is identified as example text rather than a verified listing.
 - Monthly exhaustion opens a native editorial credit-request dialog from the dashboard capture error. A full 100-item collection instead explains deletion. Exhausted monthly jobs do not expose a pointless automatic retry button.
 - Support correspondence is addressed to **Support team of Abodid & Co.**, delivered to **hello@abodid.com**. The user must press Send request. The server derives verified email/user ID from the session, fixes the recipient and uses an idempotency key. One pending request per user prevents duplicate email. Delivery failures are reported truthfully and offer a direct email fallback.
 - Admin → Opportunity Tracker → Users → View collection now shows monthly attempts, saved count and a labelled monthly allowance input. Changes preserve usage; pending requests appear in the same modal. The notification email links to this modal.
