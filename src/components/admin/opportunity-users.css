@@ -19,7 +19,7 @@
     border-spacing: 0;
     color: var(--cream-ink);
     inline-size: 100%;
-    min-inline-size: 780px;
+    min-inline-size: 1040px;
     table-layout: fixed;
 }
 
@@ -222,7 +222,11 @@
     padding: 0;
 }
 
+.opportunity-collection-dialog:modal { overscroll-behavior: contain; }
+
 .opportunity-collection-dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
     background: rgba(21, 19, 15, 0.72);
 }
 
@@ -429,3 +433,27 @@
         transform: none;
     }
 }
+.opp-admin-allowance { border-bottom:1px solid currentColor;padding-block:12px 20px;margin-block-end:20px; }
+.opp-admin-allowance label { display:block;margin-block:12px 6px;font-weight:700; }
+.opp-admin-allowance input { width:120px;max-width:100%;min-height:44px;padding:8px;font:inherit;border:1px solid currentColor;border-radius:8px; }
+.opp-admin-allowance button { min-height:44px;margin:8px;padding:8px 14px;font:inherit;border:1px solid currentColor;border-radius:8px;background:#ffe44f;color:#15130f; }
+.opp-user-credit-action { display:grid;gap:6px;margin-block-start:10px; }
+.opp-user-credit-action button { min-block-size:44px;justify-content:center;background:#ffe44f;color:#15130f; }
+.opp-user-credit-action [role="status"] { white-space:normal;overflow-wrap:anywhere; }
+.opp-allowance-quick-actions { display:flex;flex-wrap:wrap;gap:8px; }
+.opp-allowance-quick-actions button { margin:0; }
+.opp-user-credit-action button:disabled,.opp-allowance-quick-actions button:disabled { opacity:.6;cursor:wait; }
+.opportunity-users-col-user { inline-size:29%; }
+.opportunity-users-col-onboarded { inline-size:17%; }
+.opportunity-users-col-saved { inline-size:8%; }
+.opportunity-users-col-ai { inline-size:23%; }
+.opportunity-users-col-collection { inline-size:23%; }
+.opp-allowance-confirmation { max-inline-size:520px; }
+.opp-allowance-confirmation .opp-allowance-quick-actions button { min-block-size:44px;padding:10px 14px;border:1px solid currentColor;border-radius:10px; }
+.opp-allowance-confirmation .opp-allowance-quick-actions button:last-child { background:#ffe44f;color:#15130f; }
+.opportunity-users-meter-note { font-size:.8rem;line-height:1.5;margin-block:12px; }
+.opp-allowance-confirmation .opportunity-collection-body { padding:clamp(20px,4vw,28px); }
+.opp-allowance-confirmation h3 { font-size:clamp(1.5rem,4vw,2rem);line-height:1.1;letter-spacing:-.035em; }
+.opportunity-collection-body p,.opportunity-collection-body label,.opportunity-collection-body blockquote { color:var(--cream-ink); }
+.opp-allowance-confirmation p { margin:0 0 16px;line-height:1.5;overflow-wrap:anywhere; }
+.opp-allowance-confirmation button:focus-visible { outline:2px solid var(--cream-ink);outline-offset:3px; }

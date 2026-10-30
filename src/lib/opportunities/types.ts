@@ -46,6 +46,7 @@ export interface Opportunity {
     id: string;
     title: string;
     organisation: string;
+    organisation_icon_url?: string | null;
     category: OpportunityCategory;
     source_url: string;
     canonical_url: string;

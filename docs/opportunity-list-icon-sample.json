@@ -1,0 +1,67 @@
+{
+  "captured_on": "2026-10-30",
+  "storage_bucket": "misc",
+  "field": "saved_opportunities.content.organisation_icon_url",
+  "items": [
+    {
+      "id": "a312d678-4509-49c0-8e00-334fa8b6b990",
+      "title": "Research Fellow in Multisensory Design",
+      "organisation": "UCL",
+      "group": "newly_added",
+      "listing_url": "https://www.jobs.ac.uk/job/DTK548/research-fellow-in-multisensory-design",
+      "source_image_url": "https://www.jobs.ac.uk/images/employer-logos/medium/35.gif?1790939607",
+      "storage_url": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/opportunity-icons/a312d678-4509-49c0-8e00-334fa8b6b990/c3f3bc125f6f38cc.png",
+      "sha256": "c3f3bc125f6f38cc78759fae05661ebf8062274826c6f890f12692625070e982"
+    },
+    {
+      "id": "0cbec51e-e54e-45af-b6c8-faf9df8505a3",
+      "title": "Creative Director",
+      "organisation": "Condé Nast",
+      "group": "newly_added",
+      "listing_url": "https://condenast.wd115.myworkdayjobs.com/en-US/CondeCareers/job/The-Adelphi-London-GB/Creative-Director_R-24775?source=LinkedIn",
+      "source_image_url": "https://condenast.wd115.myworkdayjobs.com/en-US/CondeCareers/assets/logo",
+      "storage_url": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/opportunity-icons/0cbec51e-e54e-45af-b6c8-faf9df8505a3/7448a03fb80e3b50.png",
+      "sha256": "7448a03fb80e3b5096dfb89f7cc5f3dec64c38aec082d5c8465b2979e2ae10b8"
+    },
+    {
+      "id": "6979d579-d032-4205-bdb5-80fdd83714d7",
+      "title": "Head of Creative Experiences",
+      "organisation": "Google",
+      "group": "newly_added",
+      "listing_url": "https://www.google.com/about/careers/applications/jobs/results/101954354096808646-head-of-creative-experiences/?src=Online/LinkedIn/linkedin_us&utm_source=linkedin&utm_medium=jobposting&utm_campaign=contract",
+      "source_image_url": "https://www.google.com/favicon.ico",
+      "storage_url": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/opportunity-icons/6979d579-d032-4205-bdb5-80fdd83714d7/a2b65d58d7ecf008.png",
+      "sha256": "a2b65d58d7ecf00810e238535d12bed69c679220f8b74695c3c258dd0b4d309f"
+    },
+    {
+      "id": "26883281-9bdd-44be-88f2-8be785dc9630",
+      "title": "4th Matsu Biennial International Open Call",
+      "organisation": "Matsu Biennial Promotion Committee",
+      "group": "closing_soon",
+      "listing_url": "https://reurl.cc/qaV4ln",
+      "source_image_url": "https://matsubiennial.tw/favicon.ico",
+      "storage_url": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/opportunity-icons/26883281-9bdd-44be-88f2-8be785dc9630/4ab8663e51341175.png",
+      "sha256": "4ab8663e513411750c35c81a9854ed625ff1906547138e6bd10095bac8a76471"
+    },
+    {
+      "id": "524dcc0d-cc0e-49eb-bf08-91eca5e87cb6",
+      "title": "Digital Ethnography as a Way of Knowing: A Conversation with Sarah Pink",
+      "organisation": "Doing Sociology",
+      "group": "closing_soon",
+      "listing_url": "https://www.linkedin.com/feed/update/urn:li:activity:7517185356413390848/",
+      "source_image_url": "https://doingsociology.org/favicon.ico",
+      "storage_url": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/opportunity-icons/524dcc0d-cc0e-49eb-bf08-91eca5e87cb6/2b3431d8679b540c.png",
+      "sha256": "2b3431d8679b540cfb569f36e240932bbc616162cceb48e87f4e408ea19c8c61"
+    },
+    {
+      "id": "69266600-ab24-41a7-91a3-5770d26c368f",
+      "title": "Tutor (Research) - Artificial Intelligence and Digital Art (1FTE)",
+      "organisation": "Royal College of Art",
+      "group": "closing_soon",
+      "listing_url": "https://jobs.rca.ac.uk/Vacancy.aspx?ref=120-26",
+      "source_image_url": "https://www.rca.ac.uk/static2/images/apple-touch-icon.18b5f5cadc9e.png",
+      "storage_url": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/opportunity-icons/69266600-ab24-41a7-91a3-5770d26c368f/122588ff02734333.png",
+      "sha256": "122588ff027343330f60beb7d43336fdc4366b3c5ebf360baea3cdf00c847858"
+    }
+  ]
+}

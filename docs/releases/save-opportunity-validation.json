@@ -1,0 +1,31 @@
+{
+  "verified_at": "2026-10-30T04:26:48.491024+00:00",
+  "version": "1.0.0",
+  "node": "24.22.1",
+  "unit_tests": {
+    "passed": 218,
+    "files": 30,
+    "provider": "mocked"
+  },
+  "sql": {
+    "checks_passed": 30,
+    "engine": "PGlite 0.5.13 (PostgreSQL/WASM)",
+    "isolated": true,
+    "live_database_changed": false
+  },
+  "strict_types": "passed for changed admin/auth/capture/server dependency graph",
+  "website_build": "final production build pending",
+  "extension_package": "passed; rebuilt for final release",
+  "submission_ready": false,
+  "unresolved": [
+    "Review/fix existing server dependency advisories and separate public AI-service cost exposure",
+    "Manually upload draft and configure the assigned Store identity in Supabase; verify Google audience",
+    "Complete fresh-user, Store-installed and two-account browser/paid capture testing",
+    "Export two genuine 1280x800 screenshots",
+    "Verify reviewer-browser privacy page access (automated GET returned 429) and publish accurate policy wording",
+    "Independently verify the protected opportunity provider key spending cap and production worker/cron behavior"
+  ],
+  "uploaded": false,
+  "published": false,
+  "zip_audit": "extension/releases/save-opportunity-1.0.0-audit.json"
+}

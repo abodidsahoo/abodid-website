@@ -71,7 +71,8 @@ const transcribeWithGoogle = async ({ file, model }: { file: File; model: string
                 mime_type: (uploaded.mimeType || file.type || 'audio/ogg') as 'audio/ogg',
             }],
             generation_config: {
-                transcription_config: { mode: 'smart' },
+                // Use the installed SDK's supported automatic-language configuration.
+                transcription_config: { language_codes: [] },
             },
         });
         return interaction.output_text?.trim() || '';

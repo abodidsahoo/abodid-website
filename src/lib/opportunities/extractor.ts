@@ -483,9 +483,10 @@ export async function extractOpportunityWithLLM(
     pageTitle?: string,
     context: OpportunityExtractionContext = {},
 ): Promise<{ data: LLMExtractionOutput; model: string }> {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-        throw new Error('Server Configuration Error: Missing OPENROUTER_API_KEY');
+    const sharedKey = import.meta.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+    const apiKey = import.meta.env.OPENROUTER_OPPORTUNITIES_API_KEY || process.env.OPENROUTER_OPPORTUNITIES_API_KEY;
+    if (!apiKey || apiKey === sharedKey) {
+        throw new Error('Server Configuration Error: A dedicated opportunity processing key is required');
     }
     const systemPrompt = getExtractionSystemPrompt();
 

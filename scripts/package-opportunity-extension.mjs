@@ -14,10 +14,11 @@ const manifest = JSON.parse(await readFile(path.join(dir, 'manifest.json')));
 const assert = (ok, message) => { if (!ok) throw Error(message); };
 assert(manifest.manifest_version === 3, 'Manifest V3 required');
 assert(manifest.minimum_chrome_version === '120', 'Review the Chrome minimum version and alarm compatibility');
-assert(manifest.name === 'Opportunity Tracker', 'Unexpected extension name');
+assert(manifest.name === 'Save Opportunity', 'Unexpected extension name');
 assert(manifest.description.length <= 132, 'Description exceeds store limit');
 assert(manifest.background?.service_worker === 'background.js', 'Missing expected service worker');
 assert(manifest.action?.default_popup === 'popup.html', 'Missing expected popup');
+assert(manifest.content_security_policy?.extension_pages?.includes("script-src 'self'"), 'Local-script CSP required');
 assert(!manifest.externally_connectable && !manifest.content_scripts, 'Unexpected external access or always-on content script');
 const expectedPermissions = ['activeTab','scripting','storage','contextMenus','identity','notifications','alarms'];
 assert(JSON.stringify([...manifest.permissions].sort()) === JSON.stringify(expectedPermissions.sort()), 'Review changed permissions');
@@ -47,6 +48,10 @@ async function inspect(folder, relative = '') {
             // Validate the injected configuration/hosts above, not library literals.
             if (!name.endsWith('.js')) assert(!/localhost|127\.0\.0\.1/.test(text), `Development endpoint found: ${name}`);
             if (name.endsWith('.html')) assert(!/<script\b[^>]*src=["']https?:|\son\w+=["']/i.test(text), 'Remote scripts/inline handlers found');
+            if (name.endsWith('.js')) {
+                assert(!/\beval\s*\(|\bnew\s+Function\s*\(/.test(text), `Dynamic code execution found: ${name}`);
+                assert(!/\bimport\s*\(\s*['"]https?:/.test(text), `Remote code import found: ${name}`);
+            }
         }
         entries.push({ path:name, bytes:bytes.length, sha256:createHash('sha256').update(bytes).digest('hex') });
     }
@@ -64,9 +69,9 @@ const listing = storeNotes.match(/```text\n([\s\S]*?)\n```/)?.[1];
 assert(listing && listing.length <= 16000, 'Missing or oversized store description');
 assert(listing.includes(`Version ${manifest.version}`), 'Store listing version differs from manifest');
 await writeFile(path.join(releaseDir, 'store-listing.txt'), listing + '\n');
-const zip = path.join(releaseDir,`opportunity-tracker-${manifest.version}-chrome.zip`);
+const zip = path.join(releaseDir,'save-opportunity-chrome-store.zip');
 execFileSync('python3',['-c', 'import sys,pathlib,zipfile; root=pathlib.Path(sys.argv[1]); files=sys.argv[3:]; z=zipfile.ZipFile(sys.argv[2],"w",zipfile.ZIP_DEFLATED); [z.write(root/f,f) for f in files]; z.close()',dir,zip,...entries.map(e=>e.path)]);
 const bytes = await readFile(zip);
 const receipt = {version:manifest.version,source_base_commit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),created_at:new Date().toISOString(),zip,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),permissions:manifest.permissions,host_permissions:manifest.host_permissions,files:entries,uploaded:false,published:false,submission_ready:false,readiness_source:'CHROMEWEBSTORE.md — current release audit'};
-await writeFile(path.join(releaseDir,`opportunity-tracker-${manifest.version}-audit.json`),JSON.stringify(receipt,null,2)+'\n');
+await writeFile(path.join(releaseDir,`save-opportunity-${manifest.version}-audit.json`),JSON.stringify(receipt,null,2)+'\n');
 console.log(JSON.stringify(receipt,null,2));

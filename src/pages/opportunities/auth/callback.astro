@@ -23,6 +23,7 @@ import '../../../styles/opportunities-editorial.css';
     </main>
     <script>
         import { opportunitySupabase as supabase } from '../../../lib/opportunitySupabase';
+        import { completeProductUpdatesSignIn, discardProductUpdatesSignIn } from '../../../lib/opportunities/productUpdates';
 
         const status = document.getElementById('opportunity-auth-status');
         const retry = document.getElementById('opportunity-auth-retry') as HTMLAnchorElement | null;
@@ -35,6 +36,7 @@ import '../../../styles/opportunities-editorial.css';
         if (retry && safeNext) retry.href = safeNext;
 
         const showFailure = (message: string) => {
+            discardProductUpdatesSignIn(new URL(window.location.href));
             document.getElementById('opportunity-auth-wave')?.setAttribute('hidden', '');
             const title = document.getElementById('opportunity-auth-title');
             if (title) title.textContent = 'Sign-in unavailable';
@@ -89,7 +91,10 @@ import '../../../styles/opportunities-editorial.css';
             }
 
             const payload = await response.json();
-            window.location.replace(safeNext || `/opportunities/${payload.profile.username}`);
+            const preference = await completeProductUpdatesSignIn(session.access_token, params);
+            const destination = new URL(safeNext || `/opportunities/${payload.profile.username}`, window.location.origin);
+            if (preference === 'not-saved') destination.searchParams.set('updates_notice', 'not-saved');
+            window.location.replace(`${destination.pathname}${destination.search}${destination.hash}`);
         };
 
         void complete().catch(() => showFailure('We could not finish signing you in. Check your connection and try again.'));

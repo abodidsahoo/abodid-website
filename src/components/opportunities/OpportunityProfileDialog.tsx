@@ -1,6 +1,7 @@
 import { OpportunityBusy } from './OpportunityBusy';
 import React, { useEffect, useRef, useState } from 'react';
 import { isValidOpportunityUsername, normalizeOpportunityUsername } from '../../lib/opportunities/username';
+import { OpportunityProductUpdatesPreference } from './OpportunityProductUpdatesPreference';
 
 export interface OpportunityEditableProfile {
     username: string;
@@ -181,6 +182,8 @@ export const OpportunityProfileDialog: React.FC<OpportunityProfileDialogProps> =
                 )}
 
                 {message && <p className="opp-profile-message" role="status" aria-live="polite">{message}</p>}
+
+                <OpportunityProductUpdatesPreference accessToken={accessToken} isOpen={isOpen} />
 
                 <div className="opp-profile-actions">
                     <button type="button" className="opp-profile-cancel" onClick={closeDialog} disabled={isSaving}>

@@ -458,6 +458,7 @@ describe('Opportunity Assistant Core Functionality', () => {
                 id: 'saved-source',
                 title: 'Creative Residency',
                 organisation: 'Studio X',
+                organisation_icon_url: 'https://example.com/studio-icon.png',
                 category: 'residency',
                 source_url: 'https://example.com/residency',
                 canonical_url: 'https://example.com/residency',
@@ -496,6 +497,7 @@ describe('Opportunity Assistant Core Functionality', () => {
 
             expect(restored.title).toBe(source.title);
             expect(restored.organisation).toBe(source.organisation);
+            expect(restored.organisation_icon_url).toBe(source.organisation_icon_url);
             expect(restored.notes).toBe('Private note');
             expect(restored.is_high_priority).toBe(true);
             expect(restored.completed_requirements).toEqual(['Portfolio']);

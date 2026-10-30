@@ -71,6 +71,19 @@ export const signInWithGoogle = async () => {
     if (!callbackUrl) throw new Error('Google sign-in was cancelled');
 
     const callback = new URL(callbackUrl);
+    const expectedCallback = new URL(redirectTo);
+    // Origin is available in newer Chrome; URL's normalized tuple comparison
+    // preserves the same strict boundary on our Chrome 120 minimum.
+    const OriginApi = (globalThis as typeof globalThis & {
+        Origin?: { from(value: string): { isSameOrigin(other: unknown): boolean } };
+    }).Origin;
+    const sameOrigin = OriginApi
+        ? OriginApi.from(callback.href).isSameOrigin(OriginApi.from(expectedCallback.href))
+        : callback.origin !== 'null' && callback.origin === expectedCallback.origin;
+    if (!sameOrigin
+        || callback.pathname !== expectedCallback.pathname) {
+        throw new Error('Google sign-in returned an unexpected address. Please try again.');
+    }
     const oauthError = callback.searchParams.get('error_description') || callback.searchParams.get('error');
     if (oauthError) throw new Error(oauthError);
     const code = callback.searchParams.get('code');

@@ -15,7 +15,7 @@ const structuredData = [
   ]),
 ];
 
-const lastUpdatedDate = "14 October 2026";
+const lastUpdatedDate = "30 October 2026";
 ---
 
 <BaseLayout
@@ -114,10 +114,16 @@ const lastUpdatedDate = "14 October 2026";
                   <strong>Opportunity Tracker sign-in:</strong> When you choose Continue with Google, Google shares only the basic identity information authorized by the <code>openid</code>, <code>email</code>, and <code>profile</code> scopes: your Google account identifier, primary email address, display name, and profile photo. These details are used to create your private account, show your first name and profile image in the tracker, and associate saved opportunities with you. Opportunity Tracker does not request access to Gmail, Drive, Calendar, Contacts, or your Google password.
                 </li>
                 <li>
+                  <strong>Optional product updates:</strong> The sign-in checkbox for occasional product updates and new feature announcements from Abodid &amp; Co. is unchecked by default. If you opt in, we privately record your verified account email, the consent text and version, source, and time. You can turn these updates off in your tracker profile at any time. Signing in alone does not subscribe you, and this preference is separate from the general newsletter.
+                </li>
+                <li>
                   <strong>Opportunity capture:</strong> When you choose Save opportunity or Save to Opportunity Tracker from Chrome’s right-click menu, the extension sends the selected page URL, page title, visible page text, capture time, and browser timezone to abodid.com to identify and save opportunity details. No page is read or transmitted until you take one of these capture actions. A private capture receipt is recorded first so processing can continue after you close the page or browser.
                 </li>
                 <li>
                   <strong>Opportunity notes &amp; attachments:</strong> When you submit pasted text, an image, video, PDF, or text document in the tracker, the source is used only to extract and save the opportunity you requested. Attachments upload to temporary private storage through a signed upload target. Once the tracker confirms “Safely captured,” processing may continue after you close the tab.
+                </li>
+                <li>
+                  <strong>Opportunity AI allowance:</strong> Save Opportunity records your account identifier, UTC calendar month and admitted AI capture count to enforce the configured trial allowance. Short-lived processing leases limit simultaneous captures. Requests admitted for AI processing count even if extraction later fails; saved opportunities remain available after the allowance is used. These private records support service reliability and cost limits, not advertising. If you choose Send request to ask the Support team of Abodid &amp; Co. for more AI credits, we store your account identifier, message, request and delivery status, and time in Supabase and send a support email through Resend with your verified account email as the reply address. Administrator allowance changes are recorded with the previous and new limit, administrator identifier and time.
                 </li>
               </ul>
             </div>
@@ -130,6 +136,9 @@ const lastUpdatedDate = "14 October 2026";
               <h3>Cookies, Tracking &amp; Storage</h3>
               <p>
                 This site does not use third-party marketing cookies, intrusive tracking pixels (such as Meta Pixel or Google Ads tracking), or fingerprinting techniques.
+              </p>
+              <p>
+                If you select product updates before Google sign-in, a temporary choice and random identifier in session storage carry that choice through the current sign-in attempt. It expires after 30 minutes and is removed when processed or when the sign-in attempt fails.
               </p>
               <p>
                 Local storage is used strictly for essential user preferences — such as preserving your dark/light theme preference across page navigations and remembering progress or dismissal of the Opportunity Tracker quick tour separately for each username.

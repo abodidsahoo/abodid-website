@@ -1,3 +1,4 @@
+import { consumeOpportunityAiLimit } from './rateLimit';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseServiceClient } from '../supabaseServer';
 import { AudioTranscriptionError, transcribeAudio } from '../audio/transcribeAudio';
@@ -295,6 +296,7 @@ const errorCode = (error: unknown) => {
 };
 
 const isRetryableCaptureError = (error: unknown) => {
+    if (errorCode(error) === 'AI_MONTHLY_LIMIT_REACHED') return false;
     const status = errorStatus(error);
     return status === 429 || status >= 500;
 };
@@ -324,15 +326,24 @@ const processCapturedInput = async (
     const attachments = await downloadCaptureAttachments(serviceClient, attachmentDescriptors);
     const audioAttachments = attachments.filter((attachment) => attachment.type.startsWith('audio/'));
     const readableAttachments = attachments.filter((attachment) => !attachment.type.startsWith('audio/'));
+    const allowance = await consumeOpportunityAiLimit(serviceClient, job.user_id);
+    if (!allowance.allowed) throw new OpportunityInputExtractionError(
+        allowance.message || 'Processing is temporarily unavailable. Please try again shortly.',
+        allowance.unavailable ? 503 : allowance.status || 429,
+        allowance.code || 'CAPTURE_QUOTA_UNAVAILABLE', allowance.retryAfter);
+    let extraction: Awaited<ReturnType<typeof extractOpportunityFromInput>>;
+    let capturedText = '';
+    try {
     const transcriptSections = await Promise.all(audioAttachments.map(async (attachment) => {
         const transcript = await transcribeAudio({ file: attachment });
         return `VOICE NOTE TRANSCRIPT:\n${transcript.text}`;
     }));
-    const capturedText = [
+    capturedText = [
         typeof job.payload.text === 'string' ? job.payload.text : '',
         ...transcriptSections,
     ].filter(Boolean).join('\n\n');
-    const extraction = await extractOpportunityFromInput({
+    extraction = await extractOpportunityFromInput({
+        reservedAllowance: allowance,
         userId: job.user_id,
         serviceClient,
         text: capturedText,
@@ -341,6 +352,7 @@ const processCapturedInput = async (
         captureTimezone: job.payload.capture_timezone,
         mode: job.payload.mode,
     });
+    } finally { await allowance.release?.(); }
     const body = buildExtractedOpportunityPayload({
         draft: extraction.draft,
         input: capturedText,

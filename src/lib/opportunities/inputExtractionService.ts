@@ -1,4 +1,4 @@
-import { OpportunityInputExtractionError, OPPORTUNITY_CAPTURE_MAX_TEXT_CHARS, validateOpportunityInputAttachments, isOpportunityPdfFile, isOpportunityTextFile, isOpportunityImageFile, isOpportunityVideoFile } from './attachmentValidation';
+import { OpportunityInputExtractionError, OPPORTUNITY_CAPTURE_MAX_TEXT_CHARS, validateOpportunityInputAttachments, isOpportunityPdfFile, isOpportunityTextFile, isOpportunityImageFile, isOpportunityVideoFile, fileExtension } from './attachmentValidation';
 export * from './attachmentValidation';
 import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
@@ -122,6 +122,7 @@ export const extractOpportunityFromInput = async ({
     capturedAt = new Date().toISOString(),
     captureTimezone,
     mode,
+    reservedAllowance,
 }: {
     userId: string;
     serviceClient: SupabaseClient;
@@ -130,6 +131,7 @@ export const extractOpportunityFromInput = async ({
     capturedAt?: string;
     captureTimezone?: string;
     mode?: 'note' | 'text';
+    reservedAllowance?: Awaited<ReturnType<typeof consumeOpportunityAiLimit>>;
 }): Promise<{ model: string; draft: OpportunityInputDraft }> => {
     const submittedText = text.trim().slice(0, OPPORTUNITY_CAPTURE_MAX_TEXT_CHARS);
     validateOpportunityInputAttachments(attachments);
@@ -181,7 +183,7 @@ export const extractOpportunityFromInput = async ({
             ? 'Short personal opportunity note'
             : 'Pasted opportunity text';
 
-    const aiLimit = await consumeOpportunityAiLimit(serviceClient, userId);
+    const aiLimit = reservedAllowance || await consumeOpportunityAiLimit(serviceClient, userId);
     if (!aiLimit.allowed) {
         if (aiLimit.unavailable) {
             throw new OpportunityInputExtractionError(
@@ -192,9 +194,9 @@ export const extractOpportunityFromInput = async ({
         }
         const retryMinutes = Math.max(1, Math.ceil(aiLimit.retryAfter / 60));
         throw new OpportunityInputExtractionError(
-            `Analysis limit reached. Try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
-            429,
-            'CAPTURE_LIMIT_REACHED',
+            aiLimit.message || `Analysis limit reached. Try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+            aiLimit.status || 429,
+            aiLimit.code || 'CAPTURE_LIMIT_REACHED',
             aiLimit.retryAfter,
         );
     }
@@ -232,5 +234,7 @@ export const extractOpportunityFromInput = async ({
             502,
             'INPUT_EXTRACTION_FAILED',
         );
+    } finally {
+        if (!reservedAllowance) await aiLimit.release?.();
     }
 };

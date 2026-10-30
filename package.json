@@ -29,6 +29,7 @@
     "test:land": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --test tests/land/*.test.mjs",
     "import:land": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/import-family-land-register.mjs",
     "extension:build:chrome": "BROWSER_TARGET=chrome vite build --config extension/vite.config.mjs",
+    "extension:package:chrome": "node scripts/package-opportunity-extension.mjs",
     "extension:build:firefox": "BROWSER_TARGET=firefox vite build --config extension/vite.config.mjs",
     "extension:build:safari": "BROWSER_TARGET=safari vite build --config extension/vite.config.mjs",
     "test:portfolio:integration": "node scripts/test-portfolio-integration.mjs",

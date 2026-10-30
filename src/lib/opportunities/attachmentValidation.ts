@@ -22,7 +22,7 @@ export class OpportunityInputExtractionError extends Error {
 
 type OpportunityAttachmentMetadata = Pick<File, 'name' | 'type' | 'size'>;
 
-const fileExtension = (name: string) => name.toLowerCase().split('.').pop() || '';
+export const fileExtension = (name: string) => name.toLowerCase().split('.').pop() || '';
 
 export const isOpportunityPdfFile = (file: Pick<File, 'name' | 'type'>) => (
     file.type === 'application/pdf' || fileExtension(file.name) === 'pdf'

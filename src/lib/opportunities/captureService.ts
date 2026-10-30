@@ -46,6 +46,7 @@ const throwSaveFailure = (
     error: { code?: string; message?: string; details?: string; hint?: string } | null,
     context: { userId: string; canonicalUrl: string; source: 'curated' | 'extracted' },
 ): never => {
+    if(error?.code === 'P0100') throw new OpportunityCaptureError('Your radar has 100 saved opportunities. Delete one to make room, or contact the Support team of Abodid & Co.',409,'SAVED_CAPACITY_REACHED');
     const code = error?.code || 'UNKNOWN_SAVE_ERROR';
     console.error('Opportunity database save failed', {
         ...context,
@@ -188,9 +189,9 @@ export const captureOpportunityFromUrl = async ({
         }
         const retryMinutes = Math.max(1, Math.ceil(aiLimit.retryAfter / 60));
         throw new OpportunityCaptureError(
-            `Capture limit reached. Try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
-            429,
-            'CAPTURE_LIMIT_REACHED',
+            aiLimit.message || `Capture limit reached. Try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+            aiLimit.status || 429,
+            aiLimit.code || 'CAPTURE_LIMIT_REACHED',
             { retry_after: aiLimit.retryAfter },
         );
     }
@@ -215,6 +216,8 @@ export const captureOpportunityFromUrl = async ({
             'EXTRACTION_FAILED',
             { can_manual_create: true, canonical_url: canonicalUrl },
         );
+    } finally {
+        await aiLimit.release?.();
     }
 
     const { data: extracted, model } = extractedResult;

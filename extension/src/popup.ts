@@ -57,7 +57,7 @@ const setButtonLabel = (button: HTMLButtonElement, label: string, busy = false) 
 };
 
 const syncSaveButton = () => {
-    const savedCurrentPage = currentCaptureState?.status === 'success'
+    const savedCurrentPage = Boolean(activeTab?.url) && currentCaptureState?.status === 'success'
         && normalizePageUrl(currentCaptureState.url) === normalizePageUrl(activeTab?.url);
     if (isCapturing || savedCurrentPage) {
         saveButton.classList.add('hidden');
@@ -182,6 +182,9 @@ const applyCaptureState = (state: CaptureState | null) => {
     if (!state || state.status === 'capturing') return;
 
     const differentPage = normalizePageUrl(state.url) !== normalizePageUrl(activeTab?.url);
+    // Keep unfinished work visible across tabs, but don't carry a previous
+    // page's saved/failed receipt into the next opportunity's popup.
+    if (state.status !== 'queued' && (!state.url || !activeTab?.url || differentPage)) return;
     resultSource.textContent = differentPage ? (state.title || state.url || '') : '';
     resultSource.classList.toggle('hidden', !differentPage);
     result.classList.toggle('is-processing', state.status === 'queued');
@@ -246,7 +249,8 @@ const loadActiveTab = async () => {
     activeTab = await getActiveTab();
     targetCard.classList.remove('is-scanning');
     pageTitle.textContent = activeTab?.url ? formatPageTitle(activeTab.title) : 'This tab cannot be captured';
-    syncSaveButton();
+    // Account/receipt restoration can finish before the tab lookup.
+    applyCaptureState(currentCaptureState);
     return activeTab;
 };
 
@@ -365,6 +369,8 @@ saveButton.addEventListener('click', async () => {
             userId: signedInUserId || undefined,
             status: 'error',
             startedAt: Date.now(),
+            url: activeTab?.url,
+            title: activeTab?.title,
             error: error instanceof Error ? error.message : 'Opportunity could not be captured',
         });
     }

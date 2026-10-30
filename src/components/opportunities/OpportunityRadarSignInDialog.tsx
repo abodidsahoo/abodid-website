@@ -1,5 +1,6 @@
 import { OpportunityBusy } from './OpportunityBusy';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { OpportunityProductUpdatesOptIn } from './OpportunityProductUpdatesOptIn';
 import type { Opportunity } from '../../lib/opportunities/types';
 import { formatOpportunityTitle } from '../../lib/opportunities/ui-helpers';
 
@@ -8,7 +9,7 @@ interface OpportunityRadarSignInDialogProps {
     isStarting: boolean;
     error: string;
     onClose: () => void;
-    onContinue: () => void;
+    onContinue: (productUpdatesOptIn: boolean) => void;
 }
 
 export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialogProps> = ({
@@ -19,10 +20,12 @@ export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialog
     onContinue,
 }) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
+    const [productUpdatesOptIn, setProductUpdatesOptIn] = useState(false);
 
     useEffect(() => {
         const dialog = dialogRef.current;
         if (!dialog) return;
+        setProductUpdatesOptIn(false);
         if (opportunity && !dialog.open) dialog.showModal();
         if (!opportunity && dialog.open) dialog.close();
     }, [opportunity]);
@@ -54,7 +57,7 @@ export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialog
                 <button
                     type="button"
                     className="opp-google-signin opp-radar-auth-google"
-                    onClick={onContinue}
+                    onClick={() => onContinue(productUpdatesOptIn)}
                     disabled={isStarting}
                     autoFocus
                 >
@@ -66,6 +69,7 @@ export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialog
                     Not now
                 </button>
             </div>
+            <OpportunityProductUpdatesOptIn checked={productUpdatesOptIn} onChange={setProductUpdatesOptIn} disabled={isStarting} />
             <p className="opp-radar-auth-privacy">Only your basic Google profile is used to create your tracker.</p>
         </dialog>
     );

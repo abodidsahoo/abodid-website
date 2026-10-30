@@ -217,7 +217,7 @@ export const POST: APIRoute = async ({ request }) => {
     let job: OpportunityCaptureJobRow;
     try {
         const result = await enqueueOpportunityCaptureJob({
-            client: authorization.userClient,
+            client: authorization.serviceClient,
             userId: authorization.user.id,
             idempotencyKey,
             channel,

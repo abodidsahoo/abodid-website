@@ -1,0 +1,37 @@
+[
+  {
+    "url": "https://abodid.com/privacy",
+    "method": "GET",
+    "status": 429
+  },
+  {
+    "url": "https://abodid.com/opportunities",
+    "method": "GET",
+    "status": 429
+  },
+  {
+    "url": "https://abodid.com/api/opportunities/session",
+    "method": "GET",
+    "status": 401
+  },
+  {
+    "url": "http://[::1]:4321/api/opportunities/capture",
+    "method": "POST",
+    "status": 401
+  },
+  {
+    "url": "http://[::1]:4321/api/opportunities/capture-jobs",
+    "method": "POST",
+    "status": 401
+  },
+  {
+    "url": "http://[::1]:4321/api/opportunities/extract-input",
+    "method": "POST",
+    "status": 401
+  },
+  {
+    "url": "http://[::1]:4321/api/opportunities/audit-test/re-extract",
+    "method": "POST",
+    "status": 401
+  }
+]

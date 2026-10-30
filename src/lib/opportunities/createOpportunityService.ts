@@ -146,6 +146,7 @@ export const createOpportunityFromPayload = async ({
         .single();
 
     if (error || !data) {
+        if (error?.code === 'P0100') throw new OpportunityCreateError('Your radar has 100 saved opportunities. Delete one to make room.',409,'SAVED_CAPACITY_REACHED');
         if (error?.code === '23505') {
             const { data: duplicate } = await client
                 .from('saved_opportunities')

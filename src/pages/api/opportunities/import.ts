@@ -29,6 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
         p_source_opportunity_id: parsed.data.source_opportunity_id,
     });
 
+    if (error?.code === 'P0100') return opportunityJson({error:'Your radar has 100 saved opportunities. Delete one to make room.',code:'SAVED_CAPACITY_REACHED'},409);
     if (error) {
         console.error('Public opportunity import failed', {
             userId: authorization.user.id,

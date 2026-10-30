@@ -93,9 +93,9 @@ The Safari callback content script runs only on `https://abodid.com/opportunitie
 
 Page scripts are injected only after an explicit toolbar or context-menu action. They collect the selected page content or display the temporary capture-status toast, and never receive access or refresh tokens; authenticated API calls are made by the extension background context.
 
-### Popup receipt and account layout (2.1.7)
+### Popup receipt and account layout (2.1.13)
 
-The popup leads with the current tab and **Save opportunity**. Account identity, **View your dashboard**, and **Log out** live in a separate bottom area. Sending and queued work replace the save control with one clear status; completion shows a minimal saved receipt. The latest receipt is restored from local extension storage when reopened, including after a tab change. Accepted jobs and final receipts remain until replaced, signed out, or storage is cleared. A sending phase interrupted for over five minutes becomes retryable. While the popup is open, queued status refreshes every three seconds (five seconds after a network error); once closed, existing one-shot browser alarms check completion. No new browser permission is needed.
+The popup leads with the current tab and **Save opportunity**. Account identity, **View your dashboard**, and **Log out** live in a separate bottom area. Sending and queued work replace the save control with one clear status; completion shows a minimal saved receipt. The latest receipt is restored from local extension storage when reopened. Sending and queued progress remain visible after a tab change; completed, duplicate and failed receipts appear only on their source page (ignoring URL fragments). New pages show a clear Save opportunity action once prior processing finishes. Hiding a receipt does not delete it or the saved opportunity. Accepted jobs and final receipts remain until replaced, signed out, or storage is cleared. A sending phase interrupted for over five minutes becomes retryable. While the popup is open, queued status refreshes every three seconds (five seconds after a network error); once closed, existing one-shot browser alarms check completion. No new browser permission is needed.
 
 ### Authentication recovery (2.1.8)
 
@@ -111,7 +111,7 @@ Busy labels use direct status text without trailing ellipses, with wave dots cen
 
 ## Chrome Store release packaging
 
-Run `node scripts/package-opportunity-extension.mjs` from the repository root. This produces `extension/releases/opportunity-tracker-2.1.12-chrome.zip` and its file/hash audit. The ZIP contains only the built Chrome runtime, manifest and icons. Generated releases are ignored by Git. The local free-model benchmark is not part of this package; extraction continues on the existing server configuration.
+Run `node scripts/package-opportunity-extension.mjs` from the repository root. This produces `extension/releases/opportunity-tracker-2.1.13-chrome.zip` and its file/hash audit. The ZIP contains only the built Chrome runtime, manifest and icons. Generated releases are ignored by Git. The local free-model benchmark is not part of this package; extraction continues on the existing server configuration.
 
 Right-click captures now persist the latest receipt and schedule completion checks just like toolbar captures. Link captures do not reuse their parent page title. Startup restores queued checks; logout prevents late completions from resurrecting removed receipts, and capture token retries reject account changes.
 
@@ -121,4 +121,20 @@ Upload the ZIP as an unpublished Chrome Developer Dashboard draft to obtain the 
 
 Latest main base: 15a4afc. Chrome requires 120+ and uses gesture-scoped activeTab metadata access; it no longer requests tabs. Firefox/Safari retain their existing tabs declarations. Save/status receipts and display identity are account-bound, simultaneous toolbar saves share one handoff, and unsupported pages are disabled. Backend URL capture resolves duplicate inserts without replacing an already saved row; deploy that separate server change only after approval.
 
-The release candidate is `extension/releases/opportunity-tracker-2.1.12-chrome.zip`. Read the CURRENT 2.1.12 section of CHROMEWEBSTORE.md for executed tests and outstanding browser/OAuth/screenshot/privacy gates; historical 2.1.11 checks are not evidence that this release is fully accepted. No submission or publication is performed by the package command.
+The prior release candidate was `extension/releases/opportunity-tracker-2.1.12-chrome.zip`. Its historical audit remains in CHROMEWEBSTORE.md; the current candidate is 2.1.13 with the page-specific popup fix below. No submission or publication is performed by the package command.
+
+## Page-specific final receipts (2.1.13)
+
+Completed, duplicate and failed receipts no longer appear on unrelated pages. The popup rechecks restored receipt visibility after the current tab resolves, and local save errors remain tied to that page. Active sending/queued progress still restores across tabs. Current builds and the Chrome ZIP use 2.1.13; read the current audit in CHROMEWEBSTORE.md for validation and outstanding store gates.
+
+## First Chrome Web Store release — Save Opportunity 1.0.0
+
+The authoritative current release is **Save Opportunity 1.0.0**. The preceding 2.x notes describe unpacked development builds and are retained as history. No Store item existed at the 2026-10-30 audit, so no production extension ID is embedded. Existing popup/dashboard branding and capture behavior remain unchanged.
+
+Use **Node 24** and run `npm run extension:package:chrome`. The current output is `extension/releases/save-opportunity-chrome-store.zip` and `extension/releases/save-opportunity-1.0.0-audit.json`; older package filenames above are historical. Only runtime files, icons and the root manifest are included. The package is not uploaded or published automatically.
+
+Production builds reject localhost app origins and secret/service-role Supabase keys. Development mode retains the existing localhost override. Chrome's explicit CSP restricts scripts to local files and connections to the two configured application/auth hosts. Exact OAuth result origin/path validation preserves the installed development identity flow.
+
+The separate server release adds a five-attempt monthly AI allowance (UTC month), one concurrent extraction per user and four globally. It needs the reviewed migration and matching server deployment; the ZIP alone cannot enforce quotas. See [release audit and setup](../docs/releases/save-opportunity-release.md), [privacy draft](../docs/releases/save-opportunity-privacy-draft.md) and root [Store submission record](../CHROMEWEBSTORE.md) for manual OAuth, billing-limit, security, browser-test and screenshot gates. There are no payment/subscription additions. Chrome does not request `tabs`; the earlier rationale applies only to the other browser targets.
+
+Production captures also require a distinct, capped `OPENROUTER_OPPORTUNITIES_API_KEY` on the server. The generic site experiment key is never used for opportunity captures, including in development/tests. The local migration restricts job insertion to the verified server API and rejects anonymous users at paid admission. See the release report before deployment.

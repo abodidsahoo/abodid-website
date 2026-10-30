@@ -34,6 +34,7 @@ export const savedRowToOpportunity = (row: SavedOpportunityRow): Opportunity => 
         id: row.id,
         title: row.title,
         organisation: nullableString(content.organisation) || 'Independent / Direct',
+        organisation_icon_url: nullableString(content.organisation_icon_url),
         category: (nullableString(content.category) || 'other') as Opportunity['category'],
         source_url: row.source_url,
         canonical_url: row.canonical_url,
@@ -81,6 +82,7 @@ export const opportunityToSavedInsert = (userId: string, opportunity: Partial<Op
     notes: opportunity.notes || null,
     content: {
         organisation: opportunity.organisation || 'Independent / Direct',
+        ...(opportunity.organisation_icon_url ? { organisation_icon_url: opportunity.organisation_icon_url } : {}),
         category: opportunity.category || 'other',
         deadline_raw: opportunity.deadline_raw || null,
         deadline_timezone: opportunity.deadline_timezone || null,

@@ -310,7 +310,7 @@ export const POST: APIRoute = async ({ request }) => {
                 connection,
                 eventType: linked || connection ? 'connection_succeeded' : 'connection_expired',
                 text: linked || connection
-                    ? 'Telegram is connected to your Opportunity Tracker. Send a URL, note, forwarded message, PDF, image, or voice note.'
+                    ? 'Welcome! Your private radar is connected.\n\nFound something interesting you would love to keep track of? Share the link here, attach a PDF or image, or speak it out as a voice note.\n\nTry this example:\nKeep track of the Google Creative Art Residency in India whose application deadline is 12th April, 2027.\n\nThis is an example message, not a verified listing. New AI processing uses your monthly allowance. Adding existing opportunities from Abodid’s collection uses no AI credits.\n\nNeed more credits? Contact the Support team of Abodid & Co. at hello@abodid.com.'
                     : 'This connection link is invalid or expired. Generate a new one from Opportunity Tracker settings.',
             });
         } catch (error) {

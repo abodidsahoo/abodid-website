@@ -1,0 +1,8 @@
+{
+  "checked_at": "2026-10-29T22:13:21.863Z",
+  "http_status": 200,
+  "google_provider_enabled": true,
+  "signup_disabled": false,
+  "anonymous_provider_enabled": true,
+  "google_oauth_audience": "not available from public settings endpoint"
+}

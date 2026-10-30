@@ -31,7 +31,8 @@ const successfulOpenRouterResponse = (title: string, model = 'mock/concurrent-mo
 
 describe('Concurrent OpenRouter opportunity extraction', () => {
     beforeEach(() => {
-        vi.stubEnv('OPENROUTER_API_KEY', 'test-key');
+        vi.stubEnv('OPENROUTER_API_KEY', 'general-test-key');
+        vi.stubEnv('OPENROUTER_OPPORTUNITIES_API_KEY', 'test-key');
         vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     });
 
@@ -101,5 +102,36 @@ describe('Concurrent OpenRouter opportunity extraction', () => {
         await expect(extractOpportunityWithLLM('Authentication failure page'))
             .rejects.toThrow('HTTP 401');
         expect(fetchMock).toHaveBeenCalledOnce();
+    });
+
+    it.each(['', 'general-test-key'])('fails closed in production without a distinct opportunity key', async (key) => {
+        vi.stubEnv('DEV', false);
+        vi.stubEnv('NODE_ENV', 'production');
+        vi.stubEnv('OPENROUTER_OPPORTUNITIES_API_KEY', key);
+        const provider = vi.fn();
+        vi.stubGlobal('fetch', provider);
+        await expect(extractOpportunityWithLLM('Public opportunity'))
+            .rejects.toThrow('dedicated opportunity processing key');
+        expect(provider).not.toHaveBeenCalled();
+    });
+
+    it('never falls back to the generic key during local development either', async () => {
+        vi.stubEnv('DEV', true);
+        vi.stubEnv('NODE_ENV', 'development');
+        vi.stubEnv('OPENROUTER_OPPORTUNITIES_API_KEY', '');
+        const provider = vi.fn();
+        vi.stubGlobal('fetch', provider);
+        await expect(extractOpportunityWithLLM('Public opportunity')).rejects.toThrow('dedicated opportunity processing key');
+        expect(provider).not.toHaveBeenCalled();
+    });
+
+    it('uses only the dedicated key for production opportunity processing', async () => {
+        vi.stubEnv('DEV', false);
+        vi.stubEnv('NODE_ENV', 'production');
+        vi.stubEnv('OPENROUTER_OPPORTUNITIES_API_KEY', 'dedicated-test-key');
+        const provider = vi.fn().mockResolvedValue(successfulOpenRouterResponse('Production result'));
+        vi.stubGlobal('fetch', provider);
+        expect((await extractOpportunityWithLLM('Public opportunity')).data.title).toBe('Production result');
+        expect(provider.mock.calls[0][1].headers.Authorization).toBe('Bearer dedicated-test-key');
     });
 });

@@ -11,6 +11,8 @@ const PAID_MODELS = [
 ];
 
 export const GET: APIRoute = async ({ request }) => {
+    // A diagnostic GET must never spend paid credits on the public deployment.
+    if (import.meta.env.PROD) return new Response(null, { status: 404 });
     const apiKey = import.meta.env.OPENROUTER_API_KEY;
     const results = [];
 

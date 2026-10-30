@@ -2,6 +2,8 @@ import { OpportunityBusy } from './OpportunityBusy';
 import React, { useEffect, useState } from 'react';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
 import { OPPORTUNITY_CURATED_COLLECTION_PATH } from '../../lib/opportunities/routes';
+import { discardProductUpdatesSignIn, prepareProductUpdatesSignIn } from '../../lib/opportunities/productUpdates';
+import { OpportunityProductUpdatesOptIn } from './OpportunityProductUpdatesOptIn';
 
 const GOOGLE_IDENTITY_SCOPES = 'openid email profile';
 
@@ -16,6 +18,7 @@ export default function OpportunityLanding() {
     const [checking, setChecking] = useState(true);
     const [signingIn, setSigningIn] = useState(false);
     const [error, setError] = useState('');
+    const [productUpdatesOptIn, setProductUpdatesOptIn] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -50,16 +53,20 @@ export default function OpportunityLanding() {
         const next = safeNextPath();
         if (next) callback.searchParams.set('next', next);
 
-        const { error: authError } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                scopes: GOOGLE_IDENTITY_SCOPES,
-                redirectTo: callback.toString(),
-                queryParams: { prompt: 'select_account' },
-            },
-        });
-        if (authError) {
-            setError(`Google sign-in could not start (${authError.name}). Please try again.`);
+        prepareProductUpdatesSignIn(callback, productUpdatesOptIn);
+        try {
+            const { error: authError } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    scopes: GOOGLE_IDENTITY_SCOPES,
+                    redirectTo: callback.toString(),
+                    queryParams: { prompt: 'select_account' },
+                },
+            });
+            if (authError) throw authError;
+        } catch {
+            discardProductUpdatesSignIn(callback);
+            setError('Google sign-in could not start. Please try again.');
             setSigningIn(false);
         }
     };
@@ -78,25 +85,22 @@ export default function OpportunityLanding() {
                     <p className="opp-landing-promise-copy">Save open calls, residencies, fellowships, grants and jobs. AI automatically summarizes key details, identifies important dates and helps users stay on track.</p>
                 </div>
                 <div className="opp-landing-action">
-                    <span className="opp-landing-action-label">ORGANIZE YOUR NEXT MOVE</span>
+                    <span className="opp-landing-action-label">WELCOME TO OPPORTUNITY TRACKER</span>
+                    <p className="opp-landing-signin-copy">Sign in to save and organise opportunities across devices.</p>
                     <button type="button" className={`opp-google-signin ${checking || signingIn ? 'opp-waiting' : ''}`} aria-busy={checking || signingIn} onClick={signIn} disabled={checking || signingIn}>
                         <span className="opp-google-mark" aria-hidden="true">G</span>
                         <span>{checking ? <OpportunityBusy inline>Checking session</OpportunityBusy> : signingIn ? <OpportunityBusy inline>Connecting to Google</OpportunityBusy> : 'Continue with Google'}</span>
                         <span aria-hidden="true">→</span>
                     </button>
+                    <OpportunityProductUpdatesOptIn checked={productUpdatesOptIn} onChange={setProductUpdatesOptIn} disabled={checking || signingIn} />
                     <a className="opp-public-collection-link" href={OPPORTUNITY_CURATED_COLLECTION_PATH}>
-                        <span>Browse Abodid’s opportunities</span>
+                        <span>Explore opportunities · no AI credits</span>
                         <span aria-hidden="true">→</span>
                     </a>
                     {error && <p className="opp-auth-error" role="alert">{error}</p>}
                     <p className="opp-auth-disclosure">
                         Google sign-in shares your name, email and profile photo so we can create and personalize your tracker account. We do not request access to Gmail, Drive, Calendar or Contacts. <a href="/privacy">Privacy details</a>.
                     </p>
-                    <small>
-                        AI-powered Opportunity and Deadline tracker.<br />
-                        Just Paste the Link. And done.<br />
-                        (Chrome Extension Coming Soon)
-                    </small>
                 </div>
             </div>
         </section>

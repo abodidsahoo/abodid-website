@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "minimum_chrome_version": "120",
-  "name": "Opportunity Tracker",
-  "version": "2.1.12",
+  "name": "Save Opportunity",
+  "version": "1.0.0",
   "description": "Save open calls, residencies, fellowships, grants and jobs. AI summarizes key details and important dates so you stay on track.",
   "permissions": ["activeTab", "scripting", "storage", "contextMenus", "identity", "notifications", "alarms"],
   "host_permissions": ["https://abodid.com/*"],
   "background": { "service_worker": "background.js", "type": "module" },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Opportunity Tracker",
+    "default_title": "Save Opportunity",
     "default_icon": { "16": "icons/icon-16.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" }
   },
   "icons": { "16": "icons/icon-16.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" }

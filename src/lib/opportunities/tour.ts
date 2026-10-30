@@ -1,6 +1,6 @@
 export const OPPORTUNITY_TOUR_STEPS = [
     { target: '#opportunity-save-form', title: 'Save an opportunity.', copy: 'Paste a link or note, or choose Attach for images, videos and PDFs.' },
-    { target: '#opportunity-urgency-views', title: 'Pick your view.', copy: 'Apply ASAP shows urgent items. Newly Added shows your latest saves.' },
+    { target: '#opportunity-urgency-views', title: 'Pick your view.', copy: 'Closing Soon shows urgent items. Newly Added shows your latest saves.' },
     { target: '#opportunity-refresh-list', title: 'Refresh your list.', copy: 'Missing a recent save? Refresh list brings in the latest updates.' },
     { target: '#opportunity-integrations', title: 'Save from anywhere.', copy: 'Connect Telegram for messages and voice notes, or open the Chrome installation guide.' },
 ] as const;

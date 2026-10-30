@@ -1,8 +1,9 @@
+import { OpportunityAllowance } from './OpportunityAllowance';
 import { OpportunityCaptureExamples } from './OpportunityCaptureExamples';
 import { validateOpportunityAttachmentMetadata, isOpportunityImageFile, isOpportunityVideoFile } from '../../lib/opportunities/attachmentValidation';
 import { OpportunityQuickTour } from './OpportunityQuickTour';
 import { OpportunityBusy, OpportunityWaveDots } from './OpportunityBusy';
-import { FileImage, FileText, FileVideo, Paperclip, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileImage, FileText, FileVideo, Paperclip, Check, CheckCircle2, AlertCircle, RefreshCw, Search, X } from 'lucide-react';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { Opportunity, OpportunityStatus } from '../../lib/opportunities/types';
@@ -41,6 +42,7 @@ import {
     type OpportunityEditableProfile,
 } from './OpportunityProfileDialog';
 import { OpportunityRadarSignInDialog } from './OpportunityRadarSignInDialog';
+import { discardProductUpdatesSignIn, prepareProductUpdatesSignIn } from '../../lib/opportunities/productUpdates';
 import { OpportunitySettingsMenu } from './OpportunitySettingsMenu';
 import { opportunitySupabase as supabase } from '../../lib/opportunitySupabase';
 import {
@@ -133,6 +135,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     const captureJobPollTimerRef = useRef<number | null>(null);
     const latestCaptureJobIdRef = useRef<string | null>(null);
     const captureFileInputRef = useRef<HTMLInputElement | null>(null);
+    const captureAttachButtonRef = useRef<HTMLButtonElement | null>(null);
 
     // Filters: Single clean Urgency Rail + Secondary Filter Tray Toggle
     const [urgencyFilter, setUrgencyFilter] = useState<UrgencyRailFilter>('apply_asap');
@@ -181,6 +184,14 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         setTimeout(() => setToastMessage(null), 3000);
     }, []);
 
+    useEffect(() => {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('updates_notice') !== 'not-saved') return;
+        showToast('Signed in. Your email preference was not saved. Try again in Profile.');
+        url.searchParams.delete('updates_notice');
+        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+    }, [showToast]);
+
     const authenticatedHeaders = (includeJson = false) => ({
         ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
@@ -214,23 +225,24 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
 
             const nextState: RadarSaveState = payload.status === 'added' ? 'added' : 'already';
             setRadarStates((current) => ({ ...current, [opportunity.id]: nextState }));
-            showToast(nextState === 'added' ? '✓ Added to your radar' : '✓ Already on your radar');
+            showToast(nextState === 'added' ? '✓ Added to your radar. Open your dashboard to connect Telegram.' : '✓ Already on your radar');
         } catch (error) {
             setRadarStates((current) => ({ ...current, [opportunity.id]: 'error' }));
             showToast(error instanceof Error ? `❌ ${error.message}` : '❌ Could not add this opportunity');
         }
     }, [accessToken, showToast]);
 
-    const beginRadarSignIn = async () => {
+    const beginRadarSignIn = async (productUpdatesOptIn = false) => {
         if (!radarSignInOpportunity) return;
         setIsStartingRadarSignIn(true);
         setRadarSignInError('');
+        const callback = new URL('/opportunities/auth/callback', window.location.origin);
 
         try {
             const intent = createRadarImportIntent(radarSignInOpportunity.id, username);
             window.sessionStorage.setItem(RADAR_IMPORT_INTENT_STORAGE_KEY, JSON.stringify(intent));
-            const callback = new URL('/opportunities/auth/callback', window.location.origin);
             callback.searchParams.set('next', getRadarImportNextPath(intent));
+            prepareProductUpdatesSignIn(callback, productUpdatesOptIn);
 
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -242,6 +254,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             });
             if (error) throw error;
         } catch {
+            discardProductUpdatesSignIn(callback);
             setRadarSignInError('Google sign-in could not start. Try again.');
             setIsStartingRadarSignIn(false);
         }
@@ -437,7 +450,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             setCaptureProgress(null);
             if (job.status === 'failed') {
                 latestCaptureJobIdRef.current = null;
-                setFailedCaptureJobId(job.id);
+                setFailedCaptureJobId(['AI_MONTHLY_LIMIT_REACHED','SAVED_CAPACITY_REACHED'].includes(job.error_code || '') ? null : job.id);
                 setCaptureError(job.error_message || 'Background capture failed. You can retry it safely.');
                 showToast('❌ Background capture needs attention');
                 return;
@@ -1014,7 +1027,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 return false;
             }
 
-            // Workflow filters intentionally override the Apply ASAP attention view.
+            // Workflow filters intentionally override the Closing Soon attention view.
             // Otherwise the Applied filter can never return results because completed
             // opportunities no longer require action.
             if (hasExplicitStatusFilter) return true;
@@ -1143,6 +1156,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                         ref={captureFileInputRef}
                                         id="opportunity-capture-files"
                                         name="opportunity_files"
+                                        aria-label="Attach files"
                                         type="file"
                                         className="sr-only"
                                         accept="application/pdf,text/plain,text/markdown,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.pdf,.txt,.md,.jpg,.jpeg,.png,.webp,.mp4,.webm,.mov"
@@ -1152,17 +1166,18 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                         disabled={isCapturing}
                                     />
                                     <button
+                                        ref={captureAttachButtonRef}
                                         type="button"
                                         className="opp-capture-attach-button"
                                         onClick={() => captureFileInputRef.current?.click()}
                                         aria-label="Attach files"
                                         disabled={isCapturing}
                                     >
-                                        <Paperclip size={17} aria-hidden="true" /><span>Attach</span>
+                                        <Paperclip size={17} aria-hidden="true" />
                                     </button>
                                 </div>
                                 {captureFiles.length > 0 && (
-                                    <div className="opp-capture-files" aria-label="Selected attachments">
+                                    <div className="opp-capture-files" role="group" aria-label="Selected attachments">
                                         {captureFiles.map((file, index) => {
                                             const upload = uploadStates[attachmentKey(file)];
                                             const Icon = isOpportunityImageFile(file) ? FileImage : isOpportunityVideoFile(file) ? FileVideo : FileText;
@@ -1176,6 +1191,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                                                 <button type="button" onClick={() => {
                                                     setCaptureFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
                                                     setCaptureError('');
+                                                    captureAttachButtonRef.current?.focus();
                                                 }} aria-label={`Remove ${file.name}`} disabled={isCapturing}>×</button>
                                             </span>;
                                         })}
@@ -1298,41 +1314,57 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 </aside>
             )}
 
+            {isOwner && accessToken && <OpportunityAllowance accessToken={accessToken} savedCount={opportunities.length} error={captureError} />}
+
             {/* Primary opportunity views & filter popover toggle */}
             <div className="opp-rail-wrapper">
-                <div id="opportunity-urgency-views" className="opp-urgency-rail">
+                <div
+                    id="opportunity-urgency-views"
+                    className="opp-segmented-control opp-urgency-rail"
+                    role="radiogroup"
+                    aria-label="Sort opportunities"
+                    data-active-view={urgencyFilter}
+                    data-active-segment={urgencyFilter === 'newly_added' ? 'second' : 'first'}
+                >
+                    <span className="opp-rail-indicator" aria-hidden="true" />
                     {(
                         [
-                            { id: 'apply_asap', label: 'Apply ASAP' },
+                            { id: 'apply_asap', label: 'Closing Soon' },
                             { id: 'newly_added', label: 'Newly Added' },
                         ] as { id: UrgencyRailFilter; label: string }[]
                     ).map((r) => (
-                        <button
-                            key={r.id}
-                            type="button"
-                            className={`opp-rail-pill ${urgencyFilter === r.id ? 'active' : ''}`}
-                            aria-pressed={urgencyFilter === r.id}
-                            onClick={() => {
-                                if (r.id === urgencyFilter) return;
-                                setUrgencyFilter(r.id);
-                                setSortBy(r.id === 'newly_added' ? 'date_added' : 'deadline');
-                                setIsDeadlineFilterActive(false);
-                            }}
-                        >
-                            {r.label}
-                        </button>
+                        <React.Fragment key={r.id}>
+                            <input
+                                id={`opportunity-view-${r.id}`}
+                                className="opp-rail-radio sr-only"
+                                type="radio"
+                                name="opportunity-view"
+                                value={r.id}
+                                checked={urgencyFilter === r.id}
+                                onChange={() => {
+                                    setUrgencyFilter(r.id);
+                                    setSortBy(r.id === 'newly_added' ? 'date_added' : 'deadline');
+                                    setIsDeadlineFilterActive(false);
+                                }}
+                            />
+                            <label className="opp-rail-pill" htmlFor={`opportunity-view-${r.id}`}>
+                                <Check className="opp-rail-check" size={13} strokeWidth={3} aria-hidden="true" />
+                                <span>{r.label}</span>
+                            </label>
+                        </React.Fragment>
                     ))}
                 </div>
 
                 <div className="opp-rail-actions">
                     <div className="opp-search-control" role="search" aria-label="Search opportunities">
                         <label className="sr-only" htmlFor="opp-radar-search">Search opportunities</label>
+                        <Search className="opp-search-icon" size={18} aria-hidden="true" />
                         <input
                             id="opp-radar-search"
                             name="opportunity-search"
                             type="search"
                             className="opp-search-input"
-                            placeholder="Search"
+                            placeholder="Search opportunities…"
                             value={searchQuery}
                             onChange={(event) => setSearchQuery(event.target.value)}
                             autoComplete="off"
@@ -1353,12 +1385,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         )}
                     </div>
 
-                    <button type="button" id="opportunity-refresh-list" className={`opp-filter-toggle-btn opp-refresh-list ${isRefreshing ? 'is-refreshing' : ''}`} aria-busy={isRefreshing} disabled={isRefreshing || isLoading} onClick={async () => {
+                    <button type="button" id="opportunity-refresh-list" className={`opp-filter-toggle-btn opp-refresh-list ${isRefreshing ? 'is-refreshing' : ''}`} aria-label={isRefreshing ? 'Refreshing opportunities' : 'Refresh list'} aria-busy={isRefreshing} disabled={isRefreshing || isLoading} onClick={async () => {
                         setIsRefreshing(true);
                         try { await fetchOpportunities(true); } finally { setIsRefreshing(false); }
                     }}>
                         <RefreshCw className="opp-refresh-icon" size={16} aria-hidden="true" />
-                        <span>{isRefreshing ? 'Refreshing' : 'Refresh list'}</span>
+                        <span>{isRefreshing ? 'Refreshing' : <>Refresh<span className="opp-refresh-list-suffix"> list</span></>}</span>
                     </button>
                     {/* Filter Button with Badge and Dropdown Anchor */}
                     <div className="opp-filter-anchor-wrap">
@@ -1461,34 +1493,41 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     )}
                     </div>
 
-                    <div className="opp-view-toggle" role="group" aria-label="Opportunity view">
-                        <button
-                            type="button"
-                            className={viewMode === 'list' ? 'active' : ''}
+                    <div className="opp-segmented-control opp-view-toggle" role="radiogroup" aria-label="Opportunity view" data-active-segment={viewMode === 'grid' ? 'second' : 'first'}>
+                        <span className="opp-rail-indicator" aria-hidden="true" />
+                        <input
+                            id="opportunity-view-list"
+                            className="opp-rail-radio sr-only"
+                            type="radio"
+                            name="opportunity-layout"
+                            value="list"
+                            checked={viewMode === 'list'}
                             aria-label="Show list view"
-                            aria-pressed={viewMode === 'list'}
-                            title="List view"
-                            onClick={() => setViewMode('list')}
-                        >
+                            onChange={() => setViewMode('list')}
+                        />
+                        <label className="opp-rail-pill" htmlFor="opportunity-view-list" title="List view">
                             <svg viewBox="0 0 20 20" aria-hidden="true">
                                 <path d="M3 5h14M3 10h14M3 15h14" />
                             </svg>
-                        </button>
-                        <button
-                            type="button"
-                            className={viewMode === 'grid' ? 'active' : ''}
+                        </label>
+                        <input
+                            id="opportunity-view-grid"
+                            className="opp-rail-radio sr-only"
+                            type="radio"
+                            name="opportunity-layout"
+                            value="grid"
+                            checked={viewMode === 'grid'}
                             aria-label="Show grid view"
-                            aria-pressed={viewMode === 'grid'}
-                            title="Grid view"
-                            onClick={() => setViewMode('grid')}
-                        >
+                            onChange={() => setViewMode('grid')}
+                        />
+                        <label className="opp-rail-pill" htmlFor="opportunity-view-grid" title="Grid view">
                             <svg viewBox="0 0 20 20" aria-hidden="true">
                                 <rect x="3" y="3" width="5" height="5" rx="0.8" />
                                 <rect x="12" y="3" width="5" height="5" rx="0.8" />
                                 <rect x="3" y="12" width="5" height="5" rx="0.8" />
                                 <rect x="12" y="12" width="5" height="5" rx="0.8" />
                             </svg>
-                        </button>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -1521,7 +1560,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         aria-label={`Remove ${formatCategoryTitle(categoryFilter)} filter`}
                         title="Remove current filter"
                     >
-                        <span aria-hidden="true">×</span>
+                        <X size={14} strokeWidth={2.5} aria-hidden="true" />
                     </button>
                 </div>
             )}
@@ -1772,7 +1811,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                     setIsStartingRadarSignIn(false);
                     setRadarSignInError('');
                 }}
-                onContinue={() => void beginRadarSignIn()}
+                onContinue={(optIn) => void beginRadarSignIn(optIn)}
             />
 
             {/* Edit Modal */}

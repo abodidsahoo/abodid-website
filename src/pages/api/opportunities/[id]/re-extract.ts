@@ -34,9 +34,10 @@ export const POST: APIRoute = async ({ params, request }) => {
 
         const retryMinutes = Math.max(1, Math.ceil(aiLimit.retryAfter / 60));
         const response = opportunityJson({
-            error: `Extraction limit reached. Try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+            error: aiLimit.message || `Extraction limit reached. Try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+            code: aiLimit.code || 'CAPTURE_LIMIT_REACHED',
             retry_after: aiLimit.retryAfter,
-        }, 429);
+        }, aiLimit.status || 429);
         response.headers.set('Retry-After', String(aiLimit.retryAfter));
         return response;
     }
@@ -102,5 +103,7 @@ export const POST: APIRoute = async ({ params, request }) => {
             error: error instanceof Error ? error.name : 'UnknownError',
         });
         return opportunityJson({ error: 'Re-extraction could not be completed' }, 502);
+    } finally {
+        await aiLimit.release?.();
     }
 };

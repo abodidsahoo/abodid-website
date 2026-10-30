@@ -46,6 +46,7 @@ export const GET: APIRoute = async ({ params }) => {
             notes: null,
             content: {
                 organisation: row.content?.organisation,
+                organisation_icon_url: row.content?.organisation_icon_url,
                 category: row.content?.category,
                 deadline_raw: row.content?.deadline_raw,
                 deadline_timezone: row.content?.deadline_timezone,
