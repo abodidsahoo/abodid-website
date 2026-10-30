@@ -54,6 +54,7 @@ export const SITEMAP_HUB_PATHS = new Set([
   "/resources",
   "/obsidian-vault",
   "/about",
+  "/studio",
   "/awards",
   "/press",
   "/cv",

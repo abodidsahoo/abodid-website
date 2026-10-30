@@ -138,3 +138,14 @@ Production builds reject localhost app origins and secret/service-role Supabase 
 The separate server release adds a five-attempt monthly AI allowance (UTC month), one concurrent extraction per user and four globally. It needs the reviewed migration and matching server deployment; the ZIP alone cannot enforce quotas. See [release audit and setup](../docs/releases/save-opportunity-release.md), [privacy draft](../docs/releases/save-opportunity-privacy-draft.md) and root [Store submission record](../CHROMEWEBSTORE.md) for manual OAuth, billing-limit, security, browser-test and screenshot gates. There are no payment/subscription additions. Chrome does not request `tabs`; the earlier rationale applies only to the other browser targets.
 
 Production captures also require a distinct, capped `OPENROUTER_OPPORTUNITIES_API_KEY` on the server. The generic site experiment key is never used for opportunity captures, including in development/tests. The local migration restricts job insertion to the verified server API and rejects anonymous users at paid admission. See the release report before deployment.
+
+
+### First-install welcome
+
+Fresh installations open the bundled `welcome.html` once. Updates and browser restarts leave users’ tabs alone. The local welcome marker persists across worker restarts and logout; it contains no personal data. Get started calls the existing extension `AUTH_LOGIN` flow, then reveals toolbar/right-click first-save instructions. It does not capture pages or use AI attempts. Google cancellation is retryable, and a previously authenticated extension skips the login step. Open your radar uses the existing dashboard action; website authentication remains separate.
+
+The welcome page is bundled by every browser target, with no new permissions or remote assets. Run `npm run test:opportunities` and `npm run extension:package:chrome` to verify the install guard, auth state handling and new entry files. The ZIP remains a local candidate until the Store identity, actual Google sign-in and reviewer checks are completed.
+
+### Right-click while signed out
+
+In Chrome, **Save page** and **Save link** open the extension’s Google sign-in flow when needed, then save the originally selected opportunity. Cancelling sign-in does not submit a capture. After sign-in, the backend retrieves the original URL rather than reading a tab that may have navigated elsewhere. Already-signed-in saves keep their usual page capture. No additional permissions or OAuth scopes are requested. If the browser closes during sign-in, repeat the save action. Safari’s separate callback flow asks you to finish sign-in and repeat the save.

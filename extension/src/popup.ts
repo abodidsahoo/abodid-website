@@ -189,6 +189,7 @@ const applyCaptureState = (state: CaptureState | null) => {
     resultSource.classList.toggle('hidden', !differentPage);
     result.classList.toggle('is-processing', state.status === 'queued');
     result.classList.toggle('is-error', state.status === 'error');
+    resultSuccessBadge.classList.remove('hidden');
     resultProcessing.classList.add('hidden');
     resultDetails.classList.add('hidden');
     resultProcessingProgress.classList.add('hidden');
@@ -203,7 +204,8 @@ const applyCaptureState = (state: CaptureState | null) => {
         return;
     }
     if (state.status === 'queued') {
-        resultSuccessBadge.textContent = 'Processing';
+        resultSuccessBadge.textContent = '';
+        resultSuccessBadge.classList.add('hidden');
         resultProcessingTitle.textContent = 'Processing opportunity';
         resultProcessingDetail.textContent = 'Your page is safely received. You can close this popup and check back here.';
         resultProcessingProgress.classList.remove('hidden');

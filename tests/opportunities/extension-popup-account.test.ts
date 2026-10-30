@@ -87,6 +87,12 @@ describe('Popup account-bound receipts', () => {
         expect(nodes['save-btn'].classList.contains('hidden')).toBe(false);
         expect(vi.getTimerCount()).toBe(0);
     });
+    it('hides the top-left status badge while queued to avoid duplicate processing labels', () => {
+        updateCapture(capture({ status: 'queued', url: 'https://example.org/call' }));
+        expect(nodes['result-box'].classList.contains('hidden')).toBe(false);
+        expect(nodes['result-success-badge'].classList.contains('hidden')).toBe(true);
+        expect(nodes['result-processing-title'].textContent).toBe('Processing opportunity');
+    });
     it('restores sending progress from another page', () => {
         updateCapture(capture({ status: 'capturing', url: 'https://example.org/previous-call' }));
         expect(nodes['capture-progress'].classList.contains('hidden')).toBe(false);
@@ -133,7 +139,8 @@ describe('Popup account-bound receipts', () => {
         expect(harness.send).toHaveBeenCalledWith({
             type: 'START_CAPTURE', tabId: 2, url: 'https://example.org/call', title: 'Example call',
         });
-        expect(nodes['result-success-badge'].textContent).toBe('Processing');
+        expect(nodes['result-success-badge'].classList.contains('hidden')).toBe(true);
+        expect(nodes['result-processing-title'].textContent).toBe('Processing opportunity');
         expect(nodes['result-source'].classList.contains('hidden')).toBe(true);
     });
 });

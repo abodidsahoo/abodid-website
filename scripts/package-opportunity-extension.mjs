@@ -39,8 +39,11 @@ async function inspect(folder, relative = '') {
         const name = path.posix.join(relative, entry.name);
         assert(!entry.isSymbolicLink(), `Symlink not allowed: ${name}`);
         if (entry.isDirectory()) { await inspect(path.join(folder,entry.name),name); continue; }
-        assert(/^(manifest\.json|popup\.html|background\.js|popup\.js|assets\/[\w.-]+\.(js|css)|icons\/icon-(16|48|128)\.png)$/.test(name), `Unexpected package file: ${name}`);
+        assert(/^(manifest\.json|popup\.html|welcome\.html|background\.js|popup\.js|welcome\.js|assets\/[\w.-]+\.(js|css)|assets\/icon-48-[\w-]+\.png|icons\/icon-(16|48|128)\.png)$/.test(name), `Unexpected package file: ${name}`);
         const bytes = await readFile(path.join(folder,entry.name));
+        if (/^assets\/icon-48-[\w-]+\.png$/.test(name)) {
+            assert(bytes.equals(await readFile(path.join(dir, 'icons/icon-48.png'))), 'Unexpected welcome icon asset');
+        }
         assert(!secrets.some((value)=>bytes.includes(Buffer.from(value))), 'Privileged credential found; package aborted');
         if (/\.(html|js|css|json)$/.test(name)) {
             const text = bytes.toString();
@@ -57,6 +60,9 @@ async function inspect(folder, relative = '') {
     }
 }
 await inspect(dir);
+for (const required of ['welcome.html', 'welcome.js']) {
+    assert(entries.some((entry) => entry.path === required), `Missing first-install welcome entry: ${required}`);
+}
 for (const [size,file] of Object.entries(manifest.icons || {})) {
     const png = await readFile(path.join(dir,file));
     assert(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])), `Invalid PNG: ${file}`);

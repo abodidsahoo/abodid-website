@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Welcome · Opportunity Tracker</title>
+  <link rel="icon" href="/icons/icon-48.png" />
+</head>
+<body class="ow-page">
+  <header class="ow-header"><a class="ow-brand" href="https://abodid.com/opportunities" target="_blank" rel="noreferrer"><img src="/icons/icon-48.png" width="32" height="32" alt="" /><span><strong>Opportunity Tracker</strong><small>by Abodid &amp; Co.</small></span></a><span class="ow-installed">✓ Extension installed</span></header>
+  <main class="ow-main">
+    <section class="ow-card" aria-labelledby="welcome-title">
+      <span class="ow-eyebrow">WELCOME / GET STARTED</span>
+      <h1 id="welcome-title">From open tabs<br />to open doors.</h1>
+      <p id="welcome-copy" class="ow-copy">Your tracker is installed. Save your first opportunity in one click.</p>
+      <div id="welcome-start" class="ow-start"><button id="get-started" class="ow-primary" type="button" disabled aria-label="Get started with Google">Checking sign-in…</button><p>Continue securely with Google.</p></div>
+      <p id="welcome-status" class="ow-status" role="status" aria-live="polite"></p>
+      <p id="welcome-error" class="ow-error" role="alert" hidden></p>
+      <section id="welcome-next" class="ow-next" aria-labelledby="first-save-title" hidden>
+        <h2 id="first-save-title" tabindex="-1">Save your first opportunity.</h2>
+        <ol><li>Open an opportunity page you want to keep.</li><li>Right-click and choose <strong>Save page to Opportunity Tracker</strong>, or open the extension and select <strong>Save opportunity</strong>.</li></ol>
+        <p class="ow-pin-tip">Tip: pin Save Opportunity from Chrome’s extensions menu to keep it close.</p>
+        <button id="open-radar" class="ow-secondary" type="button">Open your radar <span aria-hidden="true">↗</span></button>
+      </section>
+      <p class="ow-privacy">Google sign-in uses your name, email and profile photo to create your private tracker. No access to Gmail, Drive, Calendar or Contacts. <a href="https://abodid.com/privacy#opportunity-tracker-data" target="_blank" rel="noreferrer">Privacy details</a>.</p>
+    </section>
+  </main>
+  <footer class="ow-footer"><span>No spreadsheets, no lost tabs, just your next move.</span><a href="mailto:hello@abodid.com">Support</a></footer>
+  <script type="module" src="/src/welcome.ts"></script>
+</body>
+</html>

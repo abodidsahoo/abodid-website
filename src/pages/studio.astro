@@ -1,980 +1,170 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import InlineInquiryForm from "../components/InlineInquiryForm.astro";
-import Newsletter from "../components/Newsletter.astro";
-import { getHomePositioningContent } from "../lib/homePositioningContent";
+import BaseLayout from '../layouts/BaseLayout.astro';
 
-const content = await getHomePositioningContent();
-
-const heroPhotography = [
-  "https://assets.abodid.com/photos/originals/exhibition-photos/into-the-flux-iba-exhibition-space-london-abodid-32.jpg",
-  "https://assets.abodid.com/photos/originals/exhibition-photos/rca-outernet-digital-direction-2024-gradshow-abodid-18.jpg",
-  "https://assets.abodid.com/photos/originals/event-photos/bfi-lff-expanded-2024-immersive-art-exhibition-london-photography-abodid-sahoo-12.jpg",
-  "https://assets.abodid.com/photos/originals/editorial-fashion-photos/uncanny-comforts-emma-rca-fashion-editorial-london-abodid-sahoo-01.jpg",
-];
-
-const title = "Abodid and Co — Creative Direction, Spatial Design & Interactive Systems";
-const description = content.hero.lede;
-const ogImage = "https://assets.abodid.com/photos/variants/outernet-london-2025/1600/1769335283887_0d9he7ekd-d7703e0dc7.webp";
+const description = 'Abodid & Co. is an independent creative collective bringing art, technology and research together through creative applications and bespoke immersive storytelling. Based in London. Working globally.';
+const founderPortrait = 'https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp';
 ---
 
 <BaseLayout
-  title={title}
+  title="Abodid & Co. — Independent Creative-Tech Studio"
   description={description}
-  image={ogImage}
-  imageAlt="Outernet London 2025 — immersive spatial media installation documented by Abodid and Co"
-  useDynamicOgImage={false}
-  noindex={true}
+  canonicalUrl="https://abodid.com/studio"
+  noindex={false}
   fullWidth={true}
+  hideHeader={true}
   hideFooter={true}
+  hideSideMenuRail={true}
   showNewsletterPopup={false}
   showGlobalGrid={false}
   showCursorFollower={false}
-  navigationVariant="next"
-  bodyClass="home-next-page"
+  bodyClass="aco-page"
 >
-  <link slot="head" rel="preload" as="image" href={heroPhotography[0]} />
-
-  <div class="home-next">
-    <!-- ==================== HERO BENTO SECTION ==================== -->
-    <section class="studio-intro" aria-labelledby="studio-intro-heading">
-      <div class="studio-intro__grid">
-        <header class="studio-block studio-block--identity" data-colour-cycle="0">
-          <p class="studio-kicker t-label">{content.hero.location}</p>
-          <h1 id="studio-intro-heading">
-            <span class="studio-name t-display t-display-strong">{content.hero.name}</span>
-            <span class="studio-role t-heading">{content.hero.heading}</span>
-          </h1>
-          <div class="studio-block__actions">
-            <a class="t-label" href="#selected-work">Explore Selected Work <span aria-hidden="true">↓</span></a>
-            <a class="t-label" href="#enquiry">Discuss a Project <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-          </div>
-        </header>
-
-        <a class="studio-block studio-block--showreel" href="#selected-work" aria-label="Explore spatial and visual work">
-          <span class="studio-window-bar t-label">
-            <b></b><span>spatial_visual_repertoire_01—04</span><small>Explore <span class="link-destination-arrow" aria-hidden="true">↗</span></small>
-          </span>
-          <span class="studio-polaroid studio-photo-sequence">
-            {heroPhotography.map((imgUrl, index) => (
-              <img
-                src={imgUrl}
-                alt={index === 0 ? "Into the Flux spatial exhibition" : ""}
-                aria-hidden={index === 0 ? undefined : "true"}
-                loading={index === 0 ? "eager" : "lazy"}
-                fetchpriority={index === 0 ? "high" : "auto"}
-                decoding="async"
-              />
-            ))}
-            <span class="studio-photo-sequence__caption t-label" aria-hidden="true">
-              Spatial · Interactive · Documentary
-            </span>
-          </span>
-        </a>
-
-        <aside class="studio-block studio-block--note" data-colour-cycle="1">
-          <span class="studio-window-bar t-label"><b></b><span>systems_architecture.ts</span><small>02</small></span>
-          <p class="t-body">I engineer bespoke Obsidian research vaults, interactive web storytelling, and sensory prototypes for directors, institutions, and thinkers.</p>
-          <a class="studio-manifesto-link t-label" href="#pillars">View 3 core capabilities <span aria-hidden="true">↓</span></a>
-          <ul aria-label="Systems capabilities">
-            <li class="t-label">Interactive Prototypes</li>
-            <li class="t-label">Obsidian Vaults</li>
-            <li class="t-label">Cognitive Media</li>
-            <li class="t-label">Spatial Interfaces</li>
-          </ul>
-        </aside>
-
-        <aside class="studio-block studio-block--hire" data-colour-cycle="2">
-          <small class="t-label">Studio Engagements · 2026</small>
-          <strong class="t-heading t-heading-strong">Commissioning an exhibition, interactive experience, or visual campaign?</strong>
-          <a class="studio-manifesto-link studio-vibe-link t-label" href="#engagements">View studio services <span aria-hidden="true">↓</span></a>
-          <a class="studio-hire-cta t-label" href="#enquiry">Initiate conversation <b class="link-destination-arrow" aria-hidden="true">↗</b></a>
-        </aside>
-
-        <div class="studio-palette-stack">
-          <div class="studio-block studio-block--palette">
-            <span class="studio-window-bar t-label"><b></b><span>canvas_hue.css</span></span>
-            <label>
-              <span class="sr-only">Change background color</span>
-              <input type="range" min="0" max="360" value="228" aria-label="Change the studio background hue" data-studio-hue />
-            </label>
-          </div>
-
-          <a class="studio-block studio-block--scroll" href="#pillars">
-            <strong class="t-heading t-heading-strong">Explore Core Focus</strong>
-            <span class="studio-intro__prompt-arrow" aria-hidden="true">↓</span>
-          </a>
-        </div>
+  <div class="aco-shell">
+    <header class="aco-header">
+      <div class="aco-identity">
+        <a href="/studio" class="aco-brand" aria-label="Abodid and Co. studio home">Abodid <span>&amp; Co.</span></a>
+        <p>Creative Production and Technology studio based in London.</p>
       </div>
-    </section>
-
-    <!-- ==================== THREE CORE PILLARS ==================== -->
-    <section class="home-section home-pillars" id="pillars" aria-labelledby="pillars-heading">
-      <div class="home-section__heading home-section__heading--split">
-        <div>
-          <p class="t-label">Core Competencies</p>
-          <h2 class="t-display t-display-strong" id="pillars-heading">A unified, cross-disciplinary practice.</h2>
-        </div>
-        <p class="home-section__intro">
-          Bridging physical space, computational craft, and human narrative without the traditional silos of agency practice.
-        </p>
-      </div>
-
-      <div class="pillars-grid">
-        {content.pillars.map((pillar) => (
-          <article class="pillar-card">
-            <div class="pillar-card__header">
-              <span class="pillar-card__number t-label">{pillar.number}</span>
-              <h3 class="pillar-card__title t-heading t-heading-strong">{pillar.title}</h3>
-            </div>
-            <p class="pillar-card__description t-body">{pillar.description}</p>
-            <ul class="pillar-card__tags" aria-label={`Tags for ${pillar.title}`}>
-              {pillar.tags.map((tag) => (
-                <li class="t-label">{tag}</li>
-              ))}
-            </ul>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <!-- ==================== FLAGSHIP SELECTED WORK ==================== -->
-    <section class="home-section home-selected" id="selected-work" aria-labelledby="selected-work-heading" data-colour-cycle="0" data-colour-palette="dark">
-      <div class="selected-wall">
-        <header class="selected-wall__intro" data-colour-cycle="1">
-          <p class="t-label">Flagship Work · 01—06</p>
-          <h2 class="t-display t-display-strong" id="selected-work-heading">Where spatial design, systems and visual culture meet.</h2>
-          <a class="selected-wall__link t-label" href="/work" data-astro-prefetch="hover">View all project archives <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-        </header>
-
-        {content.projects.map((project, index) => (
-          <a
-            class={`selected-work-card selected-work-card--${index + 1}`}
-            href={project.href}
-            data-astro-prefetch="hover"
-          >
-            <span class="selected-work-card__chrome t-label">
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <small>{project.pillar}</small>
-            </span>
-            <figure>
-              {project.video ? (
-                <video
-                  src={project.video}
-                  poster={project.coverUrl}
-                  autoplay
-                  muted
-                  loop
-                  playsinline
-                  preload="metadata"
-                  aria-label={`${project.title} video preview`}
-                />
-              ) : project.coverUrl ? (
-                <img
-                  src={project.coverUrl}
-                  alt={project.coverAlt || project.title}
-                  loading="lazy"
-                  fetchpriority="auto"
-                  decoding="async"
-                />
-              ) : (
-                <span class="selected-work-card__placeholder" aria-hidden="true" />
-              )}
-            </figure>
-            <div>
-              <h3 class="t-heading t-heading-strong">{project.title}</h3>
-              <div class="project-impact-tags">
-                <span class="project-role t-label"><b>Role:</b> {project.role}</span>
-                <span class="project-metric t-label"><b>Impact:</b> {project.metric}</span>
-              </div>
-              <p class="t-body">{project.context}</p>
-              <span class="selected-work-card__open t-label">Explore case study <b class="link-destination-arrow" aria-hidden="true">↗</b></span>
-            </div>
-          </a>
-        ))}
-
-        <aside class="selected-wall__intro selected-work-more" data-colour-cycle="1">
-          <h2 class="t-display t-display-strong">Explore deep archives</h2>
-          <div class="archive-doorway-links">
-            <a class="selected-wall__link t-label" href="/photography" data-astro-prefetch="hover">
-              Photography Archive <span class="link-destination-arrow" aria-hidden="true">↗</span>
-            </a>
-            <a class="selected-wall__link t-label" href="/research" data-astro-prefetch="hover">
-              Research & Prototypes <span class="link-destination-arrow" aria-hidden="true">↗</span>
-            </a>
-            <a class="selected-wall__link t-label" href="/films" data-astro-prefetch="hover">
-              Films & Moving Image <span class="link-destination-arrow" aria-hidden="true">↗</span>
-            </a>
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <!-- ==================== RESEARCH EXPERIMENT DOORWAY ==================== -->
-    <section class="home-section career-doorway" aria-labelledby="career-doorway-heading">
-      <div class="career-doorway__copy">
-        <p class="t-label">Interactive Research & Experimental UX</p>
-        <h2 class="t-display t-display-strong" id="career-doorway-heading">
-          Building tools to understand how humans see, remember, and synthesize meaning.
-        </h2>
-        <p class="t-body">
-          Beyond commercial commissions, I lead independent research combining computer vision, AI cognitive theory, and tactile human interfaces. Available for lead experience architecture roles and strategic innovation labs.
-        </p>
-        <div class="career-doorway__actions">
-          <a class="t-label" href="/research">Explore Research Lab <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-          <a class="t-label" href="/experience">View Professional Evidence <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-        </div>
-      </div>
-      <a class="career-doorway__experiment" href="/lab/punctum" aria-label="Explore Punctum experiment">
-        <img src="https://assets.abodid.com/photos/originals/exhibition-photos/rca-outernet-digital-direction-2024-gradshow-abodid-18.jpg" alt="An exhibition photograph used in the Punctum experiment" loading="lazy" />
-        <span class="t-label">Flagship Experiment</span>
-        <strong class="t-heading t-heading-strong">Punctum</strong>
-        <small class="t-body">AI, Barthesian Theory & Visual Attention <span class="link-destination-arrow" aria-hidden="true">↗</span></small>
-      </a>
-    </section>
-
-    <!-- ==================== STUDIO ENGAGEMENTS ==================== -->
-    <section class="home-section home-services" id="engagements" aria-labelledby="services-heading" data-colour-cycle="3">
-      <div class="home-section__heading home-section__heading--split">
-        <div>
-          <p class="t-label">Studio Engagements</p>
-          <h2 class="t-display" id="services-heading">How we can work together.</h2>
-        </div>
-      </div>
-
-      <div class="service-accordions">
-        {content.engagements.map((service, index) => (
-          <details class="service-accordion" name="service-groups" open={index === 0}>
-            <summary>
-              <span class="t-label">{String(index + 1).padStart(2, "0")}</span>
-              <h3 class="t-heading">{service.title}</h3>
-              <b aria-hidden="true">+</b>
-            </summary>
-            <div class="service-list">
-              <article class="service-row">
-                <div>
-                  <h4 class="t-heading t-heading-strong">{service.group}</h4>
-                  <p class="t-body">{service.summary}</p>
-                  <div class="service-detail-grid">
-                    <div>
-                      <strong class="t-label">Scope</strong>
-                      <p class="t-body">{service.scope}</p>
-                    </div>
-                    <div>
-                      <strong class="t-label">Deliverable</strong>
-                      <p class="t-body">{service.deliverable}</p>
-                    </div>
-                  </div>
-                  {service.examples?.length > 0 && (
-                    <div class="service-row__examples t-label">
-                      <span>Representative work:</span>
-                      {service.examples.map((example) => <a href={example.href}>{example.label}</a>)}
-                    </div>
-                  )}
-                </div>
-              </article>
-            </div>
-          </details>
-        ))}
-      </div>
-
-      <div class="services-secondary-note">
-        <p class="t-body">
-          Looking for 1-on-1 Obsidian tutoring, PhD research workflow setups, or specialised workshops?
-        </p>
-        <a class="t-label" href="/obsidian-tutoring">Explore Tutoring & Knowledge Engineering <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-      </div>
-
-      <a class="services-shared-cta" href="#enquiry">
-        <span>
-          <small class="t-label">Have an ambitious project in mind?</small>
-          <strong class="t-heading t-heading-strong">Start a conversation with the studio</strong>
-        </span>
-        <b aria-hidden="true">→</b>
-      </a>
-    </section>
-
-    <!-- ==================== BRANDS ==================== -->
-    {content.brands.length > 0 && (
-      <section class="home-section home-brands" aria-labelledby="brands-heading" data-colour-cycle="0" data-colour-palette="dark">
-        <div class="home-section__heading home-section__heading--split">
-          <div>
-            <p class="t-label">Selected Organisations</p>
-            <h2 class="t-display" id="brands-heading">Clients and institutional partners.</h2>
-          </div>
-          <a class="home-section__text-link t-label" href="/experience">View track record →</a>
-        </div>
-        <div class="brands-collapsible" data-brands-collapsible>
-          <div class="brands-collapsible__viewport" data-brands-viewport>
-            <ul class="brand-pills" data-brands-pills>
-              {[...content.brands].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))).map((brand) => (
-                <li class="brand-pill t-body t-heading-strong">
-                  <span class="brand-pill__mask">
-                    <span class="brand-pill__track">
-                      <span>{brand.name}</span>
-                      <span>{brand.role || "Collaborator"}</span>
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </section>
-    )}
-
-    <!-- ==================== TESTIMONIALS ==================== -->
-    {content.testimonials.length > 0 && (
-      <section class="home-section home-testimonials" aria-labelledby="testimonials-heading" data-colour-cycle="1">
-        <div class="home-section__heading home-section__heading--split">
-          <div>
-            <p class="t-label">Endorsements</p>
-            <h2 class="t-display" id="testimonials-heading">What leaders and partners say.</h2>
-          </div>
-          <div class="testimonials-header__actions">
-            <a class="home-section__text-link t-label" href="/testimonials">Read all endorsements →</a>
-          </div>
-        </div>
-        <div class="testimonial-carousel" data-testimonial-carousel>
-          <div class="testimonial-grid" data-testimonials-grid>
-            {content.testimonials.map((testimonial, index) => {
-              const shortQuote = testimonial.highlightQuote || testimonial.content;
-              const hasMore = shortQuote.trim() !== testimonial.content.trim();
-              return (
-                <blockquote class="testimonial-card" data-testimonial-card data-colour-cycle={index === 0 ? "3" : "0"}>
-                  <div class="testimonial-card__quote-wrap">
-                    <div class="testimonial-card__quote-short">
-                      <p class="testimonial-card__quote t-heading">"{shortQuote}"</p>
-                    </div>
-                    <div class="testimonial-card__quote-full" aria-hidden="true">
-                      <p class="testimonial-card__full-quote t-body">"{testimonial.content}"</p>
-                    </div>
-                  </div>
-                  <footer>
-                    <strong class="t-label">{testimonial.name}</strong>
-                    <span class="t-label">{[testimonial.role, testimonial.company].filter(Boolean).join(" · ")}</span>
-                  </footer>
-                  {hasMore && (
-                    <button
-                      type="button"
-                      class="testimonial-toggle t-label"
-                      data-testimonial-toggle
-                      aria-expanded="false"
-                    >
-                      <span data-toggle-label>Read the full testimonial</span>
-                      <span class="testimonial-toggle__icon" aria-hidden="true">→</span>
-                    </button>
-                  )}
-                </blockquote>
-              );
-            })}
-          </div>
-        </div>
-        <div class="testimonials-footer">
-          <span class="testimonials-drag-hint t-label" aria-hidden="true">Drag or swipe ↔</span>
-        </div>
-      </section>
-    )}
-
-    <!-- ==================== INQUIRY ==================== -->
-    <div class="home-section enquiry-wrapper" data-colour-cycle="0" data-colour-palette="dark">
-      <InlineInquiryForm
-        id="enquiry"
-        heading="Start an Engagement."
-        intro="Open for creative direction, spatial & exhibition architecture, interactive web systems, and strategic advisory."
-        sourceName="home-positioning"
-        variant="pop"
-      />
-    </div>
-
-    <!-- ==================== WRITING ==================== -->
-    <section class="home-section writing-section" aria-labelledby="writing-heading" data-colour-cycle="1">
-      <div class="writing-section__copy">
-        <p class="home-section__eyebrow t-label">Essays & Dispatches</p>
-        <h2 class="t-display" id="writing-heading">Writing on spatial culture, systems & tech.</h2>
-        <p class="t-body">Long-form essays, production memoirs, and deep dives into visual philosophy and creative technology.</p>
-        <a class="next-button next-button--primary t-label" href="/blog">Read all essays</a>
-      </div>
-      <div class="writing-section__newsletter" data-colour-cycle="0">
-        <p class="t-body">Receive new essays, experimental tools, and curated research notes.</p>
-        <Newsletter />
-      </div>
-    </section>
-
-    <!-- ==================== FOOTER ==================== -->
-    <footer class="next-footer" data-colour-cycle="0">
-      <a class="t-label" href="/studio" aria-label="Abodid and Co studio">abodid.com/studio</a>
-      <nav aria-label="Footer navigation">
-        <a class="t-label" href="/work">Work</a>
-        <a class="t-label" href="/research">Research</a>
-        <a class="t-label" href="/services">Services</a>
-        <a class="t-label" href="/about">About</a>
-        <a class="t-label" href="/blog">Blog</a>
-        <a class="t-label" href="/contact">Contact</a>
+      <nav aria-label="Studio navigation">
+        <a class="aco-button" href="/manifesto">Our ethos</a>
+        <a class="aco-button" href="#contact">Let’s talk</a>
       </nav>
-      <p class="t-label">© {new Date().getFullYear()} Abodid Sahoo</p>
+    </header>
+
+    <section class="aco-hero" aria-labelledby="aco-title">
+      <h1 id="aco-title">For the ones with<br />bold ideas and<br /><span>an impeccable taste.</span></h1>
+      <div class="aco-introduction">
+        <p class="aco-statement">Abodid &amp; Co. is an independent creative collective bringing art, technology and research together.</p>
+        <div class="aco-body-copy">
+          <p>We build creative applications and produce bespoke immersive storytelling experiences through films, installations and digital media.</p>
+          <p>We love working with forward-thinking brands, organisations and independent artists who dare to go beyond the expected. People who believe in making something meaningful, culturally rooted, thoughtfully crafted and a little offbeat.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="aco-practice aco-yellow" aria-label="Our practice">
+      <div class="aco-directions">
+        <article>
+          <h2>Creative Production</h2>
+          <p class="aco-service-tagline">Stories that become experiences.</p>
+          <p class="aco-service-intro">Films, photography, installations, exhibitions and immersive digital media.</p>
+          <p>From the first question to the final experience, we bring research, storytelling and creative direction together to make work that stays with people.</p>
+          <a class="aco-button" href="/work">Explore selected work</a>
+        </article>
+        <article>
+          <h2>Bespoke Creative Apps</h2>
+          <p class="aco-service-tagline">Tools for curious minds.</p>
+          <p class="aco-service-intro">Creative applications, interactive prototypes and research tools.</p>
+          <p>We turn complex ideas into intuitive digital products that help people think, create and act. Technology with a purpose, not just for the sake of it.</p>
+          <a class="aco-button" href="/opportunities">Explore Opportunity Tracker</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="aco-ethos" aria-labelledby="aco-ethos-title">
+      <h2 id="aco-ethos-title">It all starts <br />with a why.</h2>
+      <div class="aco-body-copy">
+        <p class="aco-lead">We believe great work begins with asking the right questions.</p>
+        <p>Our approach is medium-agnostic. We don’t start with a format or a formula. We follow the idea, bringing together the right people, perspectives and technologies to give it form.</p>
+        <p>With creative operations between London and India, and an international network of artists, researchers, designers, filmmakers and technologists, we build teams around ideas rather than disciplines.</p>
+        <a class="aco-button" href="/manifesto">Read our ethos</a>
+      </div>
+    </section>
+
+    <section class="aco-founder" aria-labelledby="aco-founder-title">
+      <figure class="aco-founder-portrait aco-yellow">
+        <img src={founderPortrait} alt="Abodid Sahoo, founder of Abodid & Co." width="640" height="800" loading="lazy" decoding="async" />
+        <figcaption><span>Abodid Sahoo</span><span>Founder &amp; Creative Lead</span></figcaption>
+      </figure>
+      <div class="aco-body-copy">
+        <h2 id="aco-founder-title">About the Founder.</h2>
+        <p class="aco-lead">Abodid &amp; Co. is founded and led by <strong>Abodid Sahoo</strong>, a multidisciplinary artist, filmmaker and creative technologist.</p>
+        <p>An alumnus of the Royal College of Art, London, and the National Institute of Design, Ahmedabad, his practice moves between visual storytelling, emerging technologies and research-led experimentation.</p>
+        <p>Through the collective, he brings independent creative minds together to build meaningful work across disciplines, cultures and borders.</p>
+        <a class="aco-button" href="/about">Meet Abodid</a>
+      </div>
+    </section>
+
+    <section id="contact" class="aco-contact-panel aco-yellow" aria-labelledby="aco-contact-title">
+      <div>
+        <p class="aco-contact-intro">Have a big idea, or something that doesn’t quite fit into a brief?</p>
+        <h2 id="aco-contact-title">Let’s make it happen.</h2>
+      </div>
+      <address aria-label="Studio contact details">
+        <a class="aco-contact-link" href="mailto:studio@abodid.com"><span>Email</span><strong>studio@abodid.com</strong></a>
+        <a class="aco-contact-link" href="tel:+447522258768"><span>London</span><strong>+44 7522 258768</strong></a>
+        <a class="aco-contact-link" href="tel:+919439094370"><span>India</span><strong>+91 9439094370</strong></a>
+      </address>
+    </section>
+
+    <footer class="aco-footer">
+      <div><a class="aco-brand" href="/studio">Abodid <span>&amp; Co.</span></a><p>Art × Technology × Research</p></div>
+      <p class="aco-footer-location">Based in London, working globally.</p>
     </footer>
   </div>
 </BaseLayout>
 
-<script is:inline>
-  (() => {
-    const initialiseStudio = () => {
-      const cyclePalettes = {
-        light: [
-          "var(--pop-lime)",
-          "var(--pop-pink)",
-          "var(--pop-orange)",
-          "var(--pop-cyan)",
-        ],
-        dark: ["#5524c7", "#1d4fff", "#a30054", "#006d70"],
-      };
-
-      document.querySelectorAll("[data-colour-cycle]").forEach((panel) => {
-        if (!(panel instanceof HTMLElement) || panel.dataset.colourReady === "true") return;
-        panel.dataset.colourReady = "true";
-
-        panel.addEventListener("click", (event) => {
-          const protectedContent = event.target instanceof Element
-            ? event.target.closest("a, button, input, textarea, select, label, form, details, summary, video, img, figure, p, h1, h2, h3, h4, h5, h6, small, strong, span, li")
-            : null;
-          if (protectedContent || !window.getSelection()?.isCollapsed) return;
-          event.stopPropagation();
-          const palette = panel.dataset.colourPalette === "dark"
-            ? cyclePalettes.dark
-            : cyclePalettes.light;
-          const currentIndex = Number(panel.dataset.colourCycle) || 0;
-          const nextIndex = (currentIndex + 1) % palette.length;
-          panel.dataset.colourCycle = String(nextIndex);
-          panel.style.backgroundColor = palette[nextIndex];
-          panel.style.setProperty("--section-cycle-colour", palette[nextIndex]);
-        });
-      });
-
-      const hueControl = document.querySelector("[data-studio-hue]");
-      if (!(hueControl instanceof HTMLInputElement) || hueControl.dataset.ready === "true") return;
-      hueControl.dataset.ready = "true";
-
-      const hslToRgb = (hue, saturation = 1, lightness = 0.5) => {
-        const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
-        const section = hue / 60;
-        const secondary = chroma * (1 - Math.abs((section % 2) - 1));
-        let channels = [0, 0, 0];
-        if (section < 1) channels = [chroma, secondary, 0];
-        else if (section < 2) channels = [secondary, chroma, 0];
-        else if (section < 3) channels = [0, chroma, secondary];
-        else if (section < 4) channels = [0, secondary, chroma];
-        else if (section < 5) channels = [secondary, 0, chroma];
-        else channels = [chroma, 0, secondary];
-        const match = lightness - chroma / 2;
-        return channels.map((channel) => Math.round((channel + match) * 255));
-      };
-
-      const luminance = (channels) => channels
-        .map((channel) => channel / 255)
-        .map((channel) => channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
-        .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
-
-      const contrast = (first, second) => {
-        const lighter = Math.max(first, second);
-        const darker = Math.min(first, second);
-        return (lighter + 0.05) / (darker + 0.05);
-      };
-
-      const inkLuminance = luminance([21, 19, 15]);
-      const creamLuminance = luminance([255, 248, 232]);
-      const accessibleCanvas = (hue) => {
-        let lightness = 0.5;
-        let result = null;
-
-        for (let index = 0; index < 60; index += 1) {
-          const canvasLuminance = luminance(hslToRgb(hue, 1, lightness));
-          const inkContrast = contrast(canvasLuminance, inkLuminance);
-          const creamContrast = contrast(canvasLuminance, creamLuminance);
-          result = { lightness, inkContrast, creamContrast };
-          if (Math.max(inkContrast, creamContrast) >= 4.5) break;
-          lightness = inkContrast >= creamContrast
-            ? Math.min(0.58, lightness + 0.002)
-            : Math.max(0.42, lightness - 0.002);
-        }
-
-        return result;
-      };
-
-      const applyHue = (nextHue) => {
-        const hue = Math.max(0, Math.min(360, Number(nextHue) || 0));
-        const canvas = accessibleCanvas(hue);
-        const foreground = canvas.inkContrast >= canvas.creamContrast ? "#15130f" : "#fff8e8";
-        const lightness = Math.round(canvas.lightness * 1000) / 10;
-        const canvasColour = `hsl(${hue} 100% ${lightness}%)`;
-        document.documentElement.style.setProperty("--studio-canvas", canvasColour);
-        document.documentElement.style.setProperty("--studio-canvas-ink", foreground);
-        document.body.style.setProperty("--studio-canvas", canvasColour);
-        document.body.style.setProperty("--studio-canvas-ink", foreground);
-        hueControl.value = String(hue);
-      };
-
-      const randomHue = Math.floor(Math.random() * 361);
-      applyHue(randomHue);
-      hueControl.addEventListener("input", () => applyHue(hueControl.value));
-
-      const initialiseBrandPills = () => {
-        const container = document.querySelector("[data-brands-collapsible]");
-        const pills = Array.from(document.querySelectorAll(".brand-pill"));
-        if (!(container instanceof HTMLElement) || !pills.length) return;
-
-        if (container.dataset.coloursReady !== "true") {
-          container.dataset.coloursReady = "true";
-          const colourDeck = [
-            ["var(--pop-yellow)", "var(--pop-ink)"],
-            ["var(--pop-pink)", "var(--pop-ink)"],
-            ["var(--pop-lime)", "var(--pop-ink)"],
-            ["var(--pop-cyan)", "var(--pop-ink)"],
-            ["var(--pop-orange)", "var(--pop-ink)"],
-            ["var(--pop-cream)", "var(--pop-ink)"],
-            ["var(--pop-blue)", "var(--pop-cream)"],
-          ];
-
-          const shuffledColours = [];
-          while (shuffledColours.length < pills.length) {
-            const nextDeck = [...colourDeck];
-            for (let index = nextDeck.length - 1; index > 0; index -= 1) {
-              const swapIndex = Math.floor(Math.random() * (index + 1));
-              [nextDeck[index], nextDeck[swapIndex]] = [nextDeck[swapIndex], nextDeck[index]];
-            }
-            if (
-              shuffledColours.length > 0 &&
-              nextDeck.length > 1 &&
-              shuffledColours.at(-1)?.[0] === nextDeck[0]?.[0]
-            ) {
-              [nextDeck[0], nextDeck[1]] = [nextDeck[1], nextDeck[0]];
-            }
-            shuffledColours.push(...nextDeck);
-          }
-
-          pills.forEach((pill, index) => {
-            if (!(pill instanceof HTMLElement)) return;
-            const [background, foreground] = shuffledColours[index];
-            pill.style.backgroundColor = background;
-            pill.style.color = foreground;
-          });
-        }
-      };
-
-      const initialiseTestimonials = () => {
-        const carousel = document.querySelector("[data-testimonial-carousel]");
-        const toggleButtons = document.querySelectorAll("[data-testimonial-toggle]");
-
-        if (carousel instanceof HTMLElement && carousel.dataset.dragReady !== "true") {
-          carousel.dataset.dragReady = "true";
-          let isDown = false;
-          let startX = 0;
-          let scrollLeft = 0;
-          let hasDragged = false;
-          let velocity = 0;
-          let lastX = 0;
-          let lastTime = 0;
-
-          carousel.addEventListener("mousedown", (e) => {
-            isDown = true;
-            hasDragged = false;
-            startX = e.pageX - carousel.offsetLeft;
-            scrollLeft = carousel.scrollLeft;
-            lastX = e.pageX;
-            lastTime = performance.now();
-            velocity = 0;
-          });
-
-          window.addEventListener("mousemove", (e) => {
-            if (!isDown) return;
-            const x = e.pageX - carousel.offsetLeft;
-            const walk = x - startX;
-            if (Math.abs(walk) > 4) {
-              hasDragged = true;
-              carousel.classList.add("is-dragging");
-            }
-            carousel.scrollLeft = scrollLeft - walk;
-
-            const now = performance.now();
-            const dt = now - lastTime;
-            if (dt > 0) {
-              velocity = (e.pageX - lastX) / dt;
-            }
-            lastX = e.pageX;
-            lastTime = now;
-          });
-
-          const endDrag = () => {
-            if (!isDown) return;
-            isDown = false;
-            carousel.classList.remove("is-dragging");
-
-            if (Math.abs(velocity) > 0.25) {
-              carousel.scrollBy({
-                left: -velocity * 240,
-                behavior: "smooth",
-              });
-            }
-          };
-
-          window.addEventListener("mouseup", endDrag);
-          carousel.addEventListener("mouseleave", () => {
-            if (isDown) endDrag();
-          });
-
-          carousel.addEventListener(
-            "click",
-            (e) => {
-              if (hasDragged) {
-                e.preventDefault();
-                e.stopPropagation();
-                hasDragged = false;
-              }
-            },
-            true
-          );
-        }
-
-        if (carousel instanceof HTMLElement) {
-          const updateCarouselScrollMask = () => {
-            const isAtStart = carousel.scrollLeft <= 6;
-            const isAtEnd = carousel.scrollWidth - carousel.scrollLeft - carousel.clientWidth <= 6;
-            if (isAtStart) {
-              carousel.dataset.scrollEdge = "start";
-            } else if (isAtEnd) {
-              carousel.dataset.scrollEdge = "end";
-            } else {
-              carousel.dataset.scrollEdge = "middle";
-            }
-          };
-
-          carousel.addEventListener("scroll", updateCarouselScrollMask, { passive: true });
-          updateCarouselScrollMask();
-        }
-
-        const fullQuotes = document.querySelectorAll(".testimonial-card__quote-full");
-        fullQuotes.forEach((quoteEl) => {
-          if (!(quoteEl instanceof HTMLElement)) return;
-          const updateScrollMask = () => {
-            const hasOverflow = quoteEl.scrollHeight > quoteEl.clientHeight + 4;
-            const isAtTop = quoteEl.scrollTop <= 4;
-            const isAtBottom = quoteEl.scrollHeight - quoteEl.scrollTop - quoteEl.clientHeight <= 4;
-            quoteEl.dataset.hasOverflow = String(hasOverflow);
-            quoteEl.dataset.atTop = String(isAtTop);
-            quoteEl.dataset.atBottom = String(isAtBottom);
-          };
-
-          quoteEl.addEventListener("scroll", updateScrollMask, { passive: true });
-        });
-
-        toggleButtons.forEach((button) => {
-          if (!(button instanceof HTMLButtonElement) || button.dataset.ready === "true") return;
-          button.dataset.ready = "true";
-
-          button.addEventListener("click", () => {
-            const card = button.closest("[data-testimonial-card]");
-            const toggleLabel = button.querySelector("[data-toggle-label]");
-            const fullQuoteWrap = card?.querySelector(".testimonial-card__quote-full");
-            if (!card) return;
-
-            const isExpanded = button.getAttribute("aria-expanded") === "true";
-            const targetExpanded = !isExpanded;
-
-            button.setAttribute("aria-expanded", String(targetExpanded));
-            if (toggleLabel) {
-              toggleLabel.textContent = targetExpanded ? "Show less" : "Read the full testimonial";
-            }
-            if (fullQuoteWrap) {
-              fullQuoteWrap.setAttribute("aria-hidden", String(!targetExpanded));
-            }
-
-            if (targetExpanded) {
-              card.classList.add("is-expanded");
-              if (fullQuoteWrap instanceof HTMLElement) {
-                fullQuoteWrap.scrollTop = 0;
-                requestAnimationFrame(() => {
-                  const hasOverflow = fullQuoteWrap.scrollHeight > fullQuoteWrap.clientHeight + 4;
-                  fullQuoteWrap.dataset.hasOverflow = String(hasOverflow);
-                  fullQuoteWrap.dataset.atTop = "true";
-                  fullQuoteWrap.dataset.atBottom = String(!hasOverflow);
-                });
-              }
-            } else {
-              card.classList.remove("is-expanded");
-            }
-          });
-        });
-      };
-
-      const initialisePhotoSequence = () => {
-        const sequence = document.querySelector(".studio-photo-sequence");
-        if (!(sequence instanceof HTMLElement) || sequence.dataset.seqReady === "true") return;
-        sequence.dataset.seqReady = "true";
-
-        const images = Array.from(sequence.querySelectorAll("img"));
-        if (images.length <= 1) return;
-
-        let currentIndex = 0;
-        images.forEach((img, index) => {
-          img.style.opacity = index === 0 ? "1" : "0";
-          img.style.zIndex = index === 0 ? "2" : "1";
-          img.style.transition = "opacity 900ms cubic-bezier(0.4, 0, 0.2, 1), transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)";
-          img.style.transform = index === 0 ? "scale(1)" : "scale(1.025)";
-        });
-
-        setInterval(() => {
-          const prevIndex = currentIndex;
-          currentIndex = (currentIndex + 1) % images.length;
-
-          const prevImg = images[prevIndex];
-          const nextImg = images[currentIndex];
-
-          nextImg.style.zIndex = "2";
-          prevImg.style.zIndex = "1";
-          nextImg.style.opacity = "1";
-          nextImg.style.transform = "scale(1)";
-
-          setTimeout(() => {
-            if (currentIndex !== prevIndex) {
-              prevImg.style.opacity = "0";
-              prevImg.style.transform = "scale(1.025)";
-            }
-          }, 900);
-        }, 4200);
-      };
-
-      initialiseBrandPills();
-      initialiseTestimonials();
-      initialisePhotoSequence();
-    };
-
-    initialiseStudio();
-    document.addEventListener("astro:page-load", initialiseStudio);
-  })();
-</script>
-
-<!-- Only new styles for positioning-specific elements (pillars, project-impact-tags, service-detail-grid, archive-doorway-links, services-secondary-note).
-     Everything else inherits from the home-next-page styles already loaded via bodyClass="home-next-page". -->
 <style is:global>
-  .selected-work-card figure video {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    transition: transform 220ms ease;
+  html:has(body.aco-page),body.aco-page { background:#2949d4; }
+  body.aco-page { --aco-blue:#2949d4;--aco-yellow:#ffe457;--aco-ink:#151515;--aco-white:#fff;--page-bg:var(--aco-blue);color:var(--aco-white);color-scheme:light; }
+  .aco-page #main-content { padding:0; }
+</style>
+<style>
+  .aco-shell { max-inline-size:1280px;margin-inline:auto;padding-inline:clamp(1.25rem,4vw,3.5rem);font-family:"Satoshi-Variable","Satoshi-Regular",sans-serif;color:var(--aco-white); }
+  .aco-shell :where(h1,h2,h3,p,figure) { margin:0;color:inherit; }
+  .aco-shell a { color:inherit;text-decoration:none; }
+  .aco-shell a:focus-visible { outline:2px solid currentColor;outline-offset:5px;border-radius:2px; }
+  .aco-yellow { background:var(--aco-yellow);color:var(--aco-ink);border-radius:20px; }
+  .aco-header { display:flex;align-items:center;justify-content:space-between;gap:32px;min-block-size:116px;padding-block:12px;box-sizing:border-box;border-block-end:1px solid #ffffff70; }
+  .aco-identity { min-inline-size:0; }
+  .aco-identity p { max-inline-size:48ch;font-size:13px;line-height:1.45; }
+  .aco-brand { display:inline-flex;align-items:center;gap:5px;font-size:24px;font-weight:750;letter-spacing:-.055em;white-space:nowrap;min-block-size:44px; }
+  .aco-brand span { font-weight:450; }
+  .aco-header nav { display:flex;flex-wrap:wrap;gap:10px;flex:none; }
+  .aco-button { display:inline-flex;align-items:center;justify-content:center;min-block-size:46px;padding:11px 18px;box-sizing:border-box;max-inline-size:100%;border:1px solid currentColor;border-radius:8px;color:inherit;background:transparent;font-size:14px;font-weight:650;line-height:1.4;text-align:center; }
+  .aco-shell .aco-button:is(:hover,:focus-visible),.aco-contact-link:is(:hover,:focus-visible) { background:var(--aco-white);color:var(--aco-ink);text-decoration:none; }
+  .aco-shell .aco-button:focus-visible { outline-color:var(--aco-white); }
+  .aco-yellow .aco-button:focus-visible { outline-color:var(--aco-ink); }
+  .aco-hero { padding-block:48px 56px; }
+  .aco-hero h1 { margin-block:0 40px;font-size:clamp(2.5rem,1rem + 5.7vw,6rem);line-height:1.02;letter-spacing:-.065em;font-weight:650; }
+  .aco-hero h1 > span { font-weight:450; }
+  .aco-introduction { display:grid;grid-template-columns:1fr 1fr;gap:64px; }
+  .aco-introduction .aco-statement { max-inline-size:27ch;font-size:clamp(1.4rem,1rem + 1vw,1.9rem);line-height:1.3;letter-spacing:-.03em;font-weight:550; }
+  .aco-body-copy p,.aco-directions p { font-size:17px;line-height:1.6;max-inline-size:54ch; }
+  .aco-body-copy p + p { margin-block-start:16px; }
+  .aco-practice { padding:32px; }
+  .aco-directions { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px; }
+  .aco-directions article { display:flex;flex-direction:column;align-items:flex-start; }
+  .aco-directions h2 { font-size:clamp(1.6rem,1.2rem + .9vw,2rem);line-height:1.15;letter-spacing:-.035em;font-weight:650;margin-block-end:10px; }
+  .aco-directions .aco-service-tagline { font-size:18px;font-weight:550;margin-block-end:20px; }
+  .aco-directions .aco-service-intro { font-weight:650;margin-block-end:12px; }
+  .aco-directions article > p:last-of-type { margin-block-end:24px; }
+  .aco-directions .aco-button { margin-block-start:auto; }
+  .aco-ethos { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;padding-block:64px; }
+  .aco-ethos h2 { font-size:clamp(2.25rem,1rem + 3vw,3.8rem);font-weight:550;letter-spacing:-.05em;line-height:1.05; }
+  .aco-body-copy .aco-lead { font-size:21px;line-height:1.4;letter-spacing:-.015em; }
+  .aco-body-copy > .aco-button { margin-block-start:24px; }
+  .aco-founder { display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr);align-items:center;gap:clamp(32px,6vw,96px);padding-block:48px 64px;border-block-start:1px solid #ffffff70; }
+  .aco-founder-portrait { max-inline-size:390px;padding:8px;overflow:hidden; }
+  .aco-founder-portrait img { display:block;inline-size:100%;block-size:auto;aspect-ratio:4/5;object-fit:cover;object-position:center;border-radius:13px; }
+  .aco-founder-portrait figcaption { display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;padding:12px 8px 6px;font-size:11px;line-height:1.5;color:var(--aco-ink); }
+  .aco-founder h2 { margin-block-end:24px;font-size:clamp(1.8rem,1rem + 1.8vw,2.8rem);font-weight:600;letter-spacing:-.04em;line-height:1.1; }
+  .aco-contact-panel { display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center;gap:48px;padding:32px;scroll-margin-block:24px; }
+  .aco-contact-intro { max-inline-size:32ch;font-size:clamp(1.25rem,1rem + .7vw,1.65rem);line-height:1.35;letter-spacing:-.02em;margin-block-end:20px !important; }
+  .aco-contact-panel h2 { font-size:clamp(2rem,1rem + 2.3vw,3rem);line-height:1.05;letter-spacing:-.045em;font-weight:650; }
+  .aco-contact-panel address { display:grid;gap:8px;font-style:normal;min-inline-size:0; }
+  .aco-contact-link { display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:16px;min-block-size:52px;padding:10px 14px;border:1px solid var(--aco-ink);border-radius:8px;box-sizing:border-box; }
+  .aco-contact-link > span { font-size:12px;line-height:1.4; }.aco-contact-link > strong { font-size:16px;font-weight:600;line-height:1.4;white-space:nowrap; }
+  .aco-footer { display:flex;align-items:center;justify-content:space-between;gap:32px;padding-block:32px; }
+  .aco-footer p { font-size:13px;line-height:1.5; }.aco-footer-location { white-space:nowrap; }
+  @media(prefers-reduced-motion:no-preference) { .aco-button,.aco-contact-link { transition:background-color 150ms ease,color 150ms ease; } }
+  @media(max-width:900px) { .aco-introduction,.aco-directions,.aco-ethos { gap:32px; }.aco-founder { gap:32px; }.aco-contact-panel { grid-template-columns:minmax(0,1fr);gap:28px; }.aco-contact-panel address { max-inline-size:480px;inline-size:100%; } }
+  @media(max-width:720px) {
+    .aco-header { flex-direction:column;align-items:flex-start;gap:16px;padding-block:16px; }.aco-brand { font-size:22px; }.aco-identity p { font-size:12px;max-inline-size:43ch; }.aco-header nav { gap:10px; }.aco-header .aco-button { font-size:13px;padding-inline:16px; }
+    .aco-hero { padding-block:36px 40px; }.aco-hero h1 { margin-block-end:28px; }.aco-introduction,.aco-directions,.aco-ethos,.aco-founder { grid-template-columns:minmax(0,1fr);gap:28px; }
+    .aco-body-copy p,.aco-directions p { font-size:16px; }.aco-practice,.aco-contact-panel { padding:24px; }.aco-directions { gap:36px; }.aco-directions article + article { padding-block-start:28px;border-block-start:1px solid #15151566; }
+    .aco-ethos { padding-block:40px; }.aco-ethos h2 br { display:none; }.aco-founder { padding-block:32px 40px; }.aco-founder-portrait { inline-size:min(100%,350px);box-sizing:border-box;justify-self:center; }.aco-founder h2 { margin-block-end:20px; }
+    .aco-footer { align-items:flex-start;flex-direction:column;gap:16px; }.aco-body-copy .aco-lead { font-size:20px; }
   }
-
-  .selected-work-card:hover figure video { transform: scale(1.025); }
-
-  /* ==================== PILLARS SECTION ==================== */
-  .home-pillars {
-    background: var(--pop-cyan);
-    color: var(--pop-ink);
-  }
-
-  .home-pillars .home-section__heading :is(p, h2) {
-    color: var(--pop-ink);
-  }
-
-  .home-pillars .home-section__intro {
-    color: #0a4446;
-  }
-
-  .pillars-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .pillar-card {
-    padding: clamp(1.4rem, 2.5vw, 2.2rem);
-    border: 1px solid var(--pop-border);
-    border-radius: clamp(18px, 2vw, 30px);
-    background: var(--pop-cream);
-    color: var(--pop-ink);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    box-shadow: 0 3px 0 rgba(21, 19, 15, 0.13);
-    transition: transform 200ms ease, box-shadow 200ms ease;
-  }
-
-  .pillar-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.12);
-  }
-
-  .pillar-card:nth-child(1) { background: var(--pop-yellow); }
-  .pillar-card:nth-child(2) { background: var(--pop-lime); }
-  .pillar-card:nth-child(3) { background: var(--pop-pink); }
-
-  .pillar-card__header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .pillar-card__number {
-    display: inline-block;
-    width: fit-content;
-    padding: 0.35rem 0.55rem;
-    border: 1px solid currentColor;
-    border-radius: 999px;
-    font: 720 0.65rem/1 var(--font-ui, sans-serif);
-    letter-spacing: 0.06em;
-    color: var(--pop-ink);
-  }
-
-  .pillar-card__title {
-    margin: 0;
-    font: 680 clamp(1.35rem, 2.2vw, 2rem)/1.06 var(--font-display, sans-serif);
-    letter-spacing: -0.04em;
-    color: var(--pop-ink);
-  }
-
-  .pillar-card__description {
-    margin: 0;
-    flex: 1;
-    color: rgba(21, 19, 15, 0.72);
-    font-size: clamp(0.92rem, 1.1vw, 1.05rem);
-    line-height: 1.5;
-  }
-
-  .pillar-card__tags {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .pillar-card__tags li {
-    padding: 0.38rem 0.6rem;
-    border: 1px solid currentColor;
-    border-radius: 999px;
-    font: 680 0.65rem/1 var(--font-ui, sans-serif);
-    color: var(--pop-ink);
-  }
-
-  /* ==================== PROJECT IMPACT METADATA ==================== */
-  .project-impact-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin: 0.3rem 0 0.2rem;
-  }
-
-  .project-role,
-  .project-metric {
-    padding: 0.32rem 0.6rem;
-    border: 1px solid rgba(21, 19, 15, 0.18);
-    border-radius: 999px;
-    font: 680 0.62rem/1 var(--font-ui, sans-serif);
-    letter-spacing: 0.02em;
-    color: rgba(21, 19, 15, 0.78);
-    background: transparent;
-  }
-
-  .project-role b,
-  .project-metric b {
-    font-weight: 750;
-    color: var(--pop-ink);
-  }
-
-  .project-metric {
-    border-color: var(--pop-purple);
-    color: var(--pop-purple);
-  }
-
-  /* ==================== SERVICE DETAIL GRID (inside accordion) ==================== */
-  .service-detail-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
-    margin: 1.2rem 0;
-    padding: clamp(1rem, 2vw, 1.6rem);
-    border: 1px solid rgba(21, 19, 15, 0.15);
-    border-radius: clamp(12px, 1.4vw, 18px);
-    background: rgba(21, 19, 15, 0.03);
-  }
-
-  .service-detail-grid strong {
-    display: block;
-    margin-bottom: 0.3rem;
-    color: var(--pop-ink);
-    font: 720 0.68rem/1.2 var(--font-ui, sans-serif);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.55;
-  }
-
-  .service-detail-grid p {
-    margin: 0;
-    font-size: 0.92rem;
-    line-height: 1.5;
-    color: #3f3931;
-  }
-
-  /* ==================== SERVICES SECONDARY NOTE ==================== */
-  .services-secondary-note {
-    margin: 1.2rem 0 0;
-    padding: clamp(1rem, 2vw, 1.6rem);
-    border: 1px solid var(--pop-border);
-    border-radius: clamp(14px, 1.6vw, 22px);
-    background: var(--pop-lime);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    color: var(--pop-ink);
-  }
-
-  .services-secondary-note p {
-    margin: 0;
-    font-size: 0.95rem;
-    color: var(--pop-ink);
-  }
-
-  .services-secondary-note a {
-    color: var(--pop-ink);
-    font: 700 0.82rem/1.2 var(--font-ui, sans-serif);
-    text-decoration: underline;
-    text-underline-offset: 0.22em;
-  }
-
-  /* ==================== ARCHIVE DOORWAY LINKS ==================== */
-  .archive-doorway-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem;
-    margin-top: 0.5rem;
-  }
-
-  .archive-doorway-links .selected-wall__link {
-    flex: 0 0 auto;
-  }
-
-  /* ==================== RESPONSIVE OVERRIDES ==================== */
-  @media (max-width: 980px) {
-    .pillars-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 760px) {
-    .pillars-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .service-detail-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .services-secondary-note {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
+  @media(max-width:380px) { .aco-practice,.aco-contact-panel { padding:20px; }.aco-contact-link { grid-template-columns:42px minmax(0,1fr);gap:8px;padding-inline:10px; }.aco-contact-link > strong { font-size:14px; }.aco-button { padding-inline:14px; } }
 </style>

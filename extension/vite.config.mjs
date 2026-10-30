@@ -49,6 +49,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           popup: path.resolve(extensionRoot, 'popup.html'),
+          welcome: path.resolve(extensionRoot, 'welcome.html'),
           background: path.resolve(extensionRoot, 'src/background.ts'),
           ...(target === 'safari'
             ? { 'safari-callback': path.resolve(extensionRoot, 'src/safari-callback.ts') }

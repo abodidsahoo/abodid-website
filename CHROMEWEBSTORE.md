@@ -37,7 +37,9 @@ Save open calls, residencies, fellowships, grants and jobs. AI summarizes key de
 ```text
 Save open calls, residencies, fellowships, grants and jobs to your private opportunity tracker.
 
-Save the page you are reading from the extension popup, or use Save page and Save link in Chrome's right-click menu. The tracker identifies the title, organisation, category, requirements, important dates and next action. Review extracted details before you rely on them.
+A welcome tab opens after installation. Select Get started to sign in with Google, then save your first opportunity.
+
+Save the page you are reading from the extension popup, or use Save page and Save link in Chrome's right-click menu. If you are signed out, a right-click save opens Google sign-in and saves the selected opportunity after you finish. The tracker identifies the title, organisation, category, requirements, important dates and next action. Review extracted details before you rely on them.
 
 Once your capture is accepted, you can close the popup or tab while it is processed. Reopen the popup to check progress and see a saved, already-saved or failed result. Open your dashboard to review and organise your saved opportunities. Duplicate pages do not replace your existing edits.
 
@@ -97,7 +99,7 @@ The build/package validator requires exactly these permissions and hosts; no acc
 |---|---|
 | `activeTab` | Temporarily access the tab the user invokes from the toolbar or context menu, so the extension can save that selected opportunity without monitoring ordinary browsing. |
 | `scripting` | Run packaged extraction and status-display functions in the explicitly selected tab to read the opportunity's visible text and structured details, and show capture feedback. |
-| `storage` | Preserve the sign-in/PKCE session, a minimal account display cache, and the latest account-bound capture receipt locally so reopening the popup restores progress. No advertising profiles or browsing-history sync. |
+| `storage` | Preserve the sign-in/PKCE session, a minimal account display cache, and the latest account-bound capture receipt locally so reopening the popup restores progress. No advertising profiles or browsing-history sync. Also remember that the first-install welcome tab has been shown. |
 | `contextMenus` | Provide Save page and Save link commands that deliberately send the selected opportunity to the user's tracker. |
 | `identity` | Complete the user-initiated Google/Supabase sign-in flow through Chrome's identity redirect. Only basic identity scopes are requested; no Gmail, Drive, Calendar or Contacts access. |
 | `notifications` | Report acceptance, successful save, duplicate or failure for a user-triggered capture when the popup is closed. No marketing notifications. |
@@ -172,7 +174,7 @@ Use [reviewer test steps](docs/releases/save-opportunity-release.md#reviewer-ins
 
 | Version | Date | Changes | Status |
 |---|---|---|---|
-| 1.0.0 | 2026-10-30 | First Store candidate; guarded production build, exact OAuth callbacks, dedicated extraction key, five monthly AI attempts, 100 saved items, consent/onboarding, confirmed admin allowance updates and refreshed package. | Website deployed; ZIP local; not uploaded |
+| 1.0.0 | 2026-10-30 | First Store candidate; guarded production build, exact OAuth callbacks, dedicated extraction key, five monthly AI attempts, 100 saved items, consent/onboarding, confirmed admin allowance updates, first-install welcome, right-click sign-in-and-save, and refreshed package. | Website deployed; ZIP local; not uploaded |
 | 2.1.13 and earlier | Before first Store submission | Historical unpacked development versions, not published releases. See archived notes. | Development only |
 
 Once 1.0.0 is the first uploaded Store package, release 1.0.1 through **the same item's Package → Upload new package**, preserve the Store public key/ID and OAuth redirect, and submit that update for review. Never create a second listing for an update. If you upload an earlier 2.x ZIP first, you cannot subsequently downgrade that item's version to 1.0.0.
@@ -190,3 +192,30 @@ Once 1.0.0 is the first uploaded Store package, release 1.0.1 through **the same
 Admin follow-up (30 October 2026): usage analytics now distinguish admitted monthly and lifetime processing attempts; allowance adjustments require a review/confirmation popup and a database stale-value check. Existing usage is preserved. This changes the website admin interface only; the extension runtime is unchanged; the final package is regenerated during release preparation.
 
 Final release adjustment (30 October 2026): +5 is the only admin allowance shortcut; exact numeric entry remains. Both require confirmation with the reviewed current value, preserve usage, and record the verified administrator. No extension permissions or host permissions were added. Store submission remains manual after identity, OAuth, screenshots, security review and reviewer-access checks.
+
+## First-install welcome — local release candidate
+
+- On `runtime.onInstalled` with reason `install`, open the packaged `welcome.html` tab. A boolean `opportunity-install-welcome-shown-v1` in extension-local storage prevents reopening it for the same installation. Updates, Chrome updates and browser startup do not open it. If tab creation fails, the marker is removed so initialization can be retried.
+- The welcome copy is “From open tabs to open doors.” Get started uses the existing internal `AUTH_LOGIN` message and Google PKCE flow. It signs in to the extension session; no website-to-extension token transfer or additional OAuth scope is added. Already signed-in users see first-save instructions immediately. Cancellation, pending sign-in and temporary session-check failures keep a retry path.
+- The first-save instructions explain the toolbar and right-click actions. Open your radar uses the existing `OPEN_DASHBOARD` handler. The website may require its own sign-in because website and extension sessions remain separate.
+- The screen, scripts, styles and icon are packaged locally. There are no welcome-page analytics, new third-party services, marketing enrollment, automatic captures or AI allowance use. The marker contains no identity or browsing data; existing authentication/session disclosures remain applicable.
+- Permissions and host permissions are unchanged. Creating the local welcome tab does not require adding `tabs`, `<all_urls>` or `externally_connectable`.
+- New files in the audited package include `welcome.html`, `welcome.js` and its local stylesheet asset. The packager explicitly requires both welcome entry files and continues rejecting secrets, source maps, remote scripts and unexpected files.
+- Welcome layout and state transitions are checked locally with a mock extension runtime; actual fresh-install Google sign-in remains part of the manual Store-identity/reviewer gate. No real account is signed in or opportunity processed during this check. Existing requested genuine Store screenshots remain outstanding; capture the actual installed welcome page if using it in the listing.
+- This is still the unpublished 1.0.0 candidate. No Store upload, commit or deployment is performed by this addition.
+
+Verification for this local addition: all 235 opportunity tests pass (31 files), strict TypeScript checking passes for the welcome/install/background modules, and the Chrome build/package audit passes. Desktop and narrow mobile welcome states were inspected using a temporary mock runtime; the mock fixture is absent from the release ZIP. The bundled welcome icon is verified byte-for-byte against the existing extension icon. Actual fresh-install OAuth remains a manual check.
+
+Popup refinement (30 October 2026): in the queued/processing state, the top-left status badge is hidden so that "Processing" is not redundantly displayed above the centered "Processing opportunity" heading in the receipt card.
+
+## Right-click sign-in-and-save — 30 October 2026
+
+- Chrome signed-out (including anonymous-session) page/link saves now open the existing Google PKCE flow instead of immediately showing a sign-in error. After a non-anonymous extension session is established, the original clicked URL and page title resume through the existing capture receipt/job flow. A stale cached identity is replaced with the newly authenticated account before the capture starts.
+- No capture request, page-text extraction or AI attempt is started before sign-in succeeds. Cancellation, missing persisted sessions and temporary network failures remain retryable errors without a capture. Safari's existing separate callback flow remains pending and asks the user to repeat the save after sign-in; this Chrome change does not claim automatic Safari resumption.
+- During a sign-in wait, the chosen URL/title exist only in the active right-click operation; no new durable pending-save record is introduced. The OAuth API keeps the Chrome worker alive under the existing Chrome 120 minimum. Unexpected browser/worker termination requires repeating the user action; no automatic save is replayed at startup.
+- Resumed page saves send only the original URL/title to the existing authenticated backend, which retrieves the source. They do not read a page that may have replaced the original tab during sign-in. Already-signed-in page saves keep their existing gesture-triggered page extraction.
+- Permissions, host permissions, OAuth scopes, storage disclosures, retention, assets and manifest version are unchanged. This remains unpublished 1.0.0. The working/signed-in toast messages changed; existing genuine Store screenshot requirements still apply.
+- Automated verification: all 242 opportunity tests pass, including signed-out page/link resumption, stale cached account identity, cancellation, pending Safari sign-in, temporary auth failures and an OAuth result without a persisted session. The Chrome package is rebuilt locally; no Store upload/publication is performed.
+- [ ] Manual installed-Chrome check: signed out → right-click page and link → Google sign-in → one saved opportunity; repeat with cancellation and confirm no capture. This remains part of the existing real-OAuth/Store-identity release gate.
+
+Reference: https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle (Chrome 116+ interactive `identity.launchWebAuthFlow` lifetime support).

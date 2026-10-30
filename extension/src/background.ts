@@ -1,3 +1,4 @@
+import { openWelcomeOnInstall } from './installWelcome';
 import { completeSafariSignIn, extensionSupabase, getExtensionSession, refreshExtensionSession, signInWithGoogle } from './auth';
 import { isTemporaryAuthFailure } from './authNetwork';
 import { extractPageText } from './capture';
@@ -127,7 +128,7 @@ const setCaptureState = (state: CaptureState, begin = false, allowParallel = fal
     if (!begin && (current?.userId !== state.userId || (identity?.userId && identity.userId !== state.userId))) return null;
     // Only a new user action can create a receipt. Late network completions
     // must not resurrect a receipt removed by logout or replace another save.
-    if (begin && current?.userId === state.userId && ['capturing', 'queued'].includes(current.status)
+    if (begin && current && current.userId === state.userId && ['capturing', 'queued'].includes(current.status)
         && (!allowParallel || current.url === state.url)) return current;
     if (!begin && (!current || (current.operationId || current.id) !== (state.operationId || state.id))) return null;
     if (isOlderCaptureUpdate(current, state)) return null;
@@ -427,7 +428,10 @@ webext.alarms?.onAlarm?.addListener((alarm: { name?: string }) => {
     })();
 });
 
-webext.runtime.onInstalled.addListener(() => {
+webext.runtime.onInstalled.addListener((details: { reason?: string }) => {
+    void openWelcomeOnInstall(details, webext).catch((error) => {
+        console.warn('Opportunity welcome page could not be opened', error instanceof Error ? error.message : error);
+    });
     void prewarmAuthCache();
     void resumeCaptureStatusCheck().catch(() => undefined);
     void (async () => {
@@ -450,12 +454,34 @@ webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
     if (!isCapturableUrl(url)) return;
     const tabId = typeof tab?.id === 'number' ? tab.id : undefined;
     const requestId = globalThis.crypto.randomUUID();
+    const title = info.menuItemId === 'save-opportunity-page' ? tab?.title || '' : '';
     try {
-        const session = await getExtensionSession();
-        if (!session?.access_token) throw new Error('Sign in before saving an opportunity');
+        let session = await getExtensionSession();
+        const needsSignIn = !session?.access_token || session.user?.is_anonymous === true;
+        if (needsSignIn) {
+            await showOpportunityToast(tabId, {
+                kind: 'working', requestId, message: 'Sign in to save this opportunity',
+                detail: 'Opening Google sign-in. We’ll save this opportunity when you finish.',
+            });
+            const signedIn = await signInWithGoogle();
+            if (!signedIn) {
+                // Safari completes OAuth through its separate callback tab.
+                await showOpportunityToast(tabId, {
+                    kind: 'working', requestId, message: 'Finish Google sign-in',
+                    detail: 'Then use Save page or Save link again to save this opportunity.',
+                });
+                return;
+            }
+            session = await getExtensionSession();
+            if (!session?.access_token || session.user?.is_anonymous) {
+                throw new Error('Google sign-in did not finish. Please try again.');
+            }
+            await cacheSignedInProfile(profileFromUser(session.user), session.user.id, session.access_token);
+        }
+        if (!session?.access_token) throw new Error('Google sign-in did not finish. Please try again.');
         const state: CaptureState = {
             id: requestId, operationId: requestId, status: 'capturing', startedAt: Date.now(),
-            tabId, url, title: info.menuItemId === 'save-opportunity-page' ? tab?.title || '' : '',
+            tabId, url, title,
             userId: session.user.id,
         };
         const accepted = await setCaptureState(state, true, true);
@@ -467,7 +493,9 @@ webext.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
             kind: 'working', requestId, message: 'Sending opportunity',
             detail: 'Saving a receipt before processing begins.',
         });
-        const pageText = info.menuItemId === 'save-opportunity-page' && tabId
+        // OAuth may outlive the original tab or its activeTab grant. Resume
+        // from the clicked URL, never read a different page after sign-in.
+        const pageText = !needsSignIn && info.menuItemId === 'save-opportunity-page' && tabId
             ? await extractPageText(tabId) : '';
         await runCaptureOperation(state, url, state.title || '', pageText, true);
     } catch (error) {

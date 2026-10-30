@@ -2,17 +2,19 @@
 export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import OpportunityLanding from '../components/opportunities/OpportunityLanding';
-import '../styles/portfolio-pop-editorial.css';
 import '../styles/opportunities-editorial.css';
 ---
 
 <BaseLayout
     title="Opportunity Tracker · One Click. Every opportunity organized."
     description="Save open calls, residencies, fellowships, grants and jobs. AI automatically summarizes key details, identifies important dates and helps users stay on track."
+    image="/images/opportunities/social-preview.png"
+    imageAlt="Opportunity Tracker — It wasn’t a rejection. You just never applied. What if you actually applied?"
+    useDynamicOgImage={false}
     noindex={false}
     fullWidth={true}
     showGlobalGrid={false}
-    bodyClass="opportunities-editorial-page"
+    bodyClass="opportunities-editorial-page otl-page"
     hideHeader={true}
     hideSideMenuRail={true}
     hideFooter={true}
