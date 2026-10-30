@@ -22,6 +22,7 @@ import {
     OpportunityInputExtractionError,
 } from './inputExtractionService';
 import { buildExtractedOpportunityPayload } from './unifiedInput';
+import { parseSimpleReminder } from './simpleReminder';
 
 export const OPPORTUNITY_CAPTURE_FILES_BUCKET = 'opportunity-capture-files';
 const FINAL_FAILURE_SOURCE_RETENTION_MS = 24 * 60 * 60 * 1000;
@@ -331,33 +332,42 @@ const processCapturedInput = async (
     const attachments = await downloadCaptureAttachments(serviceClient, attachmentDescriptors);
     const audioAttachments = attachments.filter((attachment) => attachment.type.startsWith('audio/'));
     const readableAttachments = attachments.filter((attachment) => !attachment.type.startsWith('audio/'));
-    const allowance = await consumeOpportunityAiLimit(serviceClient, job.user_id);
-    if (!allowance.allowed) throw new OpportunityInputExtractionError(
-        allowance.message || 'Processing is temporarily unavailable. Please try again shortly.',
-        allowance.unavailable ? 503 : allowance.status || 429,
-        allowance.code || 'CAPTURE_QUOTA_UNAVAILABLE', allowance.retryAfter);
+    const noteText = typeof job.payload.text === 'string' ? job.payload.text : '';
+    const freeReminder = attachments.length === 0
+        ? parseSimpleReminder(noteText, job.payload.captured_at || job.created_at)
+        : null;
     let extraction: Awaited<ReturnType<typeof extractOpportunityFromInput>>;
-    let capturedText = '';
-    try {
-    const transcriptSections = await Promise.all(audioAttachments.map(async (attachment) => {
-        const transcript = await transcribeAudio({ file: attachment });
-        return `VOICE NOTE TRANSCRIPT:\n${transcript.text}`;
-    }));
-    capturedText = [
-        typeof job.payload.text === 'string' ? job.payload.text : '',
-        ...transcriptSections,
-    ].filter(Boolean).join('\n\n');
-    extraction = await extractOpportunityFromInput({
-        reservedAllowance: allowance,
-        userId: job.user_id,
-        serviceClient,
-        text: capturedText,
-        attachments: readableAttachments,
-        capturedAt: job.payload.captured_at,
-        captureTimezone: job.payload.capture_timezone,
-        mode: job.payload.mode,
-    });
-    } finally { await allowance.release?.(); }
+    let capturedText = noteText;
+
+    if (freeReminder) {
+        extraction = { model: 'local/reminder', draft: freeReminder };
+    } else {
+        // Reserve AI capacity only when the content actually needs AI.
+        const allowance = await consumeOpportunityAiLimit(serviceClient, job.user_id);
+        if (!allowance.allowed) throw new OpportunityInputExtractionError(
+            allowance.message || 'Processing is temporarily unavailable. Please try again shortly.',
+            allowance.unavailable ? 503 : allowance.status || 429,
+            allowance.code || 'CAPTURE_QUOTA_UNAVAILABLE', allowance.retryAfter);
+        try {
+            const transcriptSections = await Promise.all(audioAttachments.map(async (attachment) => {
+                const transcript = await transcribeAudio({ file: attachment });
+                return `VOICE NOTE TRANSCRIPT:\n${transcript.text}`;
+            }));
+            capturedText = [noteText, ...transcriptSections].filter(Boolean).join('\n\n');
+            extraction = await extractOpportunityFromInput({
+                reservedAllowance: allowance,
+                userId: job.user_id,
+                serviceClient,
+                text: capturedText,
+                attachments: readableAttachments,
+                capturedAt: job.payload.captured_at,
+                captureTimezone: job.payload.capture_timezone,
+                mode: job.payload.mode,
+            });
+        } finally {
+            await allowance.release?.();
+        }
+    }
     const body = buildExtractedOpportunityPayload({
         draft: extraction.draft,
         input: capturedText,
