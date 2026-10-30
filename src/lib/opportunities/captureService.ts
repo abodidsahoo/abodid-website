@@ -4,7 +4,7 @@ import {
     fetchWebpageContent,
     prioritizeOpportunityText,
 } from './scraper';
-import { extractOpportunityWithLLM, parseEventDate, resolveOpportunityDeadline } from './extractor';
+import { extractOpportunityWithLLM, OpportunityExtractionTruncatedError, parseEventDate, resolveOpportunityDeadline } from './extractor';
 import { formatOpportunityTitle } from './ui-helpers';
 import {
     PRIVATE_SAVED_SELECT,
@@ -204,6 +204,14 @@ export const captureOpportunityFromUrl = async ({
             timezone: typeof input.capture_timezone === 'string' ? input.capture_timezone : undefined,
         });
     } catch (error) {
+        if (error instanceof OpportunityExtractionTruncatedError) {
+            throw new OpportunityCaptureError(
+                'The AI response was cut short. Paste a shorter description or save the opportunity manually.',
+                422,
+                'EXTRACTION_TRUNCATED',
+                { can_manual_create: true, canonical_url: canonicalUrl },
+            );
+        }
         console.error('Opportunity extraction failed', {
             userId,
             canonicalUrl,
