@@ -449,7 +449,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             setCaptureProgress(null);
             if (job.status === 'failed') {
                 latestCaptureJobIdRef.current = null;
-                setFailedCaptureJobId(['AI_MONTHLY_LIMIT_REACHED','SAVED_CAPACITY_REACHED'].includes(job.error_code || '') ? null : job.id);
+                setFailedCaptureJobId(['AI_MONTHLY_LIMIT_REACHED', 'SAVED_CAPACITY_REACHED', 'EXTRACTION_TRUNCATED'].includes(job.error_code || '') ? null : job.id);
+                // The queue receipt survives failed extraction. Restore the link
+                // so users can copy it or save manually without finding it again.
+                if (job.source_url) setCaptureUrl((current) => current.trim() ? current : job.source_url || '');
                 setCaptureError(job.error_message || 'Background capture failed. You can retry it safely.');
                 showToast('❌ Background capture needs attention');
                 return;
@@ -460,7 +463,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             setCaptureError('');
             const loaded = await fetchOpportunities(true);
             const saved = loaded.find((opportunity) => opportunity.id === job.opportunity_id) || null;
-            if (saved) setCaptureResult(saved);
+            if (saved) {
+                setCaptureResult(saved);
+                setCaptureUrl((current) => job.input_kind === 'text' ? '' : current);
+            }
             showToast(job.is_duplicate ? '✓ Already on your radar' : '✓ Opportunity saved in the background');
         } catch (error) {
             if (latestCaptureJobIdRef.current !== jobId) return;
@@ -711,7 +717,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 }
 
                 latestCaptureJobIdRef.current = job.id;
-                setCaptureUrl((current) => clearSubmittedCaptureUrl(current, submittedInput));
+                // Keep note text while background extraction runs; do not lose it on failure.
+                // It is cleared only after a confirmed save.
                 clearCaptureAttachments();
                 setCaptureProgress(captureNotice(
                     'Capture received',

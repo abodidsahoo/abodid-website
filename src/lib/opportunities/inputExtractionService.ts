@@ -7,10 +7,12 @@ import { join } from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
     extractOpportunityWithLLM,
+    OpportunityExtractionTruncatedError,
     parseEventDate,
     resolveOpportunityDeadline,
 } from './extractor';
 import { consumeOpportunityAiLimit } from './rateLimit';
+import { parseSimpleReminder } from './simpleReminder';
 import { prioritizeOpportunityText } from './scraper';
 import type { OpportunityInputDraft } from './unifiedInput';
 import { formatOpportunityTitle } from './ui-helpers';
@@ -143,6 +145,12 @@ export const extractOpportunityFromInput = async ({
         );
     }
 
+    // Exact relative reminders need neither AI nor monthly allowance.
+    if (attachments.length === 0) {
+        const reminder = parseSimpleReminder(submittedText, capturedAt);
+        if (reminder) return { model: 'local/reminder', draft: reminder };
+    }
+
     const readableSections: string[] = [];
     const sourceNames: string[] = [];
     let imageDataUrls: string[] = [];
@@ -229,6 +237,13 @@ export const extractOpportunityFromInput = async ({
         };
     } catch (error) {
         if (error instanceof OpportunityInputExtractionError) throw error;
+        if (error instanceof OpportunityExtractionTruncatedError) {
+            throw new OpportunityInputExtractionError(
+                'The AI response was cut short. Try a shorter description or save manually.',
+                422,
+                'EXTRACTION_TRUNCATED',
+            );
+        }
         throw new OpportunityInputExtractionError(
             'The opportunity details could not be extracted. Review the input and try again.',
             502,
