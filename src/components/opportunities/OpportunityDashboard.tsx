@@ -449,7 +449,10 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             setCaptureProgress(null);
             if (job.status === 'failed') {
                 latestCaptureJobIdRef.current = null;
-                setFailedCaptureJobId(['AI_MONTHLY_LIMIT_REACHED','SAVED_CAPACITY_REACHED'].includes(job.error_code || '') ? null : job.id);
+                setFailedCaptureJobId(['AI_MONTHLY_LIMIT_REACHED', 'SAVED_CAPACITY_REACHED', 'EXTRACTION_TRUNCATED'].includes(job.error_code || '') ? null : job.id);
+                // The queue receipt survives failed extraction. Restore the link
+                // so users can copy it or save manually without finding it again.
+                if (job.source_url) setCaptureUrl((current) => current.trim() ? current : job.source_url || '');
                 setCaptureError(job.error_message || 'Background capture failed. You can retry it safely.');
                 showToast('❌ Background capture needs attention');
                 return;
