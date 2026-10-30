@@ -159,6 +159,9 @@ export const enqueueOpportunityCaptureJob = async ({
             channel,
             input_kind: inputKind,
             status,
+            // One worker attempt per submission. The extractor already has
+            // a bounded retry for genuinely transient provider failures.
+            max_attempts: 1,
             payload,
             source_cleanup_at: sourceCleanupAt,
             messaging_event_id: messagingEventId,
@@ -296,7 +299,9 @@ const errorCode = (error: unknown) => {
 };
 
 const isRetryableCaptureError = (error: unknown) => {
-    if (errorCode(error) === 'AI_MONTHLY_LIMIT_REACHED') return false;
+    if (['AI_MONTHLY_LIMIT_REACHED', 'EXTRACTION_FAILED', 'EXTRACTION_TRUNCATED',
+        'INPUT_EXTRACTION_FAILED', 'SAVED_CAPACITY_REACHED',
+    ].includes(errorCode(error))) return false;
     const status = errorStatus(error);
     return status === 429 || status >= 500;
 };
