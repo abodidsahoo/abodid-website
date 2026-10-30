@@ -43,7 +43,7 @@ Remaining live checks after deployment: admin increase for an ordinary account, 
 
 ## Admin usage and confirmed allowance changes
 
-Deployed and promoted to production on 30 October 2026; deployment `dpl_BfQvyHQXkTMeLve8uXbaABSDjc88`.
+Deployed and promoted to production on 30 October 2026; final deployment `dpl_DeQT9EqmoPG8LuszSp82kAERRe3Y` (source `31f9d9a`).
 
 The Opportunity Tracker Users directory shows admitted AI attempts this UTC month, the remaining monthly allowance, and total tracked attempts since metering began on 30 October 2026. These are processing admissions, including failures, rather than raw OpenRouter HTTP calls or blocked clicks. Free public-collection imports do not consume them.
 

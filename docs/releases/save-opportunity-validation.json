@@ -1,5 +1,5 @@
 {
-  "verified_at": "2026-10-30T04:26:48.491024+00:00",
+  "verified_at": "2026-10-30T04:31:59.819145+00:00",
   "version": "1.0.0",
   "node": "24.22.1",
   "unit_tests": {
@@ -14,7 +14,7 @@
     "live_database_changed": false
   },
   "strict_types": "passed for changed admin/auth/capture/server dependency graph",
-  "website_build": "final production build pending",
+  "website_build": "passed: clean committed release snapshot, Vercel production build",
   "extension_package": "passed; rebuilt for final release",
   "submission_ready": false,
   "unresolved": [
@@ -27,5 +27,17 @@
   ],
   "uploaded": false,
   "published": false,
-  "zip_audit": "extension/releases/save-opportunity-1.0.0-audit.json"
+  "zip_audit": "extension/releases/save-opportunity-1.0.0-audit.json",
+  "source_commit": "31f9d9a33a34c9d6a4365b592af20314a1442c6d",
+  "deployment_id": "dpl_DeQT9EqmoPG8LuszSp82kAERRe3Y",
+  "production_url": "https://abodid.com/opportunities",
+  "zip_sha256": "d4aff450339a7ce6d5927b5f70ae91726519c9a23b6b9e53af0e0034ce81f98b",
+  "zip_bytes": 42176,
+  "live_checks": {
+    "landing_page": "loaded and hydrated; Continue with Google enabled",
+    "anonymous_usage_endpoint": 401,
+    "paid_capture": "not run",
+    "real_user_allowance_changes": "none",
+    "diagnostic_http_probe": "429 infrastructure response; not treated as app verification"
+  }
 }
