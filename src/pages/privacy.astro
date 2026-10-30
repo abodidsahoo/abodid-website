@@ -80,7 +80,7 @@ const lastUpdatedDate = "30 October 2026";
             <h2 class="privacy-card__title">Privacy-Preserving Telemetry</h2>
           </div>
           <p class="privacy-card__desc">
-            Any site analytics used are strictly aggregated and cookie-free (e.g. Vercel Web Analytics or Plausible) to understand overall traffic trends without tracking your personal identity across the web.
+            Google Analytics supplies aggregate traffic reports. A private first-party tracker records pseudonymous sessions, page paths, active time, referring domains, campaign tags, and estimated network locations. Aggregate interaction signals help distinguish likely human activity from inconclusive visits.
           </p>
         </article>
       </div>
@@ -135,13 +135,16 @@ const lastUpdatedDate = "30 October 2026";
             <div class="privacy-item__content">
               <h3>Cookies, Tracking &amp; Storage</h3>
               <p>
-                This site does not use third-party marketing cookies, intrusive tracking pixels (such as Meta Pixel or Google Ads tracking), or fingerprinting techniques.
+                This site uses Google Analytics, which may set analytics cookies to measure visits. It does not use Meta Pixel or Google Ads tracking, sell analytics records, or create device fingerprints for cross-site identification.
+              </p>
+              <p>
+                Local storage preserves preferences such as your dark/light theme and Opportunity Tracker tour progress. It also holds a random first-party visitor identifier and a rolling session buffer used to connect page views within this site. Private session records are stored in Supabase and restricted to administrators.
               </p>
               <p>
                 If you select product updates before Google sign-in, a temporary choice and random identifier in session storage carry that choice through the current sign-in attempt. It expires after 30 minutes and is removed when processed or when the sign-in attempt fails.
               </p>
               <p>
-                Local storage is used strictly for essential user preferences — such as preserving your dark/light theme preference across page navigations and remembering progress or dismissal of the Opportunity Tracker quick tour separately for each username.
+                Human-activity analysis uses aggregate counts and timing summaries for pointer movement, input-linked scrolling, clicks, touch, and keyboard navigation. Raw mouse coordinates, movement trails, typed keys, and text are not stored by this analysis. The session tracker does not store raw IP addresses; location estimates come from hosting-provider request metadata. These signals estimate activity and do not verify a visitor’s identity.
               </p>
               <p>
                 The Opportunity Tracker extension also uses extension-local storage for its encrypted-in-transit authentication session and the latest capture receipt. This local receipt includes the selected URL/title and processing, saved, or failed status; it remains until replaced by another capture, you sign out, or extension storage is cleared. Saved opportunity records remain in your private Supabase-backed account until you delete them. Signing out removes the local extension session; account or full-data deletion requests can be sent to the contact address below.

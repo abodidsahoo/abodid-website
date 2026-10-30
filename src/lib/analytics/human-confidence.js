@@ -1,103 +1,67 @@
 const clampCount = (value, max = 10_000) => Math.max(0, Math.min(max, Number(value) || 0));
 
 export const HUMAN_CONFIDENCE_TIERS = Object.freeze({
-    FILTERED: 'filtered',
-    MEANINGFUL: 'meaningful',
-    HIGH_INTENT: 'high_intent',
-    EXCEPTIONAL: 'exceptional',
+    FILTERED: 'filtered', MEANINGFUL: 'meaningful', HIGH_INTENT: 'high_intent', EXCEPTIONAL: 'exceptional',
 });
+export const MIN_RETAINED_ENGAGEMENT_SECONDS = 3; // Retention only, never human evidence.
+export const HUMAN_EVIDENCE_VERSION = 2;
 
-export const MIN_HUMAN_ENGAGEMENT_SECONDS = 3;
-
-/**
- * A deliberately small, deterministic scoring model. It runs once per batched
- * session snapshot, performs no network work, and does not use AI or fingerprinting.
- */
-export const calculateHumanConfidence = ({
-    activeSeconds = 0,
-    pageViews = 1,
-    scrollCount = 0,
-    maxScrollDepth = 0,
-    genuineClicks = 0,
-    pointerSamples = 0,
-    touchInteractions = 0,
-    keyInteractions = 0,
-    contentInteractions = 0,
-    formSubmitted = false,
-    knownBot = false,
-    spamRejected = false,
-} = {}) => {
+/** Uncalibrated evidence heuristic, not an identity check or probability. No raw trails retained. */
+export const calculateHumanConfidence = (input = {}) => {
     const signals = {
-        activeSeconds: clampCount(activeSeconds, 86_400),
-        pageViews: clampCount(pageViews, 100),
-        scrollCount: clampCount(scrollCount, 1_000),
-        maxScrollDepth: Math.max(0, Math.min(1, Number(maxScrollDepth) || 0)),
-        genuineClicks: clampCount(genuineClicks, 1_000),
-        pointerSamples: clampCount(pointerSamples, 10_000),
-        touchInteractions: clampCount(touchInteractions, 1_000),
-        keyInteractions: clampCount(keyInteractions, 1_000),
-        contentInteractions: clampCount(contentInteractions, 1_000),
-        formSubmitted: Boolean(formSubmitted),
+        evidenceVersion: HUMAN_EVIDENCE_VERSION,
+        activeSeconds: clampCount(input.activeSeconds, 86_400),
+        pageViews: clampCount(input.pageViews ?? 1, 100),
+        scrollCount: clampCount(input.scrollCount, 1_000),
+        maxScrollDepth: Math.max(0, Math.min(1, Number(input.maxScrollDepth) || 0)),
+        genuineClicks: clampCount(input.genuineClicks, 1_000),
+        pointerSamples: clampCount(input.pointerSamples),
+        pointerDistance: clampCount(input.pointerDistance, 1_000_000),
+        pointerDurationMs: clampCount(input.pointerDurationMs, 86_400_000),
+        pointerDirectionChanges: clampCount(input.pointerDirectionChanges, 1_000),
+        pointerSpeedChanges: clampCount(input.pointerSpeedChanges, 1_000),
+        pointerPauses: clampCount(input.pointerPauses, 1_000),
+        intentionalScrollSamples: clampCount(input.intentionalScrollSamples, 1_000),
+        intentionalScrollDistance: clampCount(input.intentionalScrollDistance, 1_000_000),
+        scrollBursts: clampCount(input.scrollBursts, 1_000),
+        scrollDirectionChanges: clampCount(input.scrollDirectionChanges, 1_000),
+        touchInteractions: clampCount(input.touchInteractions, 1_000),
+        keyInteractions: clampCount(input.keyInteractions, 1_000),
+        contentInteractions: clampCount(input.contentInteractions, 1_000),
+        formSubmitted: Boolean(input.formSubmitted),
     };
-
-    if (knownBot || spamRejected) {
-        return {
-            score: 0,
-            tier: HUMAN_CONFIDENCE_TIERS.FILTERED,
-            qualified: false,
-            reasons: [knownBot ? 'known_bot' : 'spam_rejected'],
-            signals,
-        };
-    }
-
-    let score = 0;
+    const blocked = Boolean(input.knownBot || input.spamRejected || input.webdriver);
     const reasons = [];
-    const add = (points, reason) => {
-        score += points;
-        reasons.push(reason);
-    };
-
-    if (signals.activeSeconds >= MIN_HUMAN_ENGAGEMENT_SECONDS) add(25, 'active_3s');
-    if (signals.activeSeconds >= 5) add(10, 'active_5s');
-    if (signals.activeSeconds >= 15) add(10, 'active_15s');
-    if (signals.activeSeconds >= 30) add(15, 'active_30s');
-    if (signals.activeSeconds >= 60) add(10, 'active_60s');
-    if (signals.scrollCount >= 1 && signals.maxScrollDepth >= 0.12) add(12, 'meaningful_scroll');
-    if (signals.maxScrollDepth >= 0.5) add(8, 'deep_scroll');
-    if (signals.genuineClicks >= 1) add(18, 'genuine_click');
-    if (signals.genuineClicks >= 2) add(7, 'multiple_clicks');
-    if (signals.pointerSamples >= 2) add(5, 'pointer_movement');
-    if (signals.touchInteractions >= 1 || signals.keyInteractions >= 1) add(5, 'direct_input');
-    if (signals.pageViews >= 2) add(10, 'multiple_pages');
-    if (signals.contentInteractions >= 1) add(10, 'content_interaction');
-    if (signals.formSubmitted) add(10, 'unverified_form_signal');
-
-    score = Math.min(100, score);
-
-    // Known bots are rejected above. For the remaining traffic, three seconds
-    // of active, visible attention is enough to retain a real reader even when
-    // they do not scroll or click. One- and two-second scans remain filtered.
-    const hasBaselineHumanJourney = signals.activeSeconds >= MIN_HUMAN_ENGAGEMENT_SECONDS;
-    // Browser-reported form events are deliberately not a qualification
-    // bypass. The form endpoints promote only server-validated submissions.
-    const qualified = hasBaselineHumanJourney;
-
-    let tier = HUMAN_CONFIDENCE_TIERS.FILTERED;
-    if (qualified) tier = HUMAN_CONFIDENCE_TIERS.MEANINGFUL;
-    if (qualified && signals.activeSeconds >= 30 &&
-        (signals.contentInteractions >= 1 || signals.pageViews >= 2 || signals.genuineClicks >= 2)) {
-        tier = HUMAN_CONFIDENCE_TIERS.HIGH_INTENT;
-    }
-    if (qualified && signals.activeSeconds >= 60 &&
-        (signals.contentInteractions >= 1 || signals.pageViews >= 2)) {
-        tier = HUMAN_CONFIDENCE_TIERS.EXCEPTIONAL;
-    }
-
-    return { score, tier, qualified, reasons, signals };
+    let score = 0;
+    const add = (points, reason) => { score += points; reasons.push(reason); };
+    const variedPointer = signals.pointerSamples >= 6 && signals.pointerDistance >= 60 &&
+        signals.pointerDurationMs >= 250 &&
+        (signals.pointerDirectionChanges >= 1 || signals.pointerSpeedChanges >= 1 || signals.pointerPauses >= 1);
+    // A scroll event alone can be generated by scrollTo(), anchors, or layout changes.
+    const intentionalScroll = signals.intentionalScrollSamples >= 2 && signals.intentionalScrollDistance >= 80;
+    const directAction = signals.genuineClicks >= 1 && (signals.pointerSamples >= 2 ||
+        signals.intentionalScrollSamples >= 1 || signals.keyInteractions >= 1 || signals.touchInteractions >= 1);
+    const keyboardUse = signals.keyInteractions >= 2 &&
+        (signals.intentionalScrollSamples >= 1 || signals.genuineClicks >= 1);
+    const touchUse = signals.touchInteractions >= 1 && (intentionalScroll || signals.genuineClicks >= 1);
+    if (variedPointer) add(35, 'varied_pointer_movement');
+    if (intentionalScroll) add(35, 'input_linked_scrolling');
+    if (directAction) add(25, 'input_and_action');
+    if (keyboardUse) add(35, 'keyboard_navigation');
+    if (touchUse) add(35, 'touch_navigation');
+    if (signals.scrollBursts >= 2) add(5, 'separate_scroll_bursts');
+    if (signals.scrollDirectionChanges >= 1) add(5, 'scroll_direction_changes');
+    if (signals.pageViews >= 2 && (directAction || keyboardUse || touchUse)) add(10, 'interactive_page_navigation');
+    const qualified = !blocked && (variedPointer || intentionalScroll || directAction || keyboardUse || touchUse);
+    const recordable = !blocked && (qualified || signals.activeSeconds >= MIN_RETAINED_ENGAGEMENT_SECONDS ||
+        signals.pointerSamples > 0 || signals.genuineClicks > 0 || signals.touchInteractions > 0 || signals.keyInteractions > 0);
+    if (blocked) { score = 0; reasons.length = 0; reasons.push(input.webdriver ? 'browser_automation' : input.knownBot ? 'known_bot' : 'spam_rejected'); }
+    if (!qualified && !blocked) reasons.push('insufficient_interaction_evidence');
+    let tier = qualified ? HUMAN_CONFIDENCE_TIERS.MEANINGFUL : HUMAN_CONFIDENCE_TIERS.FILTERED;
+    if (qualified && score >= 60) tier = HUMAN_CONFIDENCE_TIERS.HIGH_INTENT;
+    if (qualified && score >= 85) tier = HUMAN_CONFIDENCE_TIERS.EXCEPTIONAL;
+    signals.evidenceLevel = qualified ? 'likely_human' : 'uncertain';
+    signals.reasons = reasons;
+    return { score: Math.min(100, score), tier, qualified, recordable, reasons, signals };
 };
-
-export const isHumanConfidenceTier = (value) => (
-    value === HUMAN_CONFIDENCE_TIERS.MEANINGFUL ||
-    value === HUMAN_CONFIDENCE_TIERS.HIGH_INTENT ||
-    value === HUMAN_CONFIDENCE_TIERS.EXCEPTIONAL
-);
+export const isHumanConfidenceTier = (value) => ['meaningful', 'high_intent', 'exceptional'].includes(value);

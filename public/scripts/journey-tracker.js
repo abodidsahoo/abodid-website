@@ -276,7 +276,7 @@
   var ANALYTICS_ENDPOINT = "/api/analytics/collect";
   var SESSION_TIMEOUT_MS = 30 * 60 * 1000;
   var IDLE_TIMEOUT_MS = 60 * 1000;
-  var HUMAN_ENGAGEMENT_THRESHOLD_SECONDS = 3;
+  var MIN_RETAINED_ENGAGEMENT_SECONDS = 3;
   var HIGH_INTENT_CHECKPOINT_SECONDS = 30;
   var LONG_SESSION_CHECKPOINT_SECONDS = 60;
   var MAX_BUFFERED_EVENTS = 30;
@@ -508,13 +508,12 @@
   var signalSummary = !sessionExpired && storedState.signalSummary && typeof storedState.signalSummary === "object"
     ? storedState.signalSummary
     : {};
-  signalSummary.scrollCount = Number(signalSummary.scrollCount || 0);
-  signalSummary.maxScrollDepth = Number(signalSummary.maxScrollDepth || 0);
-  signalSummary.genuineClicks = Number(signalSummary.genuineClicks || 0);
-  signalSummary.pointerSamples = Number(signalSummary.pointerSamples || 0);
-  signalSummary.touchInteractions = Number(signalSummary.touchInteractions || 0);
-  signalSummary.keyInteractions = Number(signalSummary.keyInteractions || 0);
-  signalSummary.contentInteractions = Number(signalSummary.contentInteractions || 0);
+  ["scrollCount", "maxScrollDepth", "genuineClicks", "pointerSamples", "pointerDistance",
+    "pointerDurationMs", "pointerDirectionChanges", "pointerSpeedChanges", "pointerPauses",
+    "intentionalScrollSamples", "intentionalScrollDistance", "scrollBursts", "scrollDirectionChanges",
+    "touchInteractions", "keyInteractions", "contentInteractions"].forEach(function (key) {
+    signalSummary[key] = Math.max(0, Number(signalSummary[key]) || 0);
+  });
   var hasConverted = Boolean(storedState.hasConverted);
   var conversionType = storedState.conversionType || null;
   var sessionStartTime = Date.now();
@@ -544,6 +543,8 @@
   var hasSentHighIntentCheckpoint = false;
   var hasSentLongCheckpoint = false;
   var lastFlushAt = 0;
+  var hasSentBehaviourCheckpoint = false;
+  var behaviourFlushTimer = null;
 
   function isActivelyViewing() {
     return document.visibilityState === "visible" && focused &&
@@ -559,12 +560,12 @@
 
   function pauseEngagement() {
     if (activeSince === null) return;
-    engagedMilliseconds += Math.max(0, performance.now() - activeSince);
+    engagedMilliseconds += Math.max(0, Math.min(performance.now(), lastInteractionAt + IDLE_TIMEOUT_MS) - activeSince);
     activeSince = null;
   }
 
   function currentEngagedSeconds() {
-    var activeMilliseconds = activeSince === null ? 0 : Math.max(0, performance.now() - activeSince);
+    var activeMilliseconds = activeSince === null ? 0 : Math.max(0, Math.min(performance.now(), lastInteractionAt + IDLE_TIMEOUT_MS) - activeSince);
     return Math.floor((engagedMilliseconds + activeMilliseconds) / 1000);
   }
 
@@ -592,8 +593,10 @@
     saveAnalyticsState(nextState);
   }
 
-  function hasMeaningfulHumanSignals() {
-    return totalSessionEngagedSeconds() >= HUMAN_ENGAGEMENT_THRESHOLD_SECONDS;
+  function hasRecordableActivity() {
+    return totalSessionEngagedSeconds() >= MIN_RETAINED_ENGAGEMENT_SECONDS ||
+      signalSummary.pointerSamples > 0 || signalSummary.genuineClicks > 0 ||
+      signalSummary.touchInteractions > 0 || signalSummary.keyInteractions > 0;
   }
 
   // Client-Side Intent Inference
@@ -693,6 +696,16 @@
         maxScrollDepth: signalSummary.maxScrollDepth,
         genuineClicks: signalSummary.genuineClicks,
         pointerSamples: signalSummary.pointerSamples,
+        pointerDistance: Math.round(signalSummary.pointerDistance),
+        pointerDurationMs: Math.round(signalSummary.pointerDurationMs),
+        pointerDirectionChanges: signalSummary.pointerDirectionChanges,
+        pointerSpeedChanges: signalSummary.pointerSpeedChanges,
+        pointerPauses: signalSummary.pointerPauses,
+        intentionalScrollSamples: signalSummary.intentionalScrollSamples,
+        intentionalScrollDistance: Math.round(signalSummary.intentionalScrollDistance),
+        scrollBursts: signalSummary.scrollBursts,
+        scrollDirectionChanges: signalSummary.scrollDirectionChanges,
+        webdriver: Boolean(navigator.webdriver),
         touchInteractions: signalSummary.touchInteractions,
         keyInteractions: signalSummary.keyInteractions,
         contentInteractions: signalSummary.contentInteractions,
@@ -718,7 +731,7 @@
   function scheduleInitialFlush() {
     if (hasSentInitial) return;
     window.setTimeout(function () {
-      if (hasMeaningfulHumanSignals() && !hasSentInitial) {
+      if (hasRecordableActivity() && !hasSentInitial) {
         hasSentInitial = true;
         flushSessionSnapshot(false);
       }
@@ -726,21 +739,35 @@
   }
 
   function recordInteraction() {
+    // Account for the previous activity window before starting a new one.
+    pauseEngagement();
     lastInteractionAt = performance.now();
     resumeEngagement();
 
-    if (!hasSentInitial && hasMeaningfulHumanSignals()) {
+    if (!hasSentInitial && hasRecordableActivity()) {
       hasSentInitial = true;
       flushSessionSnapshot(false);
     }
 
+    // Send one follow-up as enough behavioural evidence accumulates, even below 5s.
+    // This is only a transport checkpoint; the server decides qualification.
+    if (!hasSentBehaviourCheckpoint && !behaviourFlushTimer &&
+      (signalSummary.pointerSamples >= 6 || signalSummary.intentionalScrollSamples >= 2 ||
+       (signalSummary.genuineClicks >= 1 && (signalSummary.pointerSamples >= 2 || signalSummary.keyInteractions >= 1 || signalSummary.touchInteractions >= 1)))) {
+      behaviourFlushTimer = window.setTimeout(function () {
+        behaviourFlushTimer = null;
+        hasSentBehaviourCheckpoint = true;
+        flushSessionSnapshot(false);
+      }, 900);
+    }
+
     var sessionSeconds = totalSessionEngagedSeconds();
-    if (!hasSentHighIntentCheckpoint && sessionSeconds >= HIGH_INTENT_CHECKPOINT_SECONDS && hasMeaningfulHumanSignals()) {
+    if (!hasSentHighIntentCheckpoint && sessionSeconds >= HIGH_INTENT_CHECKPOINT_SECONDS && hasRecordableActivity()) {
       hasSentHighIntentCheckpoint = true;
       flushSessionSnapshot(false);
     }
 
-    if (!hasSentLongCheckpoint && sessionSeconds >= LONG_SESSION_CHECKPOINT_SECONDS && hasMeaningfulHumanSignals()) {
+    if (!hasSentLongCheckpoint && sessionSeconds >= LONG_SESSION_CHECKPOINT_SECONDS && hasRecordableActivity()) {
       hasSentLongCheckpoint = true;
       flushSessionSnapshot(false);
     }
@@ -814,50 +841,102 @@
     }, { capture: true });
   }
 
-  // Sample pointer movement (throttled ~250ms for low compute overhead)
-  var lastPointerMoveAt = 0;
+  // Aggregate only: no coordinates, raw movement trails, key values, or text are sent/stored.
+  var lastPointerSample = null;
+  var recentScrollInputAt = -Infinity;
+  var lastIntentionalScrollAt = -Infinity;
+  var lastScrollDirection = 0;
+  var scrollPositions = new WeakMap();
+  scrollPositions.set(document.documentElement, window.scrollY || 0);
   window.addEventListener("pointermove", function (e) {
-    if (e.isTrusted === false) return;
-    var pNow = performance.now();
-    if (pNow - lastPointerMoveAt < 250) return;
-    lastPointerMoveAt = pNow;
+    if (!e.isTrusted || document.visibilityState !== "visible" || !focused) return;
+    var sampleNow = performance.now();
+    if (lastPointerSample && sampleNow - lastPointerSample.time < 80) return;
+    if (lastPointerSample) {
+      var dx = e.clientX - lastPointerSample.x;
+      var dy = e.clientY - lastPointerSample.y;
+      var distance = Math.hypot(dx, dy);
+      var elapsed = sampleNow - lastPointerSample.time;
+      if (distance < 2) return;
+      var speed = distance / Math.max(1, elapsed);
+      var angle = Math.atan2(dy, dx);
+      if (elapsed <= 1500 && distance <= 1000) {
+        signalSummary.pointerDistance += distance;
+        signalSummary.pointerDurationMs += elapsed;
+        if (lastPointerSample.angle !== null && Math.abs(Math.atan2(Math.sin(angle - lastPointerSample.angle), Math.cos(angle - lastPointerSample.angle))) > 0.35) signalSummary.pointerDirectionChanges += 1;
+        if (lastPointerSample.speed > 0 && Math.abs(speed - lastPointerSample.speed) / Math.max(speed, lastPointerSample.speed) > 0.3) signalSummary.pointerSpeedChanges += 1;
+      }
+      if (elapsed > 300 && elapsed < 5000) signalSummary.pointerPauses += 1;
+      lastPointerSample = { x: e.clientX, y: e.clientY, time: sampleNow, speed: speed, angle: angle };
+    } else lastPointerSample = { x: e.clientX, y: e.clientY, time: sampleNow, speed: 0, angle: null };
     signalSummary.pointerSamples = Math.min(10000, signalSummary.pointerSamples + 1);
     nextState.signalSummary = signalSummary;
+    recordInteraction();
   }, { passive: true });
 
   window.addEventListener("pointerdown", function (e) {
-    if (e.isTrusted === false) return;
+    if (!e.isTrusted) return;
+    if (e.clientX >= document.documentElement.clientWidth || e.button === 1) recentScrollInputAt = performance.now();
     recordInteraction();
-    checkDeadOrRageClick(e);
   }, { passive: true });
-
+  window.addEventListener("click", function (e) {
+    if (!e.isTrusted || document.visibilityState !== "visible" || !focused) return;
+    checkDeadOrRageClick(e);
+    recordInteraction();
+  }, { passive: true });
+  window.addEventListener("wheel", function (e) {
+    if (!e.isTrusted || !e.deltaY) return;
+    recentScrollInputAt = performance.now();
+    recordInteraction();
+  }, { passive: true });
   window.addEventListener("keydown", function (e) {
-    if (e.isTrusted === false) return;
+    if (!e.isTrusted || e.repeat || ["Shift", "Control", "Alt", "Meta"].indexOf(e.key) !== -1) return;
     signalSummary.keyInteractions = Math.min(1000, signalSummary.keyInteractions + 1);
+    if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].indexOf(e.key) !== -1 &&
+        !(e.target && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)))) recentScrollInputAt = performance.now();
     nextState.signalSummary = signalSummary;
     recordInteraction();
   }, { passive: true });
   window.addEventListener("touchstart", function (e) {
-    if (e.isTrusted === false) return;
+    if (!e.isTrusted) return;
     signalSummary.touchInteractions = Math.min(1000, signalSummary.touchInteractions + 1);
+    recentScrollInputAt = performance.now();
     nextState.signalSummary = signalSummary;
     recordInteraction();
+  }, { passive: true });
+  window.addEventListener("touchmove", function (e) {
+    if (e.isTrusted) { recentScrollInputAt = performance.now(); recordInteraction(); }
   }, { passive: true });
 
-  var lastScrollSampleAt = 0;
+  var lastScrollSampleAt = -Infinity;
   window.addEventListener("scroll", function (e) {
-    if (e.isTrusted === false) return;
+    if (!e.isTrusted || document.visibilityState !== "visible" || !focused) return;
     var scrollNow = performance.now();
-    recordInteraction();
-    if (scrollNow - lastScrollSampleAt < 400) return;
+    if (scrollNow - lastScrollSampleAt < 100) return;
     lastScrollSampleAt = scrollNow;
-    var docHeight = document.documentElement.scrollHeight || 1;
-    var viewportBottom = (window.scrollY || window.pageYOffset || 0) + (window.innerHeight || 0);
-    var yNorm = Math.max(0, Math.min(1, viewportBottom / docHeight));
+    var rootScroll = e.target === document || e.target === window;
+    var target = rootScroll ? document.documentElement : e.target;
+    if (!target || !target.scrollHeight) return;
+    var position = rootScroll ? (window.scrollY || 0) : target.scrollTop;
+    var previousPosition = scrollPositions.get(target) || 0;
+    var delta = position - previousPosition;
+    scrollPositions.set(target, position);
+    var docHeight = target.scrollHeight || 1;
+    var viewportHeight = rootScroll ? window.innerHeight : target.clientHeight;
     signalSummary.scrollCount = Math.min(1000, signalSummary.scrollCount + 1);
-    signalSummary.maxScrollDepth = Math.max(signalSummary.maxScrollDepth, yNorm);
+    signalSummary.maxScrollDepth = Math.max(signalSummary.maxScrollDepth, Math.max(0, Math.min(1, (position + viewportHeight) / docHeight)));
+    if (scrollNow - recentScrollInputAt < 1500 && Math.abs(delta) >= 4) {
+      signalSummary.intentionalScrollSamples = Math.min(1000, signalSummary.intentionalScrollSamples + 1);
+      signalSummary.intentionalScrollDistance = Math.min(1000000, signalSummary.intentionalScrollDistance + Math.abs(delta));
+      if (scrollNow - lastIntentionalScrollAt > 600) signalSummary.scrollBursts += 1;
+      var direction = Math.sign(delta);
+      if (lastScrollDirection && direction !== lastScrollDirection) signalSummary.scrollDirectionChanges += 1;
+      lastScrollDirection = direction;
+      lastIntentionalScrollAt = scrollNow;
+      recordInteraction();
+    }
     nextState.signalSummary = signalSummary;
-  }, { passive: true });
+  }, { passive: true, capture: true });
 
   window.addEventListener("focus", function () {
     focused = true;
@@ -866,12 +945,13 @@
   window.addEventListener("blur", function () {
     focused = false;
     pauseEngagement();
+    if (hasRecordableActivity()) flushSessionSnapshot(true);
   });
 
   // Final Flushes on Page Hide / Tab Change
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "hidden") {
-      if (hasSentInitial || hasConverted || hasMeaningfulHumanSignals()) flushSessionSnapshot(true);
+      if (hasSentInitial || hasConverted || hasRecordableActivity()) flushSessionSnapshot(true);
       else persistClientState();
     } else {
       recordInteraction();
@@ -879,9 +959,14 @@
   });
 
   window.addEventListener("pagehide", function () {
-    if (hasSentInitial || hasConverted || hasMeaningfulHumanSignals()) flushSessionSnapshot(true);
+    if (hasSentInitial || hasConverted || hasRecordableActivity()) flushSessionSnapshot(true);
     else persistClientState();
   }, { capture: true });
+
+  // Keep last-seen and page timing current without sending high-frequency movement events.
+  window.setInterval(function () {
+    if (isActivelyViewing() && hasRecordableActivity()) flushSessionSnapshot(false);
+  }, 30000);
 
   initFormListeners();
 

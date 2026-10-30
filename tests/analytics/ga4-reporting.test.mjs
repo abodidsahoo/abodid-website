@@ -98,7 +98,7 @@ test('builds the dashboard from one batched GA4 request', async () => {
                     { rows: [metric(120, 90, 70, 60, 42, 3)] },
                     { rows: [dimensioned(['chatgpt.com', 'referral'], [12, 10, 8, 1])] },
                     { rows: [dimensioned(['India'], [50, 40, 2])] },
-                    { rows: [dimensioned(['/obsidian-tutoring'], [30, 25, 75, 2])] },
+                    { rows: [dimensioned(['/obsidian-tutoring'], [30, 25, 75, 2]), dimensioned([''], [4, 4, 0, 0])] },
                     { rows: [dimensioned(['/obsidian-vault'], [40, 600])] },
                 ] }];
             },
@@ -114,4 +114,5 @@ test('builds the dashboard from one batched GA4 request', async () => {
     assert.equal(result.channels[0].channel, 'LLMs');
     assert.equal(result.countries[0].country, 'India');
     assert.equal(result.landingPages[0].path, '/obsidian-tutoring');
+    assert.equal(result.landingPages[1].path, '(not set)');
 });

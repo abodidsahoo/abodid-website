@@ -1,22 +1,85 @@
 # Admin analytics setup
 
-The analytics panel lives inside the existing admin dashboard at
-`/admin/dashboard?section=analytics`. It records anonymous site sessions and
-active page-view time, then presents the results as summary metrics, a line
-chart, a country bar chart, a traffic-source pie chart, page rankings, and
-visitor journeys. It also records mobile-menu opens, selections, dismissals,
-CTA/social clicks, ranked destinations, and country-level selection rates.
-The private journey feed includes sessions with at least three seconds of
-active, visible engagement. Known bots and one- or two-second scans are
-discarded so legitimate readers are retained even when they do not click or
-scroll.
+The analytics panel lives at `/admin/dashboard?section=analytics` and uses
+`AnalyticsDashboardV2` with the protected `/api/admin/analytics-v2` endpoint.
+It shows one readable session narrative at a time with Previous/Next buttons,
+followed by GA4 aggregate acquisition, country, and landing-page reports.
 
-## Architecture
+## Session narratives and interaction evidence (29 October 2026)
+
+The API loads the latest 100 eligible stored sessions in the selected period.
+The default Human activity view requires `human_signals.evidenceVersion = 2`
+and `evidenceLevel = likely_human`. All recorded sessions and Unconfirmed
+allow review of other records of at least five seconds. Visits with sufficient
+new human-interaction evidence appear even below five seconds. Newest-first
+and longest-active-time sorting apply to the loaded window. A session narrative
+states discovery source, estimated location, entry page, active duration,
+most-attended page (summing repeat views), and last observed page. Timestamps
+use the administrator’s browser timezone. Page sequences are paginated from
+PostgREST to avoid its row cap. The browser buffers 30 recent page views, so
+some earlier steps may be unavailable.
+
+Qualification no longer depends on elapsed time. The deterministic, uncalibrated
+heuristic combines varied pointer distance/timing/direction, actual scroll
+movement following trusted wheel/touch/navigation-key input, and direct
+interactive actions. Touch and keyboard paths do not require a mouse. DOM
+`isTrusted` alone does not establish a human: programmatic scrolling can emit
+browser-generated scroll events. Known bots, excluded owner/admin browsers,
+and exposed WebDriver automation remain excluded. Advanced automation can
+forge browser signals, so the UI says **likely human**, never verified human,
+and never presents the heuristic score as a percentage probability.
+
+Only aggregate counters are stored in existing `human_signals`; no coordinate
+trail, raw key values, or typed text are transmitted by the new analysis.
+Individual coordinates are used transiently in memory to accumulate movement
+features. The collector recomputes classification server-side and stores
+reasons and evidence version. Inconclusive activity can be retained for review
+without qualifying it as human. Existing records are not reclassified or
+rewritten, and an old duration-only label does not qualify for Human activity.
+
+Research informing the implementation:
+
+- [Cloudflare bot detection engines](https://developers.cloudflare.com/bots/concepts/bot-detection-engines/): use multiple signals; no single mouse signal is definitive.
+- [MDN Event.isTrusted](https://developer.mozilla.org/en-US/docs/Web/API/Event/isTrusted): user-agent-generated events include programmatic actions.
+- [MDN scroll events](https://developer.mozilla.org/en-US/docs/Web/API/Document/scroll_event): high-frequency handlers need throttling; scrolling alone is not input evidence.
+- [BeCAPTCHA-Mouse research](https://www.sciencedirect.com/science/article/pii/S0031320322001248): movement dynamics can help distinguish automation, but this project's heuristic is not that trained model and does not inherit its reported accuracy.
+
+Active time is capped at the last observed input plus 60 idle seconds; a new
+interaction first settles the previous interval so it cannot bridge an idle
+gap. Pointer movement now refreshes activity. Snapshots are batched at initial
+activity, an evidence checkpoint, every 30 seconds while active, and lifecycle
+boundaries. Old measured durations may contain idle overcount and are marked
+unconfirmed. Last seen is a received observation, not a confirmed browser close.
+
+Country/city labels are network estimates. Neither GA4 nor this tracker can
+supply an exact real/fake split. Only a referring domain and provided campaign
+tags are stored; external page URLs, unprovided search queries, and earlier
+browsing history cannot be reconstructed. GA4 `(not set)` landing pages display
+as “Entry page unavailable.” Direct/unknown means no usable referral was supplied.
+
+The earlier collection repair added missing collector columns without changing
+RLS or old records (`repair_session_collection`). The schema repair was applied
+on 29 October. Session/page write failures log only error codes server-side;
+the dashboard warns when collection looks stale. No new migration is needed
+for evidence version 2 because it uses the existing JSONB column.
+
+## GA4 troubleshooting
+
+The local failure on 29 October was a moved service-account JSON file:
+`GOOGLE_APPLICATION_CREDENTIALS` referenced a nonexistent Downloads path.
+`.env.local` now points to its existing private location under Documents.
+A real seven-day GA4 request succeeded after the correction. Keys are never
+copied into the repository or frontend. Prefer a server-only
+`GA4_SERVICE_ACCOUNT_JSON` secret in hosting rather than a local file path.
+The admin API distinguishes configuration, authentication, authorization,
+request, and transient API failures with actionable messages.
+
+## Collection and legacy reporting architecture
 
 - `public/scripts/journey-tracker.js` records public page opens and active,
   visible engagement time. Admin, API, preview, test, and automated-browser
-  traffic is excluded. A one-time engagement update is sent when a visible,
-  focused visit reaches the two-second human-traffic threshold.
+  traffic is excluded. Initial activity and behavioural evidence trigger compact
+  snapshots; focused active sessions update every 30 seconds.
 - `POST /api/analytics/collect` validates and sanitises same-origin events. It
   uses the service-role client only on the server; the key is never bundled for
   the browser.

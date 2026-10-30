@@ -129,15 +129,25 @@ export const POST: APIRoute = async ({ request }) => {
                 maxScrollDepth: rawSignals.maxScrollDepth,
                 genuineClicks: rawSignals.genuineClicks,
                 pointerSamples: rawSignals.pointerSamples,
+                pointerDistance: rawSignals.pointerDistance,
+                pointerDurationMs: rawSignals.pointerDurationMs,
+                pointerDirectionChanges: rawSignals.pointerDirectionChanges,
+                pointerSpeedChanges: rawSignals.pointerSpeedChanges,
+                pointerPauses: rawSignals.pointerPauses,
+                intentionalScrollSamples: rawSignals.intentionalScrollSamples,
+                intentionalScrollDistance: rawSignals.intentionalScrollDistance,
+                scrollBursts: rawSignals.scrollBursts,
+                scrollDirectionChanges: rawSignals.scrollDirectionChanges,
+                webdriver: Boolean(rawSignals.webdriver),
                 touchInteractions: rawSignals.touchInteractions,
                 keyInteractions: rawSignals.keyInteractions,
                 contentInteractions: rawSignals.contentInteractions,
                 formSubmitted: Boolean(rawSignals.formSubmitted),
             });
 
-            // Do not spend a database write on passive or bot-like snapshots.
-            // Valid forms are promoted separately by their server endpoints.
-            if (!humanConfidence.qualified) return silentResponse();
+            // Retain limited uncertain activity for review; elapsed time never qualifies a human.
+            // Browser evidence is spoofable and does not verify identity.
+            if (!humanConfidence.recordable) return silentResponse();
 
             const headerDevice = resolveAnalyticsDevice(request.headers.get('user-agent'));
             const clientDeviceType = cleanAnalyticsString(body?.device?.type, 20);
@@ -154,7 +164,7 @@ export const POST: APIRoute = async ({ request }) => {
                 timeOffset: 0,
             });
 
-            await supabase.from('analytics_sessions').upsert({
+            const { error: sessionError } = await supabase.from('analytics_sessions').upsert({
                 id: sessionId,
                 visitor_id: visitorId,
                 source: source || 'Direct Visit',
@@ -186,8 +196,13 @@ export const POST: APIRoute = async ({ request }) => {
                 replay_data: Array.isArray(body?.replayData) ? body.replayData.slice(-100) : [],
             }, { onConflict: 'id' });
 
+            if (sessionError) {
+                console.error('[analytics] Session snapshot write failed:', sessionError.code);
+                return silentResponse();
+            }
             if (pageViews.length > 0) {
-                await supabase.from('analytics_page_views').upsert(pageViews, { onConflict: 'id' });
+                const { error: pagesError } = await supabase.from('analytics_page_views').upsert(pageViews, { onConflict: 'id' });
+                if (pagesError) console.error('[analytics] Page snapshot write failed:', pagesError.code);
             }
 
             return silentResponse();

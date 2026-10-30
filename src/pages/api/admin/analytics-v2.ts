@@ -2,6 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { authorizeAdminRequest, jsonResponse } from '../../../lib/admin/serverAuth';
+import { getMostEngagedPage, isLegacySession, isVisibleSession, MIN_SESSION_SECONDS, RECENT_SESSION_LIMIT } from '../../../lib/analytics/session-journeys.js';
 import { runGa4DashboardReport } from '../../../lib/analytics/ga4-reporting.js';
 import { getAnalyticsRangeStart, normalizeAnalyticsRange } from '../../../lib/analytics/reporting.js';
 
@@ -17,6 +18,33 @@ const cachedGa4Report = async (range: string) => {
     return value;
 };
 
+export const ga4Failure = (error: any) => {
+    const category = error?.category || 'api';
+    const messages: Record<string, string> = {
+        configuration: 'GA4 configuration needs attention. ' + (error?.message || 'Check the server credential settings.'),
+        authentication: 'Google rejected the GA4 credentials. Check whether the service-account key was revoked.',
+        authorization: 'The GA4 service account lacks access to this property. Grant it Viewer access in Google Analytics.',
+        request: 'Google rejected the GA4 property or report request. Check the property configuration.',
+        api: 'Google Analytics could not be reached. Try refreshing shortly.',
+    };
+    return { available: false, category, error: messages[category] || messages.api };
+};
+
+// PostgREST caps responses; page through all matching views so no route is silently cut off.
+const loadSessionPages = async (supabase: any, sessionIds: string[]) => {
+    const data: any[] = [];
+    for (let offset = 0; ; offset += 500) {
+        const result = await supabase.from('analytics_page_views')
+            .select('id, session_id, page_path, page_title, sequence_number, viewed_at, engaged_seconds')
+            .in('session_id', sessionIds)
+            .order('session_id').order('viewed_at').order('sequence_number').order('id')
+            .range(offset, offset + 499);
+        if (result.error) return { data: [], error: result.error };
+        data.push(...(result.data || []));
+        if ((result.data || []).length < 500) return { data, error: null };
+    }
+};
+
 export const GET: APIRoute = async ({ request, url }) => {
     const authorization = await authorizeAdminRequest(request);
     if (!authorization.ok) return authorization.response;
@@ -26,20 +54,21 @@ export const GET: APIRoute = async ({ request, url }) => {
     const startAt = getAnalyticsRangeStart(range, new Date(), timezoneOffset);
     const { supabase } = authorization;
 
-    const [gaResult, sessionsResult] = await Promise.allSettled([
+    const [gaResult, sessionsResult, latestResult] = await Promise.allSettled([
         cachedGa4Report(range),
         supabase
             .from('analytics_sessions')
-            .select('*')
+            .select('id, visitor_id, started_at, ended_at, source, country, city, landing_page, exit_page, total_engaged_seconds, human_confidence_score, human_confidence_tier, human_signals, is_returning, device_type, device_label, intent_category, intent_score, referrer_domain, utm_source, utm_medium, utm_campaign, utm_term, utm_content', { count: 'exact' })
             .gte('started_at', startAt.toISOString())
-            .in('human_confidence_tier', ['meaningful', 'high_intent', 'exceptional'])
+            .or('total_engaged_seconds.gte.5,and(human_signals->>evidenceVersion.eq.2,human_confidence_tier.in.(meaningful,high_intent,exceptional))')
             .order('started_at', { ascending: false })
-            .limit(100),
+            .limit(RECENT_SESSION_LIMIT),
+        supabase.from('analytics_sessions').select('started_at').order('started_at', { ascending: false }).limit(1),
     ]);
 
     const ga4 = gaResult.status === 'fulfilled'
         ? gaResult.value
-        : { available: false, error: 'GA4 reporting is temporarily unavailable.' };
+        : ga4Failure(gaResult.reason);
     if (gaResult.status === 'rejected') {
         console.warn('[analytics-v2] GA4 report failed:', gaResult.reason?.message || gaResult.reason);
     }
@@ -48,7 +77,9 @@ export const GET: APIRoute = async ({ request, url }) => {
         return jsonResponse({ error: 'Private journey reporting is not ready. Apply the latest analytics migration.' }, 503);
     }
 
-    const sessions = sessionsResult.value.data || [];
+    const sessions = (sessionsResult.value.data || []).filter(isVisibleSession);
+    const warnings: string[] = [];
+    if (latestResult.status === 'rejected' || latestResult.value.error) warnings.push('Could not check when collection last received a session.');
     const sessionIds = sessions.map((session) => session.id);
     let pages: any[] = [];
     let enquiries: any[] = [];
@@ -56,11 +87,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
     if (sessionIds.length > 0) {
         const [pagesResult, enquiriesResult, newsletterResult] = await Promise.all([
-            supabase
-                .from('analytics_page_views')
-                .select('id, session_id, page_path, page_title, sequence_number, viewed_at, engaged_seconds')
-                .in('session_id', sessionIds)
-                .order('sequence_number', { ascending: true }),
+            loadSessionPages(supabase, sessionIds),
             supabase
                 .from('contact_submissions')
                 .select('id, session_id, enquiry_title, submitted_at, lead_quality_status')
@@ -72,6 +99,8 @@ export const GET: APIRoute = async ({ request, url }) => {
                 .in('session_id', sessionIds)
                 .order('submitted_at', { ascending: false }),
         ]);
+        if (pagesResult.error) return jsonResponse({ error: 'Could not load session page sequences. Try refreshing.' }, 503);
+        if (enquiriesResult.error || newsletterResult.error) warnings.push('Some conversion details could not be loaded.');
         pages = pagesResult.data || [];
         enquiries = enquiriesResult.data || [];
         newsletterActions = newsletterResult.data || [];
@@ -102,9 +131,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
         const signals = session.human_signals || {};
 
-        // The database query already limits this feed to server-qualified
-        // humans. Do not reapply the former click-and-scroll gate here, because
-        // it hid legitimate readers who stayed without interacting.
+        // Legacy rows are visible but explicitly unverified; duration is not proof of a person.
         if (conversion?.status === 'spam') return [];
 
         return [{
@@ -114,6 +141,16 @@ export const GET: APIRoute = async ({ request, url }) => {
             startedAt: session.started_at,
             endedAt: session.ended_at,
             source: session.source,
+            attribution: {
+                referrerDomain: session.referrer_domain || null,
+                source: session.utm_source || null,
+                medium: session.utm_medium || null,
+                campaign: session.utm_campaign || null,
+                term: session.utm_term || null,
+                content: session.utm_content || null,
+            },
+            evidence: isLegacySession(session) ? 'legacy' : signals.evidenceVersion === 2 ? signals.evidenceLevel : 'older_measurement',
+            mostEngagedPage: getMostEngagedPage(sessionPages),
             country: session.country,
             city: session.city,
             landingPage: session.landing_page,
@@ -135,6 +172,13 @@ export const GET: APIRoute = async ({ request, url }) => {
         generatedAt: new Date().toISOString(),
         sourcePriority: ['GA4 acquisition and aggregate reporting', 'private first-party session journeys'],
         ga4,
+        warnings,
+        sessionFeed: {
+            minimumSeconds: MIN_SESSION_SECONDS,
+            limit: RECENT_SESSION_LIMIT,
+            matchingSessions: sessionsResult.value.count || 0,
+            latestCollectedAt: latestResult.status === 'fulfilled' ? latestResult.value.data?.[0]?.started_at || null : null,
+        },
         journeys: journeyCards,
     });
 };

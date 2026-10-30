@@ -261,7 +261,7 @@ export const runGa4DashboardReport = async ({
                 keyEvents: numberValue(row, 2),
             })),
             landingPages: (reports[3]?.rows || []).map((row) => ({
-                path: dimensionValue(row, 0) || '/',
+                path: dimensionValue(row, 0) || '(not set)',
                 sessions: numberValue(row, 0),
                 users: numberValue(row, 1),
                 averageSessionDuration: Math.round(numberValue(row, 2)),
