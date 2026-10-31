@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { OpportunityBusy } from './OpportunityBusy';
 import React, { useEffect, useRef, useState } from 'react';
 import { OpportunityProductUpdatesOptIn } from './OpportunityProductUpdatesOptIn';
@@ -46,6 +47,9 @@ export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialog
                 closeDialog();
             }}
         >
+            <button type="button" className="opp-radar-auth-close" onClick={closeDialog} disabled={isStarting} aria-label="Close sign-in">
+                <X size={20} aria-hidden="true" />
+            </button>
             <div className="opp-radar-auth-accent" aria-hidden="true" />
             <p className="opp-radar-auth-label">YOUR PRIVATE RADAR</p>
             <h2 id="opp-radar-auth-title">Keep this opportunity</h2>
@@ -65,9 +69,6 @@ export const OpportunityRadarSignInDialog: React.FC<OpportunityRadarSignInDialog
                     <img className="opp-google-mark" src="/images/google/g-logo.png" width="20" height="20" alt="" aria-hidden="true" />
                     <span className="opp-google-label">{isStarting ? <OpportunityBusy inline>Connecting to Google</OpportunityBusy> : 'Continue with Google'}</span>
                         <span className="opp-google-arrow" aria-hidden="true">→</span>
-                </button>
-                <button type="button" className="opp-radar-auth-cancel" onClick={closeDialog} disabled={isStarting}>
-                    Not now
                 </button>
             </div>
             <OpportunityProductUpdatesOptIn checked={productUpdatesOptIn} onChange={setProductUpdatesOptIn} disabled={isStarting} />

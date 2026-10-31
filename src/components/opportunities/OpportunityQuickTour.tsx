@@ -45,8 +45,7 @@ export function OpportunityQuickTour({ username, replayKey, suspended = false }:
         if (step === null || suspended) return;
         const shortViewport = compactViewport || (window.visualViewport?.height || innerHeight) < 500;
         const selector = shortViewport && step === 0 ? '#opportunity-save-form .opp-capture-input-shell'
-            : step === 3 && viewportWidth <= 1024 ? '#opportunity-settings-trigger'
-                : shortViewport && step === 3 ? '#opportunity-integrations .opp-telegram-quick-menu > button'
+            : step === 3 ? '#opportunity-settings-trigger'
                 : OPPORTUNITY_TOUR_STEPS[step].target;
         const target = document.querySelector<HTMLElement>(selector);
         const card = cardRef.current;

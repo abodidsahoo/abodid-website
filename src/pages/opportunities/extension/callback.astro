@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { OpportunityAppShell } from '../../../components/opportunities/OpportunityAppShell';
 import '../../../styles/portfolio-pop-editorial.css';
 import '../../../styles/opportunities-editorial.css';
 ---
@@ -11,15 +12,20 @@ import '../../../styles/opportunities-editorial.css';
     noindex={true}
     fullWidth={true}
     showGlobalGrid={false}
-    bodyClass="opportunities-editorial-page"
-    navigationVariant="next"
+    bodyClass="opportunities-editorial-page opp-app-page"
+    hideHeader={true}
+    hideFooter={true}
+    hideSideMenuRail={true}
+    showNewsletterPopup={false}
 >
-    <main class="opp-auth-callback" id="main-content">
+    <OpportunityAppShell client:load checking>
+    <section class="opp-auth-callback">
         <div>
             <h1>Connecting extension</h1>
             <div id="safari-extension-auth-wave"><span class="opp-wave-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
             <p id="safari-extension-auth-status" role="status" aria-live="polite">Keep this tab open for a moment. If Safari asks, allow Opportunity Tracker access to abodid.com so the extension can complete sign-in.</p>
             <a href="/opportunities">Open Opportunity Tracker →</a>
         </div>
-    </main>
+    </section>
+    </OpportunityAppShell>
 </BaseLayout>

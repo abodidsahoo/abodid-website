@@ -1,3 +1,4 @@
+import { OpportunityAppShell } from './OpportunityAppShell';
 import { OpportunityBusy } from './OpportunityBusy';
 import React, { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
@@ -92,7 +93,7 @@ export default function OpportunityCollectionApp({ username }: { username: strin
     }, [username]);
 
     if (loading) {
-        return <div className="opp-auth-loading" role="status"><OpportunityBusy inline={false}>Opening Opportunity Tracker</OpportunityBusy></div>;
+        return <OpportunityAppShell checking><div className="opp-auth-loading" role="status"><OpportunityBusy inline={false}>Opening Opportunity Tracker</OpportunityBusy></div></OpportunityAppShell>;
     }
 
     const isOwner = Boolean(

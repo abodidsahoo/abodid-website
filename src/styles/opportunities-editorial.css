@@ -1662,17 +1662,22 @@ body.opportunities-editorial-page :is([data-pop-surface="cream"], [data-pop-surf
 
 .opp-radar-auth-google { width: 100%; }
 
-.opp-radar-auth-cancel {
-  min-height: 42px;
-  color: var(--opp-ink);
+.opp-radar-auth-close {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
   background: transparent;
-  border: 1.5px solid rgba(21, 19, 15, 0.25);
-  border-radius: 10px;
+  color: var(--opp-ink);
   cursor: pointer;
-  font: 750 0.86rem/1 var(--opp-font);
 }
-
-.opp-radar-auth-cancel:hover { background: rgba(21, 19, 15, 0.05); }
+.opp-radar-auth-close:hover { background: rgba(21, 19, 15, 0.06); }
 
 .opp-radar-auth-error {
   padding: 9px 11px;

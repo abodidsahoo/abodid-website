@@ -1,3 +1,4 @@
+import { OpportunityAppShell } from './OpportunityAppShell';
 import { OpportunityCaptureExamples } from './OpportunityCaptureExamples';
 import { validateOpportunityAttachmentMetadata, isOpportunityImageFile, isOpportunityVideoFile } from '../../lib/opportunities/attachmentValidation';
 import { OpportunityQuickTour } from './OpportunityQuickTour';
@@ -232,15 +233,18 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
     }, [accessToken, showToast]);
 
     const beginRadarSignIn = async (productUpdatesOptIn = false) => {
-        if (!radarSignInOpportunity) return;
         setIsStartingRadarSignIn(true);
         setRadarSignInError('');
         const callback = new URL('/opportunities/auth/callback', window.location.origin);
 
         try {
-            const intent = createRadarImportIntent(radarSignInOpportunity.id, username);
-            window.sessionStorage.setItem(RADAR_IMPORT_INTENT_STORAGE_KEY, JSON.stringify(intent));
-            callback.searchParams.set('next', getRadarImportNextPath(intent));
+            if (radarSignInOpportunity) {
+                const intent = createRadarImportIntent(radarSignInOpportunity.id, username);
+                window.sessionStorage.setItem(RADAR_IMPORT_INTENT_STORAGE_KEY, JSON.stringify(intent));
+                callback.searchParams.set('next', getRadarImportNextPath(intent));
+            } else {
+                callback.searchParams.set('next', `/opportunities/${encodeURIComponent(username)}`);
+            }
             prepareProductUpdatesSignIn(callback, productUpdatesOptIn);
 
             const { error } = await supabase.auth.signInWithOAuth({
@@ -255,6 +259,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         } catch {
             discardProductUpdatesSignIn(callback);
             setRadarSignInError('Google sign-in could not start. Try again.');
+            if (!radarSignInOpportunity) showToast('Google sign-in could not start. Try again.');
             setIsStartingRadarSignIn(false);
         }
     };
@@ -1099,9 +1104,33 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
         : '/opportunities';
 
     return (
+        <OpportunityAppShell
+            signedIn={Boolean(activeViewerProfile)}
+            onSignIn={() => void beginRadarSignIn()}
+            signingIn={isStartingRadarSignIn}
+            isOwner={isOwner}
+            radarHref={viewerDashboardPath}
+            signInHref={`/opportunities?next=${encodeURIComponent(`/opportunities/${username}`)}`}
+            onStartTour={isOwner ? () => setTourReplayKey((key) => key + 1) : undefined}
+            accountActions={activeViewerProfile ? (
+                                <OpportunitySettingsMenu
+                                    accessToken={accessToken}
+                                    savedCount={isOwner ? opportunities.length : undefined}
+                                    captureError={isOwner ? captureError : ''}
+                                    isPublic={profileVisibility}
+                                    username={activeViewerProfile.username}
+                                    showQuickAccess={false}
+                                    onLogout={handleLogout}
+                                    onEditProfile={() => setIsProfileDialogOpen(true)}
+                                    onStartTour={isOwner ? () => setTourReplayKey((key) => key + 1) : undefined}
+                                    onToast={showToast}
+                                    onVisibilityChange={setProfileVisibility}
+                                />
+            ) : undefined}
+        >
         <div className="opportunities-shell">
             {/* Enlarged Curated Opportunities Hero Deck */}
-            <header className={`opp-hero-deck ${isOwner ? 'has-quick-access' : ''}`} data-pop-surface="cream">
+            <header className="opp-hero-deck" data-pop-surface="cream">
                 <div className="opp-hero-main">
                     <div className="opp-hero-header-row">
                         <div className="opp-hero-branding">
@@ -1274,36 +1303,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                         </div>
                     )}
                 </div>
-                        {activeViewerProfile ? (
-                            <div className="opp-hero-account-actions">
-                                {!isOwner && (
-                                    <a
-                                        className="opp-my-radar-link"
-                                        href={viewerDashboardPath}
-                                    >
-                                        <span aria-hidden="true">←</span>
-                                        <span>My Radar</span>
-                                    </a>
-                                )}
-                                <OpportunitySettingsMenu
-                                    accessToken={accessToken}
-                                    savedCount={isOwner ? opportunities.length : undefined}
-                                    captureError={isOwner ? captureError : ''}
-                                    isPublic={profileVisibility}
-                                    username={activeViewerProfile.username}
-                                    showQuickAccess={isOwner}
-                                    onLogout={handleLogout}
-                                    onEditProfile={() => setIsProfileDialogOpen(true)}
-                                    onStartTour={isOwner ? () => setTourReplayKey((key) => key + 1) : undefined}
-                                    onToast={showToast}
-                                    onVisibilityChange={setProfileVisibility}
-                                />
-                            </div>
-                        ) : (
-                            <a className="opp-google-signin-compact" href={`/opportunities?next=${encodeURIComponent(`/opportunities/${username}`)}`}>
-                                Sign in with Google <span aria-hidden="true">→</span>
-                            </a>
-                        )}
             </header>
 
             {/* Thin Divider Line */}
@@ -1729,30 +1728,6 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
                 </>
             )}
 
-            {/* Bottom ownership / sign-in action */}
-            <footer className="opp-public-footer">
-                {!activeViewerProfile ? (
-                    <div className="opp-curator-trigger-box">
-                        <a className="opp-curator-login-btn" href="/opportunities">
-                            Sign in to save opportunities →
-                        </a>
-                    </div>
-                ) : !isOwner ? (
-                    <div className="opp-curator-active-bar">
-                        <span className="opp-curator-badge">Viewing @{username}</span>
-                        <a className="opp-curator-logout-btn" href={viewerDashboardPath}>
-                            My Radar
-                        </a>
-                    </div>
-                ) : (
-                    <div className="opp-curator-active-bar">
-                        <span className="opp-curator-badge">
-                            {profileVisibility ? '● Public collection' : '● Private collection'}
-                        </span>
-                    </div>
-                )}
-            </footer>
-
             {/* Opportunity Detail Modal with Keyboard Arrow Navigation */}
             {(() => {
                 // Keep the open modal anchored to the full collection. A status change may
@@ -1841,6 +1816,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({
             {isLoggingOut && <div className="opp-toast" role="status"><OpportunityBusy>Signing out</OpportunityBusy></div>}
             {!isLoggingOut && toastMessage && <div className="opp-toast" role="status" aria-live="polite">{toastMessage}</div>}
         </div>
+        </OpportunityAppShell>
     );
 };
 export default OpportunityDashboard;

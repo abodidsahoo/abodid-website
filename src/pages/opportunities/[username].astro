@@ -18,10 +18,13 @@ if (!/^[a-z0-9_]{3,24}$/.test(username) || OPPORTUNITY_RESERVED_USERNAMES.has(us
     noindex={false}
     fullWidth={true}
     showGlobalGrid={false}
-    bodyClass="opportunities-editorial-page"
-    navigationVariant="next"
+    bodyClass="opportunities-editorial-page opp-app-page"
+    hideHeader={true}
+    hideFooter={true}
+    hideSideMenuRail={true}
+    showNewsletterPopup={false}
 >
-    <div id="main-content" class="opp-route-canvas">
+    <div class="opp-route-canvas">
         <OpportunityCollectionApp client:load username={username} />
     </div>
 </BaseLayout>
