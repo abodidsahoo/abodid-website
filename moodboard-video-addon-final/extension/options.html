@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Video to Moodboard settings</title><style>
+body{font:15px/1.5 system-ui,-apple-system,sans-serif;background:#f8f5ee;color:#171717;max-width:560px;margin:48px auto;padding:0 22px}h1{font-size:28px;letter-spacing:-.04em}label{display:block;font-weight:700;margin:22px 0 5px}input{display:block;box-sizing:border-box;width:100%;padding:12px;border:1px solid #888;border-radius:8px;font:inherit;background:white}button{background:#2949d4;color:white;border:0;border-radius:8px;padding:12px 20px;margin-top:20px;font:700 15px system-ui;cursor:pointer}p,small{color:#555}#status{min-height:22px}code{font-size:13px}
+</style></head><body>
+<h1>Video → GIF → Moodboard</h1>
+<p>Separate from your existing image downloader. Your Mac bridge must be installed and running. It converts the complete Pinterest video into an animated GIF <strong>under 20 MB</strong>, then the existing R2 image pipeline takes over.</p>
+<label for="localKey">Local Mac bridge pairing key</label><input id="localKey" type="password" autocomplete="off" placeholder="Printed by install-mac.sh">
+<label for="moodboardToken">Existing Moodboard API token</label><input id="moodboardToken" type="password" autocomplete="off" placeholder="Same token as your image extension">
+<button id="save" type="button">Save settings</button><button id="test" type="button" style="background:#333;margin-left:8px">Test Mac bridge</button><p id="status" role="status"></p>
+<p><small>The pairing key and API token stay in this extension's private Chrome storage. The local key is sent only to the local bridge, and the Moodboard token is sent only to abodid.com.</small></p>
+<script src="options.js"></script></body></html>

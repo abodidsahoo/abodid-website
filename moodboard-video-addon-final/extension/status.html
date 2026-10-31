@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Moodboard video activity</title><link rel="stylesheet" href="status.css"></head>
+<body>
+<header><div class="brand"><span class="brandmark" aria-hidden="true">▶</span><div><strong>Video → GIF → Moodboard</strong><small>Capture activity</small></div></div><button class="textbutton" id="settings" title="Open extension settings">Settings <span aria-hidden="true">⚙</span></button></header>
+<main>
+<div class="toolbar"><h1>Transfers</h1><button id="refresh" class="textbutton">Refresh ↻</button></div>
+<p class="notice" id="hint" role="status" aria-live="polite">Checking saved video jobs…</p>
+<div id="jobs" class="jobs" aria-live="polite"></div>
+</main>
+<footer><span class="live-dot"></span> Updates while this panel is open <span id="checked"></span></footer>
+<script src="status.js"></script>
+</body></html>

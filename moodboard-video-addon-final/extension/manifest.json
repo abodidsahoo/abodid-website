@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Send Video to Abodid Moodboard",
+  "version": "0.2.0",
+  "description": "Right-click a Pinterest video to convert the entire clip to a presentation-ready GIF and save it to your existing moodboard.",
+  "permissions": [
+    "contextMenus",
+    "notifications",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://abodid.com/*",
+    "http://127.0.0.1:39761/*",
+    "https://*.r2.cloudflarestorage.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.pinterest.com/*",
+        "*://*.pinterest.co.uk/*",
+        "*://*.pinterest.ca/*",
+        "*://*.pinterest.co.in/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "options_page": "options.html",
+  "action": {
+    "default_title": "Video \u2192 GIF \u2192 Moodboard",
+    "default_popup": "options.html"
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
+}
