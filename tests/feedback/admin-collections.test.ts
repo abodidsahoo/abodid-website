@@ -24,4 +24,15 @@ describe('private response collection authorization',()=>{
   expect(payload.rows[0]).not.toHaveProperty('metadata');expect(chain.eq).toHaveBeenCalledWith('form_id','album-form');
   expect(response.headers.get('Cache-Control')).toBe('no-store');
  });
+ it('allows authenticated admins to query NIFT and DU workshop feedback with answers', async () => {
+  results = [
+   { data: { id: 'nift-form', event_title: 'Space & Materiality', institution_name: 'NIFT Bhubaneswar' }, error: null },
+   { data: [{ id: 'nift-resp-1', created_at: '2026-11-04', participant_name: 'Luc', participant_email: 'luc@gmail.com', answers: { feedback: 'Great workshop' }, metadata: {} }], count: 1, error: null },
+  ];
+  const response = await get('nift-bhubaneswar-space-materiality-2026-11-03');
+  const payload = await response.json();
+  expect(response.status).toBe(200);
+  expect(payload.institution).toBe('NIFT Bhubaneswar');
+  expect(payload.rows[0]).toMatchObject({ name: 'Luc', email: 'luc@gmail.com', response: 'Great workshop' });
+ });
 });

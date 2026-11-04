@@ -35,6 +35,9 @@ const {
   description,
   image,
   imageAlt,
+  imageWidth,
+  imageHeight,
+  imageType,
   type,
   canonicalUrl,
   useDynamicOgImage = false,
@@ -150,6 +153,9 @@ const googleFontsUrl =
       description={resolvedSeo.description}
       image={resolvedSeo.image}
       imageAlt={resolvedSeo.imageAlt}
+      imageWidth={imageWidth}
+      imageHeight={imageHeight}
+      imageType={imageType}
       type={finalOgType}
       canonicalUrl={finalCanonicalUrl}
       useDynamicOgImage={finalUseDynamicOgImage}

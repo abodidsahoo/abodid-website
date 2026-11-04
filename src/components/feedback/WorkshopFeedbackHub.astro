@@ -5,6 +5,7 @@ import WorkshopQuestion from './WorkshopQuestion.astro';
 import type { FeedbackForm } from '../../lib/feedback/schema';
 import { ALBUM_SLUG } from '../../lib/feedback/collections';
 import { niftWorkshop as workshop } from '../../data/niftWorkshop';
+import { niftShare } from '../../data/niftShare';
 import '../../styles/feedback/workshop-hub.css';
 
 interface Props {
@@ -25,9 +26,10 @@ const pdfs = content.resources.slice(0, 2);
 const demo = content.resources[2];
 ---
 
-<BaseLayout title={submitted ? `${workshop.title} — Lecture Resources` : `${workshop.title} — Lecture Feedback`}
-    description="Share feedback and access the NIFT Bhubaneswar lecture PDFs and tessellation demo."
-    noindex={submitted} image={content.image} useDynamicOgImage={!content.image} fullWidth={true}
+<BaseLayout title={submitted ? `${workshop.title} — Lecture Resources` : niftShare.title}
+    description={niftShare.description} image={niftShare.image} imageAlt={niftShare.imageAlt}
+    imageWidth={niftShare.width} imageHeight={niftShare.height} imageType="image/jpeg"
+    noindex={submitted} useDynamicOgImage={false} fullWidth={true}
     hideHeader={true} hideFooter={true} hideSideMenuRail={true} hideThemeToggle={true}
     showNewsletterPopup={false} showGlobalGrid={false} showCursorFollower={false}
     enableAnalytics={!submitted}

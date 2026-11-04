@@ -4,7 +4,7 @@ const { slug, title } = Astro.props;
 const loginHref = `/admin/login?next=${encodeURIComponent(Astro.url.pathname)}`;
 ---
 <section class="private-responses" data-private-responses data-collection={slug}>
-    <header><a href="/admin/dashboard">← Dashboard</a><h1>{title}</h1><p>Private responses, visible only to your admin account.</p>
+    <header><a href="/admin/feedback">← Feedback Hub</a><a href="/admin/dashboard">Dashboard</a><h1>{title}</h1><p>Private responses, visible only to your admin account.</p>
         <nav aria-label="Private collections"><a href="/admin/photo-album-responses">Album thoughts</a><a href="/admin/photography-interest">Workshop + photo walk interest</a></nav>
     </header>
     <p data-private-status role="status">Loading…</p>

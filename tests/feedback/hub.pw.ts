@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { load } from 'cheerio';
 import { createReceipt, NIFT_SLUG, RECEIPT_COOKIE } from '../../src/lib/feedback/receipt';
 
 const path = '/nift-workshop-feedback';
@@ -9,6 +10,26 @@ const receiptHeaders = { 'Set-Cookie': `${RECEIPT_COOKIE}=${receipt}; Path=${res
 
 test.beforeEach(async ({ page }) => {
     await page.route('https://**', (route) => route.abort());
+});
+
+test('serves a complete share preview to anonymous WhatsApp crawlers', async ({ playwright, baseURL }) => {
+    const crawler = await playwright.request.newContext({ baseURL, userAgent: 'WhatsApp/2.24.6.77 A' });
+    try {
+        const response = await crawler.get(path);
+        expect(response.status()).toBe(200);
+        const $ = load(await response.text());
+        const meta = (name: string) => $(`meta[property="${name}"]`).attr('content');
+        expect(meta('og:url')).toBe('https://abodid.com/nift-workshop-feedback');
+        expect(meta('og:title')).toBe('NIFT Bhubaneswar — Feedback & Resources | Abodid Sahoo');
+        expect(meta('og:description')).toContain('Thanks for joining!');
+        expect(meta('og:image')).toBe('https://abodid.com/images/og/nift-workshop-feedback.jpg');
+        expect(meta('og:image:width')).toBe('1200');
+        expect(meta('og:image:height')).toBe('630');
+        expect(meta('og:image:type')).toBe('image/jpeg');
+        const image = await crawler.get('/images/og/nift-workshop-feedback.jpg');
+        expect(image.status()).toBe(200);
+        expect(image.headers()['content-type']).toContain('image/jpeg');
+    } finally { await crawler.dispose(); }
 });
 
 test('shows only the compact preview before feedback and protects the resources page', async ({ page }) => {
@@ -40,7 +61,7 @@ test('keeps the correct downloads, metadata and sharing notice on the resources 
     await page.goto(resourcesPath, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { name: 'Lecture resources', exact: true })).toBeVisible();
     await expect(page.locator('.hub-session-card')).toHaveCount(2);
-    const pdfs = page.locator('.hub-session-card .hub-button');
+    const pdfs = page.locator('.hub-session-card .hub-button').filter({ hasText: 'View Online' });
     await expect(pdfs.nth(0)).toHaveAttribute('href', 'https://drive.google.com/file/d/1am-OG6yy9n8bf8vGucJ8BHVxWuSMPxHt/view?usp=sharing');
     await expect(pdfs.nth(1)).toHaveAttribute('href', 'https://drive.google.com/file/d/1d8fC90updrTx0kMZ4ydlgG9yyH5C5-w5/view?usp=sharing');
     await expect(page.locator('.hub-file-meta').nth(0)).toHaveText('PDF · 40 pages · 230 MB');
@@ -51,8 +72,8 @@ test('keeps the correct downloads, metadata and sharing notice on the resources 
     const box = await page.locator('.hub-session-card').first().boundingBox();
     expect(box!.height).toBeLessThan(300);
     await expect(page.getByRole('link', { name: 'View my photography' })).toHaveAttribute('href', '/photography');
-    await expect(page.locator('.hub-album-invitation')).toContainText('Your thoughts stay private, just for me.');
-    await expect(page.locator('[name=album_thoughts]')).toHaveCount(0);
+    await expect(page.locator('.hub-album-thoughts-form')).toContainText('Your thoughts won’t appear on any public page.');
+    await expect(page.locator('[name=album_thoughts]')).toHaveCount(1);
 });
 
 test('does not request the collage on phones and keeps its laptop block compact', async ({ page }) => {
@@ -84,10 +105,10 @@ test('saves workshop interest independently, retains a failed selection, and loa
     await expect(page.locator('[data-feedback-initialized=true]')).toBeVisible();
     expect(tracking).toEqual([]);
     await page.getByLabel('Yes, I am interested.').check();
-    await page.getByRole('button', { name: 'Save my interest' }).click();
+    await page.locator('[data-photography-form]').getByRole('button', { name: 'Send', exact: true }).click();
     await expect(page.locator('[data-photography-status]')).toHaveText('Please retry your private response.');
     await expect(page.locator('[name=photography_interest]')).toBeChecked();
-    await page.getByRole('button', { name: 'Save my interest' }).click();
+    await page.locator('[data-photography-form]').getByRole('button', { name: 'Send', exact: true }).click();
     await expect(page.locator('[data-photography-status]')).toHaveText('Thanks! Your interest is saved.');
     expect(bodies[1]).not.toContain('album_thoughts'); expect(bodies[1]).toContain('photography_interest');
     await expect(page.locator('.hub-session-card .hub-button').first()).toBeVisible();
@@ -157,7 +178,7 @@ test('reflows at phone, tablet, laptop and breakpoint widths with usable targets
         await expect(page.locator('[data-feedback-initialized=true]')).toBeVisible();
         const sizes = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
         expect(sizes.scroll, `${width}px`).toBeLessThanOrEqual(sizes.client);
-        for (const button of await page.locator('.hub-button, .hub-progress a, .hub-brand, .hub-text-link').all()) {
+        for (const button of await page.locator('.hub-button:visible, .hub-progress a:visible, .hub-brand:visible, .hub-text-link:visible').all()) {
             const box = await button.boundingBox();
             expect(box!.height).toBeGreaterThanOrEqual(48);
             expect(box!.width).toBeGreaterThanOrEqual(48);
@@ -194,7 +215,7 @@ test('supports native feedback-to-resources navigation without JavaScript', asyn
     await expect(page.locator('.hub-session-card')).toHaveCount(2);
     await page.route('**/nift-workshop-resources/follow-up', (route) => route.fulfill({ status: 303, headers: { location: resourcesPath + '?interest=saved#photography' } }));
     await page.getByLabel('Yes, I am interested.').check();
-    await page.getByRole('button', { name: 'Save my interest' }).click();
+    await page.locator('[data-photography-form]').getByRole('button', { name: 'Send', exact: true }).click();
     await expect(page.locator('[data-photography-status]')).toHaveText('Thanks! Your interest is saved.');
     await context.close();
 });

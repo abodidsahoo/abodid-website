@@ -114,18 +114,20 @@ A database claim prevents concurrent sends. The same provider idempotency key an
 
 Durable, HMAC-keyed limits reuse the existing service-only `consume_contact_rate_limit` RPC, in a separate `feedback-resources` namespace: 3 attempts/recipient/hour, 100/client IP/hour and 300 total/hour. Mail fails closed if the limiter or receipt storage is unavailable; feedback still succeeds. No raw IP is persisted in the mail ledger. The sender uses `FEEDBACK_RESOURCES_FROM_EMAIL`, then the existing contact notification sender, then `Abodid Sahoo <contact@abodid.com>`. `RESEND_API_KEY` stays server-only.
 
-## Pending local changes and publication
+## NIFT publication and share preview
 
-Development merges `src/data/feedbackContent.pending.json` and `src/data/feedbackQuestions.pending.json` for local review. A changed question set previews the next form version; logically identical JSON does not increment it again. Production reads database content/questions until the migrations are applied.
+Development merges `src/data/feedbackContent.pending.json` and `src/data/feedbackQuestions.pending.json` for local review. A changed question set previews the next form version; logically identical JSON does not increment it again. Production always reads database content/questions. The retained development fixtures now match the published configuration.
 
 Review locally without submitting or sending email:
 
 - `/nift-workshop-feedback`
 - `/nift-workshop-resources?preview=resources` (development-only review bypass, absent in production)
 
-When publication is authorized, apply the pending `20261104035239_nift_feedback_pdf_resources.sql` and then `20261104073339_nift_lecture_feedback_and_resource_email.sql`, immediately before deploying this release. The latter replaces NIFT’s four questions with the new `feedback` ID, increments its version via the existing trigger, creates the mail ledger, and restricts the legacy DU backup to service access. It also fixes that backup’s trigger search path. Existing answers, snapshots, response IDs and timestamps are not modified. DU’s form configuration remains unchanged. Remove local drafts after verifying database configuration matches the release. Those earlier NIFT UI/email migrations remain unapplied; the independent private collection seed and resource email storage are applied for functional localhost use.
+Applied on 4 November 2026: `20261104123947_nift_feedback_pdf_resources.sql` and `20261104123950_nift_lecture_feedback_and_resource_email.sql`. The NIFT form is now version 2 with the single `feedback` question and both Google Drive PDFs. The legacy DU backup is restricted to service access and its trigger search path is fixed. Existing answers, snapshots, response IDs and timestamps were preserved (14 NIFT responses at verification). DU’s form configuration remains unchanged. The independent private collection seed and resource email storage migrations are also applied.
 
-The shared responses viewer already renders each row’s question snapshot, so historical four-question responses and new one-question responses coexist without an admin-view rewrite. A source audit found no separate admin feedback editor or browser access to the legacy DU table. The legacy table’s broad authenticated policies are unnecessary for the current server-rendered views; the staged migration removes them and revokes direct browser access while preserving the backup and mirror trigger.
+The public feedback page has a static, crawler-readable Open Graph/Twitter preview with a 1200×630 JPEG (about 82 KB), built from the existing collage on a cream background. Copy and image metadata live in `src/data/niftShare.ts`. Regenerate with `node scripts/generate-nift-share-image.mjs`, optionally supplying the original PNG path as its first argument. Share `https://abodid.com/nift-workshop-feedback`; localhost is only available on the development machine.
+
+The shared responses viewer already renders each row’s question snapshot, so historical four-question responses and new one-question responses coexist without an admin-view rewrite. A source audit found no separate admin feedback editor or browser access to the legacy DU table. The legacy table’s broad authenticated policies are unnecessary for the current server-rendered views; the applied migration removes them and revokes direct browser access while preserving the backup and mirror trigger.
 
 Responsive checks cover 1440×900, 1024×768, 768×1024, 390×844 and 320×568, plus breakpoint neighbors. Tests cover the protected redirect, receipt reload, 48px action targets, missing images, 200% text, a 2× layout-zoom equivalent, reduced motion, preserved drafts, and native submission without JavaScript. The browser suite mocks POST requests and provider calls. Additional real integration checks use temporary private or archived fixtures and remove them immediately; no resource emails are sent.
 

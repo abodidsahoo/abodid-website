@@ -31,6 +31,7 @@ import HomeCardsManager from './HomeCardsManager';
 import LabExperimentsManager from './LabExperimentsManager';
 import DesignStudio from './DesignStudio';
 import MediaMentionsManager from './MediaMentionsManager';
+import FeedbackAdminHub from './FeedbackAdminHub';
 import { OpportunityDetailModal } from '../opportunities/OpportunityDetailModal';
 import { getOpportunityActionAt, selectAttentionOpportunities } from '../../lib/opportunities/attention';
 import { formatDaysRemaining, formatOpportunityTitle } from '../../lib/opportunities/ui-helpers';
@@ -58,6 +59,7 @@ import {
     LogOut,
     Mail,
     Menu,
+    MessageSquareQuote,
     PenLine,
     Palette,
     ScanSearch,
@@ -111,6 +113,7 @@ const NAV_GROUPS = [
         id: 'connect',
         label: 'Connect',
         sections: [
+            { id: 'feedback', label: 'Feedback', icon: MessageSquareQuote },
             { id: 'network_intelligence', label: 'Contacts', icon: Network },
             { id: 'newsletter', label: 'Newsletters', icon: Mail },
             { id: 'opportunities', label: 'Opportunity Tracker', icon: CalendarClock },
@@ -150,6 +153,7 @@ const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 const SECTION_PATHS = {
     dashboard: '/admin/dashboard',
     opportunities: '/admin/opportunities',
+    feedback: '/admin/feedback',
 };
 const REQUEST_TIMEOUT_MS = 8000;
 const WORLD_CLOCKS = [
@@ -869,7 +873,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
             </aside>
 
             {/* Main Content Area */}
-            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' ? 'analytics-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'media_mentions' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'instagram' || activeSection === 'opportunities' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
+            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' ? 'analytics-main' : ''} ${activeSection === 'feedback' || activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'media_mentions' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'instagram' || activeSection === 'opportunities' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
                 <div className="mobile-studio-bar">
                     <button
                         type="button"
@@ -1067,6 +1071,12 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                         </div>
                     )}
 
+                    {activeSection === 'feedback' && (
+                        <SectionErrorBoundary>
+                            <FeedbackAdminHub accessToken={session?.access_token} />
+                        </SectionErrorBoundary>
+                    )}
+
                     {activeSection === 'users' && (
                         <SectionErrorBoundary>
                             <UserList />
@@ -1213,7 +1223,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'media_mentions' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'instagram' && activeSection !== 'opportunities' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'feedback' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'media_mentions' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'instagram' && activeSection !== 'opportunities' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
                         <SectionErrorBoundary key={activeSection}>
                             <ListView
                                 table={activeSection}

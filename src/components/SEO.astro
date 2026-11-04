@@ -5,6 +5,9 @@ export interface Props {
     image?: string;
     type?: "website" | "article";
     imageAlt?: string;
+    imageWidth?: number;
+    imageHeight?: number;
+    imageType?: string;
     useDynamicOgImage?: boolean;
     noindex?: boolean;
     robots?: string;
@@ -20,6 +23,9 @@ const {
     image,
     type = "website",
     imageAlt,
+    imageWidth,
+    imageHeight,
+    imageType,
     useDynamicOgImage = false,
     noindex = false,
     robots,
@@ -82,6 +88,10 @@ const serializeJsonLd = (item: Record<string, unknown>) =>
 <meta property="og:title" content={formattedTitle} />
 <meta property="og:description" content={description} />
 {ogImage && <meta property="og:image" content={ogImage} />}
+{ogImage?.startsWith('https:') && <meta property="og:image:secure_url" content={ogImage} />}
+{ogImage && imageType && <meta property="og:image:type" content={imageType} />}
+{ogImage && imageWidth && <meta property="og:image:width" content={imageWidth} />}
+{ogImage && imageHeight && <meta property="og:image:height" content={imageHeight} />}
 {ogImage && <meta property="og:image:alt" content={socialImageAlt} />}
 
 <!-- Twitter -->
