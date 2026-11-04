@@ -114,6 +114,12 @@ body.workshop-hub-route {
 .hub-resource-preview strong { font-size: 1rem; font-weight: 700; }
 .hub-resource-preview small { color: var(--hub-white); font-size: .78rem; font-weight: 450; letter-spacing: normal; line-height: 1.4; }
 .hub-resource-preview small > span { display: block; }
+.hub-social-links { display: flex; flex-wrap: wrap; column-gap: 24px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #8297ed; }
+.hub-social-links a { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; min-width: 48px; color: var(--hub-white); font-size: .85rem; font-weight: 650; text-decoration: none; }
+.hub-social-links a:hover { color: var(--hub-white); }
+.hub-social-links a:hover span { text-decoration: underline; text-underline-offset: 4px; }
+.hub-social-links a:focus-visible { outline-color: var(--hub-yellow); }
+.hub-social-links svg { flex: 0 0 22px; width: 22px; height: 22px; }
 .hub-preview-thumbnail { flex: 0 0 120px; width: 120px; height: auto; aspect-ratio: 16/9; object-fit: contain; border: 1px solid #8297ed; border-radius: 7px; }
 .hub-file-badge { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 42px; border: 1px solid var(--hub-yellow); color: var(--hub-yellow); border-radius: 6px; font-size: .65rem; font-weight: 800; }
 .hub-disclosure--blue { border-color: #8297ed; }
