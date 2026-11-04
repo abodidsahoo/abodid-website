@@ -184,6 +184,7 @@ body.workshop-hub-route {
 .hub-workshop-details .hub-disclosure-body { max-width: 70ch; font-size: .95rem; }
 .hub-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 32px 24px 24px; color: var(--hub-white); }
 .hub-footer > div { display: grid; gap: 4px; }
+.hub-footer .hub-social-links { margin: 0; padding: 0; border: 0; }
 .hub-footer strong { font-size: 1rem; }
 .hub-footer > div > span { font-size: .8rem; }
 .hub-text-link { display: inline-flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; color: var(--hub-white); font-size: .9rem; font-weight: 700; text-decoration: none; }
