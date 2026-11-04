@@ -1,16 +1,14 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
+import { maxUploadBytes, normalizeUploadContentType } from "../../../../lib/media/uploadPolicy";
 import {
     authorizeAdminRequest,
     jsonResponse,
 } from "../../../../lib/admin/serverAuth";
 import {
     createPresignedR2Upload,
-    isAllowedImageMimeType,
     makeAvailableR2ObjectKey,
-    MAX_IMAGE_SIZE_BYTES,
-    MAX_MEDIA_SIZE_BYTES,
     normalizeR2FolderPath,
 } from "../../../../lib/media/r2";
 
@@ -22,20 +20,16 @@ export const POST: APIRoute = async ({ request }) => {
         const body = await request.json();
         const filename = typeof body?.filename === "string" ? body.filename.trim() : "";
         const contentType =
-            typeof body?.contentType === "string" ? body.contentType.trim().toLowerCase() : "";
+            normalizeUploadContentType(body?.contentType);
         const size = Number(body?.size);
         const folder = normalizeR2FolderPath(body?.folder);
 
         if (!filename || filename.length > 255) {
             return jsonResponse({ error: "Choose a media file with a valid filename." }, 400);
         }
-        if (!isAllowedImageMimeType(contentType)) {
-            return jsonResponse({ error: "Unsupported file type. Use images, videos, audio or documents." }, 400);
-        }
-        const isLargeMediaOrDoc = contentType.startsWith("video/") || contentType === "application/pdf";
-        const maxSize = isLargeMediaOrDoc ? MAX_MEDIA_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
+        const maxSize = maxUploadBytes(contentType);
         if (!Number.isSafeInteger(size) || size <= 0 || size > maxSize) {
-            return jsonResponse({ error: `File must be ${isLargeMediaOrDoc ? "100 MB" : "20 MB"} or smaller.` }, 400);
+            return jsonResponse({ error: `File must be ${maxSize / (1024 * 1024)} MB or smaller.` }, 400);
         }
 
         const objectKey = await makeAvailableR2ObjectKey(folder, filename);

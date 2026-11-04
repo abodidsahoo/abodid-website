@@ -59,6 +59,7 @@ const {
   initialBackgroundColor = null,
   moodboardSurface = null,
   analyticsProjectId = null,
+  enableAnalytics = true,
   navigationVariant = "legacy",
 } = Astro.props;
 const useNextNavigation = navigationVariant === "next";
@@ -109,7 +110,7 @@ const googleFontsUrl =
 
 <html lang="en">
   <head>
-    <GoogleAnalytics />
+    {enableAnalytics && <GoogleAnalytics />}
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -188,7 +189,7 @@ const googleFontsUrl =
         document.documentElement.style.colorScheme = nextTheme;
       })();
     </script>
-    <ApolloTracker />
+    {enableAnalytics && <ApolloTracker />}
   </head>
   <body
     data-grid-variant={gridVariant}
@@ -214,7 +215,7 @@ const googleFontsUrl =
     {showNewsletterPopup && <NewsletterPopup client:idle />}
     {cursorFollowerEnabled && <MagneticCursorFollower client:idle />}
 
-    <script src="/scripts/journey-tracker.js" defer></script>
+    {enableAnalytics && <script src="/scripts/journey-tracker.js" defer></script>}
     <script is:inline>
       if ('serviceWorker' in navigator) {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {

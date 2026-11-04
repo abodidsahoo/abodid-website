@@ -1,4 +1,5 @@
 import {
+    CopyObjectCommand,
     DeleteObjectsCommand,
     GetObjectCommand,
     HeadObjectCommand,
@@ -355,6 +356,13 @@ export const listR2Folder = async (folder: unknown, bucketOverride?: string) => 
     };
 };
 
+export const listAllR2Files = async () => {
+    const config = getR2Config();
+    const client = createR2Client(config);
+    const { scanLibraryOriginals } = await import('./libraryScan');
+    return { config, ...await scanLibraryOriginals((input) => client.send(new ListObjectsV2Command({ Bucket: config.bucket, ...input })), R2_SEARCH_MAX_OBJECTS) };
+};
+
 export const searchR2Folder = async (folder: unknown, searchValue: unknown) => {
     const config = getR2Config();
     const client = createR2Client(config);
@@ -504,6 +512,29 @@ export const createPresignedR2Upload = async ({
             "Cache-Control": R2_CACHE_CONTROL,
         },
     };
+};
+
+export const streamR2Object = async (objectKey: string) => {
+    const key = assertSafeR2ObjectKey(objectKey);
+    const config = getR2Config();
+    const object = await createR2Client(config).send(new GetObjectCommand({
+        Bucket: config.bucket,
+        Key: key,
+    }));
+    if (!object.Body) throw new Error("The file could not be read from R2.");
+    return object.Body.transformToWebStream();
+};
+
+export const copyR2Object = async (sourceKey: string, destinationKey: string) => {
+    const config = getR2Config();
+    const source = assertSafeR2ObjectKey(sourceKey);
+    const destination = assertSafeR2ObjectKey(destinationKey);
+    await createR2Client(config).send(new CopyObjectCommand({
+        Bucket: config.bucket,
+        CopySource: `${config.bucket}/${source.split('/').map(encodeURIComponent).join('/')}`,
+        Key: destination,
+        MetadataDirective: 'COPY',
+    }));
 };
 
 export const putR2Object = async ({

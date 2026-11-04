@@ -1,0 +1,12 @@
+{
+  "nift-bhubaneswar-space-materiality-2026-11-03": [
+    {
+      "id": "feedback",
+      "label": "Your feedback",
+      "shortLabel": "Feedback",
+      "type": "textarea",
+      "placeholder": "What did you think of the lecture and how it was conducted?",
+      "required": true
+    }
+  ]
+}

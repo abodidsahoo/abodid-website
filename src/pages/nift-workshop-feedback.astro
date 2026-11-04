@@ -1,0 +1,12 @@
+---
+import WorkshopFeedbackHub from '../components/feedback/WorkshopFeedbackHub.astro';
+import { getFeedbackForm } from '../lib/feedback/server';
+import { requestReceipt } from '../lib/feedback/receipt';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+const form = await getFeedbackForm('nift-bhubaneswar-space-materiality-2026-11-03');
+if (!form) return new Response('Feedback form not found.', { status: 404 });
+---
+
+<WorkshopFeedbackHub form={form} canAccessResources={Boolean(requestReceipt(Astro.request))} />

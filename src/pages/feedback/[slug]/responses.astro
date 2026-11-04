@@ -1,0 +1,14 @@
+---
+import FeedbackResponses from '../../../components/feedback/FeedbackResponses.astro';
+import { getFeedbackForm } from '../../../lib/feedback/server';
+import { responsesPath } from '../../../lib/feedback/schema';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+const form = await getFeedbackForm(Astro.params.slug || '');
+if (!form || !form.responses_public) return new Response('Feedback form not found.', { status: 404 });
+const canonicalPath = responsesPath(form.slug);
+if (canonicalPath !== Astro.url.pathname) return Astro.redirect(canonicalPath + Astro.url.search, 308);
+---
+
+<FeedbackResponses form={form} />

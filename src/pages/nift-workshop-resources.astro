@@ -1,0 +1,38 @@
+---
+import WorkshopFeedbackHub from '../components/feedback/WorkshopFeedbackHub.astro';
+import { getFeedbackForm, getPrivatePhotography } from '../lib/feedback/server';
+import { NIFT_SLUG, requestReceipt, receiptCookie, clearLegacyReceiptCookie, followUpToken } from '../lib/feedback/receipt';
+import { ALBUM_SLUG } from '../lib/feedback/collections';
+import { UUID_PATTERN } from '../lib/feedback/schema';
+import { feedbackClient } from '../lib/feedback/server';
+import { loadIdentity, requestIdentity } from '../lib/feedback/identity';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+// Local review bypass creates no response and is excluded from production.
+const review = import.meta.env.DEV && Astro.url.searchParams.get('preview') === 'resources';
+const access = requestReceipt(Astro.request);
+const receipt = access?.receipt;
+if (!review && !receipt) {
+    return Astro.redirect('/nift-workshop-feedback', 303);
+}
+if (access) {
+    Astro.response.headers.append('Set-Cookie', receiptCookie(access.value, Astro.request));
+    Astro.response.headers.append('Set-Cookie', clearLegacyReceiptCookie(Astro.request));
+}
+const form = await getFeedbackForm(NIFT_SLUG);
+if (!form) return new Response('Lecture not found.', { status: 404 });
+const albumForm = await getFeedbackForm(ALBUM_SLUG);
+const client = feedbackClient();
+const photography = receipt && UUID_PATTERN.test(receipt.id) ? await getPrivatePhotography(form.id, receipt.id) : undefined;
+const source = receipt && UUID_PATTERN.test(receipt.id)
+    ? (await client.from('feedback_responses').select('id,metadata,participant_name,participant_email').eq('id', receipt.id).maybeSingle()).data
+    : null;
+const participantKey = source?.metadata?.participant_id || receipt?.id;
+const recipient = participantKey ? await loadIdentity(client, participantKey) : null;
+const cookieRecipient = await requestIdentity(client, Astro.request);
+const recipientEmail = recipient?.email || source?.participant_email || cookieRecipient?.email || '';
+---
+
+<WorkshopFeedbackHub form={form} stage="resources" photography={photography} followUpToken={receipt ? followUpToken(receipt) : ''} recipientEmail={recipientEmail} albumForm={albumForm} />

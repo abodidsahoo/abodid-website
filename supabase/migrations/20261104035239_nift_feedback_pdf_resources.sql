@@ -1,0 +1,8 @@
+-- Pending publication: apply after deploying the updated resources UI, after review.
+-- This changes collection content only; questions, responses and form_version are preserved.
+begin;
+update public.feedback_forms
+set content = content || '{"resourceNote": "Share your feedback to collect both session PDFs with high-resolution images, plus the tessellation demo.", "successNote": "Thanks for sharing your thoughts. Here are the two session PDFs with high-resolution images, and the tessellation demo to revisit.", "resourceInstructions": "Open a session PDF in Google Drive, then use Download to save the high-resolution file.", "resourceNotice": {"title": "For NIFT workshop participants", "text": "These two PDFs are for participants within the NIFT community. Please keep them within that group. Do not share them publicly or upload them to any platform."}, "resources": [{"label": "Session 1 — The Retail Window (PDF)", "url": "https://drive.google.com/file/d/1am-OG6yy9n8bf8vGucJ8BHVxWuSMPxHt/view?usp=sharing", "description": "High-resolution PDF · 230 MB. Storefront design, materials, props, and offbeat window display ideas."}, {"label": "Session 2 — Tanishq Case Study (PDF)", "url": "https://drive.google.com/file/d/1d8fC90updrTx0kMZ4ydlgG9yyH5C5-w5/view?usp=sharing", "description": "High-resolution PDF · 101 MB. The Bhubaneswar flagship store, industry workflow, logistics, constraints, and budgeting."}, {"label": "Try the Tessellation Demo", "url": "https://tiled.art/en/art/TurtleIsland/", "description": "Explore how a single tile becomes a repeating pattern."}]}'::jsonb
+where slug = 'nift-bhubaneswar-space-materiality-2026-11-03';
+notify pgrst, 'reload schema';
+commit;

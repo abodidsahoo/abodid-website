@@ -1,0 +1,70 @@
+---
+interface Props { slug: string; title: string }
+const { slug, title } = Astro.props;
+const loginHref = `/admin/login?next=${encodeURIComponent(Astro.url.pathname)}`;
+---
+<section class="private-responses" data-private-responses data-collection={slug}>
+    <header><a href="/admin/dashboard">← Dashboard</a><h1>{title}</h1><p>Private responses, visible only to your admin account.</p>
+        <nav aria-label="Private collections"><a href="/admin/photo-album-responses">Album thoughts</a><a href="/admin/photography-interest">Workshop + photo walk interest</a></nav>
+    </header>
+    <p data-private-status role="status">Loading…</p>
+    <a data-private-login href={loginHref} hidden>Sign in to your admin account</a>
+    <div class="private-table-wrap" tabindex="0" aria-label="Private responses table" hidden data-private-table>
+        <table><thead><tr><th>Date</th><th>Name</th><th>Email</th><th>Response</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="private-actions"><button type="button" data-private-prev hidden>← Previous</button><button type="button" data-private-next hidden>Next →</button><button type="button" data-private-csv hidden>Download this page (CSV)</button></div>
+</section>
+<script>
+    import { supabase } from '../../lib/supabaseClient';
+    const root = document.querySelector<HTMLElement>('[data-private-responses]');
+    if (root) {
+        const status = root.querySelector<HTMLElement>('[data-private-status]')!;
+        const prev = root.querySelector<HTMLButtonElement>('[data-private-prev]')!;
+        const next = root.querySelector<HTMLButtonElement>('[data-private-next]')!;
+        const csv = root.querySelector<HTMLButtonElement>('[data-private-csv]')!;
+        let page = 1; let rows: Array<Record<string, string>> = [];
+        async function load() {
+            status.textContent = 'Loading…'; prev.disabled = next.disabled = csv.disabled = true;
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) { root!.querySelector<HTMLElement>('[data-private-login]')!.hidden = false; throw new Error('Please sign in to view these private responses.'); }
+                const response = await fetch(`/api/admin/feedback/${root!.dataset.collection}?page=${page}`, { headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store' });
+                const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Could not load responses.');
+                rows = result.rows; const body = root!.querySelector('tbody')!; body.replaceChildren();
+                for (const row of rows) {
+                    const tr = document.createElement('tr');
+                    for (const value of [new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(row.created_at)), row.name || 'Anonymous', row.email || '—', row.response]) {
+                        const td = document.createElement('td'); td.textContent = value; tr.append(td);
+                    }
+                    body.append(tr);
+                }
+                status.textContent = `${result.total} responses · Page ${page} of ${Math.max(1, Math.ceil(result.total / 50))}`;
+                root!.querySelector<HTMLElement>('[data-private-table]')!.hidden = rows.length === 0;
+                prev.hidden = page <= 1; next.hidden = page * 50 >= result.total; csv.hidden = !rows.length;
+            } catch (error) { status.textContent = error instanceof Error ? error.message : 'Could not load responses.'; }
+            finally { prev.disabled = next.disabled = csv.disabled = false; }
+        }
+        prev.addEventListener('click', () => { page--; load(); }); next.addEventListener('click', () => { page++; load(); });
+        csv.addEventListener('click', () => {
+            const fields = ['id', 'participant_id', 'created_at', 'name', 'email', 'response'];
+            const escape = (value: string) => '"' + (/^\s*[=+\-@]/.test(value) ? "'" : '') + value.replaceAll('"', '""') + '"';
+            const contents = [fields.join(','), ...rows.map((row) => fields.map((field) => escape(String(row[field] || ''))).join(','))].join('\r\n');
+            const url = URL.createObjectURL(new Blob(['\uFEFF', contents], { type: 'text/csv;charset=utf-8' }));
+            const a = document.createElement('a'); a.href = url; a.download = `${root!.dataset.collection}-page-${page}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        });
+        load();
+    }
+</script>
+<style>
+    .private-responses { max-width: 1320px; margin-inline: auto; padding: 24px; }
+    h1 { font-size: clamp(1.8rem,2.5vw,3rem); line-height: 1.1; margin-block: 20px 12px; }
+    p { line-height: 1.5; margin-block: 16px; }
+    nav, .private-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-block: 20px; }
+    a, button { min-height: 48px; display: inline-flex; align-items: center; padding: 10px 14px; border: 1px solid currentColor; border-radius: 8px; color: inherit; }
+    button { background: var(--bg-color); cursor: pointer; }
+    .private-table-wrap { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; }
+    td, th { padding: 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border-color); white-space: pre-wrap; overflow-wrap: anywhere; }
+    td:last-child { min-width: 260px; }
+    [hidden] { display: none !important; }
+</style>

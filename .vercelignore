@@ -1,4 +1,6 @@
 node_modules
+**/.next
+.tools/yt-dlp
 dist
 .astro
 .vercel

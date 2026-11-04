@@ -1,0 +1,287 @@
+---
+import { randomUUID } from 'node:crypto';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WorkshopQuestion from './WorkshopQuestion.astro';
+import type { FeedbackForm } from '../../lib/feedback/schema';
+import { ALBUM_SLUG } from '../../lib/feedback/collections';
+import { niftWorkshop as workshop } from '../../data/niftWorkshop';
+import '../../styles/feedback/workshop-hub.css';
+
+interface Props {
+    form: FeedbackForm;
+    stage?: 'feedback' | 'resources';
+    photography?: { photography_interest: boolean };
+    followUpToken?: string;
+    canAccessResources?: boolean;
+    recipientEmail?: string;
+    albumForm?: FeedbackForm | null;
+}
+const { form, stage = 'feedback', photography, followUpToken = '', canAccessResources = false, recipientEmail = '', albumForm } = Astro.props;
+const { content } = form;
+const submitted = stage === 'resources';
+const resourcesUnlocked = submitted || canAccessResources;
+const emailStatus = Astro.url.searchParams.get('resource_email');
+const pdfs = content.resources.slice(0, 2);
+const demo = content.resources[2];
+---
+
+<BaseLayout title={submitted ? `${workshop.title} — Lecture Resources` : `${workshop.title} — Lecture Feedback`}
+    description="Share feedback and access the NIFT Bhubaneswar lecture PDFs and tessellation demo."
+    noindex={submitted} image={content.image} useDynamicOgImage={!content.image} fullWidth={true}
+    hideHeader={true} hideFooter={true} hideSideMenuRail={true} hideThemeToggle={true}
+    showNewsletterPopup={false} showGlobalGrid={false} showCursorFollower={false}
+    enableAnalytics={!submitted}
+    bodyClass="workshop-hub-route">
+    <div class="workshop-hub" data-workshop-feedback-page data-feedback-redirect data-form-slug={form.slug}
+        data-resources-unlocked={resourcesUnlocked ? 'true' : 'false'} data-success-url="/nift-workshop-resources">
+        <header class="hub-bar">
+            <a class="hub-brand" href="/" aria-label="Abodid Sahoo home">abodid.com<span aria-hidden="true">↗</span></a>
+            <span class="hub-bar-note">NIFT Bhubaneswar <span aria-hidden="true">/</span> 2026</span>
+        </header>
+
+        <div class="hub-shell">
+            <nav class="hub-progress" aria-label="Lecture sections">
+                <ol>
+                    <li aria-current={!submitted ? 'step' : undefined}><a href={submitted ? '/nift-workshop-feedback' : '#feedback'} data-astro-reload><span class="hub-step-number">01</span><span>Feedback</span></a></li>
+                    <li aria-current={submitted ? 'step' : undefined}>{resourcesUnlocked
+                        ? <a href="/nift-workshop-resources" data-resources-tab data-astro-reload><span class="hub-step-number">02</span><span>Slides &amp; Resources</span></a>
+                        : <span class="hub-progress-item" data-resources-tab aria-disabled="true"><span class="hub-step-number">02</span><span>Slides &amp; Resources</span></span>}
+                    </li>
+                </ol>
+            </nav>
+
+            {!submitted && <div data-feedback-stage>
+                <header class="hub-hero">
+                    <div class="hub-hero-copy">
+                        <p class="hub-eyebrow">NIFT Bhubaneswar <span aria-hidden="true">·</span> 3 November 2026</p>
+                        <h1>Thanks for joining the lecture!</h1>
+                        <p class="hub-lede">Share your feedback to receive the download links.</p>
+                    </div>
+                    <figure class="hub-hero-collage" data-image-frame>
+                        <picture>
+                            <source media="(min-width: 981px)" srcset="/images/workshops/nift-2026/boutique-cover-360.webp 360w, /images/workshops/nift-2026/boutique-cover-720.webp 720w"
+                                sizes="336px" />
+                            <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+                            width="1448" height="1086"
+                            alt="Collage of a boutique storefront, fabric and material samples, a mannequin and a window-display sketch."
+                            fetchpriority="high" data-workshop-image />
+                        </picture>
+                        <span class="hub-media-fallback" aria-hidden="true">Space &amp; Materiality</span>
+                    </figure>
+                </header>
+
+                <div class="hub-feedback-layout" id="feedback">
+                    {form.is_open ? <form class="hub-feedback-form hub-panel" data-feedback-form action={`/api/feedback/${form.slug}`} method="POST">
+                        <input type="hidden" name="form_version" value={form.form_version} />
+                        <input type="hidden" name="submission_key" value={randomUUID()} />
+                        <div class="hub-form-heading"><h2>Please share your feedback in a few lines.</h2></div>
+                        <div class="hub-honeypot" aria-hidden="true"><label for="feedback-website">Website</label><input id="feedback-website" name="website" tabindex="-1" autocomplete="off" /></div>
+                        <div class="hub-contact-grid">
+                            <label class="hub-question" for="feedback-name"><span>Your name (optional)</span><input id="feedback-name" name="name" autocomplete="name" maxlength="180" placeholder="Your name" /></label>
+                            <label class="hub-question" for="feedback-email"><span>Email (optional)</span><input id="feedback-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck={false} maxlength="254" placeholder="Your email" aria-describedby={content.resourceEmailEnabled ? 'feedback-email-help' : undefined} /></label>
+                        </div>
+                        {content.resourceEmailEnabled && <p class="hub-form-intro" id="feedback-email-help">Add your email to also receive the download links in your inbox.</p>}
+                        <div class="hub-upfront-questions">{form.questions.map((question) => <WorkshopQuestion question={question} showRequired={false} />)}</div>
+                        <button class="hub-button hub-submit" type="submit"><span data-submit-label>Submit feedback</span><span class="hub-arrow" aria-hidden="true">→</span></button>
+                        <p class="hub-privacy">Your feedback and name may appear on the responses page. Your email stays private.</p>
+                        <p class="hub-status" data-feedback-status role="status" aria-live="polite" tabindex="-1"></p>
+                    </form> : <section class="hub-panel"><h2>Feedback is now closed.</h2><p>Thank you for joining the lecture.</p></section>}
+
+                    <aside class="hub-preview-panel" aria-labelledby="resource-preview-title">
+                        <h2 id="resource-preview-title">After your feedback,<span>you’ll be able to download the slide decks.</span></h2>
+                        <ul class="hub-resource-preview">
+                            {workshop.sessions.map((session) => <li>
+                                <img class="hub-preview-thumbnail" src={session.thumbnail} width="240" height="135" alt="" loading="lazy" />
+                                <div><strong>{session.title}</strong><small>{session.previewLines.map((line) => <span>{line}</span>)}</small></div>
+                            </li>)}
+                            <li><img class="hub-preview-thumbnail" src="/images/workshops/nift-2026/tessellation-thumbnail.svg" width="240" height="135" alt="" loading="lazy" /><div><strong>Tessellation demo</strong></div></li>
+                        </ul>
+                    </aside>
+                </div>
+            </div>}
+
+            {submitted && <section class="hub-resource-stage" id="resources" aria-labelledby="workshop-resources-title">
+                <header class="hub-hero hub-hero--resources">
+                    <div class="hub-hero-copy">
+                        <p class="hub-eyebrow">Thanks for sharing your feedback!</p>
+                        <h1 id="workshop-resources-title">Lecture resources</h1>
+                        <p class="hub-lede">Download the complete slide decks from both sessions as high-resolution PDFs, and revisit the demo.</p>
+                    </div>
+
+                </header>
+
+                {emailStatus === 'sent' && <p class="hub-email-receipt" role="status">Resource links sent. Please check your inbox and spam folder.</p>}
+                {emailStatus === 'failed' && <p class="hub-email-receipt" role="status">Your feedback was saved, but the email could not be sent. View and download the PDFs below.</p>}
+                {emailStatus === 'pending' && <p class="hub-email-receipt" role="status">Email delivery is still being confirmed. The resources are available below.</p>}
+                {content.resourceNotice && <aside class="hub-community-note" aria-labelledby="community-note-title">
+                    <span class="hub-note-mark" aria-hidden="true">↳</span>
+                    <div><h2 id="community-note-title">{content.resourceNotice.title}</h2><p>{content.resourceNotice.text}</p></div>
+                </aside>}
+
+                <p class="hub-download-help">View or download the high-resolution PDFs in Google Drive.</p>
+                <div class="hub-panel hub-email-downloads" id="email-downloads">
+                    {recipientEmail ? (
+                        <form class="hub-feedback-form hub-email-form" data-resource-email-form action="/nift-workshop-resources/email" method="POST">
+                            <input type="hidden" name="follow_up_token" value={followUpToken} />
+                            <input type="hidden" name="submission_key" value={randomUUID()} />
+
+                            <div class="hub-email-autofill-panel" data-email-autofill-panel>
+                                <div class="hub-email-target-info" data-email-target-info>
+                                    <span class="hub-email-target-label">Recipient email:</span>
+                                    <strong class="hub-email-target-value" data-display-email>{recipientEmail}</strong>
+                                    <button type="button" class="hub-email-change-btn" data-change-email-trigger>Change email</button>
+                                </div>
+                                <div class="hub-email-input-wrapper" data-email-input-wrapper hidden>
+                                    <label class="hub-question" for="download-email">
+                                        <span>Recipient email</span>
+                                        <input id="download-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" value={recipientEmail} required />
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button class="hub-button" type="submit">
+                                <span data-submit-label>Send all PPTs and links to my email.</span>
+                                <span class="hub-arrow" aria-hidden="true">→</span>
+                            </button>
+                            <p class="hub-status" data-email-status role="status" aria-live="polite"></p>
+                        </form>
+                    ) : (
+                        <div class="hub-email-prompt-bar">
+                            <button class="hub-button" type="button" data-open-email-dialog>
+                                <span data-submit-label>Send all PPTs and links to my email.</span>
+                                <span class="hub-arrow" aria-hidden="true">→</span>
+                            </button>
+                            <p class="hub-status" data-page-email-status role="status" aria-live="polite"></p>
+
+                            <noscript>
+                                <form class="hub-feedback-form hub-email-noscript-form" action="/nift-workshop-resources/email" method="POST">
+                                    <input type="hidden" name="follow_up_token" value={followUpToken} />
+                                    <input type="hidden" name="submission_key" value={randomUUID()} />
+                                    <label class="hub-question" for="download-email-noscript">
+                                        <span>Your email</span>
+                                        <input id="download-email-noscript" name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="Your email address" required />
+                                    </label>
+                                    <button class="hub-button" type="submit">
+                                        <span>Send all PPTs and links to my email.</span>
+                                        <span class="hub-arrow" aria-hidden="true">→</span>
+                                    </button>
+                                </form>
+                            </noscript>
+                        </div>
+                    )}
+                </div>
+
+                {!recipientEmail && (
+                    <dialog id="email-prompt-dialog" class="hub-dialog" aria-labelledby="dialog-email-title" closedby="any">
+                        <div class="hub-dialog-card">
+                            <header class="hub-dialog-header">
+                                <div>
+                                    <span class="hub-tag">Lecture resources</span>
+                                    <h2 id="dialog-email-title">Send all PPTs and links to your email</h2>
+                                </div>
+                                <button type="button" class="hub-dialog-close" data-close-dialog aria-label="Close dialog">✕</button>
+                            </header>
+                            <p class="hub-dialog-desc">Enter your email address to receive both slide deck PDFs, the tessellation demo, Obsidian tutoring info, and workshop details in your inbox.</p>
+                            <form class="hub-feedback-form hub-dialog-form" data-resource-email-form action="/nift-workshop-resources/email" method="POST">
+                                <input type="hidden" name="follow_up_token" value={followUpToken} />
+                                <input type="hidden" name="submission_key" value={randomUUID()} />
+                                <label class="hub-question" for="dialog-download-email">
+                                    <span>Your email address</span>
+                                    <input id="dialog-download-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="you@example.com" required autofocus />
+                                </label>
+                                <button class="hub-button" type="submit">
+                                    <span data-submit-label>Send all PPTs and links to my email.</span>
+                                    <span class="hub-arrow" aria-hidden="true">→</span>
+                                </button>
+                                <p class="hub-status" data-email-status role="status" aria-live="polite"></p>
+                            </form>
+                        </div>
+                    </dialog>
+                )}
+                <div class="hub-sessions">
+                    {pdfs.map((resource, index) => {
+                        const session = workshop.sessions[index];
+                        return <article class="hub-session-shell" aria-labelledby={`session-${session.number}-title`}>
+                            <div class="hub-session-card">
+                                <figure class="hub-session-media" data-image-frame>
+                                    <img src={`${session.image}-960.webp`}
+                                        srcset={`${session.image}-480.webp 480w, ${session.image}-960.webp 960w, ${session.image}-1440.webp 1440w`}
+                                        sizes="(max-width: 720px) calc(100vw - 48px), 42vw" width={index === 0 ? 1500 : 1600} height={index === 0 ? 843 : 900}
+                                        alt={session.imageAlt} loading="lazy" data-workshop-image />
+                                    <span class="hub-media-fallback" aria-hidden="true">Session {session.number}</span>
+                                    <figcaption>{session.imageCaption}</figcaption>
+                                </figure>
+                                <div class="hub-session-copy">
+                                    <h3 id={`session-${session.number}-title`}>Session {session.number} — {session.title}</h3>
+                                    <p class="hub-file-meta">PDF · {session.pages} pages · {session.size}</p>
+                                    <div class="hub-session-actions">
+                                        <a class="hub-button" href={resource.url} target="_blank" rel="noopener noreferrer"><span>View Online</span><span class="hub-arrow" aria-hidden="true">↗</span></a>
+                                        {resource.url.includes('drive.google.com') && (
+                                            <a class="hub-action-download" href={`https://drive.google.com/uc?export=download&id=${resource.url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)?.[1]}`} target="_blank" rel="noopener noreferrer"><span>Download PDF</span><span class="hub-arrow" aria-hidden="true">↓</span></a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </article>;
+                    })}
+                </div>
+
+                {demo && <section class="hub-demo" aria-labelledby="demo-title">
+                    <div class="hub-demo-art" aria-hidden="true"><svg viewBox="0 0 160 128" role="presentation"><defs><pattern id="hub-tiles" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M0 0h40L20 20Z M0 40h40L20 20Z" fill="currentColor" /><path d="m0 0 20 20L0 40Z" fill="#ffe44f" /></pattern></defs><rect width="160" height="128" fill="url(#hub-tiles)" /></svg></div>
+                    <div><h2 id="demo-title">Tessellation demo</h2><p>View the interactive demo</p></div>
+                    <a class="hub-button hub-button--outline" href={demo.url} target="_blank" rel="noopener noreferrer"><span>View Online</span><span class="hub-arrow" aria-hidden="true">↗</span></a>
+                </section>}
+
+                <section class="hub-photography hub-panel" id="photography" aria-labelledby="photography-title">
+                    <header class="hub-photography-heading">
+                        <div><h2 id="photography-title">A little gift for you all!</h2><p>I loved seeing your curiosity as you explored my photography album. Thank you!</p></div>
+                        <a class="hub-button hub-button--outline" href="/photography" data-astro-reload><span>View my photography</span><span class="hub-arrow" aria-hidden="true">↗</span></a>
+                    </header>
+                    <div class="hub-gift-grid">
+                        <div class="hub-gift-card">
+                            <form class="hub-photography-form" data-photography-form action="/nift-workshop-resources/follow-up" method="POST">
+                                <input type="hidden" name="follow_up_token" value={followUpToken} /><input type="hidden" name="kind" value="interest" />
+                                <div class="hub-honeypot" aria-hidden="true"><label for="photography-website">Website</label><input id="photography-website" name="website" tabindex="-1" autocomplete="off" /></div>
+                                <fieldset class="hub-interest">
+                                    <legend>Photography workshop + photo walk</legend>
+                                    <p>I’d be happy to run a photography workshop and photo walk next week (9–15 November), if you’re up for it.</p>
+                                    <label class="hub-interest-option" for="photography-interest">
+                                        <input id="photography-interest" type="checkbox" name="photography_interest" checked={photography?.photography_interest} />
+                                        <span>Yes, I am interested.</span>
+                                    </label>
+                                    <p class="hub-form-intro">If you shared your email with the feedback, I can send you the details.</p>
+                                </fieldset>
+                                <button class="hub-button" type="submit"><span data-submit-label>Send</span><span class="hub-arrow" aria-hidden="true">→</span></button>
+                                <p class="hub-status" data-photography-status role="status" aria-live="polite" tabindex="-1">{Astro.url.searchParams.get('interest') === 'saved' ? 'Thanks! Your interest is saved.' : ''}</p>
+                            </form>
+                        </div>
+                        <div class="hub-gift-card">
+                            <form class="hub-album-thoughts-form" data-album-thoughts-form action={`/api/feedback/${ALBUM_SLUG}`} method="POST">
+                                <input type="hidden" name="form_version" value={albumForm?.form_version ?? 1} />
+                                <input type="hidden" name="submission_key" value={randomUUID()} />
+                                <div class="hub-honeypot" aria-hidden="true"><label for="album-inline-website">Website</label><input id="album-inline-website" name="website" tabindex="-1" autocomplete="off" /></div>
+                                <div class="hub-album-card-content">
+                                    <h3>Any thoughts on the album?</h3>
+                                    <p>Share them here privately with me. Your thoughts won’t appear on any public page.</p>
+                                    <label class="hub-question" for="album-thoughts-inline">
+                                        <span class="sr-only">Your thoughts on the album</span>
+                                        <textarea id="album-thoughts-inline" name="album_thoughts" rows="3" maxlength="8000" placeholder="Please feel free to share..." required data-answer data-auto-grow></textarea>
+                                    </label>
+                                </div>
+                                <button class="hub-button hub-button--outline" type="submit"><span data-submit-label>Send</span><span class="hub-arrow" aria-hidden="true">→</span></button>
+                                <p class="hub-status" data-album-status role="status" aria-live="polite" tabindex="-1"></p>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+            </section>}
+
+            <footer class="hub-footer"><div><strong>Abodid Sahoo</strong><span>Artist, filmmaker & researcher</span></div><a class="hub-text-link" href="/" data-astro-reload><span>More of my work</span><span class="hub-arrow" aria-hidden="true">↗</span></a></footer>
+        </div>
+    </div>
+</BaseLayout>
+
+<script>
+    import '../../scripts/feedback/form';
+</script>

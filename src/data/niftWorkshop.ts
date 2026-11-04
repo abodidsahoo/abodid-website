@@ -1,0 +1,30 @@
+export const niftWorkshop = {
+    title: 'Space & Materiality',
+    summary: 'Materials, props, window displays, and the work of bringing an idea into space.',
+    audience: '3rd semester · Fashion Communication',
+    format: 'Two expert sessions · 3 November 2026',
+    sessions: [
+        {
+            number: '01', title: 'The Retail Window', size: '230 MB', pages: 40,
+            image: '/images/workshops/nift-2026/retail-window',
+            imageAlt: 'The Ulla Johnson storefront on Bleecker Street, shown in the Retail Window session.',
+            imageCaption: 'Ulla Johnson, Bleecker Street · session reference',
+            cover: '/images/workshops/nift-2026/retail-cover.webp',
+            thumbnail: '/images/workshops/nift-2026/retail-thumbnail.webp',
+            previewLines: ['Storefronts and props.', 'Materials and display ideas.'],
+            summary: 'Storefronts, materials and props. Offbeat ideas for making a window worth stopping for.',
+            topics: ['Retail anatomy & shopper psychology', 'Materials, props & regional craft', 'Practical constraints & budgeting'],
+        },
+        {
+            number: '02', title: 'Tanishq, Bhubaneswar', size: '101 MB', pages: 15,
+            image: '/images/workshops/nift-2026/tanishq-store',
+            imageAlt: 'The Tanishq Bhubaneswar store counter with a detailed relief wall and regional craft motifs.',
+            imageCaption: 'Bhubaneswar flagship · case-study imagery',
+            cover: '/images/workshops/nift-2026/tanishq-cover.webp',
+            thumbnail: '/images/workshops/nift-2026/tanishq-thumbnail.webp',
+            previewLines: ['A flagship store case study.', 'Workflow and budgeting.'],
+            summary: 'From brief to build: a real store, the people behind it, and the decisions that shape the budget.',
+            topics: ['Industry workflow & approvals', 'Logistics, materials & site constraints', 'Costing, budgeting & execution'],
+        },
+    ],
+};

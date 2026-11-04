@@ -3,15 +3,24 @@ import {
     ArrowLeft,
     CheckCircle2,
     ChevronRight,
+    ChevronDown,
     Copy,
+    Download,
+    ClipboardPaste,
+    Scissors,
+    MoreHorizontal,
     ExternalLink,
     File,
     FileImage,
     Folder,
     FolderOpen,
     Grid2X2,
-    HardDrive,
     ImagePlus,
+    Pencil,
+    FolderInput,
+    PanelLeft,
+    Music,
+    Film,
     Info,
     LayoutList,
     LoaderCircle,
@@ -22,25 +31,25 @@ import {
     X,
 } from 'lucide-react';
 import AdminPageHeader from './AdminPageHeader';
+import MediaLibraryMenu from './MediaLibraryMenu';
+import MediaLibraryDialog from './MediaLibraryDialog';
+import MediaLibraryFolderTree from './MediaLibraryFolderTree';
+import { filterLibraryFiles, mediaType } from '../../lib/media/libraryView';
+import { createLibraryCache } from '../../lib/media/libraryCache';
+import './media-library.css';
 
-const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
-const MAX_MEDIA_SIZE_BYTES = 100 * 1024 * 1024;
-const ACCEPTED_TYPES = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/gif',
-    'image/avif',
-    'image/svg+xml',
-    'video/mp4',
-    'video/webm',
-    'video/quicktime',
-    'audio/mpeg',
-    'audio/wav',
-    'audio/mp3',
-    'application/pdf',
-    'text/plain',
-];
+import { maxUploadBytes } from '../../lib/media/uploadPolicy';
+import { createLibraryArchive, saveLibraryBlob, uploadLibraryFile } from '../../lib/media/libraryTransfers';
+
+const LIBRARY_DRAG_TYPE = 'application/x-abodid-media-library';
+const listingUrl = (folder, { type = 'all', sort = 'date-desc', page = 0, term = '' } = {}) => {
+    // Folder endpoints return a complete listing; their filters/sort run locally.
+    const params = new URLSearchParams(folder ? {} : { type, sort, page: String(page) });
+    if (folder) params.set('folder', folder);
+    else params.set('view', 'all');
+    if (term) params.set('q', term);
+    return `/api/admin/media${term ? '/search' : ''}?${params}`;
+};
 
 const formatBytes = (value) => {
     const bytes = Number(value || 0);
@@ -65,12 +74,13 @@ const formatDate = (value) => {
 };
 
 const fileKind = (file) => {
+    const basename = (file.objectKey || file.name || '').split('/').pop();
+    const extension = basename?.includes('.') ? basename.split('.').pop() : '';
+    if (extension) return extension.toUpperCase();
     if (file.mimeType?.startsWith('image/')) return 'Image';
     if (file.mimeType?.startsWith('video/')) return 'Video';
     if (file.mimeType?.startsWith('audio/')) return 'Audio';
-    if (file.mimeType === 'application/pdf') return 'PDF';
-    const extension = file.name?.split('.').pop();
-    return extension ? extension.toUpperCase() : 'File';
+    return 'File';
 };
 
 const readImageDimensions = (file) => new Promise((resolve) => {
@@ -80,7 +90,11 @@ const readImageDimensions = (file) => new Promise((resolve) => {
     }
     const objectUrl = URL.createObjectURL(file);
     const image = new Image();
+    const timer = window.setTimeout(() => finish({ width: null, height: null }), 5000);
     const finish = (dimensions) => {
+        window.clearTimeout(timer);
+        image.onload = null;
+        image.onerror = null;
         URL.revokeObjectURL(objectUrl);
         resolve(dimensions);
     };
@@ -110,15 +124,48 @@ const makeBreadcrumbs = (folderPath) => {
 
 export default function MediaLibrary({ accessToken }) {
     const [files, setFiles] = useState([]);
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [detailsOpen, setDetailsOpen] = useState(false);
+    const [mobileFoldersOpen, setMobileFoldersOpen] = useState(false);
+    const [totalCount, setTotalCount] = useState(null);
+    const [hasMore, setHasMore] = useState(false);
+    const [loadedPage, setLoadedPage] = useState(0);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const requestRef = useRef(null);
+    // Keep private listings only in this authenticated component's memory.
+    const listingCache = useMemo(() => createLibraryCache(60_000), [accessToken]);
+    const indexNeedsRefresh = useRef(false);
+    const prefetchTimer = useRef(null);
+    const prefetchBusy = useRef(false);
+    const [renameItem, setRenameItem] = useState(null);
+    const [renameValue, setRenameValue] = useState('');
+    const [movePicker, setMovePicker] = useState(null);
+    const [movePath, setMovePath] = useState('');
+    const [moveFolders, setMoveFolders] = useState([]);
+    const [moveLoading, setMoveLoading] = useState(false);
+    const [altDraft, setAltDraft] = useState('');
+    const [savingDetails, setSavingDetails] = useState(false);
     const [folders, setFolders] = useState([]);
     const [rootFolders, setRootFolders] = useState([]);
     const [currentFolder, setCurrentFolder] = useState('');
     const [selectedKey, setSelectedKey] = useState('');
+    const [selectedFolder, setSelectedFolder] = useState(null);
+    const [organizeProgress, setOrganizeProgress] = useState('');
+    const draggedFolder = useRef(null);
+    const [checkedFiles, setCheckedFiles] = useState(() => new Map());
+    const [downloading, setDownloading] = useState(false);
+    const [organizing, setOrganizing] = useState(false);
+    const [clipboard, setClipboard] = useState(null);
+    const [dropFolder, setDropFolder] = useState(null);
+    const [contextMenu, setContextMenu] = useState(null);
+    const [refreshIndex, setRefreshIndex] = useState(0);
+    const organizeInFlight = useRef(false);
+    const draggedFiles = useRef([]);
+    const closeContextMenu = useCallback(() => setContextMenu(null), []);
+    const [downloadProgress, setDownloadProgress] = useState(null);
     const [query, setQuery] = useState('');
-    const [searchFiles, setSearchFiles] = useState([]);
     const [folderMatches, setFolderMatches] = useState([]);
     const [searching, setSearching] = useState(false);
-    const [searchTruncated, setSearchTruncated] = useState(false);
     const [sortBy, setSortBy] = useState('date-desc');
     const [viewMode, setViewMode] = useState('grid');
     const [loading, setLoading] = useState(true);
@@ -133,6 +180,8 @@ export default function MediaLibrary({ accessToken }) {
     const [newFolderName, setNewFolderName] = useState('');
     const [creatingFolder, setCreatingFolder] = useState(false);
     const fileInputRef = useRef(null);
+    const selectAllRef = useRef(null);
+    const uploadInFlight = useRef(false);
 
     useEffect(() => {
         const savedView = window.localStorage.getItem('admin-media-view');
@@ -144,183 +193,471 @@ export default function MediaLibrary({ accessToken }) {
         window.localStorage.setItem('admin-media-view', mode);
     };
 
-    const authorizedFetch = useCallback((url, options = {}) => {
+    const authorizedFetch = useCallback(async (url, options = {}) => {
         const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
-        return fetch(url, {
+        try { return await fetch(url, {
             ...options,
             headers: {
                 ...(options.body && !isFormData ? { 'Content-Type': 'application/json' } : {}),
                 ...(options.headers || {}),
                 Authorization: `Bearer ${accessToken}`,
             },
-        });
-    }, [accessToken]);
-
-    const loadFolder = useCallback(async (folderPath, { silent = false } = {}) => {
-        if (!accessToken) return;
-        if (!silent) setLoading(true);
-        setError('');
-        try {
-            const params = new URLSearchParams();
-            if (folderPath) params.set('folder', folderPath);
-            const response = await authorizedFetch(`/api/admin/media?${params.toString()}`);
-            const payload = await readJsonResponse(response);
-            setFiles(payload.files || []);
-            setFolders(payload.folders || []);
-            setTruncated(Boolean(payload.truncated));
-            setCatalogueReady(true);
-            if (!payload.folderPath) setRootFolders(payload.folders || []);
-            setSelectedKey((current) => (
-                (payload.files || []).some((file) => file.objectKey === current) ? current : ''
-            ));
-        } catch (loadError) {
-            setCatalogueReady(false);
-            setError(loadError.message);
-        } finally {
-            if (!silent) setLoading(false);
+        }); } finally {
+            // Even a failed batch may have completed some writes.
+            if (options.method && options.method !== 'GET' && url.startsWith('/api/admin/media/')) {
+                listingCache.clear();
+                if (indexNeedsRefresh.current !== true) indexNeedsRefresh.current = url.endsWith('/metadata') ? 'catalogue' : true;
+            }
         }
-    }, [accessToken, authorizedFetch]);
+    }, [accessToken, listingCache]);
+
+    const loadFolder = useCallback(async (folderPath, { silent = false, page = 0, append = false, force = false } = {}) => {
+        if (!accessToken) return;
+        requestRef.current?.abort();
+        const controller = new AbortController();
+        requestRef.current = controller;
+        const refresh = force || (!folderPath && indexNeedsRefresh.current);
+        if (refresh) listingCache.clear();
+        const term = query.trim();
+        const url = listingUrl(folderPath, { type: typeFilter, sort: sortBy, page, term });
+        const cached = listingCache.peek(url);
+        if (append) setLoadingMore(true);
+        else setLoading(!silent && !cached);
+        setSearching(Boolean(term) && !cached);
+        setError('');
+        const apply = (payload) => {
+            if (controller.signal.aborted) return;
+            setFiles((current) => append ? [...new Map([...current, ...(payload.files || [])].map((file) => [file.objectKey, file])).values()] : payload.files || []);
+            // Searches inside a folder retain its navigation cards.
+            if (!term || !folderPath) setFolders(payload.folders || []);
+            setFolderMatches(payload.folderMatches || []);
+            setTruncated(Boolean(payload.truncated));
+            setHasMore(Boolean(payload.hasMore));
+            setTotalCount(typeof payload.totalCount === 'number' ? payload.totalCount : null);
+            setLoadedPage(page);
+            setCatalogueReady(true);
+            if (force) setRefreshIndex((value) => value + 1);
+            if (!folderPath && (!term || payload.folders)) setRootFolders(payload.folders || []);
+            if (!append) setSelectedKey((current) => (payload.files || []).some((file) => file.objectKey === current) ? current : '');
+        };
+        try {
+            if (cached) apply(cached.value);
+            // Shared requests survive navigation so returning to a folder can
+            // reuse an in-flight fetch. The controller guards UI updates only.
+            const payload = await listingCache.read(url, async () => readJsonResponse(await authorizedFetch(refresh ? `${url}&refresh=${refresh === true ? '1' : 'catalogue'}` : url)));
+            if (!folderPath && !controller.signal.aborted) indexNeedsRefresh.current = false;
+            apply(payload);
+        } catch (loadError) {
+            if (!controller.signal.aborted && loadError.name !== 'AbortError') { setCatalogueReady(false); setError(loadError.message); }
+        } finally {
+            if (requestRef.current === controller) { setLoading(false); setSearching(false); setLoadingMore(false); }
+        }
+    }, [accessToken, authorizedFetch, listingCache, query, typeFilter, sortBy]);
 
     useEffect(() => {
-        loadFolder(currentFolder);
+        const timer = window.setTimeout(() => {
+            loadFolder(currentFolder);
+        }, query.trim() ? 250 : 0);
+        return () => { window.clearTimeout(timer); requestRef.current?.abort(); };
     }, [currentFolder, loadFolder]);
 
+    useEffect(() => () => { window.clearTimeout(prefetchTimer.current); }, [listingCache]);
+
+    const fetchFolders = useCallback(async (folder) => {
+        const url = `/api/admin/media?${new URLSearchParams({ folder, foldersOnly: '1' })}`;
+        const payload = await listingCache.read(url, async () => readJsonResponse(await authorizedFetch(url)));
+        return payload.folders || [];
+    }, [authorizedFetch, listingCache]);
+
     useEffect(() => {
-        const searchTerm = query.trim();
-        if (!searchTerm || !accessToken) {
-            setSearchFiles([]);
-            setFolderMatches([]);
-            setSearchTruncated(false);
-            setSearching(false);
-            return undefined;
-        }
-
-        const controller = new AbortController();
-        setSearching(true);
-        setSearchFiles([]);
-        setFolderMatches([]);
-        setSearchTruncated(false);
-        const timer = window.setTimeout(async () => {
-            try {
-                const params = new URLSearchParams({ q: searchTerm });
-                if (currentFolder) params.set('folder', currentFolder);
-                const response = await authorizedFetch(`/api/admin/media/search?${params.toString()}`, {
-                    signal: controller.signal,
-                });
-                const payload = await readJsonResponse(response);
-                setSearchFiles(payload.files || []);
-                setFolderMatches(payload.folderMatches || []);
-                setSearchTruncated(Boolean(payload.truncated));
-                setSelectedKey((current) => (
-                    (payload.files || []).some((file) => file.objectKey === current) ? current : ''
-                ));
-            } catch (searchError) {
-                if (searchError.name !== 'AbortError') setError(searchError.message);
-            } finally {
-                if (!controller.signal.aborted) setSearching(false);
-            }
-        }, 300);
-
-        return () => {
-            window.clearTimeout(timer);
-            controller.abort();
-        };
-    }, [accessToken, authorizedFetch, currentFolder, query]);
+        if (!movePicker) return undefined;
+        let active = true;
+        setMoveLoading(true);
+        fetchFolders(movePath).then((rows) => { if (active) setMoveFolders(rows); })
+            .catch((moveError) => { if (active) setError(moveError.message); })
+            .finally(() => { if (active) setMoveLoading(false); });
+        return () => { active = false; };
+    }, [movePicker, movePath, fetchFolders]);
 
     const navigateTo = (folderPath) => {
+        if (uploadInFlight.current || organizeInFlight.current) return;
         setSelectedKey('');
+        setSelectedFolder(null);
+        setDetailsOpen(false);
+        setMobileFoldersOpen(false);
+        setQuery('');
         setNotice('');
-        setCurrentFolder(folderPath);
+        if (currentFolder === folderPath) loadFolder(folderPath);
+        else setCurrentFolder(folderPath);
     };
 
-    const isSearching = Boolean(query.trim());
-    const activeFiles = isSearching ? searchFiles : files;
+    const activeFiles = files;
     const folderMatchMap = useMemo(
         () => new Map(folderMatches.map((match) => [match.path, match.count])),
         [folderMatches],
     );
 
     const selectedFile = useMemo(
-        () => activeFiles.find((file) => file.objectKey === selectedKey) || null,
-        [activeFiles, selectedKey],
+        () => checkedFiles.size === 1 ? [...checkedFiles.values()][0] : activeFiles.find((file) => file.objectKey === selectedKey) || null,
+        [activeFiles, selectedKey, checkedFiles],
     );
 
     const visibleFolders = useMemo(() => {
         const needle = query.trim().toLowerCase();
+        if (typeFilter !== 'all') return [];
         return folders
             .map((folder) => ({ ...folder, matchCount: folderMatchMap.get(folder.path) || 0 }))
             .filter((folder) => !needle || folder.matchCount > 0 || folder.name.toLowerCase().includes(needle))
             .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-    }, [folderMatchMap, folders, query]);
+    }, [folderMatchMap, folders, query, typeFilter]);
 
-    const visibleFiles = useMemo(() => {
-        const sorted = [...activeFiles];
-        sorted.sort((a, b) => {
-            if (sortBy === 'name-asc') return a.name.localeCompare(b.name, undefined, { numeric: true });
-            if (sortBy === 'name-desc') return b.name.localeCompare(a.name, undefined, { numeric: true });
-            if (sortBy === 'size-asc') return Number(a.fileSize || 0) - Number(b.fileSize || 0);
-            if (sortBy === 'size-desc') return Number(b.fileSize || 0) - Number(a.fileSize || 0);
-            const firstDate = new Date(a.createdAt || 0).getTime();
-            const secondDate = new Date(b.createdAt || 0).getTime();
-            return sortBy === 'date-asc' ? firstDate - secondDate : secondDate - firstDate;
+    const visibleFiles = useMemo(() => filterLibraryFiles(activeFiles, { type: typeFilter, sort: sortBy }), [activeFiles, typeFilter, sortBy]);
+
+    const visibleCheckedCount = visibleFiles.filter((file) => checkedFiles.has(file.objectKey)).length;
+    const allVisibleChecked = visibleFiles.length > 0 && visibleCheckedCount === visibleFiles.length;
+    useEffect(() => {
+        if (selectAllRef.current) selectAllRef.current.indeterminate = visibleCheckedCount > 0 && !allVisibleChecked;
+    }, [visibleCheckedCount, allVisibleChecked]);
+
+    const toggleFile = (file, checked) => {
+        setSelectedFolder(null);
+        if (checked) setDetailsOpen(true);
+        else if (selectedKey === file.objectKey) setSelectedKey('');
+        setCheckedFiles((current) => {
+            const next = new Map(current);
+            if (checked) next.set(file.objectKey, file);
+            else next.delete(file.objectKey);
+            return next;
         });
-        return sorted;
-    }, [activeFiles, sortBy]);
+    };
 
-    const uploadFiles = async (fileList) => {
+    const toggleVisibleFiles = (checked) => {
+        setSelectedFolder(null);
+        if (checked) setDetailsOpen(true);
+        else { setSelectedKey(''); setDetailsOpen(false); }
+        setCheckedFiles((current) => {
+            const next = new Map(current);
+            visibleFiles.forEach((file) => {
+                if (checked) next.set(file.objectKey, file);
+                else next.delete(file.objectKey);
+            });
+            return next;
+        });
+    };
+
+    const downloadFiles = async (selection) => {
+        if (!selection.length || downloading) return;
+        setDownloading(true);
+        setError('');
+        setNotice('');
+        setDownloadProgress({ current: 0, total: selection.length });
+        try {
+            const blob = await createLibraryArchive(selection, setDownloadProgress, (file) => authorizedFetch('/api/admin/media/download', {
+                method: 'POST',
+                body: JSON.stringify({ objectKey: file.objectKey }),
+            }));
+            saveLibraryBlob(blob, 'media-library.zip');
+            setNotice(`Download started for ${selection.length} ${selection.length === 1 ? 'file' : 'files'} in media-library.zip.`);
+        } catch (downloadError) {
+            setError(downloadError.message || 'Could not download the selected files. Please try again.');
+        } finally {
+            setDownloading(false);
+            setDownloadProgress(null);
+        }
+    };
+
+    const uploadFiles = async (fileList, destinationFolder = currentFolder) => {
         const selected = Array.from(fileList || []);
-        if (!selected.length || uploading || !catalogueReady) return;
-
-        const invalidType = selected.find((file) => file.type && !ACCEPTED_TYPES.includes(file.type));
-        const oversized = selected.find((file) => {
-            const isLarge = file.type?.startsWith('video/') || file.type === 'application/pdf';
-            return file.size > (isLarge ? MAX_MEDIA_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES);
-        });
-        if (invalidType) {
-            setError(`${invalidType.name} has an unsupported file format.`);
-            return;
-        }
-        if (oversized) {
-            const isLarge = oversized.type?.startsWith('video/') || oversized.type === 'application/pdf';
-            setError(`${oversized.name} exceeds the maximum size limit (${isLarge ? '100 MB' : '20 MB'}).`);
-            return;
-        }
-
+        if (!selected.length || uploadInFlight.current || organizeInFlight.current || !catalogueReady) return;
+        uploadInFlight.current = true;
+        const targetFolder = destinationFolder;
+        let uploaded = 0;
+        const failures = [];
         setUploading(true);
         setError('');
         setNotice('');
-        setUploadProgress({ current: 0, total: selected.length });
+        setUploadProgress({ current: 0, total: selected.length, folder: targetFolder });
 
         try {
             for (let index = 0; index < selected.length; index += 1) {
                 const file = selected[index];
-                setUploadProgress({ current: index + 1, total: selected.length, filename: file.name });
-                const dimensions = await readImageDimensions(file);
-
-                const formData = new FormData();
-                formData.append('file', file);
-                if (currentFolder) formData.append('folder', currentFolder);
-                if (dimensions.width) formData.append('width', String(dimensions.width));
-                if (dimensions.height) formData.append('height', String(dimensions.height));
-
-                const uploadResponse = await authorizedFetch('/api/admin/media/upload', {
-                    method: 'POST',
-                    body: formData,
-                });
-                await readJsonResponse(uploadResponse);
+                setUploadProgress({ current: index + 1, total: selected.length, filename: file.name, folder: targetFolder });
+                try {
+                    const maxSize = maxUploadBytes(file.type);
+                    if (!file.size) throw new Error('The file is empty.');
+                    if (file.size > maxSize) throw new Error(`File exceeds the ${maxSize / (1024 * 1024)} MB size limit.`);
+                    const dimensions = await readImageDimensions(file);
+                    await uploadLibraryFile(file, targetFolder, dimensions, authorizedFetch);
+                    uploaded += 1;
+                } catch (uploadError) {
+                    failures.push(`${file.name}: ${uploadError.message}`);
+                }
             }
-
-            setNotice(`${selected.length} ${selected.length === 1 ? 'file' : 'files'} uploaded successfully.`);
-            await loadFolder(currentFolder, { silent: true });
-        } catch (uploadError) {
-            setError(uploadError.message);
+            await loadFolder(currentFolder, { silent: true, force: true });
+            if (uploaded) setNotice(`${uploaded} ${uploaded === 1 ? 'file' : 'files'} uploaded successfully.`);
+            if (failures.length) setError(`${failures.length} ${failures.length === 1 ? 'file failed' : 'files failed'} to upload. ${failures.join(' ')}`);
         } finally {
+            uploadInFlight.current = false;
             setUploading(false);
             setUploadProgress(null);
             setDragging(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
+
+    const selection = selectedFolder ? [] : checkedFiles.size ? [...checkedFiles.values()] : selectedFile ? [selectedFile] : [];
+    const busy = uploading || organizing || downloading || savingDetails;
+
+    const clipboardCount = (clipboard?.files.length || 0) + (clipboard?.folders?.length || 0);
+    const copyFiles = (items, mode = 'copy', folder = null) => {
+        if ((!items.length && !folder) || busy) return;
+        if (folder) {
+            setClipboard({ files: [], folders: [folder], mode });
+            setNotice(`Folder “${folder.name}” ${mode === 'copy' ? 'copied' : 'cut'}. Open a folder and choose Paste.`);
+            return;
+        }
+        setClipboard({ files: items, folders: [], mode });
+        setNotice(`${items.length} ${items.length === 1 ? 'file' : 'files'} ${mode === 'copy' ? 'copied' : 'cut'}. Open a folder and choose Paste.`);
+    };
+
+    const organizeFiles = async (items, destinationFolder, action = 'move') => {
+        if (!items.length || busy || organizeInFlight.current) return;
+        organizeInFlight.current = true;
+        setOrganizing(true);
+        setError('');
+        setNotice('');
+        const results = [];
+        try {
+            for (let offset = 0; offset < items.length; offset += 100) {
+                const response = await authorizedFetch('/api/admin/media/organize', {
+                    method: 'POST',
+                    body: JSON.stringify({ action, destinationFolder, objectKeys: items.slice(offset, offset + 100).map((file) => file.objectKey) }),
+                });
+                const payload = await readJsonResponse(response);
+                results.push(...payload.results);
+            }
+        } catch (operationError) {
+            results.push({ error: operationError.message });
+        } finally {
+            const completed = results.filter((result) => !result.error);
+            const keys = new Set(completed.map((result) => result.objectKey));
+            if (action === 'move') {
+                setSelectedKey('');
+                setCheckedFiles((current) => new Map([...current].filter(([key]) => !keys.has(key))));
+                setClipboard((current) => current?.mode === 'move' ? { ...current, files: current.files.filter((file) => !keys.has(file.objectKey)) } : current);
+            }
+            await loadFolder(currentFolder, { silent: true, force: true });
+            const changed = completed.filter((result) => !result.unchanged).length;
+            if (completed.length) setNotice(changed ? `${changed} ${changed === 1 ? 'file' : 'files'} ${action === 'copy' ? 'copied' : 'moved'} to ${destinationFolder || 'assets'}.` : 'The files are already in that folder.');
+            const failures = results.filter((result) => result.error);
+            if (failures.length) setError(failures.map((result) => `${items.find((file) => file.objectKey === result.objectKey)?.name || 'File operation'}: ${result.error}`).join(' '));
+            organizeInFlight.current = false;
+            setOrganizing(false);
+        }
+        return results.every((result) => !result.error);
+    };
+
+    const organizeFolder = async (folder, destinationFolder, action = 'move', destinationName = '') => {
+        if (!folder || busy || organizeInFlight.current) return;
+        organizeInFlight.current = true;
+        setOrganizing(true);
+        setError(''); setNotice('');
+        setOrganizeProgress(`Preparing folder “${folder.name}”…`);
+        let destination = destinationFolder;
+        let success = false;
+        let failure = '';
+        let unchanged = false;
+        try {
+            const plan = await readJsonResponse(await authorizedFetch('/api/admin/media/folder-organize', {
+                method: 'POST', body: JSON.stringify({ phase: 'plan', action, sourceFolder: folder.path, destinationFolder, ...(destinationName ? { destinationName } : {}) }),
+            }));
+            destination = plan.destinationFolder;
+            unchanged = Boolean(plan.unchanged);
+            if (!plan.unchanged) {
+                let completed = 0;
+                for (const group of plan.groups) {
+                    for (let offset = 0; offset < group.files.length; offset += 100) {
+                        setOrganizeProgress(`${action === 'copy' ? 'Copying' : 'Moving'} “${folder.name}”: ${completed}/${plan.fileCount} files…`);
+                        const payload = await readJsonResponse(await authorizedFetch('/api/admin/media/organize', {
+                            method: 'POST', body: JSON.stringify({ action, destinationFolder: group.destinationFolder, objectKeys: group.files.slice(offset, offset + 100).map((file) => file.objectKey) }),
+                        }));
+                        const failures = payload.results.filter((result) => result.error);
+                        if (failures.length) throw new Error(`${failures[0].error} Some items may already be in the destination. The source folder stays visible; refresh before retrying.`);
+                        completed += payload.results.length;
+                    }
+                }
+                if (action === 'move') await readJsonResponse(await authorizedFetch('/api/admin/media/folder-organize', {
+                    method: 'POST', body: JSON.stringify({ phase: 'finish', action, sourceFolder: folder.path, destinationFolder: destination }),
+                }));
+            }
+            success = true;
+            if (action === 'move') {
+                setClipboard((current) => current?.mode === 'move' && current.folders?.some((item) => item.path === folder.path) ? null : current);
+                setCheckedFiles(new Map());
+                setSelectedFolder(null);
+            }
+        } catch (operationError) {
+            failure = operationError.message;
+        } finally {
+            // Folder moves may change the root sidebar as well as the open folder.
+            await loadFolder(currentFolder, { silent: true, force: true });
+            if (currentFolder) {
+                try { const root = await readJsonResponse(await authorizedFetch('/api/admin/media?')); setRootFolders(root.folders || []); } catch { /* Open-folder refresh already reports connection errors. */ }
+            }
+            if (failure) setError(failure);
+            if (success) setNotice(unchanged && !destinationName ? 'This folder is already in that location.' : destinationName ? `Folder renamed to “${destination.split('/').pop()}”.` : `Folder “${folder.name}” ${action === 'copy' ? 'copied' : 'moved'} to ${destination || 'assets'}.`);
+            organizeInFlight.current = false;
+            setOrganizing(false);
+            setOrganizeProgress('');
+        }
+        return success;
+    };
+
+    const pasteFiles = (folder = currentFolder) => {
+        if (clipboard?.folders?.length) organizeFolder(clipboard.folders[0], folder, clipboard.mode);
+        else if (clipboard?.files.length) organizeFiles(clipboard.files, folder, clipboard.mode);
+    };
+
+    const openContextMenu = (event, items = selection, folder = currentFolder, folderItem = null) => {
+        if (event.target.closest('textarea, select, input:not([type="checkbox"]), [contenteditable="true"]')) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const source = event.target.closest('button, [tabindex]') || event.currentTarget;
+        const rect = source.getBoundingClientRect();
+        // A contextmenu event can precede pointerup. Opening an auto popover
+        // before that release makes the browser immediately light-dismiss it.
+        const ready = event.buttons ? new Promise((resolve) => window.addEventListener('pointerup', resolve, { once: true })) : Promise.resolve();
+        setContextMenu({ x: event.clientX || rect.left, y: event.clientY || rect.bottom, files: items, folder, folderItem, source, ready });
+    };
+
+    const openFolderMenu = (event, folder) => {
+        setDetailsOpen(true);
+        setSelectedFolder(folder);
+        setSelectedKey('');
+        setCheckedFiles(new Map());
+        openContextMenu(event, [], folder.path, folder);
+    };
+
+    const startFolderDrag = (event, folder) => {
+        if (busy) { event.preventDefault(); return; }
+        event.stopPropagation();
+        draggedFolder.current = folder;
+        draggedFiles.current = [];
+        event.dataTransfer.setData(LIBRARY_DRAG_TYPE, 'folder');
+        event.dataTransfer.effectAllowed = 'move';
+        setDragging(false);
+    };
+
+    const startFileDrag = (event, file) => {
+        draggedFolder.current = null;
+        if (busy) { event.preventDefault(); return; }
+        const items = checkedFiles.has(file.objectKey) ? [...checkedFiles.values()] : [file];
+        draggedFiles.current = items;
+        event.dataTransfer.setData(LIBRARY_DRAG_TYPE, 'files');
+        event.dataTransfer.effectAllowed = 'move';
+        setDragging(false);
+    };
+
+    const prefetchFolder = (path) => {
+        window.clearTimeout(prefetchTimer.current);
+        const connection = navigator.connection;
+        if (!accessToken || busy || path === currentFolder || prefetchBusy.current || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return;
+        prefetchTimer.current = window.setTimeout(async () => {
+            const url = listingUrl(path, { type: typeFilter, sort: sortBy });
+            if ((!path && indexNeedsRefresh.current) || listingCache.peek(url)?.fresh || prefetchBusy.current) return;
+            prefetchBusy.current = true;
+            try {
+                await listingCache.read(url, async () => readJsonResponse(await authorizedFetch(url, { priority: 'low' })));
+            } catch { /* Navigation retries speculative requests and reports real failures. */ }
+            finally { prefetchBusy.current = false; }
+        }, 180);
+    };
+
+    const folderDropProps = (path) => ({
+        onPointerEnter: () => prefetchFolder(path),
+        onPointerLeave: () => window.clearTimeout(prefetchTimer.current),
+        onFocus: () => prefetchFolder(path),
+        onKeyDown: (event) => {
+            if (path && (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10'))) openFolderMenu(event, { path, name: path.split('/').pop() });
+        },
+        onDragOver: (event) => {
+            const internal = event.dataTransfer.types.includes(LIBRARY_DRAG_TYPE);
+            const external = event.dataTransfer.types.includes('Files');
+            if (busy || (!internal && !external)) return;
+            event.preventDefault(); event.stopPropagation();
+            event.dataTransfer.dropEffect = internal ? 'move' : 'copy';
+            setDropFolder(path); setDragging(false);
+        },
+        onDragLeave: (event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDropFolder((current) => current === path ? null : current); },
+        onDrop: (event) => {
+            event.preventDefault(); event.stopPropagation();
+            setDropFolder(null); setDragging(false);
+            if (busy) return;
+            if (event.dataTransfer.types.includes(LIBRARY_DRAG_TYPE)) {
+                if (draggedFolder.current) organizeFolder(draggedFolder.current, path, 'move');
+                else organizeFiles(draggedFiles.current, path, 'move');
+                draggedFiles.current = []; draggedFolder.current = null;
+            } else if (event.dataTransfer.files.length) uploadFiles(event.dataTransfer.files, path);
+        },
+    });
+
+    const openRename = (file = null, folder = null) => {
+        setError('');
+        setRenameItem(folder ? { kind: 'folder', item: folder } : { kind: 'file', item: file });
+        setRenameValue(folder?.name || file?.name || '');
+    };
+    const openMove = (items = selection, folder = selectedFolder) => {
+        setError(''); setMovePath(currentFolder); setMoveFolders([]);
+        setMovePicker({ files: items, folder });
+    };
+    const saveFileMetadata = async (file, patch) => {
+        const payload = await readJsonResponse(await authorizedFetch('/api/admin/media/metadata', { method: 'POST', body: JSON.stringify({ objectKey: file.objectKey, ...patch }) }));
+        const update = (item) => item.objectKey === file.objectKey ? { ...item, name: payload.name, altText: payload.altText } : item;
+        setFiles((current) => current.map(update));
+        setCheckedFiles((current) => new Map([...current].map(([key, item]) => [key, update(item)])));
+        if (!currentFolder && (sortBy.startsWith('name') || query.trim())) await loadFolder(currentFolder, { silent: true });
+        return payload;
+    };
+    const submitRename = async (event) => {
+        event.preventDefault();
+        if (!renameValue.trim() || busy) return;
+        if (renameItem.kind === 'folder') {
+            const parent = renameItem.item.path.split('/').slice(0, -1).join('/');
+            if (await organizeFolder(renameItem.item, parent, 'move', renameValue.trim())) setRenameItem(null);
+            return;
+        }
+        setSavingDetails(true); setError('');
+        try {
+            await saveFileMetadata(renameItem.item, { name: renameValue.trim() });
+            setRenameItem(null); setNotice('File renamed. Its public link is unchanged.');
+        } catch (saveError) { setError(saveError.message); }
+        finally { setSavingDetails(false); }
+    };
+    const submitMove = async (event) => {
+        event.preventDefault();
+        if (!movePicker || busy) return;
+        const success = movePicker.folder ? await organizeFolder(movePicker.folder, movePath) : await organizeFiles(movePicker.files, movePath);
+        if (success) setMovePicker(null);
+    };
+    const copySelectionLinks = async () => {
+        if (!selection.length) return;
+        try { await navigator.clipboard.writeText(selection.map((file) => file.publicUrl).join('\n')); setNotice(`${selection.length === 1 ? 'Public link' : 'Public links'} copied.`); }
+        catch { setError('Could not copy the links. Open the file and copy the address from the browser.'); }
+    };
+
+    const menuFolder = contextMenu?.folderItem || null;
+    const menuItems = contextMenu ? [
+        ...(menuFolder ? [{ label: 'Open folder', icon: <FolderOpen size={15} />, disabled: busy, run: () => navigateTo(menuFolder.path) }] : []),
+        { label: menuFolder ? 'Copy folder' : 'Copy files', icon: <Copy size={15} />, disabled: busy || (!menuFolder && !contextMenu.files.length), run: () => copyFiles(contextMenu.files, 'copy', menuFolder) },
+        { label: menuFolder ? 'Cut folder' : 'Cut files', icon: <Scissors size={15} />, disabled: busy || (!menuFolder && !contextMenu.files.length), run: () => copyFiles(contextMenu.files, 'move', menuFolder) },
+        { label: menuFolder ? 'Rename folder' : 'Rename file', icon: <Pencil size={15} />, disabled: busy || (!menuFolder && contextMenu.files.length !== 1), run: () => openRename(contextMenu.files[0], menuFolder) },
+        { label: 'Move to folder…', icon: <FolderInput size={15} />, disabled: busy || (!menuFolder && !contextMenu.files.length), run: () => openMove(contextMenu.files, menuFolder) },
+        { label: 'Paste into this folder', icon: <ClipboardPaste size={15} />, disabled: busy || !clipboardCount, run: () => pasteFiles(contextMenu.folder) },
+        ...(!menuFolder ? [
+            { label: 'Move selected here', icon: <FolderOpen size={15} />, disabled: busy || !contextMenu.files.length, run: () => organizeFiles(contextMenu.files, contextMenu.folder) },
+            { label: 'Download files (ZIP)', icon: <Download size={15} />, disabled: busy || !contextMenu.files.length, run: () => downloadFiles(contextMenu.files) },
+        ] : []),
+    ] : [];
 
     const createFolder = async (event) => {
         event.preventDefault();
@@ -340,7 +677,7 @@ export default function MediaLibrary({ accessToken }) {
                     ? `Folder “${payload.folder.name}” created with 800px and 1600px variants.`
                     : `Folder “${payload.folder.name}” created.`,
             );
-            await loadFolder(currentFolder, { silent: true });
+            await loadFolder(currentFolder, { silent: true, force: true });
             if (!currentFolder) setRootFolders((current) => {
                 const withoutDuplicate = current.filter((folder) => folder.path !== payload.folder.path);
                 return [...withoutDuplicate, payload.folder].sort((a, b) => a.name.localeCompare(b.name));
@@ -363,482 +700,149 @@ export default function MediaLibrary({ accessToken }) {
     };
 
     const breadcrumbs = useMemo(() => makeBreadcrumbs(currentFolder), [currentFolder]);
-    const topLevelFolder = currentFolder.split('/')[0];
-    const canUpload = !uploading && catalogueReady;
-    const canCreateFolder = !uploading;
+    const canUpload = !busy && catalogueReady;
+    const canCreateFolder = !busy;
+
+    const showInspector = detailsOpen && Boolean(selectedFolder || selectedFile || checkedFiles.size > 1);
+    const selectionCount = selectedFolder ? 1 : selection.length;
+    useEffect(() => { setAltDraft(selectedFile?.altText || ''); }, [selectedFile?.objectKey, selectedFile?.altText]);
+    const saveAltText = async (event) => {
+        event.preventDefault();
+        if (!selectedFile || savingDetails) return;
+        setSavingDetails(true); setError('');
+        try { await saveFileMetadata(selectedFile, { altText: altDraft }); setNotice('Image description saved.'); }
+        catch (saveError) { setError(saveError.message); }
+        finally { setSavingDetails(false); }
+    };
+    const closeDetails = () => setDetailsOpen(false);
+
+    const filePreview = (file, inspector = false, index = 0) => {
+        const type = mediaType(file);
+        if (type === 'images') return <span className="file-visual is-image"><FileImage size={inspector ? 44 : 48} className="image-fallback" /><img src={inspector ? file.variants?.['1600']?.url || file.variants?.['800']?.url || file.publicUrl : file.variants?.['800']?.url || file.publicUrl} alt={inspector ? file.altText || '' : ''} loading={inspector || index < 4 ? 'eager' : 'lazy'} fetchPriority={index === 0 || inspector ? 'high' : 'auto'} decoding="async" draggable={false} onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} /></span>;
+        if (inspector && type === 'videos') return <video controls playsInline preload="metadata" src={file.publicUrl} aria-label={`Preview ${file.name}`} />;
+        if (inspector && type === 'audio') return <div className="audio-preview"><Music size={40} /><audio controls preload="metadata" src={file.publicUrl} aria-label={`Preview ${file.name}`} /></div>;
+        const Icon = type === 'videos' ? Film : type === 'audio' ? Music : File;
+        return <span className={`file-visual is-${type}`}><Icon size={inspector ? 44 : 56} /><span className="file-format">{fileKind(file)}</span></span>;
+    };
+    const moveIntoSelf = Boolean(movePicker?.folder && (movePath === movePicker.folder.path || movePath.startsWith(`${movePicker.folder.path}/`)));
 
     return (
-        <section className="media-library" aria-labelledby="media-library-title">
+        <section className="media-library" aria-labelledby="media-library-title" tabIndex={-1}
+            onContextMenu={openContextMenu}
+            onKeyDown={(event) => {
+                if (event.target.closest('textarea, select, input:not([type="checkbox"]), [contenteditable="true"], dialog')) return;
+                if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) { openContextMenu(event, selection, currentFolder, selectedFolder); return; }
+                if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+                const key = event.key.toLowerCase();
+                if (['c', 'x'].includes(key) && (selection.length || selectedFolder)) { event.preventDefault(); copyFiles(selection, key === 'x' ? 'move' : 'copy', selectedFolder); }
+                if (key === 'v' && clipboardCount) { event.preventDefault(); pasteFiles(); }
+            }}>
             <div className="media-library-header">
-                <AdminPageHeader
-                    className="media-library-page-header"
-                    headingId="media-library-title"
-                    title="Media Library"
-                    description="Browse, organize and upload website assets and images from one place."
-                />
+                <AdminPageHeader className="media-library-page-header" headingId="media-library-title" title="Media Library" description="Browse, search, and manage your files in one place." />
                 <div className="header-actions">
-                    <span className={`connection-pill ${catalogueReady ? 'is-ready' : ''}`}>
-                        <span /> {catalogueReady ? 'Library connected' : 'Checking connection'}
-                    </span>
-                    <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() => loadFolder(currentFolder)}
-                        disabled={loading || uploading}
-                    >
-                        <RefreshCw size={15} className={loading ? 'is-spinning' : ''} /> Refresh
-                    </button>
+                    <span className={`connection-pill ${catalogueReady ? 'is-ready' : ''}`}><span />{catalogueReady ? 'Library connected' : 'Checking connection'}</span>
+                    <button type="button" className="secondary-button" disabled={loading || busy} onClick={() => loadFolder(currentFolder, { force: true })}><RefreshCw size={15} className={loading ? 'is-spinning' : ''} />Refresh</button>
                 </div>
             </div>
+            {error && !renameItem && !movePicker && !newFolderOpen && <div className="media-message is-error" role="alert"><Info size={18} /><div><strong>Media Library needs attention</strong><span>{error}</span></div><button type="button" aria-label="Dismiss error" onClick={() => setError('')}><X size={15} /></button></div>}
+            {notice && <div className="media-message is-success" role="status"><CheckCircle2 size={18} /><span>{notice}</span><button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><X size={15} /></button></div>}
 
-            {error && (
-                <div className="media-message is-error" role="alert">
-                    <Info size={18} />
-                    <div><strong>Media Library needs attention</strong><span>{error}</span></div>
-                    <button type="button" aria-label="Dismiss error" onClick={() => setError('')}><X size={15} /></button>
-                </div>
-            )}
-
-            {notice && (
-                <div className="media-message is-success" role="status">
-                    <CheckCircle2 size={18} />
-                    <span>{notice}</span>
-                    <button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><X size={15} /></button>
-                </div>
-            )}
-
-            <div className="finder-window">
-                <aside className="finder-sidebar" aria-label="Media folders">
-                    <div className="sidebar-label">Library</div>
-                    <button
-                        type="button"
-                        className={`sidebar-location ${!currentFolder ? 'is-active' : ''}`}
-                        onClick={() => navigateTo('')}
-                    >
-                        <HardDrive size={16} />
-                        <span>All media</span>
-                    </button>
-                    <div className="sidebar-label folder-label">Folders</div>
+            <div className={`finder-window ${showInspector ? 'has-inspector' : ''} ${mobileFoldersOpen ? 'folders-open' : ''}`}>
+                <aside className="finder-sidebar" id="media-folder-navigation" aria-label="Media folders">
+                    <div className="sidebar-heading"><strong><Folder size={17} />Folders</strong><button type="button" className="icon-button" aria-label="Create a new folder" onClick={() => { setError(''); setNewFolderOpen(true); }} disabled={!canCreateFolder}><Plus size={16} /></button></div>
+                    <button type="button" className={`sidebar-location all-files-location ${!currentFolder ? 'is-active' : ''}`} onClick={() => navigateTo('')} disabled={busy} {...folderDropProps('')}><Grid2X2 size={16} /><span>All files</span></button>
                     <div className="sidebar-folders">
-                        {rootFolders.map((folder) => (
-                            <button
-                                type="button"
-                                className={`sidebar-location ${topLevelFolder === folder.path ? 'is-active' : ''} ${!currentFolder && folderMatchMap.get(folder.path) ? 'has-search-match' : ''}`}
-                                onClick={() => navigateTo(folder.path)}
-                                key={folder.path}
-                                title={folder.name}
-                            >
-                                <Folder size={16} />
-                                <span>{folder.name}</span>
-                                {!currentFolder && folderMatchMap.get(folder.path) > 0 && (
-                                    <small>{folderMatchMap.get(folder.path)}</small>
-                                )}
-                            </button>
-                        ))}
-                        {!rootFolders.length && !loading && <span className="sidebar-empty">No folders yet</span>}
-                    </div>
-                    <div className="storage-note">
-                        <span>R2 bucket</span>
-                        <strong>assets</strong>
-                        <small>Files are served from assets.abodid.com</small>
+                        <MediaLibraryFolderTree key={refreshIndex} roots={rootFolders} currentFolder={currentFolder} busy={busy} fetchFolders={fetchFolders} navigateTo={navigateTo} folderDropProps={folderDropProps} openFolderMenu={openFolderMenu} dropFolder={dropFolder} />
+                        {!rootFolders.length && !loading && <p className="sidebar-empty">Create a folder to get organized.</p>}
                     </div>
                 </aside>
 
-                <main
-                    className={`finder-main ${dragging ? 'is-dragging' : ''}`}
-                    onDragEnter={(event) => { event.preventDefault(); if (canUpload) setDragging(true); }}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDragLeave={(event) => {
-                        if (!event.currentTarget.contains(event.relatedTarget)) setDragging(false);
-                    }}
-                    onDrop={(event) => {
-                        event.preventDefault();
-                        setDragging(false);
-                        uploadFiles(event.dataTransfer.files);
-                    }}
-                >
+                <main className={`finder-main ${dragging ? 'is-dragging' : ''}`}
+                    onDragEnter={(event) => { if (canUpload && event.dataTransfer.types.includes('Files')) { event.preventDefault(); setDragging(true); } }}
+                    onDragOver={(event) => { if (canUpload && event.dataTransfer.types.includes('Files')) event.preventDefault(); }}
+                    onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDragging(false); }}
+                    onDrop={(event) => { event.preventDefault(); setDragging(false); setDropFolder(null); if (event.dataTransfer.types.includes('Files')) uploadFiles(event.dataTransfer.files); }}>
                     <div className="finder-titlebar">
-                        <button
-                            type="button"
-                            className="icon-button"
-                            aria-label="Go to parent folder"
-                            disabled={!currentFolder || loading}
-                            onClick={() => navigateTo(currentFolder.split('/').slice(0, -1).join('/'))}
-                        >
-                            <ArrowLeft size={17} />
-                        </button>
-                        <nav className="breadcrumbs" aria-label="Current folder">
-                            <button type="button" onClick={() => navigateTo('')}>assets</button>
-                            {breadcrumbs.map((crumb) => (
-                                <React.Fragment key={crumb.path}>
-                                    <ChevronRight size={14} />
-                                    <button type="button" onClick={() => navigateTo(crumb.path)}>{crumb.name}</button>
-                                </React.Fragment>
-                            ))}
-                        </nav>
-                        <span className="item-count">
-                            {isSearching ? `${visibleFiles.length} matches` : `${folders.length + files.length} items`}
-                        </span>
+                        <div className="navigation-actions"><button type="button" className="icon-button mobile-folders-toggle" aria-label="Show folders" aria-expanded={mobileFoldersOpen} aria-controls="media-folder-navigation" onClick={() => setMobileFoldersOpen((open) => !open)}><PanelLeft size={17} /></button>
+                            <button type="button" className="icon-button" aria-label="Go to parent folder" disabled={!currentFolder || loading || busy} onClick={() => navigateTo(currentFolder.split('/').slice(0, -1).join('/'))}><ArrowLeft size={17} /></button></div>
+                        <nav className="breadcrumbs" aria-label="Current folder"><button type="button" {...folderDropProps('')} className={dropFolder === '' ? 'is-drop-target' : ''} onClick={() => navigateTo('')}>All files</button>{breadcrumbs.map((crumb) => <React.Fragment key={crumb.path}><ChevronRight size={13} /><button type="button" {...folderDropProps(crumb.path)} className={dropFolder === crumb.path ? 'is-drop-target' : ''} onClick={() => navigateTo(crumb.path)} onContextMenu={(event) => openFolderMenu(event, crumb)}>{crumb.name}</button></React.Fragment>)}</nav>
+                        <div className="creation-actions"><button type="button" className="secondary-button" disabled={!canCreateFolder} onClick={() => { setError(''); setNewFolderOpen(true); }}><Plus size={16} />New folder</button><button type="button" className="primary-button" disabled={!canUpload} onClick={() => fileInputRef.current?.click()}><UploadCloud size={16} />Upload</button></div>
+                        <input ref={fileInputRef} className="visually-hidden-file-input" type="file" multiple aria-label="Upload files" onChange={(event) => uploadFiles(event.target.files)} tabIndex={-1} />
                     </div>
-
                     <div className="finder-toolbar">
-                        <label className="search-field">
-                            <Search size={16} />
-                            <input
-                                type="search"
-                                value={query}
-                                onChange={(event) => setQuery(event.target.value)}
-                                placeholder={`Search ${currentFolder || 'all assets'}`}
-                            />
-                            {query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={14} /></button>}
-                        </label>
-                        <div className="toolbar-actions">
-                            <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sort media">
-                                <option value="date-desc">Newest first</option>
-                                <option value="date-asc">Oldest first</option>
-                                <option value="name-asc">Name A–Z</option>
-                                <option value="name-desc">Name Z–A</option>
-                                <option value="size-desc">Largest first</option>
-                                <option value="size-asc">Smallest first</option>
-                            </select>
-                            <div className="view-switcher" aria-label="View options">
-                                <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} aria-label="Grid view" onClick={() => changeView('grid')}><Grid2X2 size={16} /></button>
-                                <button type="button" className={viewMode === 'list' ? 'is-active' : ''} aria-label="List view" onClick={() => changeView('list')}><LayoutList size={17} /></button>
-                            </div>
-                            <button type="button" className="secondary-button" onClick={() => setNewFolderOpen(true)} disabled={uploading || !canCreateFolder} title="Create a folder here">
-                                <Plus size={15} /> New folder
-                            </button>
-                            <input
-                                ref={fileInputRef}
-                                className="visually-hidden-file-input"
-                                type="file"
-                                multiple
-                                accept={ACCEPTED_TYPES.join(',')}
-                                onChange={(event) => uploadFiles(event.target.files)}
-                                tabIndex={-1}
-                            />
-                            <button type="button" className="primary-button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !catalogueReady || !canUpload} title="Upload files here">
-                                {uploading ? <LoaderCircle size={16} className="is-spinning" /> : <UploadCloud size={16} />}
-                                {uploading ? `${uploadProgress?.current || 0}/${uploadProgress?.total || 0}` : 'Upload'}
-                            </button>
-                        </div>
+                        <label className="search-field"><Search size={17} /><input type="search" aria-label="Search files" placeholder={currentFolder ? `Search ${currentFolder.split('/').pop()}` : 'Search all files…'} value={query} onChange={(event) => setQuery(event.target.value)} />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={14} /></button>}</label>
+                        <label className="filter-control"><span className="visually-hidden">File type</span><select name="mediaType" aria-label="File type" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}><option value="all">Type: All files</option><option value="images">Images</option><option value="videos">Videos</option><option value="documents">Documents</option><option value="audio">Audio</option><option value="other">Other files</option></select><ChevronDown className="filter-chevron" size={15} aria-hidden="true" /></label>
+                        <label className="filter-control sort-control"><span className="visually-hidden">Sort media</span><select name="mediaSort" aria-label="Sort media" value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="date-desc">Sort: Newest</option><option value="date-asc">Oldest first</option><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="size-desc">Largest first</option><option value="size-asc">Smallest first</option></select><ChevronDown className="filter-chevron" size={15} aria-hidden="true" /></label>
+                        <div className="view-switcher" role="group" aria-label="View options"><button type="button" aria-label="Grid view" aria-pressed={viewMode === 'grid'} className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => changeView('grid')}><Grid2X2 size={16} /></button><button type="button" aria-label="List view" aria-pressed={viewMode === 'list'} className={viewMode === 'list' ? 'is-active' : ''} onClick={() => changeView('list')}><LayoutList size={17} /></button></div>
                     </div>
+                    <div className="selection-toolbar">
+                        <label className="select-all-files"><input ref={selectAllRef} type="checkbox" aria-label="Select all shown" checked={allVisibleChecked} disabled={!visibleFiles.length || loading || searching || busy} onChange={(event) => toggleVisibleFiles(event.target.checked)} /><span>{checkedFiles.size ? `${checkedFiles.size} selected` : 'Select all shown'}</span></label>
+                        {checkedFiles.size > 0 && <button type="button" className="text-button" onClick={() => { setCheckedFiles(new Map()); setSelectedKey(''); setDetailsOpen(false); }} disabled={busy}>Clear</button>}
+                        {selectionCount > 0 && !showInspector && <button type="button" className="text-button" onClick={() => setDetailsOpen(true)}><Info size={14} />Details</button>}
+                        <span className="item-count" role="status">{totalCount === null ? `${visibleFiles.length} ${visibleFiles.length === 1 ? 'file' : 'files'}` : `${totalCount.toLocaleString()} ${totalCount === 1 ? 'file' : 'files'}`}</span>
+                    </div>
+                    {(selectionCount > 0 || clipboardCount > 0) && <div className="file-action-toolbar">
+                        {selectionCount > 0 && <>
+                            <button type="button" className="secondary-button" disabled={busy} onClick={() => copyFiles(selection, 'copy', selectedFolder)}><Copy size={14} />{selectedFolder ? 'Copy folder' : 'Copy files'}</button>
+                            <button type="button" className="secondary-button" disabled={busy} onClick={() => copyFiles(selection, 'move', selectedFolder)}><Scissors size={14} />Cut</button>
+                            <button type="button" className="secondary-button" disabled={busy} onClick={() => openMove()}><FolderInput size={14} />Move to folder</button>
+                            {!selectedFolder && <button type="button" className="secondary-button" disabled={busy} onClick={() => downloadFiles(selection)}>{downloading ? <LoaderCircle size={14} className="is-spinning" /> : <Download size={14} />}{downloading ? `Preparing ${downloadProgress?.current || 0}/${downloadProgress?.total || 0}…` : 'Download selected (ZIP)'}</button>}
+                            <button type="button" className="secondary-button" aria-label="More file actions" aria-haspopup="menu" aria-expanded={Boolean(contextMenu)} disabled={busy} onClick={(event) => openContextMenu(event, selection, currentFolder, selectedFolder)}><MoreHorizontal size={16} /></button>
+                        </>}
+                        {clipboardCount > 0 && <button type="button" className="secondary-button paste-action" disabled={busy} onClick={() => pasteFiles()}><ClipboardPaste size={14} />Paste here ({clipboardCount})</button>}
+                    </div>}
+                    {uploading && <div className="upload-strip" role="status"><LoaderCircle size={15} className="is-spinning" /><span>Uploading {uploadProgress?.filename} to {uploadProgress?.folder || 'library root'}…</span><strong>{uploadProgress?.current}/{uploadProgress?.total}</strong></div>}
+                    {organizing && <div className="upload-strip" role="status"><LoaderCircle size={15} className="is-spinning" />{organizeProgress || 'Organizing files…'}</div>}
+                    {truncated && <div className="limit-note">This view reached its browsing limit. Open a more specific folder to see the remaining files.</div>}
 
-                    {uploading && (
-                        <div className="upload-strip">
-                            <LoaderCircle size={15} className="is-spinning" />
-                            <span>Uploading {uploadProgress?.filename || 'file'} to {currentFolder || 'assets'}…</span>
-                            <strong>{uploadProgress?.current}/{uploadProgress?.total}</strong>
-                        </div>
-                    )}
-
-                    {isSearching && (
-                        <div className="search-strip">
-                            {searching ? <LoaderCircle size={15} className="is-spinning" /> : <Search size={15} />}
-                            <span>
-                                {searching
-                                    ? `Searching ${currentFolder || 'all assets'} and every subfolder…`
-                                    : `${visibleFiles.length} matching ${visibleFiles.length === 1 ? 'file' : 'files'} across ${currentFolder || 'all assets'} and its subfolders`}
-                            </span>
-                        </div>
-                    )}
-
-                    {(isSearching ? searchTruncated : truncated) && (
-                        <div className="limit-note">There are more results than can be displayed at once. Use a more specific search term.</div>
-                    )}
-
-                    <div className="browser-scroll">
-                        {viewMode === 'list' && !loading && !searching && (visibleFolders.length > 0 || visibleFiles.length > 0) && (
-                            <div className="list-heading" aria-hidden="true">
-                                <span>Name</span><span>Size</span><span>Kind</span><span>Modified</span>
-                            </div>
-                        )}
-
-                        {loading || searching ? (
-                            <div className="browser-state">
-                                <LoaderCircle size={21} className="is-spinning" />
-                                {searching ? 'Searching this folder and all subfolders…' : 'Loading this folder…'}
-                            </div>
-                        ) : visibleFolders.length > 0 || visibleFiles.length > 0 ? (
+                    <div className="browser-scroll" aria-busy={loading || searching}>
+                        {loading || searching ? <div className="browser-state"><LoaderCircle size={23} className="is-spinning" /><span>{searching ? 'Searching files…' : 'Loading files…'}</span></div> : visibleFolders.length || visibleFiles.length ? <>
+                            {viewMode === 'list' && <div className="list-heading" aria-hidden="true"><span>Name</span><span>Size</span><span>Type</span><span>Modified</span></div>}
                             <div className={`finder-items is-${viewMode}`}>
-                                {visibleFolders.map((folder) => (
-                                    <button
-                                        type="button"
-                                        className={`folder-item ${folder.matchCount > 0 ? 'has-descendant-match' : ''}`}
-                                        key={folder.path}
-                                        onClick={() => navigateTo(folder.path)}
-                                    >
-                                        <span className="folder-visual">
-                                            <FolderOpen size={viewMode === 'grid' ? 32 : 19} />
-                                            {folder.matchCount > 0 && <small className="folder-match-count">{folder.matchCount}</small>}
-                                        </span>
-                                        <span className="item-name" title={folder.name}>{folder.name}</span>
-                                        {viewMode === 'list' && <><span>—</span><span>Folder</span><span>—</span></>}
+                                {visibleFolders.length > 0 && <div className="finder-folder-items">{visibleFolders.map((folder) => <div className="folder-entry" key={folder.path}>
+                                    <button type="button" className={`folder-item ${selectedFolder?.path === folder.path ? 'is-selected-folder' : ''} ${dropFolder === folder.path ? 'is-drop-target' : ''} ${clipboard?.mode === 'move' && clipboard.folders?.some((item) => item.path === folder.path) ? 'is-cut' : ''}`} draggable={!busy} onDragStart={(event) => startFolderDrag(event, folder)} onDragEnd={() => { draggedFolder.current = null; setDropFolder(null); }} {...folderDropProps(folder.path)} onClick={() => navigateTo(folder.path)} onContextMenu={(event) => openFolderMenu(event, folder)}>
+                                        <span className="folder-visual"><FolderOpen size={viewMode === 'grid' ? 40 : 20} /></span><span className="item-copy"><span className="item-name" title={folder.name}>{folder.name}</span><small>Folder{folder.matchCount ? ` · ${folder.matchCount} matches` : ''}</small></span>{viewMode === 'list' && <><span>—</span><span>Folder</span><span>—</span></>}
+                                    </button><button type="button" className="item-more" aria-label={`Actions for folder ${folder.name}`} onClick={(event) => openFolderMenu(event, folder)}><MoreHorizontal size={17} /></button>
+                                </div>)}</div>}
+                                <div className="finder-file-items">{visibleFiles.map((file, index) => <div className={`file-entry ${checkedFiles.has(file.objectKey) ? 'is-checked' : ''} ${clipboard?.mode === 'move' && clipboard.files.some((item) => item.objectKey === file.objectKey) ? 'is-cut' : ''}`} key={file.objectKey}
+                                    onContextMenu={(event) => { const items = checkedFiles.has(file.objectKey) ? [...checkedFiles.values()] : [file]; if (!checkedFiles.has(file.objectKey)) setCheckedFiles(new Map([[file.objectKey, file]])); setSelectedFolder(null); setDetailsOpen(true); setSelectedKey(file.objectKey); openContextMenu(event, items); }}>
+                                    <label className="file-selection" title={`Select ${file.name}`}><input type="checkbox" checked={checkedFiles.has(file.objectKey)} disabled={busy} onChange={(event) => toggleFile(file, event.target.checked)} /><span className="visually-hidden">Select {file.name}</span></label>
+                                    <button type="button" className={`file-item ${selectedKey === file.objectKey ? 'is-selected' : ''}`} draggable={!busy} onDragStart={(event) => startFileDrag(event, file)} onDragEnd={() => { draggedFiles.current = []; setDropFolder(null); }}
+                                        onClick={(event) => { setSelectedFolder(null); setDetailsOpen(true); setSelectedKey(file.objectKey); if (event.ctrlKey || event.metaKey) toggleFile(file, !checkedFiles.has(file.objectKey)); else setCheckedFiles(new Map([[file.objectKey, file]])); }} onDoubleClick={() => window.open(file.publicUrl, '_blank', 'noopener,noreferrer')}>
+                                        {filePreview(file, false, index)}<span className="item-copy"><span className="item-name" title={file.name}>{file.name}</span><small>{fileKind(file)}{file.width && file.height ? ` · ${file.width} × ${file.height}` : ''} · {formatBytes(file.fileSize)}</small>{!currentFolder && <small className="item-location" title={file.folderPath}>{file.folderPath || 'Library root'}</small>}</span>
+                                        {viewMode === 'list' && <><span>{formatBytes(file.fileSize)}</span><span>{fileKind(file)}</span><span>{formatDate(file.updatedAt || file.createdAt)}</span></>}
                                     </button>
-                                ))}
-                                {visibleFiles.map((file) => (
-                                    <button
-                                        type="button"
-                                        className={`file-item ${selectedKey === file.objectKey ? 'is-selected' : ''}`}
-                                        key={file.objectKey}
-                                        onClick={() => setSelectedKey(file.objectKey)}
-                                        onDoubleClick={() => window.open(file.publicUrl, '_blank', 'noopener,noreferrer')}
-                                    >
-                                        <span className="file-visual">
-                                            {file.mimeType?.startsWith('image/') ? (
-                                                <><FileImage className="image-fallback" size={25} /><img src={file.publicUrl} alt="" loading="lazy" /></>
-                                            ) : (
-                                                <File size={viewMode === 'grid' ? 30 : 18} />
-                                            )}
-                                        </span>
-                                        <span className="item-copy" title={file.name}>
-                                            <span className="item-name">{file.name}</span>
-                                            {isSearching && (
-                                                <small>{file.objectKey.split('/').slice(0, -1).join('/') || 'assets'}</small>
-                                            )}
-                                        </span>
-                                        {viewMode === 'list' && <><span>{formatBytes(file.fileSize)}</span><span>{fileKind(file)}</span><span>{formatDate(file.createdAt)}</span></>}
-                                    </button>
-                                ))}
+                                    <button type="button" className="item-more" aria-label={`Actions for ${file.name}`} onClick={(event) => { const items = checkedFiles.has(file.objectKey) ? [...checkedFiles.values()] : [file]; setSelectedFolder(null); setDetailsOpen(true); setSelectedKey(file.objectKey); if (!checkedFiles.has(file.objectKey)) setCheckedFiles(new Map([[file.objectKey, file]])); openContextMenu(event, items); }}><MoreHorizontal size={17} /></button>
+                                </div>)}</div>
                             </div>
-                        ) : (
-                            <div className="browser-state is-empty">
-                                <ImagePlus size={27} />
-                                <strong>{query ? 'Nothing matches your search' : 'This folder is empty'}</strong>
-                                <span>{query ? 'No matching filename was found in this folder or any of its subfolders.' : 'Drop files here or use the Upload button.'}</span>
-                            </div>
-                        )}
+                        </> : <div className="browser-state is-empty"><ImagePlus size={32} /><strong>{query || typeFilter !== 'all' ? 'No matching files' : 'This folder is empty'}</strong><span>{query || typeFilter !== 'all' ? 'Try a different search or file type.' : 'Drop files here or use Upload to add them.'}</span>{(query || typeFilter !== 'all') && <button type="button" className="secondary-button" onClick={() => { setQuery(''); setTypeFilter('all'); }}>Clear filters</button>}</div>}
+                        {hasMore && !loading && <div className="load-more"><button type="button" className="secondary-button" disabled={loadingMore} onClick={() => loadFolder(currentFolder, { page: loadedPage + 1, append: true })}>{loadingMore ? <LoaderCircle size={15} className="is-spinning" /> : <Plus size={15} />}Load more files</button><small>{files.length.toLocaleString()} of {totalCount?.toLocaleString()} shown</small></div>}
                     </div>
-
-                    {dragging && (
-                        <div className="drop-overlay">
-                            <UploadCloud size={34} />
-                            <strong>Drop files into {currentFolder || 'assets'}</strong>
-                            <span>Images, videos, audio or documents</span>
-                        </div>
-                    )}
+                    <div className="browser-footer"><span>{currentFolder ? 'Search includes subfolders.' : 'Original files across every folder.'}</span><span>Images ≤20 MB · Other files ≤100 MB</span></div>
+                    {dragging && <div className="drop-overlay"><UploadCloud size={36} /><strong>Drop files into {currentFolder.split('/').pop() || 'the library'}</strong><span>Multiple files · All formats</span></div>}
                 </main>
 
-                <aside className="finder-inspector" aria-label="Selected file details">
-                    {selectedFile ? (
-                        <>
-                            <div className="inspector-preview">
-                                {selectedFile.mimeType?.startsWith('image/') ? (
-                                    <img src={selectedFile.publicUrl} alt={selectedFile.altText || ''} />
-                                ) : (
-                                    <File size={38} />
-                                )}
-                            </div>
-                            <div className="inspector-heading">
-                                <strong title={selectedFile.name}>{selectedFile.name}</strong>
-                                <span className={selectedFile.catalogued ? 'is-catalogued' : ''}>
-                                    {selectedFile.catalogued ? 'Supabase catalogued' : 'R2 file'}
-                                </span>
-                            </div>
-                            <dl>
-                                <div><dt>Kind</dt><dd>{fileKind(selectedFile)}</dd></div>
-                                <div><dt>Size</dt><dd>{formatBytes(selectedFile.fileSize)}</dd></div>
-                                {selectedFile.width && selectedFile.height && <div><dt>Dimensions</dt><dd>{selectedFile.width} × {selectedFile.height}</dd></div>}
-                                <div><dt>Modified</dt><dd>{formatDate(selectedFile.updatedAt || selectedFile.createdAt)}</dd></div>
-                                <div><dt>Location</dt><dd title={selectedFile.objectKey}>{selectedFile.objectKey}</dd></div>
-                                <div><dt>Status</dt><dd>{selectedFile.processingStatus || 'Unknown'}</dd></div>
-                                {selectedFile.credit && <div><dt>Credit</dt><dd>{selectedFile.credit}</dd></div>}
-                                {Object.values(selectedFile.variants || {}).map((variant) => (
-                                    <div key={variant.key}>
-                                        <dt>{variant.key}px</dt>
-                                        <dd><a href={variant.url} target="_blank" rel="noreferrer">{variant.width} × {variant.height} · {formatBytes(variant.fileSize)}</a></dd>
-                                    </div>
-                                ))}
-                            </dl>
-                            <div className="inspector-actions">
-                                <button type="button" className="secondary-button" onClick={copyPublicUrl}><Copy size={15} /> Copy link</button>
-                                <a className="primary-button" href={selectedFile.publicUrl} target="_blank" rel="noreferrer">Open <ExternalLink size={14} /></a>
-                            </div>
-                            <p>Alt text, captions and credits will be editable in the next metadata step.</p>
-                        </>
-                    ) : (
-                        <div className="inspector-empty">
-                            <Info size={24} />
-                            <strong>Select a file</strong>
-                            <span>Its preview, link and technical details will appear here.</span>
-                        </div>
-                    )}
-                </aside>
+                {showInspector && <aside className="finder-inspector" aria-label="Selected file details">
+                    <div className="inspector-title"><strong>{selectedFolder ? 'Folder details' : checkedFiles.size > 1 ? 'Selection details' : 'File details'}</strong><button type="button" className="icon-button" aria-label="Close details" onClick={closeDetails}><X size={17} /></button></div>
+                    {selectedFolder ? <><div className="inspector-preview is-folder"><FolderOpen size={54} /></div><h3 className="inspector-name">{selectedFolder.name}</h3><p className="inspector-note">Copy or move this folder with its files and subfolders.</p><div className="bulk-inspector-actions"><button type="button" className="secondary-button" disabled={busy} onClick={() => copyFiles([], 'copy', selectedFolder)}><Copy size={15} />Copy folder</button><button type="button" className="secondary-button" disabled={busy} onClick={() => openRename(null, selectedFolder)}><Pencil size={15} />Rename folder</button></div></> : checkedFiles.size > 1 ? <><div className="selection-preview"><File size={40} /><strong>{checkedFiles.size} files selected</strong><span>{formatBytes([...checkedFiles.values()].reduce((sum, file) => sum + Number(file.fileSize || 0), 0))} total</span></div><ul className="selected-file-names">{[...checkedFiles.values()].map((file) => <li key={file.objectKey} title={file.name}><File size={14} /><span>{file.name}</span></li>)}</ul><div className="bulk-inspector-actions"><button type="button" className="secondary-button" disabled={busy} onClick={() => copyFiles([...checkedFiles.values()])}><Copy size={15} />Copy files</button><button type="button" className="secondary-button" disabled={busy} onClick={copySelectionLinks}><ExternalLink size={15} />Copy public links</button></div></> : selectedFile && <>
+                        <div className="inspector-preview">{filePreview(selectedFile, true)}</div><h3 className="inspector-name">{selectedFile.name}</h3>
+                        <dl><div><dt>Type</dt><dd>{fileKind(selectedFile)}</dd></div>{selectedFile.width && selectedFile.height && <div><dt>Dimensions</dt><dd>{selectedFile.width} × {selectedFile.height} px</dd></div>}<div><dt>File size</dt><dd>{formatBytes(selectedFile.fileSize)}</dd></div><div><dt>Folder</dt><dd title={selectedFile.folderPath}>{selectedFile.folderPath || 'Library root'}</dd></div><div><dt>Added</dt><dd>{formatDate(selectedFile.createdAt)}</dd></div></dl>
+                        <div className="bulk-inspector-actions"><a className="secondary-button" href={selectedFile.publicUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} />Open file</a><button type="button" className="secondary-button" disabled={busy} onClick={() => openRename(selectedFile)}><Pencil size={15} />Rename file</button></div>
+                        <div className="public-link-field"><label htmlFor="media-public-url">Public link</label><div><input id="media-public-url" value={selectedFile.publicUrl} readOnly onFocus={(event) => event.target.select()} /><button type="button" className="icon-button" aria-label="Copy public link" onClick={copyPublicUrl}><Copy size={15} /></button></div></div>
+                        {mediaType(selectedFile) === 'images' && <form className="alt-text-form" onSubmit={saveAltText}><label htmlFor="media-alt-text">Image description</label><textarea id="media-alt-text" name="altText" rows={3} maxLength={2000} value={altDraft} onChange={(event) => setAltDraft(event.target.value)} placeholder="Describe the image for accessibility" /><button type="submit" className="secondary-button" disabled={busy || altDraft === (selectedFile.altText || '')}>{savingDetails ? 'Saving…' : 'Save description'}</button></form>}
+                    </>}
+                </aside>}
             </div>
+            <MediaLibraryMenu request={contextMenu} items={menuItems} onClose={closeContextMenu} />
 
-            {newFolderOpen && (
-                <div className="modal-backdrop" role="presentation" onMouseDown={() => !creatingFolder && setNewFolderOpen(false)}>
-                    <form className="folder-dialog" onSubmit={createFolder} onMouseDown={(event) => event.stopPropagation()}>
-                        <div className="dialog-icon"><Folder size={22} /></div>
-                        <div>
-                            <h3>New folder</h3>
-                            <p>Create it inside <strong>{currentFolder || 'assets'}</strong>.</p>
-                        </div>
-                        <label htmlFor="new-media-folder">Folder name</label>
-                        <input
-                            id="new-media-folder"
-                            autoFocus
-                            value={newFolderName}
-                            onChange={(event) => setNewFolderName(event.target.value)}
-                            placeholder="project-name"
-                            disabled={creatingFolder}
-                        />
-                        <div className="dialog-actions">
-                            <button type="button" className="secondary-button" onClick={() => setNewFolderOpen(false)} disabled={creatingFolder}>Cancel</button>
-                            <button type="submit" className="primary-button" disabled={!newFolderName.trim() || creatingFolder}>
-                                {creatingFolder ? <LoaderCircle size={15} className="is-spinning" /> : <Plus size={15} />}
-                                Create folder
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
-
-            <style>{`
-                .media-library { width: 100%; max-width: var(--admin-page-content-max); display: flex; flex-direction: column; gap: 1rem; animation: fadeIn 0.3s ease; }
-                .media-library-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; padding: var(--admin-page-heading-offset-block) var(--admin-page-heading-offset-inline) 1.5rem; border-bottom: 1px solid var(--border-subtle); }
-                .media-library-page-header { min-width: 0; flex: 1 1 34rem; }
-                .header-actions, .toolbar-actions, .inspector-actions, .dialog-actions { display: flex; align-items: center; gap: 0.55rem; }
-                .media-library-header .header-actions { flex: 0 0 auto; padding-bottom: 0.25rem; }
-                .connection-pill { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--text-tertiary); font-size: 0.7rem; }
-                .connection-pill > span { width: 6px; height: 6px; border-radius: 50%; background: #858585; }
-                .connection-pill.is-ready > span { background: #35d46f; box-shadow: 0 0 0 3px rgba(53,212,111,0.1); }
-                .secondary-button, .primary-button, .icon-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.42rem; min-height: 34px; border-radius: 7px; cursor: pointer; font: inherit; font-size: 0.72rem; font-weight: 650; text-decoration: none; }
-                .secondary-button { padding: 0.45rem 0.72rem; border: 1px solid var(--border-subtle); background: var(--bg-surface); color: var(--text-primary); }
-                .primary-button { padding: 0.47rem 0.78rem; border: 1px solid #f4f4f4; background: #f4f4f4; color: #101010; }
-                .icon-button { width: 33px; border: 1px solid var(--border-subtle); background: var(--bg-surface); color: var(--text-secondary); }
-                button:disabled { cursor: not-allowed; opacity: 0.45; }
-                .media-message { display: flex; align-items: center; gap: 0.65rem; padding: 0.72rem 0.82rem; border: 1px solid; border-radius: 8px; font-size: 0.75rem; }
-                .media-message > div { flex: 1; }
-                .media-message strong, .media-message span { display: block; }
-                .media-message strong { margin-bottom: 0.15rem; }
-                .media-message > button { margin-left: auto; border: 0; background: transparent; color: inherit; cursor: pointer; }
-                .media-message.is-error { border-color: rgba(248,113,113,0.38); background: rgba(127,29,29,0.18); color: #fca5a5; }
-                .media-message.is-error span { color: #fecaca; }
-                .media-message.is-success { border-color: rgba(74,222,128,0.25); background: rgba(20,83,45,0.18); color: #86efac; }
-                .finder-window { height: clamp(500px, calc(100dvh - 245px), 820px); min-height: 0; display: grid; grid-template-columns: 190px minmax(0, 1fr) 245px; overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-card); box-shadow: 0 18px 55px rgba(0,0,0,0.18); }
-                .finder-sidebar { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 0.85rem 0.65rem; border-right: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-surface) 88%, transparent); }
-                .sidebar-label { padding: 0.2rem 0.55rem 0.45rem; color: var(--text-tertiary); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-                .sidebar-label.folder-label { margin-top: 1rem; }
-                .sidebar-location { width: 100%; display: flex; align-items: center; gap: 0.55rem; padding: 0.5rem 0.55rem; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; font: inherit; font-size: 0.73rem; text-align: left; }
-                .sidebar-location span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-                .sidebar-location small { margin-left: auto; min-width: 20px; padding: 0.12rem 0.32rem; border-radius: 999px; background: rgba(34,197,94,0.14); color: #86efac; font-size: 0.55rem; text-align: center; }
-                .sidebar-location:hover { background: rgba(255,255,255,0.045); color: var(--text-primary); }
-                .sidebar-location.is-active { background: rgba(255,255,255,0.09); color: var(--text-primary); }
-                .sidebar-location.has-search-match { color: #bbf7d0; box-shadow: inset 0 0 0 1px rgba(74,222,128,0.28), 0 0 14px rgba(34,197,94,0.08); }
-                .sidebar-folders { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.1rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-                .sidebar-empty { padding: 0.45rem 0.55rem; color: var(--text-tertiary); font-size: 0.68rem; }
-                .storage-note { margin-top: auto; display: flex; flex-direction: column; gap: 0.2rem; padding: 0.8rem 0.7rem; border: 1px solid var(--border-subtle); border-radius: 8px; }
-                .storage-note span, .storage-note small { color: var(--text-tertiary); font-size: 0.61rem; line-height: 1.4; }
-                .storage-note strong { font-size: 0.75rem; }
-                .finder-main { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-card); }
-                .finder-titlebar { min-height: 48px; flex: 0 0 auto; display: flex; align-items: center; gap: 0.7rem; padding: 0.45rem 0.75rem; border-bottom: 1px solid var(--border-subtle); }
-                .breadcrumbs { min-width: 0; display: flex; align-items: center; gap: 0.2rem; overflow: hidden; }
-                .breadcrumbs button { max-width: 145px; overflow: hidden; padding: 0.25rem; border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; font: inherit; font-size: 0.72rem; font-weight: 620; text-overflow: ellipsis; white-space: nowrap; }
-                .breadcrumbs button:last-child { color: var(--text-primary); }
-                .breadcrumbs svg { flex: 0 0 auto; color: var(--text-tertiary); }
-                .item-count { margin-left: auto; flex: 0 0 auto; color: var(--text-tertiary); font-size: 0.64rem; }
-                .finder-toolbar { flex: 0 0 auto; display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border-subtle); }
-                .search-field { min-width: 170px; max-width: 330px; flex: 1; display: flex; align-items: center; gap: 0.45rem; padding: 0.42rem 0.55rem; border: 1px solid var(--border-subtle); border-radius: 7px; background: var(--bg-surface); color: var(--text-tertiary); }
-                .search-field input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: 0.7rem; }
-                .search-field button { padding: 0; border: 0; background: transparent; color: var(--text-tertiary); cursor: pointer; }
-                .toolbar-actions { margin-left: auto; }
-                .toolbar-actions select { min-height: 34px; padding: 0 1.8rem 0 0.62rem; border: 1px solid var(--border-subtle); border-radius: 7px; background: var(--bg-surface); color: var(--text-secondary); font: inherit; font-size: 0.68rem; }
-                .view-switcher { display: flex; padding: 2px; border: 1px solid var(--border-subtle); border-radius: 7px; background: var(--bg-surface); }
-                .view-switcher button { width: 29px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 5px; background: transparent; color: var(--text-tertiary); cursor: pointer; }
-                .view-switcher button.is-active { background: rgba(255,255,255,0.09); color: var(--text-primary); }
-                .upload-strip, .search-strip, .limit-note { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border-subtle); background: rgba(59,130,246,0.08); color: #bfdbfe; font-size: 0.68rem; }
-                .upload-strip span, .search-strip span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-                .search-strip { background: rgba(34,197,94,0.07); color: #bbf7d0; }
-                .limit-note { background: rgba(245,158,11,0.08); color: #fcd34d; }
-                .browser-scroll { min-height: 0; flex: 1 1 auto; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 0.8rem; }
-                .finder-items.is-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr)); gap: 0.65rem; }
-                .finder-items button { min-width: 0; font: inherit; }
-                .finder-items.is-grid .folder-item, .finder-items.is-grid .file-item { min-height: 142px; display: flex; flex-direction: column; gap: 0.55rem; padding: 0.55rem; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--text-primary); cursor: pointer; text-align: left; }
-                .finder-items.is-grid .folder-item:hover, .finder-items.is-grid .file-item:hover { border-color: var(--border-subtle); background: rgba(255,255,255,0.025); }
-                .finder-items.is-grid .file-item.is-selected { border-color: rgba(96,165,250,0.55); background: rgba(59,130,246,0.12); }
-                .finder-items.is-grid .folder-item.has-descendant-match { border-color: rgba(74,222,128,0.52); background: rgba(22,101,52,0.13); box-shadow: 0 0 0 1px rgba(74,222,128,0.1), 0 0 22px rgba(34,197,94,0.14); }
-                .folder-visual, .file-visual { position: relative; display: grid; place-items: center; overflow: hidden; }
-                .finder-items.is-grid .folder-visual, .finder-items.is-grid .file-visual { width: 100%; aspect-ratio: 4 / 3; border-radius: 6px; background: var(--bg-surface); color: #d6b86e; }
-                .finder-items.is-grid .file-visual { color: var(--text-tertiary); }
-                .file-visual img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; }
-                .image-fallback { position: absolute; }
-                .item-name { width: 100%; overflow: hidden; color: var(--text-primary); font-size: 0.68rem; font-weight: 590; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
-                .item-copy { width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 0.14rem; overflow: hidden; }
-                .item-copy small { overflow: hidden; color: var(--text-tertiary); font-size: 0.56rem; text-overflow: ellipsis; white-space: nowrap; }
-                .folder-match-count { position: absolute; top: 0.42rem; right: 0.42rem; z-index: 2; min-width: 22px; padding: 0.16rem 0.34rem; border: 1px solid rgba(134,239,172,0.35); border-radius: 999px; background: rgba(20,83,45,0.88); color: #bbf7d0; font-size: 0.56rem; font-weight: 750; text-align: center; box-shadow: 0 0 12px rgba(34,197,94,0.22); }
-                .list-heading, .finder-items.is-list .folder-item, .finder-items.is-list .file-item { display: grid; grid-template-columns: minmax(200px, 1fr) 78px 76px 142px; align-items: center; gap: 0.6rem; }
-                .list-heading { padding: 0.2rem 0.55rem 0.5rem; color: var(--text-tertiary); font-size: 0.6rem; }
-                .finder-items.is-list { display: flex; flex-direction: column; }
-                .finder-items.is-list .folder-item, .finder-items.is-list .file-item { min-height: 38px; padding: 0.35rem 0.55rem; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 65%, transparent); background: transparent; color: var(--text-tertiary); cursor: pointer; text-align: left; font-size: 0.64rem; }
-                .finder-items.is-list .folder-item:hover, .finder-items.is-list .file-item:hover { background: rgba(255,255,255,0.035); }
-                .finder-items.is-list .file-item.is-selected { background: rgba(59,130,246,0.14); }
-                .finder-items.is-list .folder-item.has-descendant-match { background: rgba(22,101,52,0.14); box-shadow: inset 3px 0 0 #4ade80, inset 0 0 0 1px rgba(74,222,128,0.15); }
-                .finder-items.is-list .folder-visual, .finder-items.is-list .file-visual { display: inline-grid; width: 28px; height: 28px; margin-right: 0.42rem; float: left; border-radius: 4px; color: #d6b86e; }
-                .finder-items.is-list .file-visual { color: var(--text-tertiary); }
-                .finder-items.is-list .item-name { display: flex; align-items: center; }
-                .finder-items.is-list .item-name::before { content: ''; }
-                .finder-items.is-list .folder-item > .folder-visual, .finder-items.is-list .file-item > .file-visual { grid-column: 1; grid-row: 1; }
-                .finder-items.is-list .folder-item > .item-name, .finder-items.is-list .file-item > .item-copy { grid-column: 1; grid-row: 1; padding-left: 35px; }
-                .finder-items.is-list .folder-match-count { top: -1px; right: -1px; transform: scale(0.82); }
-                .browser-state { min-height: 330px; display: flex; align-items: center; justify-content: center; gap: 0.55rem; color: var(--text-tertiary); font-size: 0.75rem; }
-                .browser-state.is-empty { flex-direction: column; text-align: center; }
-                .browser-state.is-empty strong { margin-top: 0.25rem; color: var(--text-secondary); }
-                .browser-state.is-empty span { max-width: 280px; font-size: 0.68rem; }
-                .drop-overlay { position: absolute; z-index: 10; inset: 0.7rem; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.55rem; border: 1.5px dashed #60a5fa; border-radius: 10px; background: rgba(7,12,22,0.92); color: #dbeafe; pointer-events: none; }
-                .drop-overlay span { color: #93c5fd; font-size: 0.7rem; }
-                .finder-inspector { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 0.8rem; border-left: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-surface) 76%, transparent); }
-                .inspector-preview { aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 8px; background: #080808; color: var(--text-tertiary); }
-                .inspector-preview img { width: 100%; height: 100%; object-fit: contain; }
-                .inspector-heading { display: flex; flex-direction: column; gap: 0.4rem; padding: 0.75rem 0 0.65rem; border-bottom: 1px solid var(--border-subtle); }
-                .inspector-heading strong { overflow: hidden; font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
-                .inspector-heading span { width: fit-content; padding: 0.18rem 0.38rem; border-radius: 999px; background: rgba(255,255,255,0.07); color: var(--text-tertiary); font-size: 0.56rem; }
-                .inspector-heading span.is-catalogued { background: rgba(34,197,94,0.1); color: #86efac; }
-                .finder-inspector dl { display: flex; flex-direction: column; gap: 0.62rem; margin: 0.8rem 0; }
-                .finder-inspector dl > div { display: grid; grid-template-columns: 68px minmax(0,1fr); gap: 0.45rem; }
-                .finder-inspector dt { color: var(--text-tertiary); font-size: 0.61rem; }
-                .finder-inspector dd { overflow: hidden; margin: 0; color: var(--text-secondary); font-size: 0.62rem; line-height: 1.4; text-overflow: ellipsis; }
-                .inspector-actions { margin-top: auto; }
-                .inspector-actions > * { flex: 1; }
-                .finder-inspector > p { margin: 0.65rem 0 0; color: var(--text-tertiary); font-size: 0.58rem; line-height: 1.45; }
-                .inspector-empty { margin: auto; display: flex; align-items: center; flex-direction: column; gap: 0.45rem; color: var(--text-tertiary); text-align: center; }
-                .inspector-empty strong { color: var(--text-secondary); font-size: 0.75rem; }
-                .inspector-empty span { max-width: 170px; font-size: 0.62rem; line-height: 1.45; }
-                .modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 1rem; background: rgba(0,0,0,0.68); backdrop-filter: blur(5px); }
-                .folder-dialog { width: min(390px, 100%); display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; padding: 1.1rem; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-card); box-shadow: 0 24px 80px rgba(0,0,0,0.5); }
-                .dialog-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 9px; background: rgba(214,184,110,0.12); color: #d6b86e; }
-                .folder-dialog h3 { margin: 0; font-size: 1rem; }
-                .folder-dialog p { margin: 0.28rem 0 0; color: var(--text-tertiary); font-size: 0.68rem; }
-                .folder-dialog label, .folder-dialog > input, .dialog-actions { grid-column: 1 / -1; }
-                .folder-dialog label { margin-top: 0.2rem; color: var(--text-secondary); font-size: 0.65rem; }
-                .folder-dialog > input { padding: 0.62rem 0.7rem; border: 1px solid var(--border-subtle); border-radius: 7px; outline: 0; background: var(--bg-surface); color: var(--text-primary); font: inherit; font-size: 0.75rem; }
-                .folder-dialog > input:focus { border-color: rgba(96,165,250,0.65); }
-                .dialog-actions { justify-content: flex-end; margin-top: 0.35rem; }
-                .visually-hidden-file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
-                .is-spinning { animation: media-spin 0.8s linear infinite; }
-                @keyframes media-spin { to { transform: rotate(360deg); } }
-                @media (max-width: 1180px) {
-                    .finder-window { grid-template-columns: 170px minmax(0,1fr); }
-                    .finder-inspector { display: none; }
-                    .finder-toolbar { align-items: stretch; flex-direction: column; }
-                    .search-field { max-width: none; }
-                    .toolbar-actions { margin-left: 0; flex-wrap: wrap; }
-                }
-                @media (max-width: 1180px) {
-                    .media-library-header { flex-direction: column; gap: 0.8rem; }
-                    .header-actions { width: 100%; justify-content: space-between; }
-                }
-                @media (max-width: 760px) {
-                    .finder-window { height: max(520px, calc(100dvh - 210px)); max-height: 760px; grid-template-columns: 1fr; }
-                    .finder-sidebar { display: none; }
-                    .finder-items.is-grid { grid-template-columns: repeat(auto-fill, minmax(104px,1fr)); }
-                    .toolbar-actions select { flex: 1; }
-                    .list-heading, .finder-items.is-list .folder-item, .finder-items.is-list .file-item { grid-template-columns: minmax(150px,1fr) 70px 70px; }
-                    .list-heading span:last-child, .finder-items.is-list .folder-item > span:last-child, .finder-items.is-list .file-item > span:last-child { display: none; }
-                    .breadcrumbs button { max-width: 95px; }
-                    .item-count { display: none; }
-                }
-            `}</style>
+            {newFolderOpen && <MediaLibraryDialog title="New folder" description={`Create inside ${currentFolder || 'the library root'}.`} busy={creatingFolder} onClose={() => setNewFolderOpen(false)} onSubmit={createFolder}><label htmlFor="new-media-folder">Folder name</label><input id="new-media-folder" name="folderName" autoFocus required maxLength={100} value={newFolderName} onChange={(event) => setNewFolderName(event.target.value)} disabled={creatingFolder} placeholder="e.g. presentations" />{error && <p className="dialog-error" role="alert">{error}</p>}<div className="dialog-actions"><button type="button" className="secondary-button" disabled={creatingFolder} onClick={() => setNewFolderOpen(false)}>Cancel</button><button type="submit" className="primary-button" disabled={creatingFolder || !newFolderName.trim()}>{creatingFolder ? 'Creating…' : 'Create folder'}</button></div></MediaLibraryDialog>}
+            {renameItem && <MediaLibraryDialog title={renameItem.kind === 'folder' ? 'Rename folder' : 'Rename file'} description="Existing public links will continue to work." busy={busy} onClose={() => setRenameItem(null)} onSubmit={submitRename}><label htmlFor="media-rename">{renameItem.kind === 'folder' ? 'Folder name' : 'File name'}</label><input id="media-rename" name="name" autoFocus required maxLength={renameItem.kind === 'folder' ? 100 : 255} value={renameValue} onChange={(event) => setRenameValue(event.target.value)} disabled={busy} />{error && <p className="dialog-error" role="alert">{error}</p>}<div className="dialog-actions"><button type="button" className="secondary-button" disabled={busy} onClick={() => setRenameItem(null)}>Cancel</button><button type="submit" className="primary-button" disabled={busy || !renameValue.trim()}>{busy ? 'Renaming…' : 'Rename'}</button></div></MediaLibraryDialog>}
+            {movePicker && <MediaLibraryDialog title="Move to folder" description={`Choose a destination for ${movePicker.folder ? `“${movePicker.folder.name}”` : `${movePicker.files.length} selected files`}.`} busy={busy} onClose={() => setMovePicker(null)} onSubmit={submitMove}>
+                <nav className="move-breadcrumbs" aria-label="Destination folder"><button type="button" disabled={busy} onClick={() => setMovePath('')}>Library root</button>{makeBreadcrumbs(movePath).map((crumb) => <React.Fragment key={crumb.path}><ChevronRight size={13} /><button type="button" disabled={busy} onClick={() => setMovePath(crumb.path)}>{crumb.name}</button></React.Fragment>)}</nav>
+                <div className="move-folder-list">{moveLoading ? <span><LoaderCircle size={17} className="is-spinning" />Loading folders…</span> : moveFolders.length ? moveFolders.map((folder) => <button type="button" key={folder.path} disabled={busy || (movePicker.folder && (folder.path === movePicker.folder.path || folder.path.startsWith(`${movePicker.folder.path}/`)))} onClick={() => setMovePath(folder.path)}><Folder size={19} /><span>{folder.name}</span><ChevronRight size={15} /></button>) : <p>No subfolders. You can move files into this folder.</p>}</div>
+                {moveIntoSelf && <p className="dialog-error">Choose a destination outside the selected folder.</p>}{error && <p className="dialog-error" role="alert">{error}</p>}
+                <div className="dialog-actions"><button type="button" className="secondary-button" disabled={busy} onClick={() => setMovePicker(null)}>Cancel</button><button type="submit" className="primary-button" disabled={busy || moveLoading || moveIntoSelf}>{busy ? 'Moving…' : 'Move here'}</button></div>
+            </MediaLibraryDialog>}
         </section>
     );
 }

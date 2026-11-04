@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formPath, type FeedbackForm, type FeedbackQuestion } from '../../lib/feedback/schema';
+import { getFeedbackResponses } from '../../lib/feedback/server';
+import '../../styles/feedback/responses.css';
+
+interface Props { form: FeedbackForm }
+const { form } = Astro.props;
+const rawPage = Number(Astro.url.searchParams.get('page') || 1);
+const page = Number.isSafeInteger(rawPage) && rawPage > 0 && rawPage <= 100000 ? rawPage : 1;
+let result: Awaited<ReturnType<typeof getFeedbackResponses>> = { responses: [], total: 0, pageSize: 48 };
+let loadError = false;
+try { result = await getFeedbackResponses(form.id, page); }
+catch (error) { console.error('Could not load feedback responses:', error); loadError = true; Astro.response.status = 503; }
+const { responses, total, pageSize } = result;
+const formatDate = (date: string) => new Intl.DateTimeFormat('en-IN', {
+    dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata',
+}).format(new Date(date));
+const obscureEmail = (email: string | null) => {
+    if (!email || !email.includes('@')) return '';
+    const [local, domain] = email.split('@');
+    return `${local.slice(0, 1)}${'*'.repeat(Math.max(3, local.length - 1))}@${domain}`;
+};
+---
+
+<BaseLayout title={`${form.institution_name} — Feedback Responses`}
+    description={`Responses for ${form.event_title} at ${form.institution_name}.`}
+    image={form.content.image} useDynamicOgImage={!form.content.image}
+    fullWidth={true} hideSideMenuRail={true} hideThemeToggle={true} showNewsletterPopup={false}
+    showGlobalGrid={false} showCursorFollower={false} bodyClass="du-responses-route" noindex={true}>
+    <section class="du-responses-page">
+        <div class="du-responses-shell">
+            <header class="du-responses-header">
+                <a class="du-site-mark" href={formPath(form.slug)}>← Back to form</a>
+                <h1>Session Feedback Responses</h1>
+                <p>{form.institution_name} · {form.event_title}</p>
+                {!loadError && <p>{total} {total === 1 ? 'response' : 'responses'}{total > pageSize && ` · Page ${page} of ${Math.ceil(total / pageSize)}`}</p>}
+            </header>
+            {loadError ? <p role="alert">Responses could not be loaded. Please try again shortly.</p> : total === 0 ? (
+                <p class="feedback-empty">No responses yet. They’ll appear here as feedback comes in.</p>
+            ) : <div class="du-masonry-grid">
+                {responses.map((item) => {
+                    const name = item.participant_name?.trim() || 'Anonymous Participant';
+                    const email = obscureEmail(item.participant_email);
+                    const questions = item.question_snapshot as FeedbackQuestion[];
+                    return <article class="du-response-card">
+                        <div class="card-header">
+                            <div class="user-info">
+                                <div class:list={['status-arrow', email ? 'has-email' : item.participant_name ? 'has-name' : 'anonymous']} aria-hidden="true">↗</div>
+                                <div class="user-details"><h2 class="user-name">{name}</h2>{email && <span class="user-email">{email}</span>}</div>
+                            </div>
+                            <time class="response-date" datetime={item.created_at}>{formatDate(item.created_at)}</time>
+                        </div>
+                        <div class="card-body">
+                            {questions.filter((q) => item.answers[q.id]).map((question) => <div class="qa-block">
+                                <span class="question-label">{question.shortLabel || question.label}</span>
+                                <p class="answer-text">{String(item.answers[question.id])}</p>
+                            </div>)}
+                        </div>
+                    </article>;
+                })}
+            </div>}
+            {!loadError && total > pageSize && <nav class="feedback-pagination" aria-label="Response pages">
+                {page > 1 && <a href={`?page=${page - 1}`} rel="prev">← Previous</a>}
+                {page * pageSize < total && <a href={`?page=${page + 1}`} rel="next">Next →</a>}
+            </nav>}
+        </div>
+    </section>
+</BaseLayout>
+
+<style>
+    .feedback-empty { padding-block: 2rem; }
+    .feedback-pagination { display: flex; justify-content: space-between; gap: 1rem; padding-block: 2rem; }
+    .feedback-pagination a { display: inline-flex; align-items: center; min-height: 48px; color: #010101; font-weight: 700; }
+    .user-details { min-width: 0; }
+    .answer-text, .user-name { overflow-wrap: anywhere; }
+</style>

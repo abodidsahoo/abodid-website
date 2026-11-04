@@ -1,0 +1,8 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PrivateResponsesAdmin from '../../components/feedback/PrivateResponsesAdmin.astro';
+import { INTEREST_SLUG } from '../../lib/feedback/collections';
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+<AdminLayout title="Photography workshop interest" fullWidth={true}><PrivateResponsesAdmin title="Photography workshop + photo walk interest" slug={INTEREST_SLUG} /></AdminLayout>

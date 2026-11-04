@@ -1,0 +1,31 @@
+---
+import type { FeedbackQuestion } from '../../lib/feedback/schema';
+interface Props { question: FeedbackQuestion; showRequired?: boolean }
+const { question, showRequired = true } = Astro.props;
+const options = question.type === 'rating' ? ['1', '2', '3', '4', '5'] : question.options || [];
+const choice = question.type === 'rating' || question.type === 'choice';
+const id = `answer-${question.id}`;
+---
+{choice && options.length <= 5 ? (
+    <fieldset class="hub-question hub-options">
+        <legend>{question.label}{showRequired && question.required && ' (required)'}</legend>
+        {question.type === 'rating' && <p class="hub-help">1 = lowest · 5 = highest</p>}
+        {options.map((option, index) => <label for={`${id}-${index}`}>
+            <input id={`${id}-${index}`} type="radio" name={question.id} value={option} required={question.required} data-answer />
+            <span>{option}</span>
+        </label>)}
+    </fieldset>
+) : (
+    <label class="hub-question" for={id}>
+        <span>{question.label}{showRequired && question.required && ' (required)'}</span>
+        {choice ? <select id={id} name={question.id} required={question.required} data-answer>
+            <option value="">Choose an answer</option>
+            {options.map((option) => <option value={option}>{option}</option>)}
+        </select> : question.type === 'text' ? (
+            <input id={id} name={question.id} type="text" maxlength="180" placeholder={question.placeholder} required={question.required} data-answer />
+        ) : (
+            <textarea id={id} name={question.id} rows="4" maxlength="8000" placeholder={question.placeholder}
+                required={question.required} data-answer data-auto-grow />
+        )}
+    </label>
+)}

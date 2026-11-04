@@ -1,0 +1,107 @@
+[
+  {
+    "slug": "delhi-university-ethnographic-filmmaking",
+    "institution_slug": "delhi-university",
+    "institution_name": "University of Delhi",
+    "event_slug": "ethnographic-filmmaking",
+    "event_title": "Ethnographic Filmmaking Workshop",
+    "event_date": null,
+    "questions": [
+      {
+        "id": "best_part",
+        "label": "What was the best part?",
+        "shortLabel": "Best Part",
+        "type": "textarea",
+        "placeholder": "Tell me what felt useful, interesting, memorable, or worth keeping."
+      },
+      {
+        "id": "improvements",
+        "label": "What could have been improved?",
+        "shortLabel": "Improvements",
+        "type": "textarea",
+        "placeholder": "Share anything that needed more time, clarity, structure, or examples."
+      },
+      {
+        "id": "future_workshop_topics",
+        "label": "What would you love to learn in a future workshop?",
+        "shortLabel": "Future Topics",
+        "type": "textarea",
+        "placeholder": "Topics, tools, exercises, readings, film practices, or questions you want explored next."
+      },
+      {
+        "id": "other_comments",
+        "label": "Any other comments?",
+        "shortLabel": "Other Comments",
+        "type": "textarea",
+        "placeholder": "Anything else you would like to share."
+      }
+    ],
+    "content": {
+      "kicker": "Delhi University Workshop",
+      "heading": "Thank you for joining the ethnographic filmmaking workshop.",
+      "note": "I am grateful for the questions, attention, and active participation you brought into the room. It was lovely to see the workshop come alive through your responses.",
+      "thanks": "Warm thanks to Dr. Pratyasha Sahoo for inviting me to conduct this workshop.",
+      "resourceNote": "Share your feedback to download the workshop slide deck.",
+      "formNote": "Answer any one question, or all four. Name and email are optional.",
+      "successNote": "I really appreciate you taking the time to respond. Your feedback helps me understand what was useful, what could be clearer, and what future workshops can hold.",
+      "resources": [
+        {
+          "label": "Download Slide Deck (PDF)",
+          "url": "https://assets.abodid.com/documents/Ethnographic-Filmmaking-Workshop-by-Abodid-Sahoo-for-Delhi-University-Send-to-Students.pdf"
+        }
+      ],
+      "image": "/images/og/du-workshop-feedback.png",
+      "legacyStorageKey": "du_workshop_feedback_submitted_v1"
+    }
+  },
+  {
+    "slug": "nift-bhubaneswar-space-materiality-2026-11-03",
+    "institution_slug": "nift-bhubaneswar",
+    "institution_name": "NIFT Bhubaneswar",
+    "event_slug": "space-materiality-2026-11-03",
+    "event_title": "Space and Materiality — Material Manipulation with a Focus on Prop Design; Window Design & Budgeting",
+    "event_date": "2026-11-03",
+    "questions": [
+      {
+        "id": "feedback",
+        "label": "Your feedback",
+        "shortLabel": "Feedback",
+        "type": "textarea",
+        "placeholder": "What did you think of the lecture and how it was conducted?",
+        "required": true
+      }
+    ],
+    "content": {
+      "kicker": "NIFT Bhubaneswar · 3 November 2026",
+      "heading": "Thanks for joining the lecture!",
+      "note": "Share your feedback to receive the download links.",
+      "thanks": "A warm thank-you to Shilpa Jena for inviting me, and to the Fashion Communication students for joining in.",
+      "resourceNote": "After your feedback, download the complete slide decks as high-resolution PDFs, and revisit the demo.",
+      "formNote": "Please share your feedback in a few lines.",
+      "successNote": "Thanks for sharing your feedback!",
+      "resources": [
+        {
+          "label": "Session 01 — The Retail Window",
+          "url": "https://drive.google.com/file/d/1am-OG6yy9n8bf8vGucJ8BHVxWuSMPxHt/view?usp=sharing",
+          "description": "PDF · 40 pages · 230 MB"
+        },
+        {
+          "label": "Session 02 — Tanishq, Bhubaneswar",
+          "url": "https://drive.google.com/file/d/1d8fC90updrTx0kMZ4ydlgG9yyH5C5-w5/view?usp=sharing",
+          "description": "PDF · 15 pages · 101 MB"
+        },
+        {
+          "label": "Tessellation demo",
+          "url": "https://tiled.art/en/art/TurtleIsland/",
+          "description": "View the interactive demo"
+        }
+      ],
+      "resourceInstructions": "Open a session PDF in Google Drive, then use Download to save the high-resolution file.",
+      "resourceNotice": {
+        "title": "For NIFT workshop participants",
+        "text": "These two PDFs are for participants within the NIFT community. Please keep them within that group. Do not share them publicly or upload them to any platform."
+      },
+      "resourceEmailEnabled": true
+    }
+  }
+]

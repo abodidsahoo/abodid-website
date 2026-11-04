@@ -1,0 +1,8 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PrivateResponsesAdmin from '../../components/feedback/PrivateResponsesAdmin.astro';
+import { ALBUM_SLUG } from '../../lib/feedback/collections';
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+---
+<AdminLayout title="Photo album responses" fullWidth={true}><PrivateResponsesAdmin title="Photo album responses" slug={ALBUM_SLUG} /></AdminLayout>

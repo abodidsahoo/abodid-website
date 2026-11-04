@@ -1,6 +1,8 @@
+import { invalidateLibraryIndex } from '../../../../lib/media/libraryIndex';
 export const prerender = false;
 
 import type { APIRoute } from "astro";
+import { maxUploadBytes, normalizeUploadContentType } from "../../../../lib/media/uploadPolicy";
 import {
     authorizeAdminRequest,
     jsonResponse,
@@ -8,10 +10,7 @@ import {
 import {
     buildR2PublicUrl,
     getR2Config,
-    isAllowedImageMimeType,
     makeAvailableR2ObjectKey,
-    MAX_IMAGE_SIZE_BYTES,
-    MAX_MEDIA_SIZE_BYTES,
     normalizeR2FolderPath,
     putR2Object,
 } from "../../../../lib/media/r2";
@@ -57,7 +56,7 @@ export const POST: APIRoute = async ({ request }) => {
         const rawFolder = String(formData.get("folder") || "");
         const folder = normalizeR2FolderPath(rawFolder);
         const filename = file.name.trim().slice(0, 255);
-        const contentType = file.type?.trim().toLowerCase() || "application/octet-stream";
+        const contentType = normalizeUploadContentType(file.type);
         const fileSize = file.size;
         const width = optionalDimension(formData.get("width"));
         const height = optionalDimension(formData.get("height"));
@@ -69,13 +68,9 @@ export const POST: APIRoute = async ({ request }) => {
         if (!filename) {
             return jsonResponse({ error: "The file must have a valid filename." }, 400);
         }
-        if (!isAllowedImageMimeType(contentType)) {
-            return jsonResponse({ error: "Unsupported file type. Use images, videos, audio or documents." }, 400);
-        }
-        const isLargeMediaOrDoc = contentType.startsWith("video/") || contentType === "application/pdf";
-        const maxAllowedSize = isLargeMediaOrDoc ? MAX_MEDIA_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
+        const maxAllowedSize = maxUploadBytes(contentType);
         if (fileSize <= 0 || fileSize > maxAllowedSize) {
-            return jsonResponse({ error: `File must be ${isLargeMediaOrDoc ? "100 MB" : "20 MB"} or smaller.` }, 400);
+            return jsonResponse({ error: `File must be ${maxAllowedSize / (1024 * 1024)} MB or smaller.` }, 400);
         }
 
         const config = getR2Config();
@@ -203,5 +198,7 @@ export const POST: APIRoute = async ({ request }) => {
         console.error("Could not complete the R2 upload:", error);
         const message = error instanceof Error ? error.message : "Could not upload the file.";
         return jsonResponse({ error: message }, 500);
+    } finally {
+        invalidateLibraryIndex();
     }
 };

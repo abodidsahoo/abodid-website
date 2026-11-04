@@ -21,7 +21,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  current_time timestamptz := clock_timestamp();
+  v_now timestamptz := clock_timestamp();
   current_row public.contact_rate_limits%rowtype;
 begin
   if char_length(p_key_hash) <> 64 or p_limit < 1 or p_window_seconds < 1 then
@@ -35,26 +35,26 @@ begin
     updated_at
   ) values (
     p_key_hash,
-    current_time,
+    v_now,
     1,
-    current_time
+    v_now
   )
   on conflict (key_hash) do update set
     window_started_at = case
-      when limits.window_started_at <= current_time - make_interval(secs => p_window_seconds)
-        then current_time
+      when limits.window_started_at <= v_now - make_interval(secs => p_window_seconds)
+        then v_now
       else limits.window_started_at
     end,
     request_count = case
-      when limits.window_started_at <= current_time - make_interval(secs => p_window_seconds)
+      when limits.window_started_at <= v_now - make_interval(secs => p_window_seconds)
         then 1
       else limits.request_count + 1
     end,
-    updated_at = current_time
+    updated_at = v_now
   returning * into current_row;
 
   delete from public.contact_rate_limits
-  where updated_at < current_time - interval '2 days';
+  where updated_at < v_now - interval '2 days';
 
   return query select
     current_row.request_count <= p_limit,
@@ -63,7 +63,7 @@ begin
       ceil(extract(epoch from (
         current_row.window_started_at
         + make_interval(secs => p_window_seconds)
-        - current_time
+        - v_now
       )))::integer
     );
 end;

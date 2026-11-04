@@ -1,0 +1,136 @@
+---
+import { randomUUID } from 'node:crypto';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import type { FeedbackForm } from '../../lib/feedback/schema';
+import '../../styles/feedback/form.css';
+
+interface Props { form: FeedbackForm }
+const { form } = Astro.props;
+const content = form.content;
+const submitted = Astro.url.searchParams.get('submitted') === '1';
+---
+
+<BaseLayout title={`${form.institution_name} — ${form.event_title} Feedback`}
+    description={`Share your feedback on ${form.event_title} at ${form.institution_name}.`}
+    image={content.image} useDynamicOgImage={!content.image}
+    fullWidth={true} hideSideMenuRail={true} hideThemeToggle={true}
+    showNewsletterPopup={false} showGlobalGrid={false} showCursorFollower={false}
+    altTextLogo="abodid.com" bodyClass="du-feedback-route">
+    <section class:list={['du-feedback-page', { 'is-submitted': submitted }]}
+        data-feedback-page data-form-slug={form.slug} data-legacy-storage-key={content.legacyStorageKey}>
+        <div class="du-feedback-shell">
+            <aside class="du-feedback-intro" aria-label="Session note">
+                <a class="du-site-mark" href="/">abodid.com</a>
+                <p class="du-kicker">{content.kicker}</p>
+                <h1>{content.heading}</h1>
+                <p class="du-intro-copy">{content.note}</p>
+                <div class="du-gratitude-note"><p>{content.thanks}</p></div>
+                {content.resources.length > 0 && <div class="du-slide-deck-note"><p>{content.resourceNote}</p></div>}
+            </aside>
+
+            {form.is_open ? <form class="du-feedback-form" data-feedback-form
+                action={`/api/feedback/${form.slug}`} method="POST" hidden={submitted}>
+                <input type="hidden" name="form_version" value={form.form_version} />
+                <input type="hidden" name="submission_key" value={randomUUID()} />
+                <div class="du-form-head">
+                    <p class="du-form-eyebrow">Quick optional feedback</p>
+                    <h2>Share what stayed with you.</h2>
+                    <p>{content.formNote}</p>
+                    <p class="feedback-privacy">{form.responses_public ? 'Your name and written feedback may appear on the session’s responses page. Your full email is kept private.' : 'Your name and feedback are private, just for me. Your email stays private.'}</p>
+                </div>
+                <div class="du-honeypot" aria-hidden="true">
+                    <label for="feedback-website">Website</label>
+                    <input id="feedback-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+                </div>
+                <fieldset class="du-fieldset">
+                    <legend>Optional details</legend>
+                    <div class="du-identity-grid">
+                        <label class="du-field" for="feedback-name"><span>Your name</span>
+                            <input id="feedback-name" name="name" type="text" autocomplete="name" maxlength="180" placeholder="Add your name if you wish" />
+                        </label>
+                        <label class="du-field" for="feedback-email"><span>Email ID</span>
+                            <input id="feedback-email" name="email" type="email" inputmode="email" autocomplete="email"
+                                autocapitalize="off" spellcheck={false} maxlength="254" placeholder="name@example.com" />
+                        </label>
+                    </div>
+                    <label class="newsletter-choice"><input type="checkbox" name="newsletter_consent" />
+                        <span>Send me future notes, tips, and workshop updates by email.</span>
+                    </label>
+                </fieldset>
+                <fieldset class="du-fieldset du-response-fields">
+                    <legend>Feedback</legend>
+                    {form.questions.map((question) => {
+                        const options = question.type === 'rating' ? ['1', '2', '3', '4', '5'] : question.options || [];
+                        const choice = question.type === 'rating' || question.type === 'choice';
+                        return choice && options.length <= 5 ? (
+                            <fieldset class="feedback-options" data-answer-group>
+                                <legend>{question.label}{question.required && ' (required)'}</legend>
+                                {question.type === 'rating' && <p class="rating-help">1 = lowest · 5 = highest</p>}
+                                {options.map((option, index) => <label for={`answer-${question.id}-${index}`}>
+                                    <input id={`answer-${question.id}-${index}`} type="radio" name={question.id}
+                                        value={option} required={question.required} data-answer />{option}
+                                </label>)}
+                            </fieldset>
+                        ) : (
+                            <label class="du-field du-field--textarea" for={`answer-${question.id}`}>
+                                <span>{question.label}{question.required && ' (required)'}</span>
+                                {choice ? <select id={`answer-${question.id}`} name={question.id} required={question.required} data-answer>
+                                    <option value="">Choose an answer</option>
+                                    {options.map((option) => <option value={option}>{option}</option>)}
+                                </select> : question.type === 'text' ? (
+                                    <input id={`answer-${question.id}`} name={question.id} type="text" maxlength="180"
+                                        placeholder={question.placeholder} required={question.required} data-answer />
+                                ) : (
+                                    <textarea id={`answer-${question.id}`} name={question.id} rows="4" maxlength="8000"
+                                        placeholder={question.placeholder} required={question.required} data-answer data-auto-grow />
+                                )}
+                            </label>
+                        );
+                    })}
+                </fieldset>
+                <p class="du-status" data-feedback-status role="status" aria-live="polite" tabindex="-1"></p>
+                <div class="du-form-actions"><button class="du-submit-button" type="submit"><span>Submit feedback</span></button></div>
+            </form> : <div class="du-feedback-form" hidden={submitted}><h2>Feedback is now closed.</h2><p>Thank you for taking part.</p></div>}
+
+            <section class="du-thank-you-card" data-feedback-thank-you hidden={!submitted} tabindex="-1">
+                <p class="du-form-eyebrow">Feedback received</p>
+                <h2>Thank you for sharing.</h2>
+                <p>{content.successNote}</p>
+                {content.resources.length > 0 && <div class="du-download-box">
+                    <p class="du-form-eyebrow">Session Resources</p>
+                    {content.resourceInstructions && <p class="feedback-resource-instructions">{content.resourceInstructions}</p>}
+                    {content.resourceNotice && <aside class="feedback-resource-notice" aria-labelledby="feedback-resource-notice-title">
+                        <h3 id="feedback-resource-notice-title">{content.resourceNotice.title}</h3>
+                        <p>{content.resourceNotice.text}</p>
+                    </aside>}
+                    {content.resources.map((resource) => <div class="feedback-resource">
+                        <a class="du-download-button" href={resource.url} target="_blank" rel="noopener noreferrer">{resource.label} ↗</a>
+                        {resource.description && <p>{resource.description}</p>}
+                    </div>)}
+                </div>}
+                <p class="du-photo-link-note">If you’d like to see more, <a href="/photography">visit my photography work</a>.</p>
+            </section>
+        </div>
+        <div class="du-footer-spacer" aria-hidden="true"></div>
+    </section>
+</BaseLayout>
+
+<style>
+    .feedback-resource { display: grid; gap: .55rem; margin-block: .6rem 1rem; }
+    .feedback-resource p { margin: 0; }
+    .newsletter-choice { display: flex; align-items: center; gap: .65rem; min-height: 48px; font-size: 1rem; }
+    .newsletter-choice input { flex: 0 0 20px; width: 20px; height: 20px; accent-color: #ea2a10; }
+    .du-field select { width: 100%; min-height: 48px; padding: .85rem; font: inherit; border: 1px solid #9e9992; background: #fff; color: #010101; }
+    .du-field textarea { resize: vertical; }
+    .feedback-options { margin: 0; padding: 0; border: 0; }
+    .feedback-options legend { font-weight: 700; }
+    .feedback-options label { display: flex; align-items: center; gap: .65rem; min-height: 48px; }
+    .feedback-options input { accent-color: #ea2a10; }
+    .rating-help { margin: .4rem 0; }
+    .du-form-head .feedback-privacy { font-size: .88rem; line-height: 1.5; }
+    :is(input, textarea, select, button, a):focus-visible { outline: 3px solid #ea2a10; outline-offset: 3px; }
+</style>
+
+<script>
+    import '../../scripts/feedback/form';
+</script>

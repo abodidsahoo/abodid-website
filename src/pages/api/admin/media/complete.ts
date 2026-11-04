@@ -1,6 +1,8 @@
+import { invalidateLibraryIndex } from '../../../../lib/media/libraryIndex';
 export const prerender = false;
 
 import type { APIRoute } from "astro";
+import { maxUploadBytes, normalizeUploadContentType } from "../../../../lib/media/uploadPolicy";
 import {
     authorizeAdminRequest,
     jsonResponse,
@@ -9,9 +11,6 @@ import {
     assertSafeR2ObjectKey,
     buildR2PublicUrl,
     headR2Object,
-    isAllowedImageMimeType,
-    MAX_IMAGE_SIZE_BYTES,
-    MAX_MEDIA_SIZE_BYTES,
     getR2ObjectBytes,
 } from "../../../../lib/media/r2";
 import {
@@ -70,14 +69,10 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         const { config, object } = await headR2Object(objectKey);
-        const contentType = (object.ContentType || "").toLowerCase();
+        const contentType = normalizeUploadContentType(object.ContentType);
         const fileSize = Number(object.ContentLength || 0);
 
-        if (!isAllowedImageMimeType(contentType)) {
-            return jsonResponse({ error: "R2 returned an unsupported file type." }, 400);
-        }
-        const isLargeMediaOrDoc = contentType.startsWith("video/") || contentType === "application/pdf";
-        const maxAllowedSize = isLargeMediaOrDoc ? MAX_MEDIA_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
+        const maxAllowedSize = maxUploadBytes(contentType);
         if (fileSize <= 0 || fileSize > maxAllowedSize) {
             return jsonResponse({ error: "The uploaded file has an invalid size." }, 400);
         }
@@ -134,8 +129,8 @@ export const POST: APIRoute = async ({ request }) => {
             return jsonResponse(
                 {
                     error: missingTable
-                        ? "The image reached R2, but the media catalogue migration has not been applied yet."
-                        : "The image reached R2, but its Supabase record could not be saved.",
+                        ? "The file reached R2, but the media catalogue migration has not been applied yet."
+                        : "The file reached R2, but its Supabase record could not be saved.",
                     code: missingTable ? "MEDIA_CATALOGUE_MISSING" : "MEDIA_CATALOGUE_ERROR",
                     publicUrl,
                     objectKey,
@@ -196,5 +191,7 @@ export const POST: APIRoute = async ({ request }) => {
         console.error("Could not verify the completed R2 upload:", error);
         const message = error instanceof Error ? error.message : "Could not verify the upload.";
         return jsonResponse({ error: message }, 500);
+    } finally {
+        invalidateLibraryIndex();
     }
 };

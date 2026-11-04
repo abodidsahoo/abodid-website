@@ -1,3 +1,4 @@
+import { invalidateLibraryIndex } from '../../../../lib/media/libraryIndex';
 export const prerender = false;
 
 import type { APIRoute } from "astro";
@@ -7,6 +8,7 @@ import {
 } from "../../../../lib/admin/serverAuth";
 import {
     createR2Folder,
+    getR2Config,
     getR2VariantFolderPaths,
     normalizeR2FolderPath,
 } from "../../../../lib/media/r2";
@@ -28,6 +30,9 @@ export const POST: APIRoute = async ({ request }) => {
         const folder = await createR2Folder(requestedPath);
         const variantPaths = getR2VariantFolderPaths(folder.folderPath);
         await Promise.all(variantPaths.map((path) => createR2Folder(path)));
+        const { error: restoreError } = await authorization.supabase.from('media_library_hidden_folders').delete()
+            .eq('storage_bucket', getR2Config().bucket).eq('folder_path', folder.folderPath);
+        if (restoreError) throw restoreError;
         const name = folder.folderPath.split("/").pop() || folder.folderPath;
 
         return jsonResponse({ folder: { name, path: folder.folderPath }, variantPaths }, 201);
@@ -35,5 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
         console.error("Could not create an R2 folder:", error);
         const message = error instanceof Error ? error.message : "Could not create the folder.";
         return jsonResponse({ error: message }, 500);
+    } finally {
+        invalidateLibraryIndex();
     }
 };

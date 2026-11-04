@@ -1,0 +1,43 @@
+---
+import { randomUUID } from 'node:crypto';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { feedbackClient, getFeedbackForm } from '../lib/feedback/server';
+import { requestIdentity } from '../lib/feedback/identity';
+import { ALBUM_SLUG } from '../lib/feedback/collections';
+import '../styles/feedback/workshop-hub.css';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+const form = await getFeedbackForm(ALBUM_SLUG);
+if (!form) return new Response('Album feedback is currently unavailable.', { status: 503 });
+const identity = await requestIdentity(feedbackClient(), Astro.request);
+const submitted = Astro.url.searchParams.get('submitted') === '1';
+---
+<BaseLayout title="Photography album — Private feedback" description="Share your thoughts on Abodid Sahoo’s photography album privately."
+    noindex={true} fullWidth={true} hideHeader={true} hideFooter={true} hideSideMenuRail={true} hideThemeToggle={true}
+    showNewsletterPopup={false} showGlobalGrid={false} showCursorFollower={false} enableAnalytics={false} bodyClass="workshop-hub-route">
+    <div class="workshop-hub" data-feedback-page data-feedback-redirect data-form-slug={ALBUM_SLUG}>
+        <header class="hub-bar"><a class="hub-brand" href="/" data-astro-reload>abodid.com<span aria-hidden="true">↗</span></a></header>
+        <div class="hub-album-shell">
+            <section class="hub-panel hub-album-intro">
+                <p class="hub-eyebrow">Photography album</p>
+                <h1>{submitted ? 'Thank you for sharing!' : 'Thoughts on my photography album?'}</h1>
+                <p>{submitted ? 'Your thoughts have been shared privately with me.' : 'Please feel free to share. Your thoughts are private, just for me.'}</p>
+            </section>
+            {!submitted && <form class="hub-panel hub-feedback-form" data-feedback-form action={`/api/feedback/${ALBUM_SLUG}`} method="POST">
+                <input type="hidden" name="form_version" value={form.form_version} /><input type="hidden" name="submission_key" value={randomUUID()} />
+                <div class="hub-honeypot" aria-hidden="true"><label for="album-website">Website</label><input id="album-website" name="website" tabindex="-1" autocomplete="off" /></div>
+                <div class="hub-contact-grid">
+                    <label class="hub-question" for="album-name"><span>Your name (optional)</span><input id="album-name" name="name" autocomplete="name" maxlength="180" placeholder="Your name" value={identity?.name} /></label>
+                    <label class="hub-question" for="album-email"><span>Email (optional)</span><input id="album-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck={false} maxlength="254" placeholder="Your email" value={identity?.email} /></label>
+                </div>
+                <label class="hub-question" for="album-thoughts"><span>Your thoughts on the album</span><textarea id="album-thoughts" name="album_thoughts" rows="5" maxlength="8000" placeholder="Please feel free to share." required data-answer data-auto-grow /></label>
+                <p class="hub-privacy">Your name, email and thoughts stay private. They won’t appear on a public responses page.</p>
+                <button class="hub-button" type="submit"><span data-submit-label>Share privately</span><span aria-hidden="true">→</span></button>
+                <p class="hub-status" data-feedback-status role="status" aria-live="polite" tabindex="-1"></p>
+            </form>}
+            <footer class="hub-footer"><a class="hub-text-link" href="/photography" data-astro-reload><span>View my photography</span><span aria-hidden="true">↗</span></a>{submitted && <a class="hub-text-link" href="/photo-album-feedback" data-astro-reload><span>Share another thought</span><span aria-hidden="true">→</span></a>}</footer>
+        </div>
+    </div>
+</BaseLayout>
+<script>import '../scripts/feedback/form';</script>
