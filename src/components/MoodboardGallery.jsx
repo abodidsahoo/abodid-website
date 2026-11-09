@@ -1093,18 +1093,18 @@ function MoodboardGalleryContent({
                     align-items: center;
                     gap: 0.75rem;
                     padding-inline: 1rem;
-                    border: 1.5px solid var(--pop-ink);
+                    border: 1.5px solid var(--color-text);
                     border-radius: 14px;
-                    background: var(--pop-cream);
-                    color: var(--pop-ink);
+                    background: var(--color-background);
+                    color: var(--color-text);
                     outline: 2.5px solid transparent;
                     outline-offset: 3px;
                     transition: border-color 150ms ease, outline-color 150ms ease;
                 }
 
                 .moodboard-search-field:focus-within {
-                    border-color: var(--pop-ink);
-                    outline-color: var(--pop-pink);
+                    border-color: var(--color-text);
+                    outline-color: var(--color-secondary);
                 }
 
                 .moodboard-search-icon {
@@ -1118,7 +1118,7 @@ function MoodboardGalleryContent({
                 }
 
                 .moodboard-search-field:focus-within .moodboard-search-icon {
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                 }
 
                 /* Wrapper that stacks the real input and animated placeholder */
@@ -1138,7 +1138,7 @@ function MoodboardGalleryContent({
                     border: 0;
                     outline: 0;
                     background: transparent;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     font: 560 1rem/1.2 var(--font-display, sans-serif);
                     letter-spacing: -0.01em;
                     position: relative;
@@ -1242,18 +1242,18 @@ function MoodboardGalleryContent({
                     border: 0;
                     border-radius: 50%;
                     background: transparent;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     cursor: pointer;
                     font: 400 1.75rem/1 var(--font-display, sans-serif);
                     transition: background-color 150ms ease;
                 }
 
                 .moodboard-search-clear:hover {
-                    background: var(--pop-pink);
+                    background: var(--color-secondary);
                 }
 
                 .moodboard-search-clear:focus-visible {
-                    outline: 3px solid var(--pop-purple);
+                    outline: 3px solid var(--color-additional-2);
                     outline-offset: 2px;
                 }
 
@@ -1306,7 +1306,7 @@ function MoodboardGalleryContent({
                     height: 26px;
                     border-radius: 50%;
                     border: 3px solid #ffffff;
-                    box-shadow: 0 0 0 1.5px var(--pop-ink), 0 3px 8px rgba(0, 0, 0, 0.4);
+                    box-shadow: 0 0 0 1.5px var(--color-text), 0 3px 8px rgba(0, 0, 0, 0.4);
                     transform: translate(-50%, -50%) scale(1);
                     pointer-events: none;
                     transition: left 0.38s cubic-bezier(0.18, 1.25, 0.4, 1), transform 0.12s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease-out, opacity 0.2s ease;
@@ -1325,7 +1325,7 @@ function MoodboardGalleryContent({
                 .pop-gradient-thumb.is-dragging {
                     transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease-out, left 0s !important;
                     transform: translate(-50%, -50%) scale(1.15);
-                    box-shadow: 0 0 0 2px var(--pop-ink), 0 4px 12px rgba(0, 0, 0, 0.45);
+                    box-shadow: 0 0 0 2px var(--color-text), 0 4px 12px rgba(0, 0, 0, 0.45);
                     opacity: 1;
                 }
 
@@ -1337,7 +1337,7 @@ function MoodboardGalleryContent({
                     align-items: center;
                     gap: 5px;
                     padding: 3px 8px;
-                    background: var(--pop-ink);
+                    background: var(--color-text);
                     color: #ffffff;
                     border-radius: 4px;
                     font-family: var(--font-mono, "Space Mono", monospace);
@@ -1360,7 +1360,7 @@ function MoodboardGalleryContent({
                     transform: translateX(-50%);
                     border-width: 4px;
                     border-style: solid;
-                    border-color: var(--pop-ink) transparent transparent transparent;
+                    border-color: var(--color-text) transparent transparent transparent;
                 }
 
                 .pop-hover-dot {
@@ -1377,26 +1377,26 @@ function MoodboardGalleryContent({
                     width: 44px;
                     height: 44px;
                     border-radius: 14px;
-                    border: 1.5px solid var(--pop-ink);
+                    border: 1.5px solid var(--color-text);
                     background: #ffffff;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     font-family: var(--font-mono, "Space Mono", monospace);
                     font-size: 0.85rem;
                     font-weight: 700;
                     cursor: pointer;
                     display: inline-grid;
                     place-items: center;
-                    box-shadow: 1.5px 1.5px 0px var(--pop-ink);
+                    box-shadow: 1.5px 1.5px 0px var(--color-text);
                     transition: transform 0.1s ease, background 0.1s ease;
                 }
 
                 .pop-strip-clear:hover {
-                    background: var(--pop-pink);
+                    background: var(--color-secondary);
                     transform: translateY(-1px);
                 }
 
                 .pop-strip-clear:focus-visible {
-                    outline: 3px solid var(--pop-purple);
+                    outline: 3px solid var(--color-additional-2);
                     outline-offset: 2px;
                 }
 
@@ -1457,7 +1457,7 @@ function MoodboardGalleryContent({
                     margin: 0 0 25px;
                     overflow: hidden;
                     border-radius: 14px;
-                    border: 1.5px solid var(--pop-ink);
+                    border: 1.5px solid var(--color-text);
                     background: #eadfce;
                     position: relative;
                     width: 100%;
@@ -1468,7 +1468,7 @@ function MoodboardGalleryContent({
                 /* 1. COLOR SWATCH HERO CARD (POSITION 0 IN GRID) */
                 .pop-swatch-hero-card {
                     aspect-ratio: 4 / 5;
-                    border: 1.5px solid var(--pop-ink);
+                    border: 1.5px solid var(--color-text);
                     position: relative;
                     width: 100%;
                     box-sizing: border-box;
@@ -1568,7 +1568,7 @@ function MoodboardGalleryContent({
                 }
 
                 .boudoir-photo-button:focus-visible {
-                    outline: 4px solid var(--pop-blue);
+                    outline: 4px solid var(--color-primary);
                     outline-offset: -4px;
                 }
 
@@ -1591,10 +1591,10 @@ function MoodboardGalleryContent({
                 .boudoir-empty-state {
                     padding: 3.5rem 2rem;
                     text-align: center;
-                    background: var(--pop-cream);
-                    border: 2px solid var(--pop-ink);
+                    background: var(--color-background);
+                    border: 2px solid var(--color-text);
                     border-radius: 12px;
-                    box-shadow: 3px 3px 0px var(--pop-ink);
+                    box-shadow: 3px 3px 0px var(--color-text);
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -1606,21 +1606,21 @@ function MoodboardGalleryContent({
                     width: 32px;
                     height: 32px;
                     border-radius: 4px;
-                    border: 2px solid var(--pop-ink);
+                    border: 2px solid var(--color-text);
                     display: block;
                 }
 
                 .pop-empty-title {
                     font-family: var(--font-ui, "Satoshi", sans-serif);
                     font-size: 0.95rem;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     margin: 0;
                 }
 
                 .pop-empty-btn {
-                    border: 2px solid var(--pop-ink);
-                    background: var(--pop-ink);
-                    color: var(--pop-cream);
+                    border: 2px solid var(--color-text);
+                    background: var(--color-text);
+                    color: var(--color-background);
                     font-family: var(--font-mono, "Space Mono", monospace);
                     font-size: 0.8rem;
                     font-weight: 700;

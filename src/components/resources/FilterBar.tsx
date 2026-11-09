@@ -97,7 +97,7 @@ export default function FilterBar({ initialQuery = '', initialAudience = '', ava
         .search-input:focus {
             outline: none;
             border-color: var(--text-primary);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
         }
 
         .search-icon {
@@ -143,7 +143,7 @@ export default function FilterBar({ initialQuery = '', initialAudience = '', ava
             background: var(--chip-active-bg);
             color: var(--chip-active-text);
             border-color: var(--chip-active-bg);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
             transform: scale(1.05);
         }
 

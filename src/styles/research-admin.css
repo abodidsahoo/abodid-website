@@ -213,7 +213,7 @@
 .research-editor-actions .research-publish-button {
   border-color: #10b981;
   background: #10b981;
-  color: #fff;
+  color: var(--color-primary-text);
 }
 
 .research-editor-topbar button:disabled {
@@ -441,8 +441,7 @@
 
 .research-experiment-card {
   border-color: color-mix(in srgb, #8b5cf6 38%, var(--border-subtle));
-  background:
-    radial-gradient(circle at 95% 10%, color-mix(in srgb, #8b5cf6 15%, transparent), transparent 36%),
+  background: radial-gradient(circle at 95% 10%, color-mix(in srgb, #8b5cf6 15%, transparent), transparent 36%),
     var(--bg-surface);
 }
 
@@ -458,7 +457,7 @@
   min-height: 2.85rem;
   border-color: #8b5cf6;
   background: #8b5cf6;
-  color: #fff;
+  color: var(--color-primary-text);
 }
 
 .research-experiment-placeholder {
@@ -570,8 +569,8 @@
   bottom: 0.42rem;
   padding: 0.23rem 0.4rem;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.68);
-  color: #fff;
+  background: color-mix(in srgb, var(--ui-shadow-color) 68%, transparent);
+  color: var(--color-primary-text);
   font: 0.65rem/1 var(--font-mono);
 }
 
@@ -585,8 +584,8 @@
   place-items: center;
   border: 0;
   border-radius: 7px;
-  background: rgba(0, 0, 0, 0.68);
-  color: #fff;
+  background: color-mix(in srgb, var(--ui-shadow-color) 68%, transparent);
+  color: var(--color-primary-text);
   cursor: pointer;
   backdrop-filter: blur(6px);
 }
@@ -743,14 +742,14 @@
 /* Research catalogue — Abodid Cream Editorial */
 .research-admin-page {
   --cream-canvas: #f3ead8;
-  --cream-paper: #fff8e8;
+  --cream-paper: var(--color-background);
   --cream-bright: #fffdf6;
   --cream-soft: #eadfca;
-  --cream-ink: #15130f;
+  --cream-ink: var(--color-text);
   --cream-muted: #655f54;
-  --cream-border: rgba(21, 19, 15, 0.78);
-  --cream-line: rgba(21, 19, 15, 0.22);
-  --cream-wash: rgba(21, 19, 15, 0.055);
+  --cream-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --cream-line: color-mix(in srgb, var(--color-text) 22%, transparent);
+  --cream-wash: color-mix(in srgb, var(--color-text) 5.5%, transparent);
   width: 100%;
   max-width: none;
   min-height: 100%;
@@ -1129,13 +1128,13 @@
   outline: none;
   touch-action: none;
   user-select: none;
-  box-shadow: 0 1px 3px rgba(21, 19, 15, 0.05);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text) 5%, transparent);
   transition: box-shadow 160ms cubic-bezier(0.2, 0, 0, 1), border-color 160ms cubic-bezier(0.2, 0, 0, 1), opacity 160ms ease, filter 160ms ease;
 }
 
 .research-admin-card:hover:not(.is-dragging),
 .research-admin-card:focus-visible {
-  box-shadow: 0 8px 24px rgba(21, 19, 15, 0.12);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-text) 12%, transparent);
   border-color: var(--cream-ink);
 }
 
@@ -1144,7 +1143,7 @@
 }
 
 .research-admin-card.is-dragging {
-  box-shadow: 0 20px 40px rgba(21, 19, 15, 0.28);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--color-text) 28%, transparent);
   border-color: var(--cream-ink);
   cursor: grabbing !important;
   transition: none !important;
@@ -1250,7 +1249,7 @@
   color: var(--cream-ink);
   font: 620 0.8rem/1 var(--font-mono, var(--font-sans));
   letter-spacing: -0.02em;
-  box-shadow: 0 1px 3px rgba(21, 19, 15, 0.08);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text) 8%, transparent);
 }
 
 .research-card-edit-action-btn {
@@ -1276,7 +1275,7 @@
   background: var(--cream-ink);
   color: var(--cream-paper);
   border-color: var(--cream-ink);
-  box-shadow: 0 2px 6px rgba(21, 19, 15, 0.2);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-text) 20%, transparent);
 }
 
 .research-card-edit-action-btn:active {
@@ -1299,13 +1298,13 @@
 }
 
 .research-card-badge.is-draft {
-  border-color: rgba(21, 19, 15, 0.4);
+  border-color: color-mix(in srgb, var(--color-text) 40%, transparent);
   color: var(--cream-ink);
   background: var(--cream-soft);
 }
 
 .research-card-badge.is-unlisted {
-  border-color: rgba(21, 19, 15, 0.3);
+  border-color: color-mix(in srgb, var(--color-text) 30%, transparent);
   color: var(--cream-muted);
 }
 
@@ -1370,7 +1369,7 @@
   background: var(--cream-ink);
   color: var(--cream-paper);
   border-color: var(--cream-ink);
-  box-shadow: 0 2px 6px rgba(21, 19, 15, 0.2);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-text) 20%, transparent);
   transform: scale(1.08);
   outline: none;
 }
@@ -1384,7 +1383,7 @@
   min-height: 320px;
   display: grid;
   place-items: center;
-  color: rgba(21, 19, 15, 0.68);
+  color: color-mix(in srgb, var(--color-text) 68%, transparent);
 }
 
 @media (max-width: 1180px) {
@@ -1644,8 +1643,8 @@
 
 .research-editor-header-nav .header-actions button.primary-button:hover,
 .research-editor-header-nav .header-actions button.primary-button:focus-visible {
-  background: #000000 !important;
-  color: #ffffff !important;
+  background: var(--color-text) !important;
+  color: var(--color-primary-text) !important;
   transform: translateY(-2px);
 }
 
@@ -1719,13 +1718,13 @@
 
 .research-editor-header-body .portfolio-workspace-tabs button:hover {
   color: var(--cream-ink);
-  background: rgba(21, 19, 15, 0.05);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
 }
 
 .research-editor-header-body .portfolio-workspace-tabs button[aria-selected="true"] {
   background: var(--cream-ink);
   color: var(--cream-paper);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ui-shadow-color) 12%, transparent);
 }
 
 .research-editor-header-body .portfolio-workspace-tabs span {
@@ -1789,7 +1788,7 @@
   border-color: var(--cream-ink);
   background: var(--cream-ink);
   color: var(--cream-paper);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ui-shadow-color) 14%, transparent);
 }
 
 /* Spine form & inputs */
@@ -1858,7 +1857,7 @@
 .editor-field input:focus,
 .editor-field textarea:focus,
 .editor-field select:focus {
-  background: #ffffff;
+  background: var(--color-surface);
   outline: 3px solid var(--cream-ink);
   outline-offset: 1px;
 }
@@ -2010,7 +2009,7 @@
   border-radius: 20px;
   background: var(--cream-bright);
   padding: clamp(1.75rem, 3.5vw, 2.4rem);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 24px 64px color-mix(in srgb, var(--ui-shadow-color) 35%, transparent);
   color: var(--cream-ink);
   animation: adminModalCardIn 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -2078,8 +2077,8 @@
 
 .admin-modal-button.primary:hover,
 .admin-modal-button.primary:focus-visible {
-  background: #000000;
-  color: #ffffff;
+  background: var(--color-text);
+  color: var(--color-primary-text);
   outline: 3px solid var(--cream-ink);
   outline-offset: 1px;
 }
@@ -2087,7 +2086,7 @@
 .admin-modal-button.danger {
   border: 1px solid #dc2626;
   background: #dc2626;
-  color: #ffffff;
+  color: var(--color-primary-text);
 }
 
 .admin-modal-button.danger:hover,
@@ -2201,8 +2200,8 @@
 }
 
 .research-admin-page.is-editor-mode .portfolio-add-block-grid button:hover .portfolio-block-palette-plus {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--color-surface) 22%, transparent);
+  color: var(--color-primary-text);
 }
 
 .research-admin-page.is-editor-mode .portfolio-more-blocks {
@@ -2265,14 +2264,14 @@
   border: 1px solid var(--cream-border);
   border-radius: 16px;
   background: var(--cream-bright);
-  box-shadow: 0 2px 6px rgba(21, 19, 15, 0.04);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-text) 4%, transparent);
   overflow: hidden;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .research-admin-page.is-editor-mode .portfolio-editor-block.is-expanded {
   border-color: var(--cream-ink);
-  box-shadow: 0 6px 20px rgba(21, 19, 15, 0.09);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-text) 9%, transparent);
 }
 
 .research-admin-page.is-editor-mode .portfolio-block-card-header {
@@ -2370,7 +2369,7 @@
   border: 1.5px solid var(--cream-border);
   background: var(--cream-paper);
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(21, 19, 15, 0.07);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--color-text) 7%, transparent);
   flex-shrink: 0;
   transition: transform 160ms ease, border-color 160ms ease;
 }
@@ -2400,7 +2399,7 @@
   color: var(--cream-ink);
   font: 760 0.72rem/1 var(--font-mono, monospace);
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(21, 19, 15, 0.06);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text) 6%, transparent);
 }
 
 .research-admin-page.is-editor-mode .portfolio-block-toggle-indicator {
@@ -2509,11 +2508,11 @@
   border-color: var(--cream-ink);
   background: var(--cream-ink);
   color: var(--cream-paper);
-  box-shadow: 0 3px 12px rgba(21, 19, 15, 0.12);
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--color-text) 12%, transparent);
 }
 
 .research-admin-page.is-editor-mode .heading-level-pill.is-active strong {
-  background: rgba(255, 255, 255, 0.22);
+  background: color-mix(in srgb, var(--color-surface) 22%, transparent);
   color: var(--cream-paper);
 }
 
@@ -2563,7 +2562,7 @@
 .research-admin-page.is-editor-mode .portfolio-block-card-actions .quiet-button.danger:focus-visible {
   border-color: #dc2626 !important;
   background: #dc2626 !important;
-  color: #ffffff !important;
+  color: var(--color-primary-text) !important;
 }
 
 /* Block Card Body & Expanded Form */

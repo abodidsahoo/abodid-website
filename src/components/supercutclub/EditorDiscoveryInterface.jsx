@@ -649,10 +649,10 @@ export default function EditorDiscoveryInterface() {
           display: grid;
           gap: 1rem;
           padding: 1rem 1.1rem;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
           border-radius: 1.4rem;
           background: rgba(14, 18, 28, 0.82);
-          box-shadow: 0 22px 48px rgba(0, 0, 0, 0.22);
+          box-shadow: 0 22px 48px color-mix(in srgb, var(--ui-shadow-color) 22%, transparent);
           backdrop-filter: blur(16px);
         }
 
@@ -688,9 +688,9 @@ export default function EditorDiscoveryInterface() {
 
         .sced-filter-group select {
           appearance: none;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 10%, transparent);
           border-radius: 1rem;
-          background: rgba(255, 255, 255, 0.04);
+          background: color-mix(in srgb, var(--color-surface) 4%, transparent);
           color: #fff8ee;
           padding: 0.9rem 1rem;
           font: inherit;
@@ -734,11 +734,10 @@ export default function EditorDiscoveryInterface() {
           gap: 1.2rem;
           padding: 1.2rem;
           border-radius: 2rem;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          background:
-            radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 24%),
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
+          background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 24%),
             linear-gradient(145deg, rgba(9, 12, 20, 0.98), rgba(16, 21, 34, 0.98));
-          box-shadow: 0 30px 56px rgba(0, 0, 0, 0.28);
+          box-shadow: 0 30px 56px color-mix(in srgb, var(--ui-shadow-color) 28%, transparent);
           min-height: 720px;
         }
 
@@ -761,8 +760,8 @@ export default function EditorDiscoveryInterface() {
           border-radius: 999px;
           overflow: hidden;
           background: #0b0f16;
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 16%, transparent);
+          box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
         }
 
         .sced-avatar-small::before {
@@ -863,8 +862,8 @@ export default function EditorDiscoveryInterface() {
         .sced-tag-row span,
         .sced-spec-card,
         .sced-why {
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(255, 255, 255, 0.035);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
+          background: color-mix(in srgb, var(--color-surface) 3.5%, transparent);
           border-radius: 1.1rem;
         }
 
@@ -903,8 +902,8 @@ export default function EditorDiscoveryInterface() {
           gap: 0.4rem;
           padding: 0.95rem 1rem;
           border-radius: 1.2rem;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
+          background: color-mix(in srgb, var(--color-surface) 4%, transparent);
         }
 
         .sced-sample-map strong {
@@ -934,7 +933,7 @@ export default function EditorDiscoveryInterface() {
           min-height: 2.2rem;
           padding: 0.58rem 0.82rem;
           border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
           font-family: var(--font-mono);
           font-size: 0.74rem;
           letter-spacing: 0.08em;
@@ -945,20 +944,20 @@ export default function EditorDiscoveryInterface() {
         .sced-source-pill,
         .sced-source-note {
           color: rgba(232, 229, 223, 0.82);
-          background: rgba(255, 255, 255, 0.04);
+          background: color-mix(in srgb, var(--color-surface) 4%, transparent);
         }
 
         .sced-source-link {
           color: #fff8ee;
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.08);
+          background: color-mix(in srgb, var(--color-surface) 8%, transparent);
+          border-color: color-mix(in srgb, var(--color-surface) 8%, transparent);
           transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
         .sced-source-link:hover,
         .sced-source-link:focus-visible {
           transform: translateY(-1px);
-          background: rgba(255, 255, 255, 0.14);
+          background: color-mix(in srgb, var(--color-surface) 14%, transparent);
         }
 
         .sced-video-frame {
@@ -966,7 +965,7 @@ export default function EditorDiscoveryInterface() {
           min-height: 380px;
           border-radius: 1.6rem;
           overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
           background: #0b0f16;
         }
 
@@ -1020,9 +1019,9 @@ export default function EditorDiscoveryInterface() {
           align-items: center;
           gap: 0.45rem;
           padding: 0.46rem 0.78rem;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.1);
+          background: color-mix(in srgb, var(--color-surface) 10%, transparent);
           color: #fff8ee;
           font-family: var(--font-mono);
           font-size: 0.74rem;
@@ -1038,7 +1037,7 @@ export default function EditorDiscoveryInterface() {
         }
 
         .sced-next-project-btn:hover {
-          background: rgba(255, 255, 255, 0.2);
+          background: color-mix(in srgb, var(--color-surface) 20%, transparent);
           transform: translateY(-1px);
         }
 
@@ -1058,7 +1057,7 @@ export default function EditorDiscoveryInterface() {
         .sced-active-project {
           padding: 1rem 1.1rem;
           border-radius: 1.25rem;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
@@ -1075,14 +1074,14 @@ export default function EditorDiscoveryInterface() {
           letter-spacing: -0.03em;
         }
 
-        .sced-project-doc { background: linear-gradient(160deg, rgba(15, 118, 110, 0.18), rgba(255,255,255,0.04)); }
-        .sced-project-narrative { background: linear-gradient(160deg, rgba(37, 99, 235, 0.18), rgba(255,255,255,0.04)); }
-        .sced-project-brand { background: linear-gradient(160deg, rgba(212, 120, 40, 0.2), rgba(255,255,255,0.04)); }
-        .sced-project-fashion { background: linear-gradient(160deg, rgba(255, 0, 140, 0.18), rgba(255,255,255,0.04)); }
-        .sced-project-music { background: linear-gradient(160deg, rgba(116, 57, 255, 0.18), rgba(255,255,255,0.04)); }
-        .sced-project-social { background: linear-gradient(160deg, rgba(51, 65, 85, 0.28), rgba(255,255,255,0.04)); }
-        .sced-project-wedding { background: linear-gradient(160deg, rgba(245, 190, 82, 0.2), rgba(255,255,255,0.04)); }
-        .sced-project-experimental { background: linear-gradient(160deg, rgba(79, 208, 255, 0.18), rgba(255,255,255,0.04)); }
+        .sced-project-doc { background: linear-gradient(160deg, rgba(15, 118, 110, 0.18), color-mix(in srgb, var(--color-surface) 4%, transparent)); }
+        .sced-project-narrative { background: linear-gradient(160deg, rgba(37, 99, 235, 0.18), color-mix(in srgb, var(--color-surface) 4%, transparent)); }
+        .sced-project-brand { background: linear-gradient(160deg, rgba(212, 120, 40, 0.2), color-mix(in srgb, var(--color-surface) 4%, transparent)); }
+        .sced-project-fashion { background: linear-gradient(160deg, rgba(255, 0, 140, 0.18), color-mix(in srgb, var(--color-surface) 4%, transparent)); }
+        .sced-project-music { background: linear-gradient(160deg, rgba(116, 57, 255, 0.18), color-mix(in srgb, var(--color-surface) 4%, transparent)); }
+        .sced-project-social { background: linear-gradient(160deg, rgba(51, 65, 85, 0.28), color-mix(in srgb, var(--color-surface) 4%, transparent)); }
+        .sced-project-wedding { background: linear-gradient(160deg, rgba(245, 190, 82, 0.2), color-mix(in srgb, var(--color-surface) 4%, transparent)); }
+        .sced-project-experimental { background: linear-gradient(160deg, rgba(79, 208, 255, 0.18), color-mix(in srgb, var(--color-surface) 4%, transparent)); }
 
         .sced-next-button {
           position: absolute;
@@ -1094,12 +1093,12 @@ export default function EditorDiscoveryInterface() {
           gap: 0.2rem;
           align-items: flex-start;
           padding: 0.9rem 1rem;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 12%, transparent);
           border-radius: 1.2rem;
           background: rgba(6, 8, 14, 0.82);
           color: #fff8ee;
           cursor: pointer;
-          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+          box-shadow: 0 16px 36px color-mix(in srgb, var(--ui-shadow-color) 22%, transparent);
         }
 
         .sced-next-button span {

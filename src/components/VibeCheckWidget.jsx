@@ -76,12 +76,12 @@ const VibeCheckWidget = () => {
                     text-transform: uppercase;
                     letter-spacing: 0.1em;
                     font-weight: 700;
-                    color: rgba(0, 0, 0, 0.4); /* Subtle text color, adaptable to light/dark via CSS vars if needed */
+                    color: color-mix(in srgb, var(--ui-shadow-color) 40%, transparent); /* Subtle text color, adaptable to light/dark via CSS vars if needed */
                     margin-bottom: 4px;
                 }
 
                 :global(.dark) .widget-title {
-                    color: rgba(255, 255, 255, 0.5);
+                    color: color-mix(in srgb, var(--color-surface) 50%, transparent);
                 }
 
                 /* Updated Counter Styles */
@@ -98,7 +98,7 @@ const VibeCheckWidget = () => {
                 }
 
                 :global(.dark) .widget-counter {
-                    color: #fff;
+                    color: var(--color-primary-text);
                 }
 
                 .count-val { }
@@ -146,7 +146,7 @@ const VibeCheckWidget = () => {
                 }
 
                 :global(.dark) .lab-link {
-                    color: #fff;
+                    color: var(--color-primary-text);
                 }
                 
                 .lab-link:hover {

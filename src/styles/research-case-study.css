@@ -1,14 +1,14 @@
 :root {
-  --rcs-blue: var(--pop-blue);
-  --rcs-pink: var(--pop-pink);
-  --rcs-yellow: var(--pop-yellow);
-  --rcs-lime: var(--pop-lime);
-  --rcs-orange: var(--pop-orange);
-  --rcs-purple: var(--pop-purple);
-  --rcs-cyan: var(--pop-cyan);
-  --rcs-cream: var(--pop-cream);
-  --rcs-ink: var(--pop-ink);
-  --rcs-line: rgba(21, 19, 15, .78);
+  --rcs-blue: var(--color-primary);
+  --rcs-pink: var(--color-secondary);
+  --rcs-yellow: var(--color-button);
+  --rcs-lime: var(--color-accent);
+  --rcs-orange: var(--color-additional-1);
+  --rcs-purple: var(--color-additional-2);
+  --rcs-cyan: var(--color-additional-3);
+  --rcs-cream: var(--color-background);
+  --rcs-ink: var(--color-text);
+  --rcs-line: color-mix(in srgb, var(--color-text) 78%, transparent);
   --rcs-seam: 8px;
   --rcs-radius: clamp(18px, 2vw, 28px);
   --rcs-pad: clamp(1.35rem, 4vw, 4.5rem);
@@ -97,8 +97,8 @@ body.research-case-study-page .page-content-full { padding: 0; }
 }
 .rcs-facts > .rcs-kicker { margin-bottom: clamp(2rem, 8vh, 6rem); }
 .rcs-facts dl { margin: 0; }
-.rcs-facts dl > div { display: grid; grid-template-columns: minmax(75px, .55fr) minmax(0, 1.45fr); gap: 1rem; padding: 1rem 0; border-top: 1px solid rgba(255, 248, 232, .38); }
-.rcs-facts dl > div:last-child { border-bottom: 1px solid rgba(255, 248, 232, .38); }
+.rcs-facts dl > div { display: grid; grid-template-columns: minmax(75px, .55fr) minmax(0, 1.45fr); gap: 1rem; padding: 1rem 0; border-top: 1px solid color-mix(in srgb, var(--color-primary-text) 38%, transparent); }
+.rcs-facts dl > div:last-child { border-bottom: 1px solid color-mix(in srgb, var(--color-primary-text) 38%, transparent); }
 .rcs-facts dt { font: 700 .62rem/1.35 var(--font-mono, monospace); letter-spacing: .08em; text-transform: uppercase; opacity: .76; }
 .rcs-facts dd { margin: 0; font-size: .92rem; font-weight: 650; line-height: 1.4; }
 

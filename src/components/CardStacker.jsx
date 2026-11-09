@@ -303,7 +303,7 @@ const CardStacker = ({
 
             <style>{`
                 .card-stacker-container {
-                    position: sticky; 
+                    position: sticky;
                     top: 0; right: 0;
                     width: 100%; height: 100vh;
                     pointer-events: none; z-index: 50;
@@ -311,8 +311,8 @@ const CardStacker = ({
                 }
                 .stack-anchor {
                     position: absolute;
-                    top: ${anchorY}; 
-                    left: ${anchorX}; 
+                    top: ${anchorY};
+                    left: ${anchorX};
                     width: 0; height: 0;
                     transition:
                         left 420ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -323,10 +323,10 @@ const CardStacker = ({
                     position: absolute;
                     width: var(--card-width, 559px);
                     aspect-ratio: 16/9;
-                    background-color: #fff; 
+                    background-color: var(--color-surface);
                     padding: clamp(4px, calc(var(--card-width, 559px) * 0.02), 16px);
-                    border-radius: 2px; 
-                    box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+                    border-radius: 2px;
+                    box-shadow: 0 15px 50px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
                     top: calc(var(--card-height, 314px) * -0.5);
                     left: calc(var(--card-width, 559px) * -0.5);
                     display: flex; align-items: center; justify-content: center;
@@ -336,7 +336,7 @@ const CardStacker = ({
                 .stacked-card img {
                     width: 100%; height: 100%;
                     object-fit: cover; display: block;
-                    border-radius: 1px; 
+                    border-radius: 1px;
                 }
 
                 .stacked-card-image-shell {
@@ -373,11 +373,9 @@ const CardStacker = ({
                     bottom: 4%;
                     width: 3px;
                     border-radius: 999px;
-                    background:
-                        linear-gradient(180deg, rgba(255, 246, 208, 0.25), rgba(255, 255, 255, 0.98), rgba(255, 214, 153, 0.35));
+                    background: linear-gradient(180deg, rgba(255, 246, 208, 0.25), color-mix(in srgb, var(--color-surface) 98%, transparent), rgba(255, 214, 153, 0.35));
                     transform: translateX(-50%);
-                    box-shadow:
-                        0 0 0 1px rgba(255, 255, 255, 0.22),
+                    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-surface) 22%, transparent),
                         0 0 10px rgba(255, 214, 153, 0.64),
                         0 0 24px rgba(255, 255, 255, 0.32);
                     opacity: 0.22;
@@ -390,8 +388,7 @@ const CardStacker = ({
 
                 .stacked-card-scan-line.visible {
                     opacity: 0.95;
-                    box-shadow:
-                        0 0 0 1px rgba(255, 255, 255, 0.34),
+                    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-surface) 34%, transparent),
                         0 0 14px rgba(255, 214, 153, 0.84),
                         0 0 38px rgba(255, 255, 255, 0.42);
                 }

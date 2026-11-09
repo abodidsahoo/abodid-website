@@ -180,11 +180,11 @@ const ShareButtons = ({ title, url }) => {
                     transform: translateX(-50%);
                     z-index: 20;
                     padding: 6px 9px;
-                    border: 1px solid rgba(255, 248, 232, 0.35);
+                    border: 1px solid color-mix(in srgb, var(--color-primary-text) 35%, transparent);
                     border-radius: 6px;
-                    background: var(--pop-ink);
-                    color: var(--pop-cream);
-                    box-shadow: 0 5px 14px rgba(21, 19, 15, 0.2);
+                    background: var(--color-text);
+                    color: var(--color-primary-text);
+                    box-shadow: 0 5px 14px color-mix(in srgb, var(--color-text) 20%, transparent);
                     font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
                     font-size: 0.76rem;
                     font-weight: 650;
@@ -197,7 +197,7 @@ const ShareButtons = ({ title, url }) => {
 
                 .tooltip.is-error {
                     background: #8f224c;
-                    color: var(--pop-cream);
+                    color: var(--color-primary-text);
                 }
 
                 @keyframes fadeIn {

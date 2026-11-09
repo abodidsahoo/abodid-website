@@ -1,10 +1,10 @@
 # Design Studio token architecture
 
-Design Studio is the editable source of truth for the shared visual language. It controls primitives; pages and components consume semantic roles.
+Design Studio is the editable source of truth for the shared visual language. It controls colour roles and numeric primitives. Pages and components consume these shared roles.
 
 ## Token layers
 
-1. **Editable primitives** — values saved by Design Studio, such as `--pop-blue`, `--ds-card-title-weight`, and `--ds-radius-card`.
+1. **Editable primitives** — values saved by Design Studio, such as `--color-primary`, `--ds-card-title-weight`, and `--ds-radius-card`.
 2. **Semantic roles** — computed values such as `--type-role-card-title-size`, `--type-role-reading-size`, and `--design-radius-panel`.
 3. **Component aliases** — local names such as `--services-blue` or `--paper-font` that point to a semantic role or canonical palette token.
 
@@ -14,15 +14,48 @@ New components should consume semantic roles instead of introducing another unre
 
 Colour-bearing components declare their surface explicitly with `data-pop-surface`. The shared system then supplies the background, foreground, muted text, focus outline and text-selection colours as one contract.
 
-- Cream, white, pink, yellow, lime, orange and cyan always use `--pop-ink`.
-- Cobalt and purple always use `--pop-cream`.
-- Text selection on light/high-chroma surfaces uses cobalt with cream text.
-- Text selection on cobalt or purple uses yellow with ink text.
+- Background, raised surface, secondary, accent, Additional Colour 1 and Additional Colour 3 use `--color-text`.
+- Primary and Additional Colour 2 use `--color-primary-text` for their foreground.
+- Action surfaces use `--color-button-text`, independently of body text.
+- Text selection reverses the local surface family using the primary and button roles.
 - Nested colour blocks declare their own `data-pop-surface` and naturally reset the inherited contract.
 
 Do not infer a surface from partial class names or inline-style text. Do not force descendant colours with `!important`. This prevents an outer blue panel from corrupting a nested yellow button, while still allowing the button to inherit a complete accessible pairing.
 
-Design Studio evaluates all nine canonical pairings continuously and blocks publishing if any normal-text pairing falls below 4.5:1.
+Design Studio evaluates nine base pairings and four derived hover/pressed pairings continuously and blocks publishing if any normal-text pairing falls below 4.5:1.
+
+## Editable colour roles
+
+| Control | CSS variable | Existing uses |
+| --- | --- | --- |
+| Primary colour | `--color-primary` | Site canvas, navigation, structural bands |
+| Secondary colour | `--color-secondary` | Editorial panels and writing sections |
+| Button colour | `--color-button` | Primary actions, active controls and highlighted cards |
+| Accent colour | `--color-accent` | Occasional actions, navigation cards and hover states |
+| Additional Colour 1 | `--color-additional-1` | Supporting panels and notices |
+| Additional Colour 2 | `--color-additional-2` | Forms, closing bands and focus outlines |
+| Additional Colour 3 | `--color-additional-3` | Optional cards and highlights |
+| Background colour | `--color-background` | Reading panels, inputs and foreground on deep surfaces |
+| Raised surface colour | `--color-surface` | Utility controls and neutral cards |
+| Text colour | `--color-text` | Text, icons and keylines |
+| Button text colour | `--color-button-text` | Shared action labels and icons |
+| Primary surface text colour | `--color-primary-text` | Foreground on primary and deep supporting surfaces |
+| Success colour | `--color-success` | Positive feedback |
+| Error colour | `--color-error` | Failure and validation feedback |
+
+These are the existing ten palette slots with role-based names and the same initial values. A role can serve several component types. Button colour also controls existing highlighted cards and badges.
+
+Saved drafts, history and browser caches using the previous colour-named keys are translated on read. Explicit role keys take precedence. Publications also include compatibility keys for older open pages. No database rewrite is needed. The existing `data-pop-surface` identifiers and visual modifier classes remain compatibility identifiers for component markup.
+
+The Creative Companies Database, lab experiments such as Punctum, archived editions and the separately deployed Podcast Studio intentionally own their palettes. Photography-derived colours and user-selected board backgrounds are content. Third-party identity controls retain official brand colours. Historical design references describe earlier editions. New shared CSS should use the role variables in this table.
+
+## Universal UI colours
+
+`src/styles/ui-colors.css` defines shared action, field, border, overlay, shadow, focus and disabled roles. Hover and pressed colours mix the selected background with its label colour at 8% and 14%. These exact blends are checked by `evaluateSurfaceContracts`. Components alias these roles instead of storing their own highlight hex values. The newsletter, enquiry form, header, footer, PWA prompt and generic primary actions use this system.
+
+Derived values are declared at body, surface and preview boundaries so nested palettes can recompute locally. The primary/button foreground choices fall back to the previous background/text roles when loading older saved settings. Form feedback includes readable text as well as semantic colour.
+
+The light/dark canvas, surface and text controls remain distinct. Their secondary text, hover surfaces, borders, header and footer values derive from those mode controls. Admin and Land layouts load the published palette too. The global surface contract applies to each surface itself, allowing a nested action or paper panel to own its foreground.
 
 ## Typography roles
 
@@ -39,6 +72,8 @@ Each responsive role exposes minimum size, fluid viewport value, maximum size, w
 ## Publishing model
 
 - Editing updates the Design Studio preview only.
+- While the Colours tab is active, Defaults and History load colours only.
+- Publishing from Colours merges the colour values into the current published numeric settings. A version check rejects stale or concurrent publications.
 - **Save draft** stores work without changing the public site.
 - **Publish across site** atomically promotes the complete token set.
 - Published values are cached in the browser and refreshed from Supabase on page load.

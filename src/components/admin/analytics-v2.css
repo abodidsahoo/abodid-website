@@ -2,7 +2,7 @@
 .av2-root {
     color-scheme: light;
     --av2-color-canvas: #f7f2e8;
-    --av2-color-surface: #ffffff;
+    --av2-color-surface: var(--color-surface);
     --av2-color-surface-subtle: #faf8f3;
     --av2-color-surface-selected: #ece8df;
     --av2-color-text: #191816;

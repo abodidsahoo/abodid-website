@@ -247,7 +247,7 @@ Astro.response.headers.set(
 
     .album {
         --cream: #f7efdf;
-        --paper: #fffdf7;
+        --paper: var(--color-background);
         --ink: #17100f;
         --red: #bc1f38;
         --energy: 0;
@@ -349,7 +349,7 @@ Astro.response.headers.set(
         user-select: none;
     }
 
-    @media (hover: hover) and (pointer: fine) {
+    @media (hover:hover) and (pointer: fine) {
         :global(.album-polaroid.is-visible) {
             pointer-events: auto;
         }
@@ -636,7 +636,7 @@ Astro.response.headers.set(
         border: 0;
         border-radius: 50%;
         background: transparent;
-        box-shadow: 0 0.85rem 1.7rem rgba(0, 0, 0, 0.28);
+        box-shadow: 0 0.85rem 1.7rem color-mix(in srgb, var(--ui-shadow-color) 28%, transparent);
         cursor: grab;
         clip-path: circle(32.85% at 50% 50%);
         outline: none;
@@ -657,8 +657,7 @@ Astro.response.headers.set(
     }
 
     .record:focus-visible {
-        box-shadow:
-            0 0 0 4px #f7efdf,
+        box-shadow: 0 0 0 4px #f7efdf,
             0 0 0 8px #bc1f38,
             0 0.85rem 1.7rem rgba(0, 0, 0, 0.28);
     }
@@ -705,7 +704,7 @@ Astro.response.headers.set(
         border: 1px solid rgba(247, 239, 223, 0.22);
         border-radius: 3px;
         background: rgba(20, 13, 13, 0.82);
-        box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.28);
+        box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--ui-shadow-color) 28%, transparent);
         color: rgba(247, 239, 223, 0.88);
         font: 600 0.64rem/1.55 "Inconsolata", monospace;
         letter-spacing: 0.03em;

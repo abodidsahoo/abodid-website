@@ -337,16 +337,16 @@ const pdfDownloadUrl = pdfFilename
 
 <style is:global>
   body.story-moodboard-page {
-    --pop-border: 1px solid var(--pop-ink);
+    --pop-border: 1px solid var(--color-text);
     margin: 0;
     padding: 0 !important;
     min-height: 100vh;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink);
+    background: var(--color-primary) !important;
+    color: var(--color-text);
   }
 
   html:has(body.story-moodboard-page) {
-    background: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
     margin: 0;
     padding: 0;
   }
@@ -387,9 +387,9 @@ const pdfDownloadUrl = pdfFilename
 
   /* Shared Pop Editorial Pill styling */
   .pop-editorial-control {
-    border: 1.5px solid var(--pop-ink, var(--pop-ink));
+    border: 1.5px solid var(--color-text, var(--color-text));
     border-radius: 999px;
-    box-shadow: 3px 3px 0 var(--pop-ink, var(--pop-ink));
+    box-shadow: 3px 3px 0 var(--color-text, var(--color-text));
     transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
   }
 
@@ -400,8 +400,8 @@ const pdfDownloadUrl = pdfFilename
     gap: 0.45rem;
     min-height: 38px;
     padding: 0.4rem 0.95rem 0.4rem 0.85rem;
-    background: var(--pop-yellow, #ffe44f);
-    color: var(--pop-ink, #15130f);
+    background: var(--color-button, #ffe44f);
+    color: var(--color-text, #15130f);
     font: 750 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -414,12 +414,12 @@ const pdfDownloadUrl = pdfFilename
   .floating-pdf-btn:hover {
     background: #ffffff;
     transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 var(--pop-ink, var(--pop-ink));
+    box-shadow: 5px 5px 0 var(--color-text, var(--color-text));
   }
 
   .floating-pdf-btn:active {
     transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0 var(--pop-ink, var(--pop-ink));
+    box-shadow: 2px 2px 0 var(--color-text, var(--color-text));
   }
 
   .floating-pdf-icon {
@@ -449,13 +449,13 @@ const pdfDownloadUrl = pdfFilename
     align-items: center;
     gap: 3px;
     padding: 3.5px;
-    background: var(--pop-cream, #fff8e8);
+    background: var(--color-background, #fff8e8);
     user-select: none;
   }
 
   .view-mode-floating-control:hover {
     transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--pop-ink, var(--pop-ink));
+    box-shadow: 4px 4px 0 var(--color-text, var(--color-text));
   }
 
   .view-mode-btn {
@@ -467,7 +467,7 @@ const pdfDownloadUrl = pdfFilename
     border: 1px solid transparent;
     border-radius: 999px;
     background: transparent;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
     font: 750 0.68rem/1 var(--font-mono, monospace);
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -485,10 +485,10 @@ const pdfDownloadUrl = pdfFilename
   }
 
   .view-mode-btn.is-active {
-    background: var(--pop-blue, #2444ca);
+    background: var(--color-primary, #2444ca);
     color: #ffffff;
-    border-color: var(--pop-ink, var(--pop-ink));
-    box-shadow: 1.5px 1.5px 0 var(--pop-ink, var(--pop-ink));
+    border-color: var(--color-text, var(--color-text));
+    box-shadow: 1.5px 1.5px 0 var(--color-text, var(--color-text));
   }
 
   .view-mode-btn.is-active:hover {
@@ -500,7 +500,7 @@ const pdfDownloadUrl = pdfFilename
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
-    background: var(--pop-blue, #2444ca);
+    background: var(--color-primary, #2444ca);
   }
 
   .moodboard-file {
@@ -509,18 +509,18 @@ const pdfDownloadUrl = pdfFilename
     margin-inline: 0;
     box-sizing: border-box;
     overflow: hidden;
-    border: 1px solid var(--pop-ink, var(--pop-ink));
+    border: 1px solid var(--color-text, var(--color-text));
     border-radius: clamp(20px, 3vw, 34px);
-    background: var(--pop-cream, #fff8e8);
+    background: var(--color-background, #fff8e8);
     box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
   }
 
   /* ── 2. MOODBOARD HEADING (HOT-PINK PANEL) ────────────── */
   .moodboard-heading {
     padding: clamp(1.4rem, 4vw, 3.5rem);
-    border-bottom: 1px solid var(--pop-ink, var(--pop-ink));
-    background: var(--pop-pink, #ff7eb5);
-    color: var(--pop-ink, #15130f);
+    border-bottom: 1px solid var(--color-text, var(--color-text));
+    background: var(--color-secondary, #ff7eb5);
+    color: var(--color-text, #15130f);
   }
 
   .moodboard-heading__tag {
@@ -535,15 +535,15 @@ const pdfDownloadUrl = pdfFilename
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
     font: 750 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     text-decoration: none;
     padding: 0.4rem 0.85rem;
-    border: 1px solid var(--pop-ink, var(--pop-ink));
+    border: 1px solid var(--color-text, var(--color-text));
     border-radius: 999px;
-    background: var(--pop-cream, #fff8e8);
+    background: var(--color-background, #fff8e8);
     transition: transform 160ms ease, background-color 160ms ease;
   }
 
@@ -563,7 +563,7 @@ const pdfDownloadUrl = pdfFilename
 
   .moodboard-heading h1 {
     margin: 0;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
     font: 720 clamp(3.2rem, 7.5vw, 7.5rem)/0.86 var(--font-display, sans-serif);
     letter-spacing: -0.07em;
     text-wrap: balance;
@@ -572,7 +572,7 @@ const pdfDownloadUrl = pdfFilename
   .moodboard-heading__hero p {
     max-width: 38rem;
     margin: 0;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
     font: 500 clamp(1.15rem, 1.8vw, 1.6rem)/1.35 var(--font-display, sans-serif);
     letter-spacing: -0.025em;
   }
@@ -678,10 +678,10 @@ const pdfDownloadUrl = pdfFilename
   .moodboard-footer {
     margin-top: clamp(2.5rem, 6vw, 5rem);
     padding: clamp(2rem, 4.5vw, 4rem);
-    border: 1px solid var(--pop-ink, var(--pop-ink));
+    border: 1px solid var(--color-text, var(--color-text));
     border-radius: clamp(16px, 2.5vw, 28px);
-    background: var(--pop-pink, #ff7eb5);
-    color: var(--pop-ink, #15130f);
+    background: var(--color-secondary, #ff7eb5);
+    color: var(--color-text, #15130f);
   }
 
   .moodboard-footer__top {
@@ -713,7 +713,7 @@ const pdfDownloadUrl = pdfFilename
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: 1px solid var(--pop-ink, var(--pop-ink));
+    border: 1px solid var(--color-text, var(--color-text));
     border-radius: 14px;
     font: 750 0.76rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
@@ -723,24 +723,24 @@ const pdfDownloadUrl = pdfFilename
   }
 
   .moodboard-cta--primary {
-    background: var(--pop-yellow, #ffe44f);
-    color: var(--pop-ink, #15130f);
+    background: var(--color-button, #ffe44f);
+    color: var(--color-text, #15130f);
   }
 
   .moodboard-cta--primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
+    box-shadow: 0 4px 0 var(--color-text, var(--color-text));
     background: #ffe96e;
   }
 
   .moodboard-cta--secondary {
-    background: var(--pop-cream, #fff8e8);
-    color: var(--pop-ink, #15130f);
+    background: var(--color-background, #fff8e8);
+    color: var(--color-text, #15130f);
   }
 
   .moodboard-cta--secondary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
+    box-shadow: 0 4px 0 var(--color-text, var(--color-text));
   }
 
   .moodboard-footer__share {

@@ -259,7 +259,7 @@ function PublishPanel({ draft, id, hasPendingEdits, onChange, onPublish, onUnpub
                         <div className="publish-seo-handoff">
                             <div>
                                 <span className="editor-eyebrow">Live status</span>
-                                <strong style={{ color: draft.published ? (hasPendingEdits ? "#f59e0b" : "#22c55e") : "var(--text-tertiary)" }}>
+                                <strong style={{ color: draft.published ? (hasPendingEdits ? "var(--color-additional-1)" : "#22c55e") : "var(--text-tertiary)" }}>
                                     {draft.published
                                         ? (hasPendingEdits ? "● Published · Edits pending" : "● Published · Live ✓")
                                         : "○ Draft (Not published)"
@@ -296,7 +296,7 @@ function PublishPanel({ draft, id, hasPendingEdits, onChange, onPublish, onUnpub
                                         border: "1px solid rgba(239, 68, 68, 0.3)",
                                         borderRadius: "7px",
                                         background: "transparent",
-                                        color: "#ef4444",
+                                        color: "var(--color-error)",
                                         fontSize: ".8rem",
                                         cursor: "pointer"
                                     }}

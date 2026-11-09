@@ -1103,8 +1103,7 @@ const genreLegendItems = [
     --scc-muted-soft: #74695e;
     --scc-line: rgba(22, 17, 13, 0.12);
     --scc-shadow: 0 24px 54px rgba(22, 17, 13, 0.09);
-    background:
-      radial-gradient(
+    background: radial-gradient(
         circle at top left,
         rgba(233, 185, 73, 0.13),
         transparent 24%
@@ -1143,10 +1142,9 @@ const genreLegendItems = [
     padding: 0.85rem 1.6rem;
     border: 1px solid rgba(22, 17, 13, 0.07);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.64);
+    background: color-mix(in srgb, var(--color-surface) 64%, transparent);
     backdrop-filter: blur(20px) saturate(140%);
-    box-shadow:
-      0 12px 34px rgba(22, 17, 13, 0.05),
+    box-shadow: 0 12px 34px rgba(22, 17, 13, 0.05),
       0 1px 2px rgba(22, 17, 13, 0.02);
   }
 
@@ -1395,7 +1393,7 @@ const genreLegendItems = [
 
   .scc-hero-copy h1 span {
     display: block;
-    background: linear-gradient(120deg, #ee5a36 0%, #2563eb 55%, #0f766e 100%);
+    background: linear-gradient(120deg, #ee5a36 0%, var(--color-primary) 55%, #0f766e 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     padding-bottom: 0.15em;
@@ -1481,7 +1479,7 @@ const genreLegendItems = [
   }
 
   .scc-stat-card-blue {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
   }
 
   .scc-stat-card-amber {
@@ -1512,8 +1510,7 @@ const genreLegendItems = [
 
   .scc-hero-panel {
     padding: clamp(1.5rem, 3vw, 2rem);
-    background:
-      linear-gradient(
+    background: linear-gradient(
         180deg,
         rgba(255, 255, 252, 0.98),
         rgba(246, 238, 228, 0.96)
@@ -1545,7 +1542,7 @@ const genreLegendItems = [
     font-size: clamp(1.8rem, 4vw, 2.6rem);
     line-height: 1;
     letter-spacing: -0.04em;
-    color: #000;
+    color: var(--color-text);
     font-weight: 800;
   }
 
@@ -1700,7 +1697,7 @@ const genreLegendItems = [
     height: 2rem;
     margin-top: 0.15rem;
     border-radius: 0.7rem;
-    background: linear-gradient(135deg, #ee5a36, #2563eb);
+    background: linear-gradient(135deg, #ee5a36, var(--color-primary));
     color: #fffaf4;
     font-family: var(--font-mono);
     font-size: 0.8rem;
@@ -1729,8 +1726,7 @@ const genreLegendItems = [
     padding: clamp(1.8rem, 4vw, 2.5rem);
     margin: clamp(1rem, 3vw, 2rem) 0;
     border-radius: 2rem;
-    background:
-      radial-gradient(
+    background: radial-gradient(
         circle at top right,
         rgba(37, 99, 235, 0.18),
         transparent 28%
@@ -1845,7 +1841,7 @@ const genreLegendItems = [
   }
 
   .scc-bar-docu {
-    background: #2563eb;
+    background: var(--color-primary);
   }
   .scc-bar-fashion {
     background: #0f766e;
@@ -1937,7 +1933,7 @@ const genreLegendItems = [
     left: 18px;
     top: 34px;
     background: rgba(37, 99, 235, 0.16);
-    border: 2px solid #2563eb;
+    border: 2px solid var(--color-primary);
   }
 
   .scc-community-illustration-reputation span:nth-child(2) {
@@ -2002,7 +1998,7 @@ const genreLegendItems = [
 
   .scc-community-illustration-inclusive span:nth-child(1) {
     left: 18px;
-    border-color: #2563eb;
+    border-color: var(--color-primary);
   }
 
   .scc-community-illustration-inclusive span:nth-child(2) {
@@ -2115,7 +2111,7 @@ const genreLegendItems = [
       rgba(255, 255, 252, 0.98),
       rgba(244, 236, 226, 0.98)
     );
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-surface) 82%, transparent);
     overflow: hidden;
     transition: border-color 0.22s ease;
   }
@@ -2249,8 +2245,7 @@ const genreLegendItems = [
     margin-top: clamp(2rem, 5vw, 4rem);
     padding: clamp(1.6rem, 4vw, 2.4rem);
     border-radius: 2rem;
-    background:
-      radial-gradient(
+    background: radial-gradient(
         circle at top right,
         rgba(238, 90, 54, 0.34),
         transparent 32%

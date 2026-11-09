@@ -1,7 +1,7 @@
 body.outreach-page {
   margin: 0;
-  background: var(--pop-blue) !important;
-  color: var(--pop-ink);
+  background: var(--color-primary) !important;
+  color: var(--color-text);
   font-family: var(--font-body);
 }
 
@@ -10,14 +10,14 @@ body.outreach-page {
 }
 
 .outreach-app {
-  --outreach-border: 1px solid rgba(21, 19, 15, 0.78);
-  --outreach-light-border: 1px solid rgba(255, 248, 232, 0.46);
-  --outreach-deep-foreground: var(--pop-cream);
+  --outreach-border: 1px solid color-mix(in srgb, var(--color-text) 78%, transparent);
+  --outreach-light-border: 1px solid color-mix(in srgb, var(--color-primary-text) 46%, transparent);
+  --outreach-deep-foreground: var(--color-background);
   --outreach-gutter: clamp(1rem, 4.5vw, 5rem);
   --outreach-section: clamp(4rem, 7vw, 7.5rem);
   --outreach-radius: clamp(18px, 2vw, 28px);
-  background: var(--pop-blue);
-  color: var(--pop-ink);
+  background: var(--color-primary);
+  color: var(--color-text);
   font-family: var(--font-body);
 }
 
@@ -65,7 +65,7 @@ body.outreach-page {
 }
 
 .outreach-app :is(a, button, input):focus-visible {
-  outline: 3px solid var(--pop-purple);
+  outline: 3px solid var(--color-additional-2);
   outline-offset: 3px;
 }
 
@@ -85,7 +85,7 @@ body.outreach-page {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.7fr);
   gap: 8px;
-  background: var(--pop-blue);
+  background: var(--color-primary);
 }
 
 .outreach-hero__copy,
@@ -100,7 +100,7 @@ body.outreach-page {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 
 .outreach-breadcrumbs {
@@ -130,7 +130,7 @@ body.outreach-page {
 .outreach-hero h1 {
   max-width: 11ch;
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 700 clamp(3.35rem, 7.6vw, 8.3rem)/0.84 var(--font-display);
   letter-spacing: -0.075em;
   text-wrap: balance;
@@ -148,7 +148,7 @@ body.outreach-page {
   padding: clamp(5.8rem, 8vw, 8rem) clamp(1.4rem, 3vw, 2.8rem) clamp(2rem, 4vw, 3.5rem);
   display: flex;
   flex-direction: column;
-  background: var(--pop-pink);
+  background: var(--color-secondary);
 }
 
 .outreach-hero__stat {
@@ -157,7 +157,7 @@ body.outreach-page {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: end;
   gap: 1rem;
-  border-bottom: 1px solid rgba(21, 19, 15, 0.32);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 32%, transparent);
 }
 
 .outreach-hero__stat strong {
@@ -187,8 +187,8 @@ body.outreach-page {
   gap: 1rem;
   border: var(--outreach-border);
   border-radius: 14px;
-  background: var(--pop-cream);
-  color: var(--pop-ink);
+  background: var(--color-background);
+  color: var(--color-text);
   font: 750 0.77rem/1.1 var(--font-mono);
   letter-spacing: 0.07em;
   text-decoration: none;
@@ -198,13 +198,13 @@ body.outreach-page {
 
 .outreach-hero__brief > a:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 0 var(--pop-ink);
+  box-shadow: 0 4px 0 var(--color-text);
 }
 
 .outreach-principle {
   padding: var(--outreach-section) var(--outreach-gutter);
-  background: var(--pop-blue);
-  color: var(--pop-cream);
+  background: var(--color-primary);
+  color: var(--color-primary-text);
 }
 
 .outreach-principle h2 {
@@ -226,7 +226,7 @@ body.outreach-page {
 .outreach-strategy,
 .outreach-library {
   padding: var(--outreach-section) var(--outreach-gutter);
-  background: var(--pop-cream);
+  background: var(--color-background);
 }
 
 .outreach-section-heading {
@@ -286,9 +286,9 @@ body.outreach-page {
   grid-column: span 4;
 }
 
-.outreach-strategy-card:nth-child(2) { background: var(--pop-pink); }
-.outreach-strategy-card:nth-child(4) { background: var(--pop-yellow); }
-.outreach-strategy-card:nth-child(5) { background: var(--pop-lime); }
+.outreach-strategy-card:nth-child(2) { background: var(--color-secondary); }
+.outreach-strategy-card:nth-child(4) { background: var(--color-button); }
+.outreach-strategy-card:nth-child(5) { background: var(--color-accent); }
 
 .outreach-strategy-card__top {
   display: flex;
@@ -320,7 +320,7 @@ body.outreach-page {
 .outreach-strategy-card .outreach-strategy-card__note {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(21, 19, 15, 0.22);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 22%, transparent);
   font-size: 0.88rem;
   font-weight: 600;
 }
@@ -331,8 +331,8 @@ body.outreach-page {
   padding: 0.65rem 0.82rem;
   border: 1px solid currentColor;
   border-radius: 12px;
-  background: var(--pop-cream);
-  color: var(--pop-ink);
+  background: var(--color-background);
+  color: var(--color-text);
   font: 760 0.7rem/1 var(--font-mono) !important;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -342,22 +342,22 @@ body.outreach-page {
 
 .outreach-copy:hover {
   transform: translateY(-2px);
-  background: var(--pop-yellow);
-  box-shadow: 0 3px 0 var(--pop-ink);
+  background: var(--color-button);
+  box-shadow: 0 3px 0 var(--color-text);
 }
 
 .outreach-copy.is-copied {
-  background: var(--pop-lime);
+  background: var(--color-accent);
 }
 
 .outreach-pains {
   padding: var(--outreach-section) var(--outreach-gutter);
-  background: var(--pop-blue);
-  color: var(--pop-cream);
+  background: var(--color-primary);
+  color: var(--color-primary-text);
 }
 
 .outreach-section-heading--light {
-  color: var(--pop-cream);
+  color: var(--color-primary-text);
 }
 
 .outreach-pains__grid {
@@ -374,12 +374,12 @@ body.outreach-page {
   flex-direction: column;
   border: var(--outreach-border);
   border-radius: var(--outreach-radius);
-  color: var(--pop-ink);
+  color: var(--color-text);
 }
 
-.outreach-pain-card--1 { background: var(--pop-yellow); }
-.outreach-pain-card--2 { background: var(--pop-pink); }
-.outreach-pain-card--3 { background: var(--pop-cream); }
+.outreach-pain-card--1 { background: var(--color-button); }
+.outreach-pain-card--2 { background: var(--color-secondary); }
+.outreach-pain-card--3 { background: var(--color-background); }
 
 .outreach-pain-card > span {
   font: 770 0.76rem/1 var(--font-mono);
@@ -420,8 +420,8 @@ body.outreach-page {
   gap: 8px;
   border: var(--outreach-border);
   border-radius: 18px;
-  background: var(--pop-pink);
-  box-shadow: 0 6px 20px rgba(21, 19, 15, 0.09);
+  background: var(--color-secondary);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-text) 9%, transparent);
 }
 
 .outreach-search {
@@ -433,7 +433,7 @@ body.outreach-page {
   padding-left: 0.85rem;
   border: var(--outreach-border);
   border-radius: 12px;
-  background: var(--pop-cream);
+  background: var(--color-background);
 }
 
 .outreach-search span {
@@ -450,7 +450,7 @@ body.outreach-page {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font-size: 0.95rem;
 }
 
@@ -470,7 +470,7 @@ body.outreach-page {
   border: var(--outreach-border);
   border-radius: 12px;
   background: white;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 740 0.69rem/1 var(--font-mono) !important;
   letter-spacing: 0.055em;
   text-transform: uppercase;
@@ -479,11 +479,11 @@ body.outreach-page {
 
 .outreach-filter:hover,
 .outreach-filter.is-active {
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 
 .outreach-filter.is-active {
-  box-shadow: inset 0 -3px 0 var(--pop-ink);
+  box-shadow: inset 0 -3px 0 var(--color-text);
 }
 
 .outreach-workspace {
@@ -501,7 +501,7 @@ body.outreach-page {
   overflow: auto;
   border: var(--outreach-border);
   border-radius: 18px;
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 
 .outreach-directory__header {
@@ -514,7 +514,7 @@ body.outreach-page {
   justify-content: space-between;
   gap: 0.75rem;
   border-bottom: var(--outreach-border);
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 
 .outreach-directory__header p,
@@ -539,14 +539,14 @@ body.outreach-page {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-bottom: 1px solid rgba(21, 19, 15, 0.24);
-  color: var(--pop-ink);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 24%, transparent);
+  color: var(--color-text);
   text-decoration: none;
   transition: background-color 160ms ease, padding-left 160ms ease;
 }
 
 .outreach-directory a:last-child { border-bottom: 0; }
-.outreach-directory a:hover { padding-left: 1.25rem; background: var(--pop-cream); }
+.outreach-directory a:hover { padding-left: 1.25rem; background: var(--color-background); }
 .outreach-directory a[hidden] { display: none; }
 
 .outreach-directory a strong {
@@ -593,7 +593,7 @@ body.outreach-page {
   justify-content: space-between;
   gap: 1.5rem;
   border-bottom: var(--outreach-border);
-  background: var(--pop-pink);
+  background: var(--color-secondary);
 }
 
 .outreach-email__identity { min-width: 0; }
@@ -606,7 +606,7 @@ body.outreach-page {
 
 .outreach-email__identity h3 {
   margin: 1.15rem 0 0.35rem;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 650 clamp(2rem, 4vw, 4.2rem)/0.92 var(--font-display);
   letter-spacing: -0.055em;
   overflow-wrap: anywhere;
@@ -635,7 +635,7 @@ body.outreach-page {
   position: relative;
   min-width: 0;
   padding: clamp(1.25rem, 2.4vw, 2.2rem) clamp(3.5rem, 5vw, 5.5rem) clamp(1.25rem, 2.4vw, 2.2rem) 0;
-  border-bottom: 1px solid rgba(21, 19, 15, 0.18);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 18%, transparent);
 }
 
 .outreach-copy-block:last-child { border-bottom: 0; }
@@ -643,7 +643,7 @@ body.outreach-page {
 .outreach-copy-block > p {
   max-width: 67ch;
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 450 clamp(1rem, 1.2vw, 1.12rem)/1.62 var(--font-body);
   letter-spacing: -0.008em;
   text-wrap: pretty;
@@ -670,8 +670,8 @@ body.outreach-page {
 .outreach-email__drag-hint {
   margin: 0;
   padding: 0.8rem 1.25rem;
-  border-top: 1px solid rgba(21, 19, 15, 0.18);
-  background: var(--pop-cream);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 18%, transparent);
+  background: var(--color-background);
   font: 720 0.65rem/1.3 var(--font-mono);
   letter-spacing: 0.07em;
   text-align: right;
@@ -683,7 +683,7 @@ body.outreach-page {
   padding: clamp(2rem, 5vw, 5rem);
   border: var(--outreach-border);
   border-radius: var(--outreach-radius);
-  background: var(--pop-yellow);
+  background: var(--color-button);
   text-align: center;
 }
 
@@ -698,7 +698,7 @@ body.outreach-page {
   padding: 0 1rem;
   border: var(--outreach-border);
   border-radius: 12px;
-  background: var(--pop-cream);
+  background: var(--color-background);
   cursor: pointer;
 }
 
@@ -707,8 +707,8 @@ body.outreach-page {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: clamp(2.5rem, 8vw, 8rem);
-  background: var(--pop-purple);
-  color: var(--pop-cream);
+  background: var(--color-additional-2);
+  color: var(--color-primary-text);
 }
 
 .outreach-send-check ol {
@@ -722,11 +722,11 @@ body.outreach-page {
   display: grid;
   grid-template-columns: 2rem minmax(0, 1fr);
   gap: 1rem;
-  border-top: 1px solid rgba(255, 248, 232, 0.34);
+  border-top: 1px solid color-mix(in srgb, var(--color-primary-text) 34%, transparent);
 }
 
 .outreach-send-check li:last-child {
-  border-bottom: 1px solid rgba(255, 248, 232, 0.34);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-primary-text) 34%, transparent);
 }
 
 .outreach-send-check li > span {
@@ -751,12 +751,12 @@ body.outreach-page {
   padding: 0;
   border: 0;
   border-radius: 12px;
-  background: var(--pop-ink);
-  color: var(--pop-cream);
+  background: var(--color-text);
+  color: var(--color-primary-text);
   font: 740 0.72rem/1 var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  box-shadow: 0 6px 22px rgba(21, 19, 15, 0.22);
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--color-text) 22%, transparent);
   opacity: 0;
   transform: translateY(8px);
   pointer-events: none;
@@ -862,12 +862,12 @@ body.outreach-page {
 
   .outreach-directory a {
     min-height: 100px;
-    border: 1px solid rgba(21, 19, 15, 0.28);
+    border: 1px solid color-mix(in srgb, var(--color-text) 28%, transparent);
     border-radius: 12px;
-    background: rgba(255, 248, 232, 0.4);
+    background: color-mix(in srgb, var(--color-primary-text) 40%, transparent);
   }
 
-  .outreach-directory a:last-child { border-bottom: 1px solid rgba(21, 19, 15, 0.28); }
+  .outreach-directory a:last-child { border-bottom: 1px solid color-mix(in srgb, var(--color-text) 28%, transparent); }
 
   .outreach-email__header {
     flex-direction: column;

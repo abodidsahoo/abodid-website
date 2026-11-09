@@ -66,9 +66,9 @@
     font-size: 0.8rem;
     font-weight: 600;
     font-family: inherit;
-    color: var(--pop-ink, #15130f);
-    background: var(--pop-yellow, #ffe44f);
-    border: 1px solid rgba(21, 19, 15, 0.78);
+    color: var(--color-button-text);
+    background: var(--color-button);
+    border: 1px solid color-mix(in srgb, var(--color-text) 78%, transparent);
     border-radius: 999px;
     cursor: pointer;
     transition: transform 0.15s ease, background-color 0.15s ease;
@@ -76,9 +76,9 @@
     line-height: 1;
   }
 
-  .pwa-install-btn:hover {
+  .pwa-install-btn:hover:not(:disabled):not([aria-disabled="true"]) {
     transform: translateY(-1px);
-    background: #ffdb1a;
+    background: var(--ui-button-hover-bg);
   }
 
   .pwa-install-btn:active {
@@ -110,7 +110,7 @@
   .pwa-ios-modal__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: color-mix(in srgb, var(--ui-shadow-color) 60%, transparent);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
   }
@@ -120,12 +120,12 @@
     z-index: 1;
     width: 100%;
     max-width: 440px;
-    background: var(--pop-cream, #fff8e8);
-    color: var(--pop-ink, #15130f);
-    border: 1.5px solid rgba(21, 19, 15, 0.9);
+    background: var(--color-background);
+    color: var(--color-text);
+    border: 1.5px solid color-mix(in srgb, var(--color-text) 90%, transparent);
     border-radius: 20px;
     padding: 1.5rem;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--ui-shadow-color) 35%, transparent);
     animation: pwaSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -156,22 +156,22 @@
 
   .pwa-ios-modal__icon {
     border-radius: 10px;
-    border: 1px solid rgba(21, 19, 15, 0.2);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
   }
 
   .pwa-ios-modal__title {
     margin: 0;
     font-size: 1.15rem;
     font-weight: 700;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text);
     line-height: 1.2;
   }
 
   .pwa-ios-modal__subtitle {
     margin: 4px 0 0;
     font-size: 0.825rem;
-    color: rgba(21, 19, 15, 0.7);
+    color: color-mix(in srgb, var(--color-text) 70%, transparent);
     line-height: 1.35;
   }
 
@@ -180,7 +180,7 @@
     border: none;
     font-size: 1.5rem;
     line-height: 1;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text);
     cursor: pointer;
     padding: 0 4px;
   }
@@ -198,8 +198,8 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(21, 19, 15, 0.12);
+    background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
     border-radius: 12px;
     padding: 10px 12px;
     font-size: 0.875rem;
@@ -213,8 +213,8 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: var(--pop-blue, #2444ca);
-    color: #ffffff;
+    background: var(--color-primary);
+    color: var(--color-primary-text);
     font-weight: 700;
     font-size: 0.75rem;
     flex-shrink: 0;
@@ -222,7 +222,7 @@
 
   .pwa-ios-modal__step-text {
     flex: 1;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text);
   }
 
   .pwa-inline-icon {
@@ -235,9 +235,9 @@
     width: 100%;
     padding: 12px;
     border-radius: 12px;
-    border: 1px solid rgba(21, 19, 15, 0.8);
-    background: var(--pop-blue, #2444ca);
-    color: #ffffff;
+    border: 1px solid color-mix(in srgb, var(--color-text) 80%, transparent);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
     font-weight: 700;
     font-size: 0.95rem;
     cursor: pointer;

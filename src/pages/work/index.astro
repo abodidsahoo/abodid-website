@@ -148,11 +148,11 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
 
       const resolveForegrounds = () => {
         const rootStyles = getComputedStyle(document.documentElement);
-        const inkColour = rootStyles.getPropertyValue("--pop-ink").trim() || "#15130f";
-        const creamColour = rootStyles.getPropertyValue("--pop-cream").trim() || "#fff8e8";
+        const inkColour = rootStyles.getPropertyValue("--color-text").trim() || "#15130f";
+        const creamColour = rootStyles.getPropertyValue("--color-primary-text").trim() || "#fff8e8";
         return {
-          ink: { colour: inkColour, luminance: luminance(parseRgb(inkColour) || [21, 19, 15]) },
-          cream: { colour: creamColour, luminance: luminance(parseRgb(creamColour) || [255, 248, 232]) },
+          ink: { token: "--color-text", colour: inkColour, luminance: luminance(parseRgb(inkColour) || [21, 19, 15]) },
+          cream: { token: "--color-primary-text", colour: creamColour, luminance: luminance(parseRgb(creamColour) || [255, 248, 232]) },
         };
       };
 
@@ -165,8 +165,8 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
           const inkRatio = contrast(surfaceLuminance, ink.luminance);
           const creamRatio = contrast(surfaceLuminance, cream.luminance);
           const foreground = inkRatio >= creamRatio ? ink : cream;
-          surface.style.setProperty("--surface-foreground", foreground.colour);
-          surface.style.color = foreground.colour;
+          surface.style.setProperty("--surface-foreground", `var(${foreground.token})`);
+          surface.style.color = `var(${foreground.token})`;
           surface.dataset.contrastRatio = Math.max(inkRatio, creamRatio).toFixed(2);
         });
       };
@@ -215,6 +215,8 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
 
       const initialisePage = () => {
       applySurfaceContrast();
+      window.removeEventListener("design-tokens:published", applySurfaceContrast);
+      window.addEventListener("design-tokens:published", applySurfaceContrast);
       window.addEventListener("design-tokens:loaded", applySurfaceContrast, { once: true });
         ensureVideosPlay();
       };
@@ -234,15 +236,15 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
 
 <style is:global>
   :root {
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --story-ink: var(--pop-ink);
-    --story-cream: var(--pop-cream);
-    --story-paper: var(--pop-cream);
-    --story-cobalt: var(--pop-blue);
-    --story-coral: var(--pop-orange);
-    --story-yellow: var(--pop-yellow);
-    --story-green: var(--pop-lime);
-    --story-line: rgba(21, 19, 15, 0.24);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --story-ink: var(--color-text);
+    --story-cream: var(--color-background);
+    --story-paper: var(--color-background);
+    --story-cobalt: var(--color-primary);
+    --story-coral: var(--color-additional-1);
+    --story-yellow: var(--color-button);
+    --story-green: var(--color-accent);
+    --story-line: color-mix(in srgb, var(--color-text) 24%, transparent);
     --story-gutter: clamp(1rem, 3vw, 3.5rem);
     --home-next-gap: 8px;
     --home-next-border: 1px solid var(--pop-border);
@@ -268,7 +270,7 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
   body.story-home-page {
     margin: 0;
     padding: 0 !important;
-    background: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
     color: var(--story-ink);
   }
   body.story-home-page main.page-content-full {
@@ -299,8 +301,8 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
 
   .story-work {
     padding: clamp(3.5rem, 6vw, 5.5rem) clamp(1rem, 6vw, 6rem) var(--home-next-gap);
-    background: var(--pop-blue);
-    color: var(--pop-cream);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
   }
   .story-work__header {
     width: min(100%, 1480px);
@@ -320,7 +322,7 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
   .story-work__header p {
     max-width: 40rem;
     margin: 0;
-    color: rgba(255, 248, 232, 0.9);
+    color: color-mix(in srgb, var(--color-primary-text) 90%, transparent);
     font: 450 clamp(1.15rem, 1.5vw, 1.5rem)/1.42 var(--font-display, sans-serif);
     letter-spacing: -0.015em;
     text-wrap: pretty;
@@ -344,8 +346,8 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
     overflow: hidden;
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-panel);
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
     text-decoration: none;
     transition: transform var(--home-next-motion), box-shadow var(--home-next-motion);
   }
@@ -360,12 +362,12 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
     text-decoration: none;
     transform: translate(2px, -2px);
   }
-  .story-project:nth-child(6n + 1) { background: var(--pop-pink); color: var(--pop-ink); }
-  .story-project:nth-child(6n + 2) { background: var(--pop-blue); color: var(--pop-cream); }
-  .story-project:nth-child(6n + 3) { background: var(--pop-pink); color: var(--pop-ink); }
-  .story-project:nth-child(6n + 4) { background: var(--pop-blue); color: var(--pop-cream); }
-  .story-project:nth-child(6n + 5) { background: var(--pop-yellow); color: var(--pop-ink); }
-  .story-project:nth-child(6n + 6) { background: var(--pop-pink); color: var(--pop-ink); }
+  .story-project:nth-child(6n + 1) { background: var(--color-secondary); color: var(--color-text); }
+  .story-project:nth-child(6n + 2) { background: var(--color-primary); color: var(--color-primary-text); }
+  .story-project:nth-child(6n + 3) { background: var(--color-secondary); color: var(--color-text); }
+  .story-project:nth-child(6n + 4) { background: var(--color-primary); color: var(--color-primary-text); }
+  .story-project:nth-child(6n + 5) { background: var(--color-button); color: var(--color-button-text); }
+  .story-project:nth-child(6n + 6) { background: var(--color-secondary); color: var(--color-text); }
   .story-project--1 { grid-column: span 7; }
   .story-project--2 { grid-column: span 5; }
   .story-project--3 { grid-column: span 5; }
@@ -379,7 +381,7 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
     overflow: hidden;
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-media);
-    background: var(--pop-ink);
+    background: var(--color-text);
   }
   .story-project figure img,
   .story-project figure video {
@@ -473,22 +475,22 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
   }
 
   .story-enquiry {
-    --type-h2-color: #ffffff;
+    --type-h2-color: var(--color-surface);
     padding-block: clamp(4rem, 6.5vw, 7rem);
     padding-inline: clamp(1rem, 6vw, 6rem);
-    background: var(--pop-purple);
-    color: var(--pop-cream);
+    background: var(--color-additional-2);
+    color: var(--color-primary-text);
   }
   .story-enquiry h2,
   .story-enquiry :global(h2) {
-    color: #ffffff !important;
+    color: var(--color-primary-text) !important;
   }
   .story-enquiry .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow),
   .story-enquiry .inline-enquiry__intro > a,
   .story-enquiry .inline-enquiry--pop label > span,
   .story-enquiry .inline-enquiry--pop .custom-select__label-wrap > span,
   .story-enquiry .inline-enquiry--pop .inline-enquiry__submit-row p {
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
   }
 
   @media (max-width: 980px) {

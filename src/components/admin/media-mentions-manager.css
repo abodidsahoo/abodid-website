@@ -55,7 +55,7 @@
   color: var(--text-primary);
 }
 
-.media-mention-editor-actions .publish { background: #16a34a; color: #fff; border-color: #16a34a; }
+.media-mention-editor-actions .publish { background: #16a34a; color: var(--color-primary-text); border-color: #16a34a; }
 .media-mentions-admin button:disabled { cursor: not-allowed; opacity: .48; }
 
 .media-mentions-statusbar {

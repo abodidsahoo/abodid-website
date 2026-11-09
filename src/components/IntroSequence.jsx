@@ -337,16 +337,16 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     z-index: 9999; display: flex; align-items: center; justify-content: center;
                     color: var(--intro-text); font-family: var(--font-custom-3); pointer-events: none;
                     --intro-text-size: 2rem;
-                    --intro-text: #ffffff;
+                    --intro-text: var(--color-surface);
                     --intro-accent: #ffff00;
                 }
                 
                 /* LIGHT MODE OVERRIDES - Using html selector as data-theme is on documentElement */
                 html[data-theme="light"] .intro-sequence-container {
-                    --intro-text: #000000 !important;
+                    --intro-text: var(--color-text) !important;
                     --intro-accent: #0000ff; /* Blue accent for light mode */
-                    background: rgba(255, 255, 255, 0.98);
-                    color: #000000 !important;
+                    background: color-mix(in srgb, var(--color-surface) 98%, transparent);
+                    color: var(--color-text) !important;
                 }
 
                 .intro-content {

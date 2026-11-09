@@ -267,16 +267,16 @@ export default function BlogEditor({ id }) {
                 .box-input:focus { border-color: var(--text-primary); }
                 .box-input.large { font-size: 1.25rem; font-weight: 500; padding: 0.8rem 1rem; }
 
-                .cover-wrapper-small { width: 100%; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; position: relative; background: #000; }
+                .cover-wrapper-small { width: 100%; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; position: relative; background: var(--color-text); }
                 .preview-fit { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
                 .preview-fit img { width: 100%; height: 100%; object-fit: cover; }
-                .btn-mini-remove { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; backdrop-filter: blur(4px); }
+                .btn-mini-remove { position: absolute; top: 8px; right: 8px; background: color-mix(in srgb, var(--ui-shadow-color) 60%, transparent); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; backdrop-filter: blur(4px); }
 
                 .toast {
                     position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem;
                     border-radius: 8px; font-weight: 500; font-size: 0.9rem; z-index: 1000;
                     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                    box-shadow: 0 10px 30px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
                 .toast.success { background: #10B981; color: white; }
                 .toast.error { background: #EF4444; color: white; }
@@ -306,7 +306,7 @@ export default function BlogEditor({ id }) {
                 .newsletter-block-card {
                     background: var(--bg-surface); border: 1px solid var(--border-strong);
                     border-radius: 8px; display: flex; overflow: hidden;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                    box-shadow: 0 2px 8px color-mix(in srgb, var(--ui-shadow-color) 2%, transparent);
                 }
                 .block-drag-handle {
                     background: var(--bg-color); border-right: 1px solid var(--border-strong);
@@ -318,7 +318,7 @@ export default function BlogEditor({ id }) {
                 .block-content { flex: 1; display: flex; flex-direction: column; }
                 .block-header {
                     padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-subtle);
-                    display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.02);
+                    display: flex; justify-content: space-between; align-items: center; background: color-mix(in srgb, var(--ui-shadow-color) 2%, transparent);
                 }
                 .block-header strong { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
                 .block-actions { display: flex; gap: 0.5rem; }

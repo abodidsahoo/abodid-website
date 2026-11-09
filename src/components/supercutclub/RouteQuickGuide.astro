@@ -146,13 +146,13 @@ const {
   }
 
   .scq-guide-dark {
-    --scq-line: rgba(255, 255, 255, 0.1);
+    --scq-line: color-mix(in srgb, var(--color-surface) 10%, transparent);
     --scq-bg: rgba(8, 11, 18, 0.94);
     --scq-bg-strong: rgba(12, 16, 24, 0.98);
     --scq-text: #fff8ee;
     --scq-text-soft: rgba(232, 229, 223, 0.82);
     --scq-muted: rgba(232, 229, 223, 0.72);
-    --scq-shadow: 0 22px 44px rgba(0, 0, 0, 0.24);
+    --scq-shadow: 0 22px 44px color-mix(in srgb, var(--ui-shadow-color) 24%, transparent);
   }
 
   .scq-guide.is-visible {
@@ -280,7 +280,7 @@ const {
   }
 
   .scq-guide-dark .scq-link {
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
   }
 
   .scq-link p {

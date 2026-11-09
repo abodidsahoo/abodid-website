@@ -145,10 +145,10 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
                     gap: 8px;
                     min-height: 44px;
                     padding: 10px 20px;
-                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78)) !important;
+                    border: 1px solid var(--pop-border, color-mix(in srgb, var(--color-text) 78%, transparent)) !important;
                     border-radius: 12px !important;
-                    background: var(--pop-cream, #fff8e8) !important;
-                    color: var(--pop-ink, #15130f) !important;
+                    background: var(--color-background) !important;
+                    color: var(--color-text) !important;
                     font: 700 0.9rem/1 var(--resources-font, system-ui) !important;
                     cursor: pointer;
                     box-shadow: none !important;
@@ -160,24 +160,24 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
                 }
 
                 .detail-action-btn.btn-upvote:hover:not(:disabled) {
-                    background: var(--pop-yellow, #ffe44f) !important;
+                    background: var(--color-button) !important;
                 }
 
                 .detail-action-btn.btn-save:hover:not(:disabled) {
-                    background: var(--pop-pink, #ff7eb5) !important;
+                    background: var(--color-secondary) !important;
                 }
 
                 .detail-action-btn.btn-upvote.active {
-                    background: var(--pop-yellow, #ffe44f) !important;
-                    color: var(--pop-ink, #15130f) !important;
-                    border-color: var(--pop-ink, var(--pop-ink)) !important;
+                    background: var(--color-button) !important;
+                    color: var(--color-button-text) !important;
+                    border-color: var(--color-text) !important;
                     font-weight: 800 !important;
                 }
 
                 .detail-action-btn.btn-save.active {
-                    background: var(--pop-pink, #ff7eb5) !important;
-                    color: var(--pop-ink, #15130f) !important;
-                    border-color: var(--pop-ink, var(--pop-ink)) !important;
+                    background: var(--color-secondary) !important;
+                    color: var(--color-text) !important;
+                    border-color: var(--color-text) !important;
                     font-weight: 800 !important;
                 }
 
@@ -187,9 +187,9 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
                 }
 
                 .detail-action-btn .count {
-                    color: var(--pop-ink, #15130f);
-                    background: var(--pop-cream, #fff8e8);
-                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+                    color: var(--color-text);
+                    background: var(--color-background);
+                    border: 1px solid var(--pop-border, color-mix(in srgb, var(--color-text) 78%, transparent));
                     font: 750 0.78rem/1 var(--resources-mono, monospace);
                     padding: 3px 8px;
                     border-radius: 999px;
@@ -197,8 +197,8 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
                 }
 
                 .detail-action-btn.active .count {
-                    background: var(--pop-cream, #fff8e8);
-                    color: var(--pop-ink, #15130f);
+                    background: var(--color-background);
+                    color: var(--color-text);
                 }
             `}</style>
         </div>

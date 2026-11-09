@@ -289,50 +289,50 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
                 .tag-input-container { position:relative; min-width:0; }
                 .tag-input-field {
                     min-height:48px; width:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px;
-                    padding:8px 12px; border:1px solid var(--pop-border, rgba(21, 19, 15, 0.78)); border-radius:12px;
-                    background:var(--pop-cream, #fff8e8); color:var(--pop-ink, #15130f); cursor:text; box-sizing:border-box;
+                    padding:8px 12px; border: 1px solid var(--pop-border, color-mix(in srgb, var(--color-text) 78%, transparent)); border-radius:12px;
+                    background: var(--color-background); color: var(--color-text); cursor:text; box-sizing:border-box;
                 }
                 .tag-input-field:focus-within {
-                    border-color: var(--pop-blue, #2b56ff) !important;
-                    outline: 1px solid var(--pop-blue, #2b56ff) !important;
+                    border-color: var(--color-primary, #2b56ff) !important;
+                    outline: 1px solid var(--color-primary, #2b56ff) !important;
                     outline-offset: 0px !important;
-                    box-shadow: 0 0 0 1px var(--pop-blue, #2b56ff);
+                    box-shadow: 0 0 0 1px var(--color-primary, #2b56ff);
                 }
                 .tag-input-field input {
                     flex:1 1 180px; min-width:130px; min-height:32px; margin:0; padding:2px 4px;
-                    border:0; outline:0; background:transparent; color:var(--pop-ink, #15130f);
+                    border: 0; outline: 0; background: transparent; color: var(--color-text);
                     font:600 .9rem/1.35 var(--resources-font, sans-serif);
                 }
-                .tag-input-field input::placeholder { color:rgba(21, 19, 15, 0.6); }
+                .tag-input-field input::placeholder { color: color-mix(in srgb, var(--color-text) 60%, transparent); }
                 .selected-tag-chip {
                     display:inline-flex; align-items:center; gap:6px; max-width:100%; padding:6px 10px;
-                    border:1px solid var(--pop-border, rgba(21, 19, 15, 0.78)); border-radius:999px; background:var(--pop-yellow, #ffe44f);
-                    color:var(--pop-ink, #15130f); font-size:.76rem; font-weight:800; line-height:1;
+                    border: 1px solid var(--pop-border, color-mix(in srgb, var(--color-text) 78%, transparent)); border-radius:999px; background: var(--color-button);
+                    color: var(--color-button-text); font-size:.76rem; font-weight:800; line-height:1;
                 }
                 .selected-tag-chip button {
-                    width:20px; height:20px; display:grid; place-items:center; margin:0; padding:0; border:0;
-                    border-radius:50%; background:transparent; color:var(--pop-ink, #15130f); cursor:pointer;
+                    width:20px; height:20px; display:grid; place-items:center; margin:0; padding:0; border: 0;
+                    border-radius:50%; background: transparent; color: var(--color-text); cursor:pointer;
                     font:700 15px/1 var(--resources-font, sans-serif);
                 }
-                .selected-tag-chip button:hover { background:var(--pop-pink, #ff7eb5); color:var(--pop-ink, #15130f); }
+                .selected-tag-chip button:hover { background: var(--color-secondary); color: var(--color-text); }
                 .selected-tag-chip.pending { opacity:.72; }
                 .selected-tag-chip.pending small { font-size:.62rem; font-weight:800; text-transform:uppercase; }
                 .suggestions-dropdown {
                     position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:80; overflow:auto;
-                    max-height:240px; padding:6px; border:1px solid var(--pop-border, rgba(21, 19, 15, 0.78)); border-radius:14px;
-                    background:var(--pop-cream, #fff8e8); box-shadow:0 12px 32px rgba(21, 19, 15, 0.16);
+                    max-height:240px; padding:6px; border: 1px solid var(--pop-border, color-mix(in srgb, var(--color-text) 78%, transparent)); border-radius:14px;
+                    background: var(--color-background); box-shadow: 0 12px 32px color-mix(in srgb, var(--color-text) 16%, transparent);
                 }
                 .suggestions-dropdown button {
                     width:100%; display:flex; align-items:center; justify-content:space-between; gap:1rem;
-                    padding:10px 12px; border:0; border-radius:8px; background:transparent;
-                    color:var(--pop-ink, #15130f); text-align:left; cursor:pointer; font:700 .85rem/1.25 var(--resources-font, sans-serif);
+                    padding:10px 12px; border: 0; border-radius:8px; background: transparent;
+                    color: var(--color-text); text-align:left; cursor:pointer; font:700 .85rem/1.25 var(--resources-font, sans-serif);
                 }
-                .suggestions-dropdown button:hover,.suggestions-dropdown button.focused { background:var(--pop-yellow, #ffe44f); }
-                .suggestions-dropdown small { color:rgba(21, 19, 15, 0.7); font-size:.7rem; font-weight:700; text-transform:uppercase; }
-                .suggestions-dropdown .create-option { border-top:1px solid var(--pop-line, rgba(21, 19, 15, 0.24)); border-radius:0 0 8px 8px; color:var(--pop-ink, #15130f); }
+                .suggestions-dropdown button:hover,.suggestions-dropdown button.focused { background: var(--color-button); }
+                .suggestions-dropdown small { color: color-mix(in srgb, var(--color-text) 70%, transparent); font-size:.7rem; font-weight:700; text-transform:uppercase; }
+                .suggestions-dropdown .create-option { border-top: 1px solid var(--pop-line, color-mix(in srgb, var(--color-text) 24%, transparent)); border-radius:0 0 8px 8px; color: var(--color-text); }
                 .tag-input-help,.tag-input-error { margin-top:6px; font:650 .68rem/1.4 var(--resources-mono, monospace); }
-                .tag-input-help { color:rgba(21, 19, 15, 0.64); }
-                .tag-input-error { color:#b42318; }
+                .tag-input-help { color: color-mix(in srgb, var(--color-text) 64%, transparent); }
+                .tag-input-error { color: var(--color-error); }
             `}</style>
         </div>
     );

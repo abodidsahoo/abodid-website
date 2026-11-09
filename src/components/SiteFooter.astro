@@ -107,14 +107,14 @@ const architectureHref = "/architecture";
 <style>
   .story-footer {
     --home-next-gap: 8px;
-    --home-next-border: 1px solid rgba(21, 19, 15, 0.78);
+    --home-next-border: 1px solid color-mix(in srgb, var(--color-text) 78%, transparent);
     --home-next-radius-panel: clamp(18px, 2vw, 28px);
     --home-next-radius-control: 14px;
     --home-next-motion: 180ms ease;
     padding: clamp(2.5rem, 5vw, 4.5rem) max(var(--home-next-gap), env(safe-area-inset-right, 0px)) max(var(--home-next-gap), calc(var(--home-next-gap) + env(safe-area-inset-bottom, 0px))) max(var(--home-next-gap), env(safe-area-inset-left, 0px));
     border-top: 0;
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
   }
 
   .story-footer a {
@@ -137,6 +137,8 @@ const architectureHref = "/architecture";
   }
 
   .story-footer__card {
+    --footer-card-text: var(--color-text);
+    color: var(--footer-card-text);
     padding: clamp(1.4rem, 2.4vw, 2.2rem);
     display: flex;
     flex-direction: column;
@@ -146,24 +148,25 @@ const architectureHref = "/architecture";
     transition: transform var(--home-next-motion), box-shadow var(--home-next-motion);
   }
 
-  .story-footer__card--work { background: var(--pop-yellow); }
+  .story-footer__card--work { --footer-card-text: var(--color-button-text); background: var(--color-button); }
 
   .story-footer__card--curation {
-    border-color: rgba(255, 248, 232, 0.45);
-    background: var(--pop-blue);
-    color: var(--pop-cream);
+    --footer-card-text: var(--color-primary-text);
+    border-color: color-mix(in srgb, var(--color-primary-text) 45%, transparent);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
   }
 
-  .story-footer__card--workshops { background: var(--pop-lime); }
-  .story-footer__card--about { background: var(--pop-cream); }
+  .story-footer__card--workshops { background: var(--color-accent); }
+  .story-footer__card--about { background: var(--color-background); }
 
   .story-footer__card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(21, 19, 15, 0.08);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--color-text) 8%, transparent);
   }
 
   .story-footer__card--curation:hover {
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
   }
 
   .story-footer__card-header {
@@ -197,8 +200,8 @@ const architectureHref = "/architecture";
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(21, 19, 15, 0.22);
-    color: var(--pop-ink);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text) 22%, transparent);
+    color: var(--footer-card-text);
     font: 750 clamp(0.75rem, 0.88vw, 0.84rem)/1.35 var(--font-mono, monospace);
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -206,13 +209,13 @@ const architectureHref = "/architecture";
   }
 
   .story-footer__card--curation nav a {
-    border-bottom-color: rgba(255, 248, 232, 0.28);
-    color: var(--pop-cream);
+    border-bottom-color: color-mix(in srgb, var(--color-primary-text) 28%, transparent);
+    color: var(--color-primary-text);
   }
 
   .story-footer__card nav a:last-child { border-bottom: 0; }
   .story-footer__card nav a:hover { transform: translateX(4px); }
-  .story-footer__card--curation nav a:hover { color: var(--pop-yellow); }
+  .story-footer__card--curation nav a:hover { color: var(--color-button); }
 
   .story-footer__card nav a span {
     opacity: 0.75;
@@ -235,7 +238,7 @@ const architectureHref = "/architecture";
     gap: 1.25rem;
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-panel);
-    background: var(--pop-cream);
+    background: var(--color-background);
   }
 
   .story-footer__brand-group,
@@ -254,10 +257,10 @@ const architectureHref = "/architecture";
     padding: 0 0.9rem;
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: var(--home-next-radius-control);
-    background: var(--pop-yellow);
-    color: var(--pop-ink) !important;
+    background: var(--color-button);
+    color: var(--color-button-text) !important;
     font: 750 0.74rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -266,11 +269,11 @@ const architectureHref = "/architecture";
 
   .story-footer__brand:hover {
     transform: translateY(-2px);
-    box-shadow: 0 3px 0 var(--pop-ink);
+    box-shadow: 0 3px 0 var(--color-text);
   }
 
   .story-footer__copyright {
-    color: rgba(21, 19, 15, 0.82);
+    color: color-mix(in srgb, var(--color-text) 82%, transparent);
     font: 600 0.72rem/1.35 var(--font-mono, monospace);
   }
 
@@ -279,10 +282,10 @@ const architectureHref = "/architecture";
     padding: 0 0.75rem;
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: var(--home-next-radius-control);
-    background: #fff;
-    color: var(--pop-ink);
+    background: var(--color-surface);
+    color: var(--color-text);
     font: 700 0.68rem/1 var(--font-mono, monospace);
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -291,12 +294,12 @@ const architectureHref = "/architecture";
 
   .story-footer__social a:hover {
     transform: translateY(-2px);
-    background: var(--pop-pink);
+    background: var(--color-secondary);
   }
 
   .story-footer__legal {
     gap: 0.85rem;
-    color: rgba(21, 19, 15, 0.75);
+    color: color-mix(in srgb, var(--color-text) 75%, transparent);
     font: 650 0.7rem/1.3 var(--font-mono, monospace);
     text-transform: uppercase;
   }
@@ -304,7 +307,7 @@ const architectureHref = "/architecture";
   .story-footer__legal a { color: inherit; }
 
   .story-footer__legal a:hover {
-    color: #000;
+    color: var(--color-text);
     text-decoration: underline;
   }
 

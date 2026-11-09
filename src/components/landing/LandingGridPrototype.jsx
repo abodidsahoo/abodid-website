@@ -2181,7 +2181,7 @@ const LandingGridPrototype = ({
 
                 .landing-tile {
                     position: absolute;
-                    border: 1px solid rgba(255, 255, 255, 0.82);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 82%, transparent);
                     border-radius: 0;
                     background: #090909;
                     z-index: 2;
@@ -2201,8 +2201,8 @@ const LandingGridPrototype = ({
                 }
 
                 .landing-tile.active {
-                    border-color: #fff;
-                    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+                    border-color: var(--color-primary-text);
+                    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 16%, transparent);
                     z-index: 30;
                     transition:
                         border-color 120ms ease,
@@ -2210,22 +2210,21 @@ const LandingGridPrototype = ({
                 }
 
                 .landing-tile:hover:not(.active) {
-                    border-color: #fff;
-                    box-shadow:
-                        inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+                    border-color: var(--color-primary-text);
+                    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 12%, transparent),
                         0 0 16px rgba(255, 255, 255, 0.2);
                 }
 
                 .tile-grip {
                     flex: 0 0 auto;
                     height: 26px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+                    border-bottom: 1px solid color-mix(in srgb, var(--color-surface) 18%, transparent);
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                     gap: 8px;
                     padding: 0 8px;
-                    background: rgba(255, 255, 255, 0.04);
+                    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
                     cursor: grab;
                     user-select: none;
                     text-transform: uppercase;
@@ -2241,7 +2240,7 @@ const LandingGridPrototype = ({
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    color: rgba(255, 255, 255, 0.88);
+                    color: color-mix(in srgb, var(--color-surface) 88%, transparent);
                 }
 
                 .tile-cta {
@@ -2250,7 +2249,7 @@ const LandingGridPrototype = ({
                     gap: 4px;
                     font-size: 9px;
                     letter-spacing: 0.12em;
-                    color: rgba(255, 255, 255, 0.86);
+                    color: color-mix(in srgb, var(--color-surface) 86%, transparent);
                     text-decoration: none;
                     transition: opacity 140ms ease;
                 }
@@ -2286,7 +2285,7 @@ const LandingGridPrototype = ({
                     position: absolute;
                     z-index: 1;
                     pointer-events: none;
-                    border: 1px solid rgba(255, 255, 255, 0.66);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 66%, transparent);
                     border-radius: 0;
                     overflow: hidden;
                     transition: background 180ms ease;
@@ -2294,17 +2293,17 @@ const LandingGridPrototype = ({
 
                 .gap-filler.accent-white {
                     background: #f5f5f5;
-                    border-color: rgba(255, 255, 255, 0.9);
+                    border-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
                 }
 
                 .gap-filler.accent-red {
                     background: #d31818;
-                    border-color: rgba(255, 255, 255, 0.66);
+                    border-color: color-mix(in srgb, var(--color-surface) 66%, transparent);
                 }
 
                 .gap-filler.accent-black {
                     background: #050505;
-                    border-color: rgba(255, 255, 255, 0.66);
+                    border-color: color-mix(in srgb, var(--color-surface) 66%, transparent);
                 }
 
                 .gap-filler.is-interactive {
@@ -2313,7 +2312,7 @@ const LandingGridPrototype = ({
                 }
 
                 .gap-filler.is-interactive:hover {
-                    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+                    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 35%, transparent);
                 }
 
                 .gap-filler.gap-tags {
@@ -2332,21 +2331,21 @@ const LandingGridPrototype = ({
                 }
 
                 .tag-pill {
-                    border: 1px solid rgba(255, 255, 255, 0.35);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 35%, transparent);
                     border-radius: 0;
                     font-size: 6.5px;
                     line-height: 1;
                     padding: 0 6px;
-                    color: rgba(255, 255, 255, 0.86);
+                    color: color-mix(in srgb, var(--color-surface) 86%, transparent);
                     white-space: nowrap;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
-                    background: rgba(255, 255, 255, 0.03);
+                    background: color-mix(in srgb, var(--color-surface) 3%, transparent);
                 }
 
                 .gap-filler.gap-image {
-                    background: #000;
-                    border-color: rgba(255, 255, 255, 0.22);
+                    background: var(--color-text);
+                    border-color: color-mix(in srgb, var(--color-surface) 22%, transparent);
                 }
 
                 .gap-filler.gap-image img {
@@ -2363,7 +2362,7 @@ const LandingGridPrototype = ({
                     place-items: center;
                     font-size: 8px;
                     letter-spacing: 0.08em;
-                    color: rgba(255, 255, 255, 0.7);
+                    color: color-mix(in srgb, var(--color-surface) 70%, transparent);
                     background: linear-gradient(145deg, #111, #222);
                 }
 
@@ -2373,7 +2372,7 @@ const LandingGridPrototype = ({
                     right: 0;
                     bottom: 0;
                     min-height: 24%;
-                    background: rgba(255, 255, 255, 0.94);
+                    background: color-mix(in srgb, var(--color-surface) 94%, transparent);
                     color: #080808;
                     display: flex;
                     align-items: center;
@@ -2391,9 +2390,9 @@ const LandingGridPrototype = ({
                     bottom: 0;
                     z-index: 45;
                     height: 22px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.25);
+                    border-top: 1px solid color-mix(in srgb, var(--color-surface) 25%, transparent);
                     background: rgba(179, 13, 13, 0.96);
-                    color: #fff;
+                    color: var(--color-primary-text);
                     display: grid;
                     grid-template-columns: 1fr auto 1fr;
                     align-items: center;
@@ -2427,9 +2426,9 @@ const LandingGridPrototype = ({
                 }
 
                 .shuffle-btn {
-                    border: 1px solid rgba(255, 255, 255, 0.7);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 70%, transparent);
                     background: transparent;
-                    color: #fff;
+                    color: var(--color-primary-text);
                     font-family: var(--font-ui);
                     font-size: 8px;
                     letter-spacing: 0.08em;
@@ -2441,14 +2440,14 @@ const LandingGridPrototype = ({
                 }
 
                 .shuffle-btn:hover {
-                    background: rgba(255, 255, 255, 0.14);
+                    background: color-mix(in srgb, var(--color-surface) 14%, transparent);
                 }
 
                 .showreel-modal-backdrop {
                     position: absolute;
                     inset: 0;
                     z-index: 120;
-                    background: rgba(0, 0, 0, 0.92);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 92%, transparent);
                     display: grid;
                     place-items: center;
                     padding: clamp(14px, 3vw, 32px);
@@ -2459,17 +2458,17 @@ const LandingGridPrototype = ({
                     width: min(1020px, 94vw);
                     max-height: 90dvh;
                     border-radius: 10px;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 30%, transparent);
                     background: rgba(5, 5, 5, 0.96);
                     padding: 12px;
-                    box-shadow: 0 22px 64px rgba(0, 0, 0, 0.6);
+                    box-shadow: 0 22px 64px color-mix(in srgb, var(--ui-shadow-color) 60%, transparent);
                 }
 
                 .showreel-modal-video {
                     width: 100%;
                     max-height: calc(90dvh - 56px);
                     border-radius: 8px;
-                    background: #000;
+                    background: var(--color-text);
                     display: block;
                     outline: none;
                 }
@@ -2482,15 +2481,15 @@ const LandingGridPrototype = ({
                     height: 30px;
                     border: 0;
                     border-radius: 999px;
-                    background: rgba(255, 255, 255, 0.14);
-                    color: #fff;
+                    background: color-mix(in srgb, var(--color-surface) 14%, transparent);
+                    color: var(--color-primary-text);
                     font-size: 20px;
                     line-height: 1;
                     cursor: pointer;
                 }
 
                 .showreel-modal-close:hover {
-                    background: rgba(255, 255, 255, 0.22);
+                    background: color-mix(in srgb, var(--color-surface) 22%, transparent);
                 }
 
                 .rotator-shell {
@@ -2521,7 +2520,7 @@ const LandingGridPrototype = ({
                 .note-line {
                     flex: 1 1 0;
                     min-height: 0;
-                    border: 1px solid rgba(255, 255, 255, 0.24);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 24%, transparent);
                     border-radius: 1px;
                     padding: 6px;
                     display: grid;
@@ -2530,12 +2529,12 @@ const LandingGridPrototype = ({
                     gap: 6px;
                     text-decoration: none;
                     color: inherit;
-                    background: rgba(255, 255, 255, 0.02);
+                    background: color-mix(in srgb, var(--color-surface) 2%, transparent);
                 }
 
                 .note-index {
                     font-size: 9px;
-                    color: rgba(255, 255, 255, 0.6);
+                    color: color-mix(in srgb, var(--color-surface) 60%, transparent);
                     letter-spacing: 0.08em;
                 }
 
@@ -2579,7 +2578,7 @@ const LandingGridPrototype = ({
                 }
 
                 .showreel-card:focus-visible {
-                    outline: 1px solid rgba(255, 255, 255, 0.78);
+                    outline: 1px solid color-mix(in srgb, var(--color-surface) 78%, transparent);
                     outline-offset: -2px;
                 }
 
@@ -2642,7 +2641,7 @@ const LandingGridPrototype = ({
                     font-size: clamp(7px, 0.65vw, 9px);
                     font-weight: 300;
                     line-height: 1.25;
-                    color: rgba(255, 255, 255, 0.8);
+                    color: color-mix(in srgb, var(--color-surface) 80%, transparent);
                     text-transform: none;
                     display: -webkit-box;
                     -webkit-line-clamp: 2;
@@ -2657,7 +2656,7 @@ const LandingGridPrototype = ({
                     place-items: center;
                     font-size: 10px;
                     letter-spacing: 0.1em;
-                    color: rgba(255, 255, 255, 0.7);
+                    color: color-mix(in srgb, var(--color-surface) 70%, transparent);
                     background: linear-gradient(145deg, #101010, #1b1b1b);
                 }
 
@@ -2668,10 +2667,10 @@ const LandingGridPrototype = ({
                     bottom: 0;
                     min-height: 20%;
                     max-height: 26%;
-                    background: rgba(0, 0, 0, 0.92);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 92%, transparent);
                     color: #f8f8f8;
                     padding: 7px 8px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.24);
+                    border-top: 1px solid color-mix(in srgb, var(--color-surface) 24%, transparent);
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
@@ -2695,7 +2694,7 @@ const LandingGridPrototype = ({
                     font-size: clamp(6.5px, 0.66vw, 8.5px);
                     font-weight: 300;
                     line-height: 1.2;
-                    color: rgba(255, 255, 255, 0.82);
+                    color: color-mix(in srgb, var(--color-surface) 82%, transparent);
                     text-transform: none;
                     display: -webkit-box;
                     -webkit-line-clamp: 2;
@@ -2706,11 +2705,11 @@ const LandingGridPrototype = ({
                 .photo-cover-card.tone-light .photo-caption {
                     background: rgba(248, 248, 248, 0.95);
                     color: #090909;
-                    border-top: 1px solid rgba(0, 0, 0, 0.2);
+                    border-top: 1px solid color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
                 }
 
                 .photo-cover-card.tone-light .photo-caption p {
-                    color: rgba(0, 0, 0, 0.72);
+                    color: color-mix(in srgb, var(--ui-shadow-color) 72%, transparent);
                 }
 
                 .photo-cover-card.text-only.tone-light {
@@ -2719,41 +2718,41 @@ const LandingGridPrototype = ({
                 }
 
                 .photo-cover-card.text-only.tone-light .cover-text-only-copy p {
-                    color: rgba(0, 0, 0, 0.7);
+                    color: color-mix(in srgb, var(--ui-shadow-color) 70%, transparent);
                 }
 
                 .photo-cover-card.tone-dark .photo-caption {
-                    background: rgba(0, 0, 0, 0.95);
-                    color: #fff;
-                    border-top: 1px solid rgba(255, 255, 255, 0.26);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 95%, transparent);
+                    color: var(--color-primary-text);
+                    border-top: 1px solid color-mix(in srgb, var(--color-surface) 26%, transparent);
                 }
 
                 .photo-cover-card.tone-dark .photo-caption p {
-                    color: rgba(255, 255, 255, 0.84);
+                    color: color-mix(in srgb, var(--color-surface) 84%, transparent);
                 }
 
                 .photo-cover-card.tone-red .photo-caption {
                     background: rgba(182, 20, 20, 0.94);
-                    color: #fff;
-                    border-top: 1px solid rgba(255, 255, 255, 0.26);
+                    color: var(--color-primary-text);
+                    border-top: 1px solid color-mix(in srgb, var(--color-surface) 26%, transparent);
                 }
 
                 .photo-cover-card.tone-red .photo-caption p {
-                    color: rgba(255, 255, 255, 0.84);
+                    color: color-mix(in srgb, var(--color-surface) 84%, transparent);
                 }
 
                 .photo-cover-card.text-only.tone-red {
                     background: rgba(182, 20, 20, 0.95);
-                    color: #fff;
+                    color: var(--color-primary-text);
                 }
 
                 .showreel-video {
                     width: 100%;
                     height: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.22);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 22%, transparent);
                     border-radius: 1px;
                     overflow: hidden;
-                    background: #000;
+                    background: var(--color-text);
                 }
 
                 .showreel-video iframe,
@@ -2773,8 +2772,7 @@ const LandingGridPrototype = ({
                     flex-direction: column;
                     justify-content: flex-end;
                     gap: 6px;
-                    background:
-                        linear-gradient(to top, rgba(0, 0, 0, 0.84), rgba(0, 0, 0, 0.28) 42%, rgba(0, 0, 0, 0));
+                    background: linear-gradient(to top, color-mix(in srgb, var(--ui-shadow-color) 84%, transparent), color-mix(in srgb, var(--ui-shadow-color) 28%, transparent) 42%, color-mix(in srgb, var(--ui-shadow-color) 0%, transparent));
                 }
 
                 .showreel-overlay h3 {
@@ -2788,7 +2786,7 @@ const LandingGridPrototype = ({
                     margin: 0;
                     font-size: clamp(7px, 0.66vw, 9px);
                     font-weight: 300;
-                    color: rgba(255, 255, 255, 0.8);
+                    color: color-mix(in srgb, var(--color-surface) 80%, transparent);
                     line-height: 1.35;
                     text-transform: none;
                     display: -webkit-box;
@@ -2801,7 +2799,7 @@ const LandingGridPrototype = ({
                     align-self: flex-start;
                     font-size: 8px;
                     letter-spacing: 0.05em;
-                    color: rgba(255, 255, 255, 0.78);
+                    color: color-mix(in srgb, var(--color-surface) 78%, transparent);
                     text-transform: none;
                 }
 
@@ -2810,16 +2808,16 @@ const LandingGridPrototype = ({
                     font-size: 9px;
                     letter-spacing: 0.16em;
                     padding: 3px 6px;
-                    border: 1px solid rgba(255, 255, 255, 0.72);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 72%, transparent);
                     border-radius: 1px;
-                    background: rgba(0, 0, 0, 0.4);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
                 }
 
                 .media-thumb {
                     position: relative;
                     width: 100%;
                     height: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.22);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 22%, transparent);
                     border-radius: 1px;
                     overflow: hidden;
                     background: linear-gradient(
@@ -2846,7 +2844,7 @@ const LandingGridPrototype = ({
                 .media-thumb.fallback span {
                     font-size: 11px;
                     letter-spacing: 0.1em;
-                    color: rgba(255, 255, 255, 0.92);
+                    color: color-mix(in srgb, var(--color-surface) 92%, transparent);
                 }
 
                 .media-copy,
@@ -2878,7 +2876,7 @@ const LandingGridPrototype = ({
                     font-size: clamp(6.8px, 0.62vw, 8.8px);
                     font-weight: 300;
                     line-height: 1.34;
-                    color: rgba(255, 255, 255, 0.72);
+                    color: color-mix(in srgb, var(--color-surface) 72%, transparent);
                     text-transform: none;
                     display: -webkit-box;
                     -webkit-line-clamp: 3;
@@ -2887,7 +2885,7 @@ const LandingGridPrototype = ({
                 }
 
                 .current-copy small {
-                    color: rgba(255, 255, 255, 0.72);
+                    color: color-mix(in srgb, var(--color-surface) 72%, transparent);
                     font-size: 10px;
                     letter-spacing: 0.04em;
                     white-space: nowrap;
@@ -2898,7 +2896,7 @@ const LandingGridPrototype = ({
                 .bio-tile {
                     width: 100%;
                     height: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.28);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 28%, transparent);
                     border-radius: 1px;
                     overflow: hidden;
                     display: flex;
@@ -2908,7 +2906,7 @@ const LandingGridPrototype = ({
                 .bio-top {
                     background: #d82a17;
                     padding: 8px;
-                    color: #fff;
+                    color: var(--color-primary-text);
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
@@ -2964,7 +2962,7 @@ const LandingGridPrototype = ({
                 .tags-block {
                     width: 100%;
                     height: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.24);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 24%, transparent);
                     border-radius: 1px;
                     background: rgba(6, 6, 6, 0.74);
                     padding: 6px;
@@ -2996,7 +2994,7 @@ const LandingGridPrototype = ({
                     height: 100%;
                     box-sizing: border-box;
                     padding: 2px 7px;
-                    border: 1px solid rgba(255, 255, 255, 0.4);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 40%, transparent);
                     border-radius: 1px;
                     font-family: var(--font-mono);
                     font-size: clamp(8px, 0.76vw, 11px);
@@ -3004,8 +3002,8 @@ const LandingGridPrototype = ({
                     line-height: 1.05;
                     text-transform: none;
                     letter-spacing: 0.03em;
-                    background: rgba(255, 255, 255, 0.06);
-                    color: rgba(255, 255, 255, 0.92);
+                    background: color-mix(in srgb, var(--color-surface) 6%, transparent);
+                    color: color-mix(in srgb, var(--color-surface) 92%, transparent);
                     display: flex;
                     align-items: center;
                     justify-content: flex-start;
@@ -3016,17 +3014,17 @@ const LandingGridPrototype = ({
                 }
 
                 .tag-node-link:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                    border-color: rgba(255, 255, 255, 0.72);
+                    background: color-mix(in srgb, var(--color-surface) 15%, transparent);
+                    border-color: color-mix(in srgb, var(--color-surface) 72%, transparent);
                 }
 
                 .tags-shuffle-btn {
                     width: 100%;
                     height: 22px;
-                    border: 1px solid rgba(255, 255, 255, 0.44);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 44%, transparent);
                     border-radius: 1px;
-                    background: rgba(0, 0, 0, 0.56);
-                    color: rgba(255, 255, 255, 0.9);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 56%, transparent);
+                    color: color-mix(in srgb, var(--color-surface) 90%, transparent);
                     font-family: var(--font-mono);
                     font-size: 9px;
                     letter-spacing: 0.05em;
@@ -3036,20 +3034,20 @@ const LandingGridPrototype = ({
                 }
 
                 .tags-shuffle-btn:hover {
-                    background: rgba(255, 255, 255, 0.12);
+                    background: color-mix(in srgb, var(--color-surface) 12%, transparent);
                 }
 
                 .newsletter-box {
                     width: 100%;
                     height: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.26);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 26%, transparent);
                     border-radius: 1px;
                     padding: 4px;
                     display: grid;
                     grid-template-rows: auto auto;
                     align-content: start;
                     gap: 3px;
-                    background: rgba(255, 255, 255, 0.02);
+                    background: color-mix(in srgb, var(--color-surface) 2%, transparent);
                     overflow: hidden;
                 }
 
@@ -3058,7 +3056,7 @@ const LandingGridPrototype = ({
                     font-size: clamp(9px, 0.88vw, 12px);
                     font-weight: 400;
                     line-height: 1.28;
-                    color: rgba(255, 255, 255, 0.82);
+                    color: color-mix(in srgb, var(--color-surface) 82%, transparent);
                     text-transform: none;
                 }
 
@@ -3071,28 +3069,28 @@ const LandingGridPrototype = ({
                 .newsletter-form input {
                     width: 100%;
                     min-width: 0;
-                    border: 1px solid rgba(255, 255, 255, 0.34);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 34%, transparent);
                     border-radius: 1px;
                     padding: 7px 8px;
-                    background: rgba(0, 0, 0, 0.5);
-                    color: #fff;
+                    background: color-mix(in srgb, var(--ui-shadow-color) 50%, transparent);
+                    color: var(--color-primary-text);
                     font-family: var(--font-ui);
                     font-size: clamp(10px, 0.9vw, 12px);
                     outline: none;
                 }
 
                 .newsletter-form input::placeholder {
-                    color: rgba(255, 255, 255, 0.45);
+                    color: color-mix(in srgb, var(--color-surface) 45%, transparent);
                 }
 
                 .newsletter-form button {
                     width: 100%;
                     min-width: 0;
                     height: 30px;
-                    border: 1px solid rgba(255, 255, 255, 0.68);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 68%, transparent);
                     border-radius: 1px;
-                    background: rgba(255, 255, 255, 0.1);
-                    color: #fff;
+                    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
+                    color: var(--color-primary-text);
                     font-size: clamp(10px, 0.86vw, 12px);
                     line-height: 1;
                     cursor: pointer;
@@ -3103,7 +3101,7 @@ const LandingGridPrototype = ({
                 }
 
                 .newsletter-form button:hover {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: color-mix(in srgb, var(--color-surface) 20%, transparent);
                 }
 
                 .newsletter-compact-cta {
@@ -3112,8 +3110,8 @@ const LandingGridPrototype = ({
                     display: grid;
                     place-items: center;
                     text-decoration: none;
-                    color: rgba(255, 255, 255, 0.9);
-                    border: 1px solid rgba(255, 255, 255, 0.34);
+                    color: color-mix(in srgb, var(--color-surface) 90%, transparent);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 34%, transparent);
                     font-size: clamp(9px, 0.84vw, 11px);
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
@@ -3127,8 +3125,8 @@ const LandingGridPrototype = ({
                     gap: 4px;
                     align-content: center;
                     padding: 6px;
-                    border: 1px solid rgba(255, 255, 255, 0.24);
-                    background: rgba(255, 255, 255, 0.04);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 24%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
                     font-size: clamp(7px, 0.78vw, 10px);
                     text-transform: none;
                     letter-spacing: 0.03em;
@@ -3136,7 +3134,7 @@ const LandingGridPrototype = ({
 
                 .site-box a,
                 .social-box a {
-                    color: rgba(255, 255, 255, 0.76);
+                    color: color-mix(in srgb, var(--color-surface) 76%, transparent);
                     text-decoration: none;
                     white-space: nowrap;
                     overflow: hidden;
@@ -3145,7 +3143,7 @@ const LandingGridPrototype = ({
 
                 .site-box a:hover,
                 .social-box a:hover {
-                    color: #ffffff;
+                    color: var(--color-primary-text);
                 }
 
                 .landing-tile.size-xs .tile-grip {
@@ -3310,7 +3308,7 @@ const LandingGridPrototype = ({
                     position: absolute;
                     border: 0;
                     background: transparent;
-                    color: rgba(255, 255, 255, 0.9);
+                    color: color-mix(in srgb, var(--color-surface) 90%, transparent);
                     font-size: 0;
                     padding: 0;
                     border-radius: 1px;
@@ -3331,7 +3329,7 @@ const LandingGridPrototype = ({
                     position: absolute;
                     font-size: 11px;
                     line-height: 1;
-                    color: rgba(255, 255, 255, 0.82);
+                    color: color-mix(in srgb, var(--color-surface) 82%, transparent);
                     opacity: 0;
                     transition:
                         opacity 140ms ease,
@@ -3391,7 +3389,7 @@ const LandingGridPrototype = ({
                     left: 0;
                     right: 0;
                     top: 50%;
-                    border-top: 1px solid rgba(255, 255, 255, 0.72);
+                    border-top: 1px solid color-mix(in srgb, var(--color-surface) 72%, transparent);
                     transform: translateY(-50%);
                 }
 
@@ -3400,7 +3398,7 @@ const LandingGridPrototype = ({
                     top: 0;
                     bottom: 0;
                     left: 50%;
-                    border-left: 1px solid rgba(255, 255, 255, 0.72);
+                    border-left: 1px solid color-mix(in srgb, var(--color-surface) 72%, transparent);
                     transform: translateX(-50%);
                 }
 

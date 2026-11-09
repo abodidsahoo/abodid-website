@@ -222,20 +222,20 @@ const lastUpdatedDate = "30 October 2026";
 
 <style is:global>
   body.pop-privacy-page {
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --pop-line: color-mix(in srgb, var(--color-text) 24%, transparent);
     --pop-gap: 8px;
     --pop-radius-panel: clamp(18px, 2vw, 28px);
     --pop-radius-card: clamp(14px, 1.5vw, 22px);
     --pop-radius-control: 14px;
     --pop-motion: 180ms ease;
 
-    background: var(--pop-blue);
-    color: var(--pop-ink);
+    background: var(--color-primary);
+    color: var(--color-text);
   }
 
   html:has(body.pop-privacy-page) {
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   /* Force robust pop-editorial ink contrast across all elements on light/chroma surfaces */
@@ -247,7 +247,7 @@ const lastUpdatedDate = "30 October 2026";
   body.pop-privacy-page li,
   body.pop-privacy-page strong,
   body.pop-privacy-page a {
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 </style>
 
@@ -267,8 +267,8 @@ const lastUpdatedDate = "30 October 2026";
     padding: 0.45rem 0.95rem;
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-control);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     font: 750 0.76rem/1 var(--font-mono, monospace);
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -278,8 +278,8 @@ const lastUpdatedDate = "30 October 2026";
   .privacy-hero {
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-pink);
-    color: var(--pop-ink) !important;
+    background: var(--color-secondary);
+    color: var(--color-text) !important;
     padding: clamp(2.5rem, 5.5vw, 5rem) clamp(1.5rem, 4vw, 4rem);
   }
 
@@ -301,14 +301,14 @@ const lastUpdatedDate = "30 October 2026";
     font: 720 clamp(2.8rem, 6.5vw, 5.5rem)/0.92 var(--font-display, sans-serif);
     letter-spacing: -0.05em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     text-wrap: balance;
   }
 
   .privacy-hero__lede {
     font: 480 clamp(1.15rem, 1.8vw, 1.6rem)/1.35 var(--font-display, sans-serif);
     letter-spacing: -0.02em;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     margin: 0;
     max-width: 48rem;
     text-wrap: pretty;
@@ -327,8 +327,8 @@ const lastUpdatedDate = "30 October 2026";
     padding: 0.45rem 0.9rem;
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-control);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     font: 700 0.78rem/1 var(--font-mono, monospace);
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -348,25 +348,25 @@ const lastUpdatedDate = "30 October 2026";
     display: flex;
     flex-direction: column;
     gap: 1.15rem;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     transition: transform var(--pop-motion), box-shadow var(--pop-motion);
   }
 
   .privacy-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(21, 19, 15, 0.08);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--color-text) 8%, transparent);
   }
 
   .privacy-card--yellow {
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .privacy-card--cream {
-    background: var(--pop-cream);
+    background: var(--color-background);
   }
 
   .privacy-card--lime {
-    background: var(--pop-lime);
+    background: var(--color-accent);
   }
 
   .privacy-card__header {
@@ -381,7 +381,7 @@ const lastUpdatedDate = "30 October 2026";
     font: 750 0.85rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     opacity: 0.85;
   }
 
@@ -389,13 +389,13 @@ const lastUpdatedDate = "30 October 2026";
     font: 650 clamp(1.35rem, 2vw, 1.85rem)/1.08 var(--font-display, sans-serif);
     letter-spacing: -0.035em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .privacy-card__desc {
     font: 450 clamp(0.95rem, 1.1vw, 1.05rem)/1.55 var(--font-body, sans-serif);
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   /* Details Panel */
@@ -406,8 +406,8 @@ const lastUpdatedDate = "30 October 2026";
   .privacy-details__card {
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     padding: clamp(2rem, 4.5vw, 4rem) clamp(1.5rem, 3.5vw, 3.5rem);
     display: flex;
     flex-direction: column;
@@ -426,7 +426,7 @@ const lastUpdatedDate = "30 October 2026";
     font: 650 clamp(2rem, 4vw, 3.2rem)/0.96 var(--font-display, sans-serif);
     letter-spacing: -0.045em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .privacy-sections-stack {
@@ -451,7 +451,7 @@ const lastUpdatedDate = "30 October 2026";
   .privacy-item__index {
     font: 750 clamp(1.1rem, 1.5vw, 1.4rem)/1 var(--font-mono, monospace);
     letter-spacing: 0.05em;
-    color: var(--pop-blue) !important;
+    color: var(--color-primary) !important;
     padding-top: 0.35rem;
   }
 
@@ -465,13 +465,13 @@ const lastUpdatedDate = "30 October 2026";
     font: 650 clamp(1.2rem, 1.8vw, 1.55rem)/1.15 var(--font-display, sans-serif);
     letter-spacing: -0.025em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .privacy-item__content p {
     font: 450 clamp(0.95rem, 1.1vw, 1.05rem)/1.6 var(--font-body, sans-serif);
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     max-width: 54rem;
   }
 
@@ -486,7 +486,7 @@ const lastUpdatedDate = "30 October 2026";
 
   .privacy-list li {
     font: 450 clamp(0.92rem, 1.05vw, 1rem)/1.55 var(--font-body, sans-serif);
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     padding-left: 1.25rem;
     position: relative;
     max-width: 52rem;
@@ -496,21 +496,21 @@ const lastUpdatedDate = "30 October 2026";
     content: "→";
     position: absolute;
     left: 0;
-    color: var(--pop-blue) !important;
+    color: var(--color-primary) !important;
     font-weight: 700;
   }
 
   .privacy-list strong {
     font-weight: 650;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   /* Contact / Data Controller Section */
   .privacy-contact {
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-yellow);
-    color: var(--pop-ink) !important;
+    background: var(--color-button);
+    color: var(--color-button-text) !important;
     padding: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
   }
 
@@ -533,13 +533,13 @@ const lastUpdatedDate = "30 October 2026";
     font: 650 clamp(1.8rem, 3.2vw, 2.6rem)/1.02 var(--font-display, sans-serif);
     letter-spacing: -0.04em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .privacy-contact__text {
     font: 450 clamp(0.95rem, 1.1vw, 1.08rem)/1.5 var(--font-body, sans-serif);
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .privacy-btn {
@@ -550,8 +550,8 @@ const lastUpdatedDate = "30 October 2026";
     padding: 0 1.6rem;
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-control);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     font: 750 0.88rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -561,8 +561,8 @@ const lastUpdatedDate = "30 October 2026";
 
   .privacy-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(21, 19, 15, 0.12);
-    background: #ffffff;
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text) 12%, transparent);
+    background: var(--color-surface);
   }
 
   .privacy-btn:hover .link-destination-arrow {

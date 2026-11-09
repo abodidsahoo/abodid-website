@@ -128,11 +128,11 @@ const description = "Notes from people who have worked, made and collaborated wi
 
 <style is:global>
   body.testimonials-v2-page {
-    --testimonials-purple: #6657d8;
-    --testimonials-pink: var(--pop-pink);
-    --testimonials-yellow: var(--pop-yellow);
-    --testimonials-cream: var(--pop-cream);
-    --testimonials-ink: var(--pop-ink);
+    --testimonials-purple: var(--color-additional-2);
+    --testimonials-pink: var(--color-secondary);
+    --testimonials-yellow: var(--color-button);
+    --testimonials-cream: var(--color-background);
+    --testimonials-ink: var(--color-text);
     background: var(--testimonials-purple);
     color: var(--testimonials-ink);
   }
@@ -162,7 +162,7 @@ const description = "Notes from people who have worked, made and collaborated wi
   body.testimonials-v2-page .next-nav__home {
     min-height: 48px;
     padding-inline: 1rem;
-    border: 1px solid rgba(21, 19, 15, 0.18);
+    border: 1px solid color-mix(in srgb, var(--color-text) 18%, transparent);
     border-radius: 15px;
   }
 
@@ -187,7 +187,7 @@ const description = "Notes from people who have worked, made and collaborated wi
     border: 1px solid var(--testimonials-ink);
     border-radius: clamp(20px, 3vw, 34px);
     background: var(--testimonials-cream);
-    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+    box-shadow: 0 10px 0 color-mix(in srgb, var(--color-text) 20%, transparent);
   }
 
   .testimonials-v2-heading {
@@ -288,7 +288,7 @@ const description = "Notes from people who have worked, made and collaborated wi
     border-radius: clamp(16px, 2vw, 24px);
     background: var(--testimonials-cream);
     color: var(--testimonials-ink);
-    box-shadow: 0 6px 0 rgba(21, 19, 15, 0.16);
+    box-shadow: 0 6px 0 color-mix(in srgb, var(--color-text) 16%, transparent);
     transition: transform 160ms ease, box-shadow 160ms ease;
   }
 
@@ -302,7 +302,7 @@ const description = "Notes from people who have worked, made and collaborated wi
 
   .testimonial-note:hover {
     z-index: 1;
-    box-shadow: 0 9px 0 rgba(21, 19, 15, 0.15);
+    box-shadow: 0 9px 0 color-mix(in srgb, var(--color-text) 15%, transparent);
     transform: translateY(-3px);
   }
 
@@ -422,7 +422,7 @@ const description = "Notes from people who have worked, made and collaborated wi
   .testimonials-v2-footer a:last-child { background: var(--testimonials-yellow); }
 
   .testimonials-v2-footer a:hover {
-    box-shadow: 0 4px 0 rgba(21, 19, 15, 0.16);
+    box-shadow: 0 4px 0 color-mix(in srgb, var(--color-text) 16%, transparent);
     transform: translateY(-2px);
   }
 

@@ -49,10 +49,10 @@ class LandingStackErrorBoundary extends React.Component {
                         width: min(560px, 88vw);
                         padding: 18px 20px;
                         border-radius: 12px;
-                        border: 1px solid rgba(0, 0, 0, 0.14);
-                        background: rgba(255, 255, 255, 0.97);
+                        border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 14%, transparent);
+                        background: color-mix(in srgb, var(--color-surface) 97%, transparent);
                         backdrop-filter: blur(8px);
-                        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+                        box-shadow: 0 12px 40px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
                         display: flex;
                         flex-direction: column;
                         align-items: center;
@@ -61,7 +61,7 @@ class LandingStackErrorBoundary extends React.Component {
                     }
                     .landing-stack-runtime-fallback p {
                         margin: 0;
-                        color: rgba(0, 0, 0, 0.86);
+                        color: color-mix(in srgb, var(--ui-shadow-color) 86%, transparent);
                         font-family: var(--font-ui);
                         font-size: 0.86rem;
                         line-height: 1.45;
@@ -69,13 +69,13 @@ class LandingStackErrorBoundary extends React.Component {
                     }
                     .landing-stack-runtime-fallback .landing-stack-runtime-subtext {
                         font-size: 0.79rem;
-                        color: rgba(0, 0, 0, 0.7);
+                        color: color-mix(in srgb, var(--ui-shadow-color) 70%, transparent);
                     }
                     .landing-stack-runtime-fallback button {
-                        border: 1px solid rgba(0, 0, 0, 0.45);
+                        border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 45%, transparent);
                         border-radius: 8px;
-                        background: #ffffff;
-                        color: rgba(0, 0, 0, 0.86);
+                        background: var(--color-surface);
+                        color: color-mix(in srgb, var(--ui-shadow-color) 86%, transparent);
                         font-family: var(--font-ui);
                         font-size: 0.74rem;
                         font-weight: 600;

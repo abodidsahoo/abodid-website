@@ -95,10 +95,10 @@ const labExperiments = await getLabExperiments();
 
 <style>
   .lab-catalogue {
-    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
     padding: clamp(3.5rem, 6vw, 5.5rem) clamp(1rem, 6vw, 6rem) 8px;
-    background: var(--pop-blue);
-    color: var(--pop-cream);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
   }
 
   .lab-catalogue__header {
@@ -108,7 +108,7 @@ const labExperiments = await getLabExperiments();
     grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
     gap: 8px clamp(2rem, 6vw, 7rem);
     align-items: end;
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
   }
 
   .lab-catalogue__header :is(h1, h2, p) {
@@ -121,7 +121,7 @@ const labExperiments = await getLabExperiments();
     font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 var(--font-mono);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--pop-yellow);
+    color: var(--color-button);
   }
 
   .lab-catalogue__header :is(h1, h2) {
@@ -129,7 +129,7 @@ const labExperiments = await getLabExperiments();
     font: 620 clamp(3.2rem, 6.5vw, 6.5rem)/0.9 var(--font-display);
     letter-spacing: -0.055em;
     text-wrap: balance;
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
   }
 
   .lab-catalogue__header > p:last-child {
@@ -138,7 +138,7 @@ const labExperiments = await getLabExperiments();
     font: 450 clamp(1.15rem, 1.5vw, 1.5rem)/1.42 var(--font-display);
     letter-spacing: -0.015em;
     text-wrap: pretty;
-    color: rgba(255, 248, 232, 0.9);
+    color: color-mix(in srgb, var(--color-primary-text) 90%, transparent);
   }
 
   .lab-catalogue__grid {
@@ -177,28 +177,28 @@ const labExperiments = await getLabExperiments();
   }
 
   .lab-card--pink {
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
   }
 
   .lab-card--blue {
-    background: var(--pop-blue);
-    color: var(--pop-cream);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
   }
 
   .lab-card--yellow {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-button-text);
   }
 
   .lab-card--cream {
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
   }
 
   .lab-card--lime {
-    background: var(--pop-lime);
-    color: var(--pop-ink);
+    background: var(--color-accent);
+    color: var(--color-text);
   }
 
   .lab-card :is(h3, p, .lab-card__meta, .lab-card__destination) {
@@ -228,7 +228,7 @@ const labExperiments = await getLabExperiments();
     border: 1px solid currentColor;
     border-radius: clamp(10px, 1.2vw, 16px);
     overflow: hidden;
-    background: var(--pop-ink);
+    background: var(--color-text);
   }
 
   .lab-card__media :is(img, video) {
@@ -251,7 +251,7 @@ const labExperiments = await getLabExperiments();
   .lab-card__media--interactive {
     --home-next-border: 0;
     --home-next-radius-panel: 0;
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   .lab-card__copy {

@@ -53,8 +53,8 @@ Astro.response.headers.set(
     }
 
     :global(body.life-page) {
-        --grid-color-1: rgba(255, 255, 255, 0.14);
-        --grid-color-2: rgba(255, 255, 255, 0.035);
+        --grid-color-1: color-mix(in srgb, var(--color-surface) 14%, transparent);
+        --grid-color-2: color-mix(in srgb, var(--color-surface) 3.5%, transparent);
     }
 
     :global(body.life-page .global-grid-bg) {

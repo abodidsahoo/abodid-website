@@ -58,7 +58,7 @@
 .analytics-range-picker button.active {
     background: var(--bg-surface-elevated, #27272a);
     color: var(--text-primary, #f8fafc);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
 }
 
 .analytics-refresh-btn {
@@ -118,14 +118,14 @@
 
 .analytics-section-tab:hover {
     color: var(--text-primary, #f8fafc);
-    background: var(--bg-surface-hover, rgba(255, 255, 255, 0.03));
+    background: var(--bg-surface-hover, color-mix(in srgb, var(--color-surface) 3%, transparent));
 }
 
 .analytics-section-tab.is-active {
     color: var(--text-primary, #f8fafc);
     background: var(--bg-surface, #121212);
     border-color: var(--border-subtle, #27272a);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
 }
 
 .tab-pill-badge {
@@ -157,7 +157,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.9rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
     max-width: 1060px;
     width: 100%;
 }
@@ -184,7 +184,7 @@
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     border: 1px solid var(--border-subtle, #27272a);
     color: var(--text-secondary, #a1a1aa);
     flex-shrink: 0;
@@ -245,7 +245,7 @@
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 500;
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, var(--color-surface) 3%, transparent);
     border: 1px solid var(--border-subtle, #27272a);
     color: var(--text-secondary, #a1a1aa);
 }
@@ -263,7 +263,7 @@
     border-radius: 6px;
     font-size: 0.74rem;
     font-weight: 550;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     border: 1px solid var(--border-subtle, #3f3f46);
     color: var(--text-secondary, #a1a1aa);
     cursor: pointer;
@@ -272,7 +272,7 @@
 
 .btn-reset-global-filter:hover {
     color: var(--text-primary, #f8fafc);
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
     border-color: var(--text-tertiary, #71717a);
 }
 
@@ -281,7 +281,7 @@
     flex-direction: column;
     gap: 0.85rem;
     padding-top: 0.85rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
 }
 
 .global-slider-track-wrap {
@@ -327,7 +327,7 @@
     border-radius: 50%;
     background: #f8fafc;
     border: 2px solid #09090b;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
     cursor: pointer;
     transition: transform 0.1s ease;
 }
@@ -342,7 +342,7 @@
     border-radius: 50%;
     background: #f8fafc;
     border: 2px solid #09090b;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
     cursor: pointer;
 }
 
@@ -389,7 +389,7 @@
     display: inline-block;
     margin-left: 6px;
     padding: 1px 6px;
-    background: rgba(255, 255, 255, 0.08);
+    background: color-mix(in srgb, var(--color-surface) 8%, transparent);
     border-radius: 4px;
     font-size: 0.7rem;
     font-weight: 600;
@@ -793,7 +793,7 @@
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     padding: 2px 6px;
     border-radius: 10px;
     font-size: 0.68rem;
@@ -937,7 +937,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.85rem 1.25rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, var(--color-surface) 3%, transparent);
     border: 1px solid var(--border-subtle, #27272a);
     border-radius: 8px;
     font-size: 0.82rem;
@@ -981,8 +981,8 @@
 }
 
 .problem-card.is-investigating {
-    border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border-color: color-mix(in srgb, var(--color-surface) 30%, transparent);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
 }
 
 .problem-card-header {
@@ -1007,7 +1007,7 @@
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-tertiary, #71717a);
-    background: rgba(255, 255, 255, 0.04);
+    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
     padding: 2px 7px;
     border-radius: 4px;
 }
@@ -1149,7 +1149,7 @@
     align-items: center;
     justify-content: flex-end;
     padding-top: 0.85rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
 }
 
 .btn-investigate-problem {
@@ -1176,7 +1176,7 @@
 .problem-investigation-drawer {
     margin-top: 1rem;
     padding: 1.25rem;
-    background: rgba(0, 0, 0, 0.4);
+    background: color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
     border: 1px solid var(--border-subtle, #3f3f46);
     border-radius: 8px;
     display: flex;
@@ -1253,7 +1253,7 @@
 
 .btn-close-drawer:hover {
     color: var(--text-primary, #f8fafc);
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
 }
 
 .investigation-samples-section h5 {
@@ -1299,7 +1299,7 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.72rem;
     color: var(--text-primary, #f8fafc);
-    background: rgba(255, 255, 255, 0.04);
+    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
     padding: 2px 6px;
     border-radius: 4px;
 }
@@ -1391,7 +1391,7 @@
     flex-wrap: wrap;
     gap: 0.45rem;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
 }
 
 .inbox-filter-chip {
@@ -1426,7 +1426,7 @@
     flex-wrap: wrap;
     font-size: 0.78rem;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
 }
 
 .toolbar-stats {
@@ -1455,7 +1455,7 @@
 .btn-toggle-low-signal.is-active {
     color: var(--text-primary, #f8fafc);
     border-color: var(--text-tertiary, #71717a);
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, var(--color-surface) 3%, transparent);
 }
 
 .toolbar-sort-wrap {
@@ -1499,8 +1499,8 @@
 }
 
 .visitor-inbox-row.is-inspected {
-    border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    border-color: color-mix(in srgb, var(--color-surface) 25%, transparent);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--ui-shadow-color) 35%, transparent);
 }
 
 .inbox-row-main {
@@ -1551,7 +1551,7 @@
 }
 
 .inbox-intent-badge.intent-general {
-    background: rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--color-surface) 6%, transparent);
     color: var(--text-primary, #f8fafc);
     border: 1px solid var(--border-subtle, #3f3f46);
 }
@@ -1592,8 +1592,8 @@
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: color-mix(in srgb, var(--ui-shadow-color) 25%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 4%, transparent);
     border-radius: 6px;
     padding: 0.4rem 0.65rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -1641,7 +1641,7 @@
 /* Dossier Detail Panel */
 .visitor-dossier-panel {
     padding: 1.25rem 1.35rem;
-    background: rgba(0, 0, 0, 0.4);
+    background: color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
     border-top: 1px solid var(--border-subtle, #27272a);
     display: flex;
     flex-direction: column;
@@ -1708,7 +1708,7 @@
 
 .btn-close-dossier:hover {
     color: var(--text-primary, #f8fafc);
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
 }
 
 .dossier-content-grid {
@@ -1755,7 +1755,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     font-size: 0.65rem;
     font-weight: 700;
     color: var(--text-secondary, #a1a1aa);
@@ -1978,7 +1978,7 @@
 .filter-pill-sm.is-active {
     background: #e63956;
     border-color: #e63956;
-    color: #ffffff;
+    color: var(--color-primary-text);
     font-weight: 600;
 }
 
@@ -2069,7 +2069,7 @@
     display: flex;
     flex-direction: column;
     min-height: 720px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--ui-shadow-color) 45%, transparent);
 }
 
 .no-replay-selected {
@@ -2142,7 +2142,7 @@
     align-items: center;
     gap: 0.45rem;
     background: #09090b;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
     border-radius: 6px;
     padding: 5px 14px;
     font-size: 0.75rem;
@@ -2155,8 +2155,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
     border-radius: 6px;
     padding: 4px 12px;
     font-size: 0.74rem;
@@ -2189,7 +2189,7 @@
     background: #0d0d0f;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 50px color-mix(in srgb, var(--ui-shadow-color) 60%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-surface) 8%, transparent);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -2202,8 +2202,8 @@
     max-height: 100%;
     border: 10px solid #1f1f24;
     border-radius: 38px;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    background: #000000;
+    box-shadow: 0 25px 60px color-mix(in srgb, var(--ui-shadow-color) 75%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-surface) 10%, transparent);
+    background: var(--color-text);
     overflow: hidden;
     position: relative;
     margin: 0 auto;
@@ -2218,11 +2218,11 @@
     transform: translateX(-50%);
     width: 88px;
     height: 20px;
-    background: #000000;
+    background: var(--color-text);
     border-radius: 12px;
     z-index: 30;
     pointer-events: none;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-surface) 8%, transparent);
 }
 
 .phone-home-indicator {
@@ -2232,7 +2232,7 @@
     transform: translateX(-50%);
     width: 110px;
     height: 4px;
-    background: rgba(255, 255, 255, 0.35);
+    background: color-mix(in srgb, var(--color-surface) 35%, transparent);
     border-radius: 2px;
     z-index: 30;
     pointer-events: none;
@@ -2245,8 +2245,8 @@
     height: 490px;
     border: 12px solid #1f1f24;
     border-radius: 22px;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    background: #000000;
+    box-shadow: 0 25px 60px color-mix(in srgb, var(--ui-shadow-color) 75%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-surface) 10%, transparent);
+    background: var(--color-text);
     overflow: hidden;
     position: relative;
     margin: 0 auto;
@@ -2316,11 +2316,11 @@
     justify-content: center;
     transition: all 0.15s ease;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--ui-shadow-color) 30%, transparent);
 }
 
 .btn-play-pause:hover {
-    background: #ffffff;
+    background: var(--color-surface);
     transform: scale(1.06);
 }
 
@@ -2335,7 +2335,7 @@
     width: 100%;
     height: 6px;
     accent-color: #e63956;
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
     border-radius: 999px;
     outline: none;
     cursor: pointer;
@@ -2343,7 +2343,7 @@
 }
 
 .scrubber-slider:hover {
-    background: rgba(255, 255, 255, 0.18);
+    background: color-mix(in srgb, var(--color-surface) 18%, transparent);
 }
 
 .timeline-meta-row {
@@ -2360,8 +2360,8 @@
 .speed-buttons-group {
     display: inline-flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
     border-radius: 8px;
     padding: 3px;
     gap: 3px;
@@ -2381,13 +2381,13 @@
 }
 
 .btn-speed:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-primary-text);
+    background: color-mix(in srgb, var(--color-surface) 8%, transparent);
 }
 
 .btn-speed.is-active {
     background: #e63956;
-    color: #ffffff;
+    color: var(--color-primary-text);
     font-weight: 700;
     box-shadow: 0 2px 6px rgba(230, 57, 86, 0.35);
 }
@@ -2402,7 +2402,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: color-mix(in srgb, var(--ui-shadow-color) 70%, transparent);
     backdrop-filter: blur(4px);
     z-index: 1000;
     display: flex;
@@ -2420,7 +2420,7 @@
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 40px color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
 }
 
 .visitor-modal-header {
@@ -2602,7 +2602,7 @@
     align-items: center;
     gap: 0.35rem;
     background: #e63956;
-    color: #fff;
+    color: var(--color-primary-text);
     border: none;
     border-radius: 6px;
     padding: 8px 16px;
@@ -2640,7 +2640,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--ui-shadow-color) 25%, transparent);
     width: 100%;
 }
 
@@ -2677,13 +2677,13 @@
 .chart-legend-btn:hover {
     color: var(--text-secondary, #d4d4d8);
     border-color: var(--border-default, #3f3f46);
-    background: rgba(255, 255, 255, 0.04);
+    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
 }
 
 .chart-legend-btn.is-active {
     color: var(--text-primary, #f8fafc);
     border-color: var(--border-default, #52525b);
-    background: rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--color-surface) 6%, transparent);
 }
 
 .legend-dot {
@@ -2699,7 +2699,7 @@
 }
 
 .dot-high-intent {
-    background: var(--pop-lime);
+    background: var(--color-accent);
     box-shadow: 0 0 8px rgba(202, 255, 72, 0.7);
 }
 
@@ -2713,7 +2713,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 5px 12px;
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, var(--color-surface) 3%, transparent);
     border: 1px solid var(--border-subtle, #27272a);
     border-radius: 6px;
     font-size: 0.76rem;
@@ -2741,7 +2741,7 @@
 }
 
 .text-meaningful { color: #38bdf8; }
-.text-high-intent { color: var(--pop-lime); }
+.text-high-intent { color: var(--color-accent); }
 .text-converted { color: #4ade80; }
 
 /* SVG Chart Rendering */
@@ -2760,7 +2760,7 @@
 }
 
 .chart-grid-line line {
-    stroke: rgba(255, 255, 255, 0.07);
+    stroke: color-mix(in srgb, var(--color-surface) 7%, transparent);
     stroke-dasharray: 4 4;
 }
 
@@ -2796,7 +2796,7 @@
 }
 
 .line-high-intent {
-    stroke: var(--pop-lime);
+    stroke: var(--color-accent);
     filter: drop-shadow(0 0 6px rgba(202, 255, 72, 0.35));
 }
 
@@ -2806,7 +2806,7 @@
 }
 
 .chart-hover-guide {
-    stroke: rgba(255, 255, 255, 0.25);
+    stroke: color-mix(in srgb, var(--color-surface) 25%, transparent);
     stroke-width: 1;
     stroke-dasharray: 3 3;
 }
@@ -2823,7 +2823,7 @@
 }
 
 .node-circle.dot-meaningful { fill: #38bdf8; }
-.node-circle.dot-high-intent { fill: var(--pop-lime); }
+.node-circle.dot-high-intent { fill: var(--color-accent); }
 .node-circle.dot-converted { fill: #4ade80; }
 
 /* 2. Device Visualizer Card */
@@ -2871,8 +2871,8 @@
     gap: 0.85rem;
     padding: 10px 14px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: color-mix(in srgb, var(--color-surface) 2%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 4%, transparent);
 }
 
 .legend-icon-badge {
@@ -2941,7 +2941,7 @@
 .source-share-bar-wrap {
     width: 100%;
     height: 4px;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     border-radius: 999px;
     overflow: hidden;
     margin: 0.6rem 0 0.8rem;
@@ -2958,7 +2958,7 @@
 .funnel-waterfall-track {
     width: 100%;
     height: 4px;
-    background: rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--color-surface) 6%, transparent);
     border-radius: 999px;
     overflow: hidden;
     margin-top: 0.65rem;
@@ -2985,7 +2985,7 @@
 .problem-visual-impact-bar-wrap {
     width: 70px;
     height: 6px;
-    background: rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--color-surface) 6%, transparent);
     border-radius: 999px;
     overflow: hidden;
 }
@@ -3007,7 +3007,7 @@
 .intent-score-meter-track {
     width: 44px;
     height: 5px;
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
     border-radius: 999px;
     overflow: hidden;
 }
@@ -3031,7 +3031,7 @@
     width: 100%;
     max-width: 160px;
     height: 3px;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     border-radius: 999px;
     overflow: hidden;
     margin-top: 4px;
@@ -3059,7 +3059,7 @@
     padding: 3px 9px;
     background: rgba(202, 255, 72, 0.12);
     border: 1px solid rgba(202, 255, 72, 0.3);
-    color: var(--pop-lime);
+    color: var(--color-accent);
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 650;
@@ -3177,7 +3177,7 @@
     font-size: 0.72rem;
     font-weight: 600;
     color: var(--text-secondary, #a1a1aa);
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     border: 1px solid var(--border-subtle, #3f3f46);
     border-radius: 4px;
     padding: 2px 8px;
@@ -3186,8 +3186,8 @@
 }
 
 .lab-exp-live-link:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.12);
+    color: var(--color-primary-text);
+    background: color-mix(in srgb, var(--color-surface) 12%, transparent);
     border-color: var(--text-tertiary, #71717a);
 }
 
@@ -3225,7 +3225,7 @@
 .lab-exp-share-track {
     width: 100%;
     height: 4px;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     border-radius: 999px;
     overflow: hidden;
 }
@@ -3241,13 +3241,13 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 0.4rem;
     padding-top: 0.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
 }
 
 .lab-metric-pill {
     display: flex;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.25);
+    background: color-mix(in srgb, var(--ui-shadow-color) 25%, transparent);
     border-radius: 6px;
     padding: 0.35rem 0.5rem;
     font-size: 0.68rem;
@@ -3275,7 +3275,7 @@
     font-size: 0.7rem;
     font-weight: 600;
     background: rgba(202, 255, 72, 0.12);
-    color: var(--pop-lime);
+    color: var(--color-accent);
     border: 1px solid rgba(202, 255, 72, 0.25);
     margin-left: 0.4rem;
 }
@@ -3293,7 +3293,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
 }
 
 .section-header-row {
@@ -3375,14 +3375,14 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
     padding-top: 0.6rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
     margin-top: auto;
 }
 
 .metric-pill {
     display: flex;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.25);
+    background: color-mix(in srgb, var(--ui-shadow-color) 25%, transparent);
     border-radius: 6px;
     padding: 0.4rem 0.6rem;
 }
@@ -3456,7 +3456,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
     padding-top: 0.6rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
 }
 
 .source-stat-item {
@@ -3507,10 +3507,10 @@
     font-family: ui-monospace, SFMono-Regular, monospace;
     font-size: 0.82rem;
     color: #f8fafc;
-    background: rgba(0, 0, 0, 0.3);
+    background: color-mix(in srgb, var(--ui-shadow-color) 30%, transparent);
     padding: 2px 8px;
     border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 6%, transparent);
 }
 
 .landing-meta-badge {
@@ -3535,8 +3535,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--ui-shadow-color) 30%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
     border-radius: 4px;
     padding: 2px 8px;
     font-size: 0.7rem;
@@ -3615,7 +3615,7 @@
 
 .instrument-metric-tile:hover {
     border-color: var(--border-default, #3f3f46);
-    background: rgba(255, 255, 255, 0.015);
+    background: color-mix(in srgb, var(--color-surface) 1.5%, transparent);
 }
 
 .metric-interactive-tile {
@@ -3662,11 +3662,11 @@
 }
 
 .metric-highlight-intent .metric-symbol-icon {
-    color: var(--pop-lime);
+    color: var(--color-accent);
 }
 
 .metric-highlight-intent .metric-large-number {
-    color: var(--pop-lime);
+    color: var(--color-accent);
 }
 
 .text-dropoff {
@@ -3780,7 +3780,7 @@
 
 .important-visitor-card:hover {
     border-color: var(--border-default, #3f3f46);
-    background: rgba(255, 255, 255, 0.02);
+    background: color-mix(in srgb, var(--color-surface) 2%, transparent);
 }
 
 .visitor-card-left {
@@ -3798,7 +3798,7 @@
 }
 
 .visitor-intent-glyph {
-    color: var(--pop-lime);
+    color: var(--color-accent);
     font-size: 0.95rem;
     line-height: 1;
 }
@@ -3815,7 +3815,7 @@
     font-weight: 600;
     padding: 1px 6px;
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
     border: 1px solid var(--border-subtle, #27272a);
     color: var(--text-secondary, #a1a1aa);
 }
@@ -3929,7 +3929,7 @@
 
 .dropoff-card-expanded-body {
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 5%, transparent);
     display: flex;
     flex-direction: column;
     gap: 0.65rem;
@@ -3978,7 +3978,7 @@
 }
 
 .btn-inspect-dropoffs:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
 }
 
 /* Content & Sources Panels */
@@ -4034,12 +4034,12 @@
 
 .content-data-table td {
     padding: 0.65rem 0.75rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-surface) 3%, transparent);
     color: var(--text-secondary, #d4d4d8);
 }
 
 .content-data-table tr:hover td {
-    background: rgba(255, 255, 255, 0.015);
+    background: color-mix(in srgb, var(--color-surface) 1.5%, transparent);
 }
 
 .text-subtle-code {
@@ -4062,7 +4062,7 @@
     justify-content: space-between;
     gap: 1rem;
     padding: 0.65rem 0.85rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: color-mix(in srgb, var(--color-surface) 2%, transparent);
     border: 1px solid var(--border-subtle, #27272a);
     border-radius: 6px;
     font-size: 0.82rem;
@@ -4101,7 +4101,7 @@
 
 .search-query-tag {
     font-size: 0.76rem;
-    background: rgba(255, 255, 255, 0.04);
+    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
     border: 1px solid var(--border-subtle, #27272a);
     padding: 3px 8px;
     border-radius: 4px;
@@ -4119,7 +4119,7 @@
     align-items: center;
     gap: 0.45rem;
     padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, var(--color-surface) 3%, transparent);
     border: 1px solid var(--border-subtle, #27272a);
     border-radius: 6px;
     font-size: 0.8rem;
@@ -4136,7 +4136,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
 }
 
 .section-header-row {

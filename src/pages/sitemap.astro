@@ -326,20 +326,20 @@ const structuredData = [
 
 <style is:global>
   body.pop-sitemap-page {
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --pop-line: color-mix(in srgb, var(--color-text) 24%, transparent);
     --pop-gap: 8px;
     --pop-radius-panel: clamp(18px, 2vw, 28px);
     --pop-radius-card: clamp(14px, 1.5vw, 22px);
     --pop-radius-control: 14px;
     --pop-motion: 180ms ease;
 
-    background: var(--pop-blue);
-    color: var(--pop-ink);
+    background: var(--color-primary);
+    color: var(--color-text);
   }
 
   html:has(body.pop-sitemap-page) {
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   /* Robust contrast enforcement for headings and body copy */
@@ -351,7 +351,7 @@ const structuredData = [
   body.pop-sitemap-page li,
   body.pop-sitemap-page strong,
   body.pop-sitemap-page a {
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 </style>
 
@@ -369,8 +369,8 @@ const structuredData = [
   .sitemap-hero {
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-pink);
-    color: var(--pop-ink) !important;
+    background: var(--color-secondary);
+    color: var(--color-text) !important;
     padding: clamp(2.5rem, 5.5vw, 4.5rem) clamp(1.5rem, 4vw, 4rem);
   }
 
@@ -385,14 +385,14 @@ const structuredData = [
     font: 720 clamp(2.8rem, 6.5vw, 5.5rem)/0.92 var(--font-display, sans-serif);
     letter-spacing: -0.05em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     text-wrap: balance;
   }
 
   .sitemap-hero__lede {
     font: 480 clamp(1.15rem, 1.8vw, 1.5rem)/1.35 var(--font-display, sans-serif);
     letter-spacing: -0.02em;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     margin: 0;
     max-width: 48rem;
     text-wrap: pretty;
@@ -402,8 +402,8 @@ const structuredData = [
   .sitemap-directory {
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     padding: clamp(2rem, 4.5vw, 3.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
     display: flex;
     flex-direction: column;
@@ -423,17 +423,17 @@ const structuredData = [
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(21, 19, 15, 0.04);
+    background: var(--color-surface);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text) 4%, transparent);
     height: 100%;
     transition: transform var(--pop-motion), box-shadow var(--pop-motion);
   }
 
-  .sitemap-group--yellow { border-top: 5px solid var(--pop-yellow); }
-  .sitemap-group--cream { border-top: 5px solid var(--pop-pink); }
-  .sitemap-group--lime { border-top: 5px solid var(--pop-lime); }
-  .sitemap-group--pink { border-top: 5px solid var(--pop-blue); }
-  .sitemap-group--cyan { border-top: 5px solid var(--pop-cyan); }
+  .sitemap-group--yellow { border-top: 5px solid var(--color-button); }
+  .sitemap-group--cream { border-top: 5px solid var(--color-secondary); }
+  .sitemap-group--lime { border-top: 5px solid var(--color-accent); }
+  .sitemap-group--pink { border-top: 5px solid var(--color-primary); }
+  .sitemap-group--cyan { border-top: 5px solid var(--color-additional-3); }
 
   .sitemap-group__header {
     padding-bottom: 0.75rem;
@@ -444,11 +444,11 @@ const structuredData = [
     font: 700 1.35rem/1.2 var(--font-display, sans-serif);
     letter-spacing: -0.025em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .sitemap-group__header h2 a {
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     text-decoration: none;
   }
 
@@ -476,8 +476,8 @@ const structuredData = [
     justify-content: space-between;
     gap: 0.5rem;
     padding: 0.45rem 0.25rem;
-    border-bottom: 1px solid rgba(21, 19, 15, 0.08);
-    color: var(--pop-ink) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+    color: var(--color-text) !important;
     font: 500 0.92rem/1.4 var(--font-body, sans-serif);
     text-decoration: none;
     transition: transform var(--pop-motion), color var(--pop-motion);
@@ -485,7 +485,7 @@ const structuredData = [
 
   .sitemap-links li a:hover {
     transform: translateX(4px);
-    color: var(--pop-blue) !important;
+    color: var(--color-primary) !important;
   }
 
   .sitemap-links li a:hover .sitemap-link-text {
@@ -512,8 +512,8 @@ const structuredData = [
     margin-top: 0.25rem;
     border: 1.5px dashed var(--pop-border);
     border-radius: 8px;
-    background: rgba(21, 19, 15, 0.04);
-    color: var(--pop-ink) !important;
+    background: color-mix(in srgb, var(--color-text) 4%, transparent);
+    color: var(--color-text) !important;
     font: 750 0.78rem/1 var(--font-mono, monospace);
     letter-spacing: 0.04em;
     cursor: pointer;
@@ -522,8 +522,8 @@ const structuredData = [
   }
 
   .sitemap-toggle-btn:hover {
-    background: rgba(21, 19, 15, 0.09);
-    border-color: var(--pop-ink);
+    background: color-mix(in srgb, var(--color-text) 9%, transparent);
+    border-color: var(--color-text);
     transform: translateY(-1px);
   }
 
@@ -543,7 +543,7 @@ const structuredData = [
     font: 750 0.8rem/1 var(--font-mono, monospace);
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--pop-blue) !important;
+    color: var(--color-primary) !important;
     text-decoration: none;
     transition: transform var(--pop-motion);
   }
@@ -558,7 +558,7 @@ const structuredData = [
     padding: 2rem;
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-yellow);
+    background: var(--color-button);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -585,11 +585,11 @@ const structuredData = [
     font: 650 clamp(1.4rem, 2.2vw, 2rem)/1.1 var(--font-display, sans-serif);
     letter-spacing: -0.035em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .sitemap-vault-band__title-block h2 a {
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     text-decoration: none;
   }
 
@@ -600,12 +600,12 @@ const structuredData = [
   .sitemap-vault-band__sub {
     font: 450 0.95rem/1.5 var(--font-body, sans-serif);
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .sitemap-vault-band__sub code {
     font: 700 0.85em var(--font-mono, monospace);
-    background: rgba(21, 19, 15, 0.1);
+    background: color-mix(in srgb, var(--color-text) 10%, transparent);
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
   }
@@ -618,8 +618,8 @@ const structuredData = [
     padding: 0 1.25rem;
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-control);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     font: 750 0.8rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -629,7 +629,7 @@ const structuredData = [
 
   .sitemap-vault-all-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(21, 19, 15, 0.12);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text) 12%, transparent);
   }
 
   .sitemap-vault-pills-grid {
@@ -644,8 +644,8 @@ const structuredData = [
     padding: 0.45rem 0.85rem;
     border: 1px solid var(--pop-border);
     border-radius: 8px;
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     font: 500 0.86rem/1.2 var(--font-body, sans-serif);
     text-decoration: none;
     transition: transform var(--pop-motion), background var(--pop-motion);
@@ -653,8 +653,8 @@ const structuredData = [
 
   .sitemap-vault-pill:hover {
     transform: translateY(-2px);
-    background: #ffffff;
-    color: var(--pop-blue) !important;
+    background: var(--color-surface);
+    color: var(--color-primary) !important;
   }
 
   .sitemap-vault-more-pill {
@@ -663,8 +663,8 @@ const structuredData = [
     padding: 0.45rem 1rem;
     border: 1px solid var(--pop-border);
     border-radius: 8px;
-    background: var(--pop-ink);
-    color: var(--pop-cream) !important;
+    background: var(--color-text);
+    color: var(--color-primary-text) !important;
     font: 700 0.85rem/1.2 var(--font-mono, monospace);
     letter-spacing: 0.04em;
     text-decoration: none;

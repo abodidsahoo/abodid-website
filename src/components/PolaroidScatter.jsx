@@ -1103,14 +1103,14 @@ const PolaroidScatter = ({
                     width: 32px;
                     height: 32px;
                     border-radius: 999px;
-                    border: 2px solid var(--pop-ink);
-                    background: var(--pop-cream);
-                    color: var(--pop-ink);
+                    border: 2px solid var(--color-text);
+                    background: var(--color-background);
+                    color: var(--color-text);
                     display: grid;
                     place-items: center;
                     font: 900 17px/1 system-ui, sans-serif;
                     z-index: 130;
-                    box-shadow: 0 3px 0 var(--pop-ink);
+                    box-shadow: 0 3px 0 var(--color-text);
                 }
                 .delete-selected .delete-check { background: #ff3d7f; color: white; }
                 .polaroid-inner {

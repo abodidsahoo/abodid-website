@@ -7,6 +7,8 @@ import {
   DESIGN_TOKEN_GROUPS,
   evaluateSurfaceContracts,
   normaliseDesignTokens,
+  serialiseDesignTokens,
+  mergeColourTokens,
 } from "../../lib/designTokens.js";
 import { getDesignTokenUsage } from "../../lib/designTokenUsage.js";
 import "../../styles/design-studio.css";
@@ -236,6 +238,7 @@ function Inspector({ token, tokens, contracts }) {
           </span>
         </header>
 
+        <p className="design-inspector__summary" data-pop-surface="cream">{usage.summary}</p>
         <section className="design-inspector__stage" aria-label={`${usage.title} specimen`} aria-live="polite">
           <PreviewSpecimen token={token} tokenValue={displayValue} usage={usage} />
         </section>
@@ -292,7 +295,10 @@ export default function DesignStudio() {
   const failingContracts = contracts.filter((contract) => !contract.passes);
   const group = DESIGN_TOKEN_GROUPS.find((item) => item.id === activeGroup) || DESIGN_TOKEN_GROUPS[0];
   const selectedToken = DESIGN_TOKEN_FIELDS.find((token) => token.name === selectedTokenName) || group.sections[0].tokens[0];
-  const dirty = JSON.stringify(normalisedTokens) !== JSON.stringify(publishedTokens);
+  const colourOnly = activeGroup === "colour";
+  const dirty = colourOnly
+    ? DESIGN_TOKEN_FIELDS.filter((field) => field.type === "color").some((field) => normalisedTokens[field.name] !== publishedTokens[field.name])
+    : JSON.stringify(normalisedTokens) !== JSON.stringify(publishedTokens);
 
   useEffect(() => {
     let mounted = true;
@@ -342,42 +348,52 @@ export default function DesignStudio() {
 
     setSaving(true);
     setNotice(null);
-    const { data: { user } } = await supabase.auth.getUser();
-    const payload = {
-      draft_tokens: normalisedTokens,
-      updated_by: user?.id || null,
-      ...(publish ? {
-        published_tokens: normalisedTokens,
-        published_version: version + 1,
-        published_at: new Date().toISOString(),
-      } : {}),
-    };
-    const { data, error } = await supabase
-      .from("design_system_settings")
-      .update(payload)
-      .eq("id", "global")
-      .select("*")
-      .single();
-
-    if (error) {
-      setNotice({ type: "error", text: error.message });
-    } else if (publish) {
-      setPublishedTokens(normalisedTokens);
-      setVersion(data.published_version);
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ tokens: normalisedTokens, version: data.published_version, updatedAt: data.updated_at }));
-      } catch (_error) {
-        // Publishing still succeeds when browser storage is unavailable.
+    try {
+      let nextPublished = normalisedTokens;
+      if (publish) {
+        const latest = await supabase.from("design_system_settings")
+          .select("published_tokens,published_version").eq("id", "global").single();
+        if (latest.error) throw latest.error;
+        if (latest.data.published_version !== version) {
+          throw new Error("The published design changed in another session. Reload Design Studio before publishing.");
+        }
+        if (colourOnly) nextPublished = mergeColourTokens(latest.data.published_tokens, normalisedTokens);
       }
-      window.dispatchEvent(new CustomEvent("design-tokens:published", { detail: { tokens: normalisedTokens } }));
-      setNotice({ type: "success", text: `Version ${data.published_version} is live. No deployment is required.` });
-      const historyResult = await supabase.from("design_system_versions").select("version,tokens,published_at").order("version", { ascending: false }).limit(8);
-      setHistory(historyResult.data || []);
-    } else {
-      setTokens(normalisedTokens);
-      setNotice({ type: "success", text: "Draft saved. The public site has not changed." });
+      const { data: { user } } = await supabase.auth.getUser();
+      const payload = {
+        draft_tokens: serialiseDesignTokens(normalisedTokens),
+        updated_by: user?.id || null,
+        ...(publish ? {
+          published_tokens: serialiseDesignTokens(nextPublished),
+          published_version: version + 1,
+          published_at: new Date().toISOString(),
+        } : {}),
+      };
+      let update = supabase.from("design_system_settings").update(payload).eq("id", "global");
+      if (publish) update = update.eq("published_version", version);
+      const { data, error } = await update.select("*").single();
+      if (error) throw error;
+      if (publish) {
+        setPublishedTokens(nextPublished);
+        setVersion(data.published_version);
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ tokens: nextPublished, version: data.published_version, updatedAt: data.updated_at }));
+        } catch (_error) {
+          // A storage quota cannot undo a successful publication.
+        }
+        window.dispatchEvent(new CustomEvent("design-tokens:published", { detail: { tokens: nextPublished } }));
+        setNotice({ type: "success", text: colourOnly ? `Colour version ${data.published_version} is live. Other design settings keep their published values.` : `Version ${data.published_version} is live. No deployment is required.` });
+        const historyResult = await supabase.from("design_system_versions").select("version,tokens,published_at").order("version", { ascending: false }).limit(8);
+        setHistory(historyResult.data || []);
+      } else {
+        setTokens(normalisedTokens);
+        setNotice({ type: "success", text: "Draft saved. The public site has not changed." });
+      }
+    } catch (error) {
+      setNotice({ type: "error", text: error.message || "The design could not be saved. Try again." });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   if (loading) return <div className="design-studio-loading">Loading the design system…</div>;
@@ -422,8 +438,8 @@ export default function DesignStudio() {
                 <span className="design-kicker">Load as draft</span>
                 {history.map((entry) => (
                   <button key={entry.version} type="button" data-pop-surface="yellow" onClick={() => {
-                    setTokens(normaliseDesignTokens(entry.tokens));
-                    setNotice({ type: "success", text: `Version ${entry.version} loaded as an unpublished draft.` });
+                    setTokens(colourOnly ? mergeColourTokens(tokens, entry.tokens) : normaliseDesignTokens(entry.tokens));
+                    setNotice({ type: "success", text: `Version ${entry.version} loaded as an unpublished ${colourOnly ? "colour " : ""}draft.` });
                   }}>
                     Version {entry.version}
                   </button>
@@ -431,7 +447,7 @@ export default function DesignStudio() {
               </div>
             </details>
           )}
-          <button type="button" className="design-action design-action--default" data-pop-surface="cream" onClick={() => setTokens(DEFAULT_DESIGN_TOKENS)}>
+          <button type="button" className="design-action design-action--default" data-pop-surface="cream" onClick={() => setTokens(colourOnly ? mergeColourTokens(tokens, DEFAULT_DESIGN_TOKENS) : DEFAULT_DESIGN_TOKENS)}>
             <RotateCcw size={16} /> Defaults
           </button>
           <button type="button" className="design-action design-action--save" data-pop-surface="pink" disabled={saving || !databaseReady} onClick={() => persist(false)}>
@@ -445,7 +461,7 @@ export default function DesignStudio() {
             title={failingContracts.length > 0 ? "Resolve contrast failures before publishing" : undefined}
             onClick={() => persist(true)}
           >
-            <Send size={16} /> Publish across site
+            <Send size={16} /> {colourOnly ? "Publish colours across site" : "Publish across site"}
           </button>
         </div>
       </div>

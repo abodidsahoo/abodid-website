@@ -692,8 +692,8 @@ export default function ReadingDigestManager() {
                                                                 className="rd-btn rd-btn-secondary"
                                                                 style={{
                                                                     padding: '0.35rem 0.65rem', minHeight: 'auto', gap: '0.35rem', fontSize: '0.76rem',
-                                                                    color: signals.includes('not_for_me') ? '#ef4444' : 'inherit',
-                                                                    borderColor: signals.includes('not_for_me') ? 'color-mix(in srgb, #ef4444 40%, transparent)' : 'var(--border-subtle)'
+                                                                    color: signals.includes('not_for_me') ? "var(--color-error)" : 'inherit',
+                                                                    borderColor: signals.includes('not_for_me') ? "color-mix(in srgb, var(--color-error) 40%, transparent)" : 'var(--border-subtle)'
                                                                 }}
                                                             >
                                                                 <ThumbsDown size={13} fill={signals.includes('not_for_me') ? 'currentColor' : 'none'} />
@@ -873,7 +873,7 @@ export default function ReadingDigestManager() {
                                                     onClick={() => handleDeleteTopic(topic.id)}
                                                     style={{
                                                         padding: '0.4rem', borderRadius: '6px', border: 'none',
-                                                        background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', cursor: 'pointer'
+                                                        background: "color-mix(in srgb, var(--color-error) 10%, transparent)", color: "var(--color-error)", cursor: 'pointer'
                                                     }}
                                                 >
                                                     <Trash2 size={15} />
@@ -972,7 +972,7 @@ export default function ReadingDigestManager() {
                                                     onClick={() => handleDeleteSource(source.id)}
                                                     style={{
                                                         padding: '0.35rem', borderRadius: '6px', border: 'none',
-                                                        background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', cursor: 'pointer'
+                                                        background: "color-mix(in srgb, var(--color-error) 10%, transparent)", color: "var(--color-error)", cursor: 'pointer'
                                                     }}
                                                 >
                                                     <Trash2 size={15} />
@@ -1016,7 +1016,7 @@ export default function ReadingDigestManager() {
                                                         textAlign: 'left',
                                                         padding: '0.95rem 1.1rem',
                                                         borderRadius: '10px',
-                                                        border: isSelected ? '2px solid var(--accent-color, #0f172a)' : '1px solid var(--border-subtle)',
+                                                        border: isSelected ? "2px solid var(--accent-color, var(--color-text))" : '1px solid var(--border-subtle)',
                                                         background: isSelected ? 'var(--bg-hover, rgba(255,255,255,0.06))' : 'var(--bg-surface)',
                                                         cursor: 'pointer',
                                                         transition: 'all 0.15s ease',
@@ -1163,7 +1163,7 @@ export default function ReadingDigestManager() {
                                                     <td style={{ padding: '0.75rem', color: 'var(--text-primary)', textAlign: 'center' }}>{run.discovered_count}</td>
                                                     <td style={{ padding: '0.75rem', color: 'var(--text-primary)', textAlign: 'center' }}>{run.verified_count}</td>
                                                     <td style={{ padding: '0.75rem', color: 'var(--text-primary)', textAlign: 'center' }}>{run.selected_count}</td>
-                                                    <td style={{ padding: '0.75rem', color: '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={run.error_message || ''}>{run.error_message || '-'}</td>
+                                                    <td style={{ padding: '0.75rem', color: "var(--color-error)", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={run.error_message || ''}>{run.error_message || '-'}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -1318,7 +1318,7 @@ export default function ReadingDigestManager() {
                     onClick={(e) => e.target === e.currentTarget && setPreviewModal(null)}
                 >
                     <div style={{
-                        background: '#ffffff', borderRadius: '16px', overflow: 'hidden',
+                        background: "var(--color-surface)", borderRadius: '16px', overflow: 'hidden',
                         display: 'flex', flexDirection: 'column',
                         width: '100%', maxWidth: '820px', boxShadow: '0 32px 80px rgba(0,0,0,0.4)',
                     }}>
@@ -1326,16 +1326,16 @@ export default function ReadingDigestManager() {
                         <div style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                             padding: '16px 20px', borderBottom: '1px solid #e2e8f0',
-                            background: '#f8fafc', flexShrink: 0,
+                            background: "var(--color-background)", flexShrink: 0,
                         }}>
                             <div>
-                                <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b' }}>Email Preview</p>
-                                <p style={{ margin: '2px 0 0', fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{previewModal.subject}</p>
-                                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>To: {previewModal.recipient}</p>
+                                <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: "var(--ui-text-muted)" }}>Email Preview</p>
+                                <p style={{ margin: '2px 0 0', fontSize: '14px', fontWeight: 600, color: "var(--color-text)" }}>{previewModal.subject}</p>
+                                <p style={{ margin: '2px 0 0', fontSize: '12px', color: "var(--ui-text-muted)" }}>To: {previewModal.recipient}</p>
                             </div>
                             <button
                                 onClick={() => setPreviewModal(null)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: "var(--ui-text-muted)", padding: '4px' }}
                                 title="Close preview"
                             >
                                 <X size={20} />
@@ -1354,13 +1354,13 @@ export default function ReadingDigestManager() {
                         <div style={{
                             display: 'flex', gap: '10px', justifyContent: 'flex-end',
                             padding: '14px 20px', borderTop: '1px solid #e2e8f0',
-                            background: '#f8fafc', flexShrink: 0,
+                            background: "var(--color-background)", flexShrink: 0,
                         }}>
                             <button
                                 onClick={() => setPreviewModal(null)}
                                 style={{
                                     padding: '9px 20px', borderRadius: '8px', border: '1px solid #cbd5e1',
-                                    background: '#fff', color: '#475569', fontSize: '13px', fontWeight: 600,
+                                    background: "var(--color-surface)", color: "var(--ui-text-muted)", fontSize: '13px', fontWeight: 600,
                                     cursor: 'pointer',
                                 }}
                             >Cancel</button>
@@ -1369,7 +1369,7 @@ export default function ReadingDigestManager() {
                                 disabled={sendingTest}
                                 style={{
                                     padding: '9px 20px', borderRadius: '8px', border: 'none',
-                                    background: '#0f172a', color: '#fff', fontSize: '13px', fontWeight: 700,
+                                    background: "var(--color-text)", color: "var(--color-primary-text)", fontSize: '13px', fontWeight: 700,
                                     cursor: sendingTest ? 'not-allowed' : 'pointer',
                                     display: 'flex', alignItems: 'center', gap: '6px',
                                 }}

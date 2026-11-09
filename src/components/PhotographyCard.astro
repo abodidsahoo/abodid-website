@@ -53,17 +53,15 @@ const optimizedImageSrcSet = getOptimizedImageSrcSet(image, {
     cursor: pointer;
     position: relative;
     --photo-card-image-scale-hover: 1.01;
-    --photo-card-image-transition:
-      transform 1.35s cubic-bezier(0.23, 1, 0.32, 1);
+    --photo-card-image-transition: transform 1.35s cubic-bezier(0.23, 1, 0.32, 1);
     --photo-card-hover-border: var(--sci-fi-cyan, #00f3ff);
     --photo-card-hover-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
     --photo-card-image-filter: brightness(0.6);
     --photo-card-overlay-bg: rgba(10, 15, 20, 0.8);
     --photo-card-overlay-border: rgba(0, 243, 255, 0.3);
-    --photo-card-overlay-shadow:
-      0 12px 30px rgba(0, 0, 0, 0.28),
+    --photo-card-overlay-shadow: 0 12px 30px color-mix(in srgb, var(--ui-shadow-color) 28%, transparent),
       0 0 18px rgba(0, 243, 255, 0.12);
-    --photo-card-title-color: #fff;
+    --photo-card-title-color: var(--color-surface);
     --photo-card-title-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
     --photo-card-category-color: var(--sci-fi-cyan, #00f3ff);
     --photo-card-corner-color: var(--sci-fi-cyan, #00f3ff);
@@ -210,12 +208,11 @@ const optimizedImageSrcSet = getOptimizedImageSrcSet(image, {
   }
 
   :global([data-theme="light"]) .photography-card {
-    --feature-photo-overlay-title-color: #fff;
-    --feature-photo-overlay-meta-color: #fff;
+    --feature-photo-overlay-title-color: var(--color-surface);
+    --feature-photo-overlay-meta-color: var(--color-surface);
     --photo-card-image-scale-hover: 1.008;
     --photo-card-hover-border: rgba(15, 23, 42, 0.18);
-    --photo-card-hover-shadow:
-      0 16px 34px rgba(15, 23, 42, 0.12),
+    --photo-card-hover-shadow: 0 16px 34px rgba(15, 23, 42, 0.12),
       0 0 18px rgba(255, 255, 255, 0.18);
     --photo-card-image-filter: brightness(0.72) saturate(0.92);
     --photo-card-overlay-bg: linear-gradient(
@@ -223,15 +220,14 @@ const optimizedImageSrcSet = getOptimizedImageSrcSet(image, {
       rgba(163, 0, 33, 0.76) 0%,
       rgba(163, 0, 33, 0.84) 100%
     );
-    --photo-card-overlay-border: rgba(255, 255, 255, 0.22);
-    --photo-card-overlay-shadow:
-      0 14px 30px rgba(163, 0, 33, 0.2),
+    --photo-card-overlay-border: color-mix(in srgb, var(--color-surface) 22%, transparent);
+    --photo-card-overlay-shadow: 0 14px 30px rgba(163, 0, 33, 0.2),
       0 10px 22px rgba(15, 23, 42, 0.12),
       0 0 18px rgba(255, 255, 255, 0.14),
       0 0 6px rgba(255, 255, 255, 0.1);
-    --photo-card-title-color: #fff;
-    --photo-card-title-shadow: 0 0 8px rgba(255, 255, 255, 0.12);
-    --photo-card-category-color: #fff;
-    --photo-card-corner-color: rgba(255, 255, 255, 0.55);
+    --photo-card-title-color: var(--color-surface);
+    --photo-card-title-shadow: 0 0 8px color-mix(in srgb, var(--color-surface) 12%, transparent);
+    --photo-card-category-color: var(--color-surface);
+    --photo-card-corner-color: color-mix(in srgb, var(--color-surface) 55%, transparent);
   }
 </style>

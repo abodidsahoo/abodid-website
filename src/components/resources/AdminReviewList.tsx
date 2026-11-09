@@ -20,7 +20,7 @@ const PreviewCard = ({ resource, thumbnailOverride }: { resource: HubResource; t
         fontSize: '14px',
         backgroundColor: 'var(--bg-surface)'
     }}>
-        <div style={{ height: '140px', backgroundColor: '#eee', position: 'relative' }}>
+        <div style={{ height: '140px', backgroundColor: "var(--color-surface)", position: 'relative' }}>
             {(thumbnailOverride || resource.thumbnail_url) && (
                 <img
                     src={thumbnailOverride || resource.thumbnail_url || ''}
@@ -37,12 +37,12 @@ const PreviewCard = ({ resource, thumbnailOverride }: { resource: HubResource; t
             <h4 style={{ fontWeight: 'bold', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{resource.title}</h4>
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                 {resource.tags?.map(t => (
-                    <span key={t.id} style={{ fontSize: '10px', background: '#eee', padding: '2px 6px', borderRadius: 4 }}>
+                    <span key={t.id} style={{ fontSize: '10px', background: "var(--color-surface)", padding: '2px 6px', borderRadius: 4 }}>
                         #{t.name}
                     </span>
                 ))}
             </div>
-            <div style={{ fontSize: '11px', color: '#666', marginTop: '8px' }}>
+            <div style={{ fontSize: '11px', color: "var(--ui-text-muted)", marginTop: '8px' }}>
                 by @{resource.submitter_profile?.username}
             </div>
         </div>
@@ -283,7 +283,7 @@ export default function AdminReviewList() {
                                         }}
                                     />
                                     {draft.isUploading && <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>Uploading thumbnail...</div>}
-                                    {draft.uploadError && <div style={{ marginTop: '8px', fontSize: '12px', color: '#EF4444' }}>{draft.uploadError}</div>}
+                                    {draft.uploadError && <div style={{ marginTop: '8px', fontSize: '12px', color: "var(--color-error)" }}>{draft.uploadError}</div>}
                                 </div>
                             </div>
                         </div>
@@ -299,7 +299,7 @@ export default function AdminReviewList() {
                             </button>
                             <button
                                 className="btn-reject"
-                                style={{ padding: '12px 24px', fontSize: '14px', background: 'transparent', color: '#ef4444', border: '1px solid #ef4444' }}
+                                style={{ padding: '12px 24px', fontSize: '14px', background: 'transparent', color: "var(--color-error)", border: "1px solid var(--color-error)" }}
                                 onClick={() => openModerationDialog(resource, 'reject')}
                             >
                                 Reject
@@ -367,7 +367,7 @@ export default function AdminReviewList() {
                             }}
                         />
                         {moderationError && (
-                            <p style={{ margin: '12px 0 0', color: '#EF4444', fontSize: '0.85rem' }}>
+                            <p style={{ margin: '12px 0 0', color: "var(--color-error)", fontSize: '0.85rem' }}>
                                 {moderationError}
                             </p>
                         )}

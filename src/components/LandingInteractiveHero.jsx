@@ -2,12 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { vaultTags as fallbackVaultTags } from '../utils/tags';
 
 const TAG_COLOR_THEMES = [
-  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-yellow, #ffe44f)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-cream, #fff8e8)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.3)' },
-  { bg: 'var(--pop-lime, #caff48)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-yellow, #ffe44f)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-secondary, #f78bb1)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-button, #ffe44f)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-background, #fff8e8)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.3)' },
+  { bg: 'var(--color-accent, #caff48)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-secondary, #f78bb1)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-button, #ffe44f)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
 ];
 
 const BASE_AMBIENT_SLOTS = [
@@ -491,13 +491,13 @@ export default function LandingInteractiveHero({
           align-items: center;
           justify-content: center;
           padding: clamp(5.5rem, 11vh, 8rem) clamp(1.5rem, 4vw, 4rem) clamp(3rem, 6vh, 4.5rem);
-          background: var(--pop-blue, #2444ca);
+          background: var(--color-primary);
           border: none;
           border-radius: 0;
           overflow: hidden;
           isolation: isolate;
           user-select: none;
-          cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none'%3E%3Cline x1='8' y1='8' x2='26' y2='26' stroke='%23fff8e8' stroke-width='4.5' stroke-linecap='round'/%3E%3Cline x1='8' y1='8' x2='16' y2='16' stroke='%23ff7eb5' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='16' x2='26' y2='26' stroke='%2315130f' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M5 0L6.5 3.5L10 5L6.5 6.5L5 10L3.5 6.5L0 5L3.5 3.5Z' fill='%23fff8e8' stroke='%2315130f' stroke-width='0.8'/%3E%3Ccircle cx='5' cy='5' r='1.2' fill='%23ffe44f'/%3E%3Cpath d='M13 1L14 3.2L16.2 4.2L14 5.2L13 7.5L12 5.2L9.8 4.2L12 3.2Z' fill='%23ffe44f'/%3E%3Cpath d='M2 12L3 14.2L5.2 15.2L3 16.2L2 18.5L1 16.2L-1.2 15.2L1 14.2Z' fill='%23ff7eb5'/%3E%3C/svg%3E") 4 4, crosshair;
+          cursor: var(--ui-editorial-cursor, auto);
         }
 
         @media (min-width: 769px) {
@@ -517,10 +517,10 @@ export default function LandingInteractiveHero({
           gap: 0.65rem;
           min-height: 48px;
           padding: 0.42rem 0.48rem 0.42rem 0.85rem;
-          border: 1px solid var(--pop-ink, #15130f);
+          border: 1px solid var(--color-text);
           border-radius: var(--design-radius-control, 14px);
-          background: var(--pop-yellow, #ffe44f);
-          color: var(--pop-ink, #15130f);
+          background: var(--color-button);
+          color: var(--color-button-text);
           font: var(--type-role-label-weight, 750) var(--type-role-label-size, 0.72rem)/var(--type-role-label-line, 1.35) var(--font-mono, monospace);
           letter-spacing: var(--type-role-label-track, 0.08em);
           text-transform: uppercase;
@@ -531,13 +531,13 @@ export default function LandingInteractiveHero({
 
         .landing-hero__vault-pill:hover,
         .landing-hero__vault-pill:focus-visible {
-          background: var(--pop-lime, #caff48);
+          background: var(--color-accent);
           transform: translateY(-2px);
-          box-shadow: 0 4px 0 rgba(21, 19, 15, 0.28);
+          box-shadow: 0 4px 0 color-mix(in srgb, var(--color-text) 28%, transparent);
         }
 
         .landing-hero__vault-pill:focus-visible {
-          outline: 3px solid var(--pop-cream, #fff8e8);
+          outline: 3px solid var(--color-background);
           outline-offset: 3px;
         }
 
@@ -558,10 +558,10 @@ export default function LandingInteractiveHero({
           flex: 0 0 auto;
           display: inline-grid;
           place-items: center;
-          border: 1px solid var(--pop-ink, #15130f);
+          border: 1px solid var(--color-text);
           border-radius: 9px;
-          background: var(--pop-pink, #ff7eb5);
-          color: var(--pop-ink, #15130f);
+          background: var(--color-secondary);
+          color: var(--color-text);
           font-size: 1rem;
           font-weight: 750;
           line-height: 1;
@@ -571,7 +571,7 @@ export default function LandingInteractiveHero({
 
         .landing-hero__vault-pill:hover .landing-hero__vault-arrow,
         .landing-hero__vault-pill:focus-visible .landing-hero__vault-arrow {
-          background: var(--pop-cream, #fff8e8);
+          background: var(--color-background);
           transform: translate(2px, -2px);
         }
 
@@ -626,15 +626,15 @@ export default function LandingInteractiveHero({
           align-items: center;
           justify-content: center;
           padding: 7px 18px;
-          border: 1px solid rgba(23, 21, 15, 0.3);
+          border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent);
           border-radius: 999px;
-          color: var(--pop-ink, #15130f) !important;
+          color: var(--color-text) !important;
           font-family: var(--font-display, sans-serif);
           font-size: clamp(0.85rem, 0.95vw, 1.02rem);
           font-weight: 500;
           letter-spacing: -0.01em;
           white-space: nowrap;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 16px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent), 0 1px 4px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
           opacity: 1;
           transform: scale(1) translateZ(0);
           transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
@@ -672,7 +672,7 @@ export default function LandingInteractiveHero({
           margin: 0;
           font: 700 clamp(3.2rem, 6.8vw, 6.2rem)/0.92 var(--font-display, sans-serif);
           letter-spacing: -0.055em;
-          color: var(--pop-cream, #fff8e8);
+          color: var(--color-background, var(--color-primary-text));
           text-wrap: balance;
           text-align: center;
         }
@@ -682,7 +682,7 @@ export default function LandingInteractiveHero({
           margin: 0;
           font: 520 clamp(1.18rem, 1.85vw, 1.65rem)/1.42 var(--font-display, sans-serif);
           letter-spacing: -0.02em;
-          color: var(--pop-cream, #fff8e8);
+          color: var(--color-background, var(--color-primary-text));
           text-wrap: balance;
           text-align: center;
         }
@@ -692,7 +692,7 @@ export default function LandingInteractiveHero({
           margin: 0;
           font: 480 clamp(1rem, 1.4vw, 1.25rem)/1.5 var(--font-display, sans-serif);
           letter-spacing: -0.015em;
-          color: rgba(255, 248, 232, 0.9);
+          color: color-mix(in srgb, var(--color-primary-text) 90%, transparent);
           text-wrap: pretty;
           text-align: center;
         }
@@ -712,27 +712,27 @@ export default function LandingInteractiveHero({
           display: inline-flex;
           align-items: center;
           gap: 0.75rem;
-          border: 1.5px solid var(--pop-ink, var(--pop-ink));
+          border: 1.5px solid var(--color-text);
           border-radius: 999px;
-          background: var(--pop-yellow, #ffe44f);
-          color: var(--pop-ink, #15130f) !important;
+          background: var(--color-button);
+          color: var(--color-button-text) !important;
           font: 720 0.95rem/1 var(--font-display, sans-serif);
           letter-spacing: -0.01em;
           text-decoration: none;
-          box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
+          box-shadow: 0 4px 0 var(--color-text);
           transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
           cursor: pointer;
         }
 
         .landing-hero__enter-btn:hover {
           transform: translateY(-3px);
-          box-shadow: 0 7px 0 var(--pop-ink, var(--pop-ink));
-          background: #ffec6e;
+          box-shadow: 0 7px 0 var(--color-text);
+          background: var(--ui-button-hover-bg);
         }
 
         .landing-hero__enter-btn:active {
           transform: translateY(0);
-          box-shadow: 0 2px 0 var(--pop-ink, var(--pop-ink));
+          box-shadow: 0 2px 0 var(--color-text);
         }
 
         .landing-hero__enter-arrow {
@@ -748,11 +748,11 @@ export default function LandingInteractiveHero({
           display: inline-flex;
           align-items: center;
           gap: 0.6rem;
-          border: 1px solid rgba(255, 248, 232, 0.45);
+          border: 1px solid color-mix(in srgb, var(--color-primary-text) 45%, transparent);
           border-radius: 999px;
-          background: rgba(255, 248, 232, 0.12);
+          background: color-mix(in srgb, var(--color-primary-text) 12%, transparent);
           backdrop-filter: blur(8px);
-          color: var(--pop-cream, #fff8e8) !important;
+          color: var(--color-background, var(--color-primary-text)) !important;
           font: 650 0.88rem/1 var(--font-mono, monospace);
           letter-spacing: 0.04em;
           text-transform: uppercase;
@@ -762,8 +762,8 @@ export default function LandingInteractiveHero({
         }
 
         .landing-hero__secondary-btn:hover {
-          background: rgba(255, 248, 232, 0.22);
-          border-color: rgba(255, 248, 232, 0.8);
+          background: color-mix(in srgb, var(--color-primary-text) 22%, transparent);
+          border-color: color-mix(in srgb, var(--color-primary-text) 80%, transparent);
           transform: translateY(-2px);
         }
 

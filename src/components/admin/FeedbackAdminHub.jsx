@@ -247,7 +247,7 @@ export default function FeedbackAdminHub({ accessToken }) {
 
                 <div className="feedback-top-actions">
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <Search size={14} style={{ position: 'absolute', left: 10, color: '#8c857b', pointerEvents: 'none' }} />
+                        <Search size={14} style={{ position: 'absolute', left: 10, color: "var(--ui-text-muted)", pointerEvents: 'none' }} />
                         <input
                             type="search"
                             className="feedback-search-input"
@@ -410,7 +410,7 @@ export default function FeedbackAdminHub({ accessToken }) {
                                         <article key={row.id} className="feedback-card">
                                             <div className="feedback-card__topline">
                                                 <div className="feedback-card__participant">
-                                                    <div className="feedback-avatar" style={{ background: '#137333' }}>
+                                                    <div className="feedback-avatar" style={{ background: "var(--color-success)" }}>
                                                         <Camera size={16} />
                                                     </div>
                                                     <div>

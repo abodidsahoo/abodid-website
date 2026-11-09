@@ -9,16 +9,20 @@ const ROUTES = {
 };
 
 const surfaceDefinitions = {
-  "--pop-blue": ["Cobalt structural surface", "blue", "Deep navigation, evidence and structural bands use cream text automatically.", [ROUTES.work, ROUTES.research]],
-  "--pop-pink": ["Pink editorial surface", "pink", "Editorial introductions and proof sections use ink text automatically.", [ROUTES.research, ROUTES.writing]],
-  "--pop-yellow": ["Yellow action surface", "yellow", "Calls to action, active states and highlighted cards use ink text.", [ROUTES.research, ROUTES.vault]],
-  "--pop-lime": ["Lime accent surface", "lime", "Small proof points and occasional action panels use ink text.", [ROUTES.research, ROUTES.vault]],
-  "--pop-orange": ["Orange accent surface", "orange", "Status and secondary accent blocks use ink text.", [ROUTES.research, ROUTES.studio]],
-  "--pop-purple": ["Purple deep surface", "purple", "Forms, closing bands and focus moments use cream text automatically.", [ROUTES.research, ROUTES.vault]],
-  "--pop-cyan": ["Cyan accent surface", "cyan", "Optional high-energy cards use ink text.", [ROUTES.research, ROUTES.work]],
-  "--pop-cream": ["Warm paper surface", "cream", "Reading panels, cards and forms use ink text on the warm paper base.", [ROUTES.research, ROUTES.vault]],
-  "--pop-white": ["Clear utility surface", "white", "Compact utility controls and neutral cards use ink text.", [ROUTES.research, ROUTES.studio]],
-  "--pop-ink": ["Primary ink", "cream", "This is the shared text, icon and keyline color on every light chromatic surface.", [ROUTES.research, ROUTES.vault]],
+  "--color-primary": ["Primary colour", "blue", "Navigation, site canvas and structural bands. Uses the background colour for text.", [ROUTES.work, ROUTES.research]],
+  "--color-secondary": ["Secondary colour", "pink", "Editorial introductions, writing sections and supporting panels. Uses the text colour.", [ROUTES.research, ROUTES.writing]],
+  "--color-button": ["Button colour", "yellow", "Primary buttons, active controls, badges and highlighted cards. Uses the text colour.", [ROUTES.research, ROUTES.vault]],
+  "--color-accent": ["Accent colour", "lime", "Occasional action panels, hover states and navigation cards. Uses the text colour.", [ROUTES.research, ROUTES.vault]],
+  "--color-additional-1": ["Additional Colour 1", "orange", "Supporting cards, notices and secondary accent blocks. Uses the text colour.", [ROUTES.research, ROUTES.studio]],
+  "--color-additional-2": ["Additional Colour 2", "purple", "Enquiry forms, closing bands and focus outlines. Uses the background colour for text.", [ROUTES.research, ROUTES.vault]],
+  "--color-additional-3": ["Additional Colour 3", "cyan", "Optional cards and supporting highlights. Uses the text colour.", [ROUTES.research, ROUTES.work]],
+  "--color-background": ["Background colour", "cream", "Reading panels, form fields and text on primary or Additional Colour 2 surfaces.", [ROUTES.research, ROUTES.vault]],
+  "--color-surface": ["Raised surface colour", "white", "Utility controls and neutral cards. Uses the text colour.", [ROUTES.research, ROUTES.studio]],
+  "--color-text": ["Text colour", "cream", "Shared text, icons and keylines on the lighter surfaces.", [ROUTES.research, ROUTES.vault]],
+  "--color-button-text": ["Button text colour", "yellow", "Labels and icons on shared action buttons. Hover and pressed states follow the button colour.", [ROUTES.work, ROUTES.studio]],
+  "--color-primary-text": ["Primary surface text colour", "blue", "Labels and copy on primary and deep supporting surfaces.", [ROUTES.work, ROUTES.research]],
+  "--color-success": ["Success colour", "cream", "Shared success indicators and form feedback.", [ROUTES.studio]],
+  "--color-error": ["Error colour", "cream", "Shared validation and failure indicators.", [ROUTES.studio]],
 };
 
 const usage = Object.fromEntries(Object.entries(surfaceDefinitions).map(([name, [title, surface, summary, routes]]) => [name, {

@@ -230,7 +230,7 @@ export default function ManualSidebar({ chapters, rootDocs, activeSlug: propActi
                 textAlign: "center",
                 fontSize: "0.85rem",
                 opacity: 0.8,
-                color: "#15130f",
+                color: "var(--color-text)",
               }}
             >
               No matching chapters or sections found for "{searchTerm}".

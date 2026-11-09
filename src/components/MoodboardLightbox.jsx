@@ -311,10 +311,10 @@ export default function MoodboardLightbox({
                     width: 48px;
                     height: 48px;
                     padding: 0;
-                    border: 2px solid #fff;
-                    background: #fff;
+                    border: 2px solid var(--color-primary-text);
+                    background: var(--color-surface);
                     color: #111;
-                    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.32);
+                    box-shadow: 0 8px 26px color-mix(in srgb, var(--ui-shadow-color) 32%, transparent);
                 }
 
                 .moodboard-lightbox__nav {
@@ -323,9 +323,9 @@ export default function MoodboardLightbox({
                     width: 46px;
                     height: 46px;
                     padding: 0;
-                    border: 1px solid rgba(255, 255, 255, 0.68);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 68%, transparent);
                     background: rgba(8, 8, 10, 0.5);
-                    color: #fff;
+                    color: var(--color-primary-text);
                     transform: translateY(-50%);
                 }
 
@@ -351,25 +351,25 @@ export default function MoodboardLightbox({
                 .moodboard-lightbox__close:hover,
                 .moodboard-lightbox__close:focus-visible {
                     transform: scale(1.07);
-                    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.42);
+                    box-shadow: 0 10px 32px color-mix(in srgb, var(--ui-shadow-color) 42%, transparent);
                 }
 
                 .moodboard-lightbox__nav:hover,
                 .moodboard-lightbox__nav:focus-visible {
-                    background: rgba(255, 255, 255, 0.18);
+                    background: color-mix(in srgb, var(--color-surface) 18%, transparent);
                     transform: translateY(-50%) scale(1.07);
                 }
 
                 .moodboard-lightbox__close:focus-visible,
                 .moodboard-lightbox__nav:focus-visible {
-                    outline: 2px solid #fff;
+                    outline: 2px solid var(--color-primary-text);
                     outline-offset: 4px;
                 }
 
                 .moodboard-lightbox__counter {
                     flex: 0 0 auto;
                     margin-top: 0.9rem;
-                    color: rgba(255, 255, 255, 0.76);
+                    color: color-mix(in srgb, var(--color-surface) 76%, transparent);
                     font-family: var(--font-ui);
                     font-size: 0.72rem;
                     font-variant-numeric: tabular-nums;
@@ -380,15 +380,15 @@ export default function MoodboardLightbox({
                     position: absolute;
                     width: 30px;
                     height: 30px;
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    border-top-color: #fff;
+                    border: 2px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
+                    border-top-color: var(--color-primary-text);
                     border-radius: 50%;
                     animation: moodboard-lightbox-spin 700ms linear infinite;
                 }
 
                 .moodboard-lightbox__error {
                     margin: 0;
-                    color: #fff;
+                    color: var(--color-primary-text);
                     font-family: var(--font-ui);
                     font-size: 0.82rem;
                 }

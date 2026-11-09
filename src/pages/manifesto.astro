@@ -175,11 +175,11 @@ const description =
 
 <style is:global>
   body.manifesto-page {
-    --manifesto-purple: #6657d8;
-    --manifesto-pink: var(--pop-pink);
-    --manifesto-yellow: var(--pop-yellow);
-    --manifesto-cream: var(--pop-cream);
-    --manifesto-ink: var(--pop-ink);
+    --manifesto-purple: var(--color-additional-2);
+    --manifesto-pink: var(--color-secondary);
+    --manifesto-yellow: var(--color-button);
+    --manifesto-cream: var(--color-background);
+    --manifesto-ink: var(--color-text);
     --page-bg: var(
       --manifesto-purple
     ); /* ← single token drives body + header gap */
@@ -208,7 +208,7 @@ const description =
     border: 1px solid var(--manifesto-ink);
     border-radius: clamp(20px, 3vw, 34px);
     background: var(--manifesto-cream);
-    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+    box-shadow: 0 10px 0 color-mix(in srgb, var(--color-text) 20%, transparent);
   }
 
   .manifesto-heading {
@@ -320,7 +320,7 @@ const description =
 
   .manifesto-process-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 rgba(21, 19, 15, 0.15);
+    box-shadow: 0 4px 0 color-mix(in srgb, var(--color-text) 15%, transparent);
   }
 
   .manifesto-process-card--1 {
@@ -337,7 +337,7 @@ const description =
     color: var(--manifesto-ink);
   }
   .manifesto-process-card--4 {
-    background: #ffffff;
+    background: var(--color-surface);
     color: var(--manifesto-ink);
   }
 
@@ -388,7 +388,7 @@ const description =
 
     .manifesto-card {
       border-radius: 20px;
-      box-shadow: 0 5px 0 rgba(21, 19, 15, 0.2);
+      box-shadow: 0 5px 0 color-mix(in srgb, var(--color-text) 20%, transparent);
     }
 
     .manifesto-process {

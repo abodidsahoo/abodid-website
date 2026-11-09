@@ -157,9 +157,8 @@ const { title: pageTitle, description, contact, profiles, notes, pdfPath } =
     padding: 0.85rem 1.2rem;
     border-radius: 999px;
     border: 1px solid color-mix(in srgb, var(--theme-color-primary) 28%, transparent);
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--theme-color-primary) 18%, transparent), color-mix(in srgb, var(--bg-surface) 90%, white 10%));
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--theme-color-primary) 18%, transparent), color-mix(in srgb, var(--bg-surface) 90%, white 10%));
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--ui-shadow-color) 14%, transparent);
     color: var(--text-primary);
     font-family: var(--font-mono);
     font-size: 0.82rem;
@@ -173,7 +172,7 @@ const { title: pageTitle, description, contact, profiles, notes, pdfPath } =
   .download-button:hover {
     transform: translateY(-1px);
     border-color: color-mix(in srgb, var(--theme-color-primary) 50%, transparent);
-    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 18px 34px color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
   }
 
   .intro-panel {
@@ -192,10 +191,9 @@ const { title: pageTitle, description, contact, profiles, notes, pdfPath } =
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
     border-radius: 28px;
-    background:
-      linear-gradient(145deg, color-mix(in srgb, var(--bg-surface) 92%, white 8%), color-mix(in srgb, var(--bg-surface) 97%, transparent)),
+    background: linear-gradient(145deg, color-mix(in srgb, var(--bg-surface) 92%, white 8%), color-mix(in srgb, var(--bg-surface) 97%, transparent)),
       radial-gradient(circle at top right, color-mix(in srgb, var(--theme-color-primary) 12%, transparent), transparent 35%);
-    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 22px 60px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
     backdrop-filter: blur(18px);
   }
 
@@ -434,7 +432,7 @@ const { title: pageTitle, description, contact, profiles, notes, pdfPath } =
     .profile-card,
     .footnote-card {
       border-radius: 22px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+      box-shadow: 0 18px 40px color-mix(in srgb, var(--ui-shadow-color) 14%, transparent);
     }
 
     .intro-copy,

@@ -650,7 +650,7 @@ export default function ContentEditor({ table, id }) {
                                                 <label>Dynamic Generated Preview</label>
                                                 <div style={{
                                                     width: '100%', aspectRatio: '1200/630',
-                                                    background: '#111', borderRadius: '8px',
+                                                    background: "var(--color-text)", borderRadius: '8px',
                                                     overflow: 'hidden', position: 'relative',
                                                     border: '1px solid var(--border-subtle)'
                                                 }}>
@@ -824,7 +824,7 @@ export default function ContentEditor({ table, id }) {
                     width: 48px; height: 48px; border-radius: 50% !important;
                     background: var(--bg-color) !important; border: 1px solid var(--border-subtle) !important; color: var(--text-primary);
                     font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 0 !important;
-                    transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+                    transition: 0.2s; box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent) !important;
                 }
                 .cover-uploader-box .btn-upload:hover { border-color: var(--text-primary) !important; transform: scale(1.05); }
                 
@@ -839,11 +839,11 @@ export default function ContentEditor({ table, id }) {
                 .preview-fit { width: 100%; height: 100%; position: relative; }
                 .preview-fit img, .preview-fit iframe { width: 100%; height: 100%; object-fit: cover; }
                 .btn-mini-remove {
-                    position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white;
+                    position: absolute; top: 12px; right: 12px; background: color-mix(in srgb, var(--ui-shadow-color) 60%, transparent); color: white;
                     border: none; width: 28px; height: 28px; border-radius: 50%; backdrop-filter: blur(4px);
                     font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
                 }
-                .btn-mini-remove:hover { background: rgba(0,0,0,0.9); transform: scale(1.1); }
+                .btn-mini-remove:hover { background: color-mix(in srgb, var(--ui-shadow-color) 90%, transparent); transform: scale(1.1); }
                 .btn-mini-remove::after { content: "×"; }
 
                 /* MEDIA ROW (Films) - STACKED NOW */
@@ -870,7 +870,7 @@ export default function ContentEditor({ table, id }) {
                 .stream-item:hover { transform: translateY(-2px); shadow: 0 4px 12px rgba(0,0,0,0.1); }
                 .stream-item img { width: 100%; height: 100%; object-fit: cover; }
                 .item-overlay {
-                    position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0;
+                    position: absolute; inset: 0; background: color-mix(in srgb, var(--ui-shadow-color) 40%, transparent); opacity: 0;
                     display: flex; align-items: center; justify-content: center; transition: 0.2s;
                 }
                 .stream-item:hover .item-overlay { opacity: 1; }
@@ -924,7 +924,7 @@ export default function ContentEditor({ table, id }) {
                 .toast {
                     position: fixed; bottom: 2rem; right: 2rem; padding: 0.8rem 1.5rem;
                     border-radius: 8px; color: white; font-size: 0.9rem; z-index: 100; font-weight: 500;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
                 .toast.success { background: #10B981; }
                 .toast.error { background: #EF4444; }

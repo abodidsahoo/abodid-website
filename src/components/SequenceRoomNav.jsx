@@ -48,30 +48,30 @@ export default function SequenceRoomNav() {
                     display: inline-flex;
                     align-items: center;
                     gap: 0.45rem;
-                    background: var(--pop-cream);
-                    color: var(--pop-ink);
-                    border: 1.5px solid var(--pop-ink);
+                    background: var(--color-background);
+                    color: var(--color-text);
+                    border: 1.5px solid var(--color-text);
                     border-radius: 999px;
                     padding: 0.45rem 0.95rem;
                     font-size: 0.82rem;
                     font-weight: 800;
                     letter-spacing: 0.02em;
                     text-decoration: none;
-                    box-shadow: 0 2.5px 0 rgba(21, 19, 15, 0.25), 0 4px 10px rgba(0, 0, 0, 0.05);
+                    box-shadow: 0 2.5px 0 color-mix(in srgb, var(--color-text) 25%, transparent), 0 4px 10px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
                     transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
                                 box-shadow 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
                                 background-color 140ms ease;
                 }
 
                 .pop-topleft-btn:hover {
-                    background: #ffffff;
+                    background: var(--color-surface);
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 0 rgba(21, 19, 15, 0.3), 0 8px 16px rgba(0, 0, 0, 0.08);
+                    box-shadow: 0 4px 0 color-mix(in srgb, var(--color-text) 30%, transparent), 0 8px 16px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
                 }
 
                 .pop-topleft-btn:active {
                     transform: translateY(1px);
-                    box-shadow: 0 1px 0 rgba(21, 19, 15, 0.25);
+                    box-shadow: 0 1px 0 color-mix(in srgb, var(--color-text) 25%, transparent);
                 }
 
                 .pop-topleft-dropzone-wrapper {

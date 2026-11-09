@@ -394,7 +394,7 @@ export default function SequenceRoomManager({
                     align-items: center;
                     gap: 0.45rem;
                     padding: 0.45rem 0.95rem;
-                    border: 1.5px solid var(--pop-ink);
+                    border: 1.5px solid var(--color-text);
                     border-radius: 999px;
                     font-family: var(--font-mono, "Satoshi-Variable", monospace);
                     font-size: 0.82rem;
@@ -419,16 +419,16 @@ export default function SequenceRoomManager({
                 }
 
                 .pop-boards-btn {
-                    background: var(--pop-yellow) !important;
-                    color: var(--pop-ink) !important;
+                    background: var(--color-button) !important;
+                    color: var(--color-text) !important;
                 }
                 .pop-boards-btn:hover, .pop-boards-btn.is-active {
                     background: #ffd914 !important;
                 }
 
                 .pop-signin-btn {
-                    background: var(--pop-yellow) !important;
-                    color: var(--pop-ink) !important;
+                    background: var(--color-button) !important;
+                    color: var(--color-text) !important;
                 }
                 .pop-signin-btn:hover {
                     background: #ffd914 !important;
@@ -451,9 +451,9 @@ export default function SequenceRoomManager({
                     bottom: calc(100% + 0.6rem);
                     left: 0;
                     width: min(22rem, calc(100vw - 2rem));
-                    background: var(--pop-cream);
-                    color: var(--pop-ink);
-                    border: 1.5px solid var(--pop-ink);
+                    background: var(--color-background);
+                    color: var(--color-text);
+                    border: 1.5px solid var(--color-text);
                     border-radius: 18px;
                     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 3px 0 rgba(21, 19, 15, 0.3);
                     padding: 1.1rem 1.25rem;
@@ -473,21 +473,21 @@ export default function SequenceRoomManager({
                 }
 
                 .pop-new-board-btn {
-                    background: var(--pop-lime);
-                    border: 1px solid var(--pop-ink);
+                    background: var(--color-accent);
+                    border: 1px solid var(--color-text);
                     border-radius: 6px;
                     padding: 0.3rem 0.6rem;
                     font-family: var(--font-mono, "Satoshi-Variable", monospace);
                     font-size: 0.7rem;
                     font-weight: 800;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     cursor: pointer;
                     transition: transform 120ms ease, box-shadow 120ms ease;
                 }
 
                 .pop-new-board-btn:hover {
                     transform: translateY(-1px);
-                    box-shadow: 0 2px 0 var(--pop-ink);
+                    box-shadow: 0 2px 0 var(--color-text);
                 }
 
                 .pop-boards-list {
@@ -520,16 +520,16 @@ export default function SequenceRoomManager({
                 }
 
                 .pop-board-item:hover {
-                    border-color: var(--pop-ink);
+                    border-color: var(--color-text);
                     transform: translateY(-1px);
-                    box-shadow: 0 2px 0 var(--pop-ink);
+                    box-shadow: 0 2px 0 var(--color-text);
                 }
 
                 .pop-board-item.is-selected {
-                    background: var(--pop-yellow);
-                    border-color: var(--pop-ink);
+                    background: var(--color-button);
+                    border-color: var(--color-text);
                     border-width: 1.5px;
-                    box-shadow: inset 0 -2px 0 var(--pop-ink);
+                    box-shadow: inset 0 -2px 0 var(--color-text);
                 }
 
                 .pop-board-item-info {
@@ -544,14 +544,14 @@ export default function SequenceRoomManager({
                     width: 0.75rem;
                     height: 0.75rem;
                     border-radius: 999px;
-                    border: 1px solid var(--pop-ink);
+                    border: 1px solid var(--color-text);
                     flex-shrink: 0;
                 }
 
                 .pop-board-title {
                     font-size: 0.78rem;
                     font-weight: 750;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -595,7 +595,7 @@ export default function SequenceRoomManager({
                 .pop-board-rename-box input {
                     flex: 1;
                     padding: 0.3rem 0.5rem;
-                    border: 1.5px solid var(--pop-ink);
+                    border: 1.5px solid var(--color-text);
                     border-radius: 6px;
                     font-family: inherit;
                     font-size: 0.75rem;
@@ -603,8 +603,8 @@ export default function SequenceRoomManager({
                 }
 
                 .pop-board-rename-box button {
-                    background: var(--pop-lime);
-                    border: 1px solid var(--pop-ink);
+                    background: var(--color-accent);
+                    border: 1px solid var(--color-text);
                     border-radius: 6px;
                     padding: 0.3rem 0.5rem;
                     cursor: pointer;

@@ -1,10 +1,10 @@
 :root {
-  --land-bg: var(--pop-cream, #fff8e8);
+  --land-bg: var(--color-background);
   --land-surface: #fffefb;
-  --land-ink: var(--pop-ink, #15130f);
+  --land-ink: var(--color-text);
   --land-secondary: #59564f;
   --land-line: #d8d0bf;
-  --land-accent: var(--pop-blue, #2444ca);
+  --land-accent: var(--color-primary);
   --land-selected: #e8ecff;
   --land-warning: #8a4b00;
   --land-warning-bg: #fff1cf;
@@ -78,7 +78,7 @@
 }
 
 .land-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 700; }
-.land-button--primary { background: var(--land-accent); border-color: var(--land-accent); color: #fff; }
+.land-button--primary { background: var(--land-accent); border-color: var(--land-accent); color: var(--color-primary-text); }
 .land-button--secondary { background: var(--land-surface); color: var(--land-ink); }
 .land-button:disabled { opacity: .48; cursor: not-allowed; }
 
@@ -150,7 +150,7 @@
   min-block-size: 56px;
   border: 1px solid var(--land-ink);
   border-radius: var(--land-radius);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--land-ink);
   padding: 10px 14px;
 }
@@ -191,7 +191,7 @@
 .land-utilities { justify-content: flex-end; }
 .land-utilities > button,
 .land-font-controls button { min-block-size: 52px; background: var(--land-surface); color: var(--land-ink); border: 1px solid var(--land-ink); border-radius: var(--land-radius); padding: 10px 14px; cursor: pointer; }
-.land-font-controls button[aria-pressed="true"] { background: var(--land-accent); color: #fff; }
+.land-font-controls button[aria-pressed="true"] { background: var(--land-accent); color: var(--color-primary-text); }
 
 .land-content { inline-size: min(1540px, 100%); margin-inline: auto; padding: clamp(28px, 4vw, 60px) clamp(18px, 3vw, 48px) 96px; }
 .land-hero { padding: clamp(12px, 2vw, 28px) 0 36px; }
@@ -299,7 +299,7 @@
 .land-plot-table .col-action { width: 18%; }
 .land-number { text-align: right !important; font-variant-numeric: tabular-nums; }
 .land-row-button { inline-size: 100%; min-block-size: 48px; background: transparent; color: var(--land-accent); border-color: var(--land-accent); padding: 8px 10px; font-weight: 800; }
-.land-row-button[aria-pressed="true"] { background: var(--land-accent); color: #fff; }
+.land-row-button[aria-pressed="true"] { background: var(--land-accent); color: var(--color-primary-text); }
 
 .land-plot-panel { position: sticky; inset-block-start: 106px; }
 .land-plot-panel h2 { margin: 0 0 18px; font-size: 1.65em; }
@@ -355,7 +355,7 @@
 .land-selection-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(20, 18, 14, .52); cursor: crosshair; touch-action: none; }
 .land-selection-overlay > button { position: fixed; inset: 18px 18px auto auto; min-block-size: 52px; padding: 10px 18px; background: white; border: 2px solid var(--land-ink); cursor: pointer; }
 .land-selection-instruction { position: fixed; inset: 18px auto auto 50%; transform: translateX(-50%); background: var(--land-ink); color: white; padding: 10px 16px; }
-.land-selection-box { position: fixed; border: 3px solid white; background: rgba(255, 255, 255, .16); box-shadow: 0 0 0 1px var(--land-ink); }
+.land-selection-box { position: fixed; border: 3px solid white; background: color-mix(in srgb, var(--color-surface) 16%, transparent); box-shadow: 0 0 0 1px var(--land-ink); }
 
 .land-admin-shell { inline-size: min(1500px, 100%); min-block-size: 100vh; margin-inline: auto; padding: clamp(24px, 4vw, 58px); }
 .land-admin-login { margin: 8vh auto 0; }
@@ -465,7 +465,7 @@
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
 
-@media (forced-colors: active) {
+@media (forced-colors:active) {
   .land-button,
   .land-primary-choices button,
   .land-khata-row,

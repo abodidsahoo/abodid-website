@@ -71,7 +71,7 @@
 
 .seo-button.primary {
   background: var(--seo-accent);
-  color: #fff;
+  color: var(--color-primary-text);
 }
 
 .seo-button.primary:hover {
@@ -340,7 +340,7 @@
 .seo-page-row.selected .seo-edit-button {
   background: var(--seo-accent);
   border-color: var(--seo-accent);
-  color: #fff;
+  color: var(--color-primary-text);
 }
 
 .seo-page-row.selected .seo-edit-button:hover {
@@ -568,7 +568,7 @@
 }
 
 .seo-switch.on span {
-  background: #fff;
+  background: var(--color-surface);
   transform: translateX(18px);
 }
 
@@ -792,7 +792,7 @@
 .seo-toast {
   border: 1px solid;
   border-radius: 10px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
   font-size: 0.78rem;
   font-weight: 600;
   max-width: min(420px, calc(100vw - 2rem));

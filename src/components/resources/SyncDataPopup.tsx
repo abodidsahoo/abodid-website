@@ -65,7 +65,7 @@ export default function SyncDataPopup({ show, bookmarkCount, onCreateAccount, on
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0, 0, 0, 0.6);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 60%, transparent);
                     backdrop-filter: blur(4px);
                     z-index: 9998;
                     animation: fadeIn 0.2s ease;
@@ -102,7 +102,7 @@ export default function SyncDataPopup({ show, bookmarkCount, onCreateAccount, on
                     border-radius: 16px;
                     padding: 32px;
                     max-width: 440px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    box-shadow: 0 20px 60px color-mix(in srgb, var(--ui-shadow-color) 30%, transparent);
                     text-align: center;
                 }
 
@@ -157,7 +157,7 @@ export default function SyncDataPopup({ show, bookmarkCount, onCreateAccount, on
 
                 .btn-primary:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+                    box-shadow: 0 8px 20px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
                 }
 
                 .btn-secondary {

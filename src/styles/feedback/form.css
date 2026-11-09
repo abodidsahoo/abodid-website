@@ -1,7 +1,7 @@
 
     body.du-feedback-route {
         --du-red: var(--palette-red, #ea2a10);
-        --du-light: var(--palette-light, #f9f8f3);
+        --du-light: var(--palette-light, var(--color-background));
         --du-dark: var(--palette-dark, #010101);
         --du-sand: var(--palette-sand, #e0dbd3);
         --du-grey: var(--palette-grey, #9e9992);
@@ -18,8 +18,7 @@
         min-height: 100svh;
         overflow: clip;
         overflow-anchor: none;
-        background:
-            linear-gradient(90deg, rgba(234, 42, 16, 0.11) 0 3px, transparent 3px 100%),
+        background: linear-gradient(90deg, rgba(234, 42, 16, 0.11) 0 3px, transparent 3px 100%),
             linear-gradient(rgba(224, 219, 211, 0.55) 1px, transparent 1px),
             linear-gradient(90deg, rgba(224, 219, 211, 0.55) 1px, transparent 1px),
             var(--du-light);
@@ -35,8 +34,7 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background:
-            linear-gradient(180deg, rgba(249, 248, 243, 0.62), rgba(249, 248, 243, 0.92)),
+        background: linear-gradient(180deg, rgba(249, 248, 243, 0.62), rgba(249, 248, 243, 0.92)),
             linear-gradient(90deg, transparent 0 68%, rgba(1, 1, 1, 0.045) 68% 100%);
     }
 
@@ -57,15 +55,15 @@
     .du-feedback-intro {
         --link-color: var(--du-light);
         --link-hover-color: var(--du-light);
-        --surface-selection-bg: var(--pop-yellow, #ffe44f);
-        --surface-selection-fg: var(--pop-ink, #15130f);
+        --surface-selection-bg: var(--color-button);
+        --surface-selection-fg: var(--color-text);
         position: sticky;
         top: 2rem;
         display: grid;
         gap: 1.2rem;
         padding: 1.6rem;
         border-radius: 8px;
-        background: var(--pop-blue, #2444ca);
+        background: var(--color-primary);
         color: var(--du-light);
         box-shadow: 0 24px 50px rgba(1, 1, 1, 0.22);
     }
@@ -103,7 +101,7 @@
     }
 
     .du-feedback-intro .du-site-mark:focus-visible {
-        outline: 3px solid var(--pop-yellow, #ffe44f);
+        outline: 3px solid var(--color-button);
         outline-offset: 3px;
     }
 
@@ -196,14 +194,14 @@
     .du-thank-you-card {
         align-content: start;
         min-height: min(34rem, calc(100svh - 8rem));
-        background: var(--pop-cream, #fff8e8);
-        border-color: var(--pop-blue, #2444ca);
+        background: var(--color-background);
+        border-color: var(--color-primary);
     }
 
     .du-thank-you-card h2 {
         margin: 0;
         max-width: 32ch;
-        color: var(--pop-blue, #2444ca);
+        color: var(--color-primary);
         font-family: var(--font-h2);
         font-size: clamp(2rem, 4vw, 3.2rem);
         font-weight: 850;
@@ -236,9 +234,9 @@
         gap: 0.65rem;
         min-height: 3.55rem;
         width: fit-content;
-        border: 1px solid var(--pop-blue, #2444ca);
+        border: 1px solid var(--color-primary);
         border-radius: 8px;
-        background: var(--pop-blue, #2444ca);
+        background: var(--color-primary);
         color: var(--du-light);
         font-family: var(--font-ui);
         font-size: 1.04rem;
@@ -259,34 +257,34 @@
 
     .du-download-button:hover,
     .du-download-button:focus-visible {
-        background: var(--pop-blue, #2444ca);
+        background: var(--color-primary);
         color: var(--du-light);
         box-shadow: 0 12px 24px rgba(1, 1, 1, 0.18);
         transform: translateY(-1px);
     }
 
     .du-thank-you-card .du-download-button:focus-visible {
-        outline: 3px solid var(--pop-blue, #2444ca);
+        outline: 3px solid var(--color-primary);
         outline-offset: 3px;
     }
 
     .feedback-resource-notice {
         padding: 1rem;
-        border: 1px solid var(--pop-blue, #2444ca);
+        border: 1px solid var(--color-primary);
         border-left-width: 4px;
         border-radius: 8px;
-        background: var(--pop-white, #ffffff);
+        background: var(--color-surface);
     }
 
     .feedback-resource-notice h3 {
         margin: 0 0 .5rem;
-        color: var(--pop-blue, #2444ca);
+        color: var(--color-primary);
         font-size: 1.05rem;
         line-height: 1.4;
     }
 
     .du-thank-you-card .feedback-resource-notice p {
-        color: var(--pop-ink, #15130f);
+        color: var(--color-text);
         font-size: 1rem;
         line-height: 1.55;
     }
@@ -400,7 +398,7 @@
         letter-spacing: 0;
         padding: 0.95rem 1rem;
         outline: none;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-surface) 50%, transparent);
         transition:
             border-color 0.18s ease,
             box-shadow 0.18s ease,
@@ -429,9 +427,8 @@
     .du-field input:focus,
     .du-field textarea:focus {
         border-color: rgba(234, 42, 16, 0.78);
-        background: #ffffff;
-        box-shadow:
-            0 0 0 4px rgba(234, 42, 16, 0.1),
+        background: var(--color-surface);
+        box-shadow: 0 0 0 4px rgba(234, 42, 16, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.64);
     }
 
@@ -480,7 +477,7 @@
         border: 1px solid var(--du-red);
         border-radius: 8px;
         background: var(--du-red);
-        color: #ffffff;
+        color: var(--color-primary-text);
         font-family: var(--font-ui);
         font-size: 1.04rem;
         font-weight: 850;

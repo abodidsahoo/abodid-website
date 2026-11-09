@@ -653,16 +653,16 @@ let paragraphIndex = 0;
   }
 
   :global(body.uk2026-page) {
-    background: #ffffff !important;
+    background: var(--color-surface) !important;
     color: #282b27;
   }
 
   .memoir-shell {
     --toc-width: clamp(280px, 24vw, 360px);
-    --page-bg: #ffffff;
+    --page-bg: var(--color-surface);
     --paper: #fffefb;
-    --panel-bg: rgba(255, 255, 255, 0.94);
-    --mobile-panel-bg: rgba(255, 255, 255, 0.96);
+    --panel-bg: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    --mobile-panel-bg: color-mix(in srgb, var(--color-surface) 96%, transparent);
     --brand-red: var(--color-brand-red, #a30021);
     --ink: #282b27;
     --muted: #667067;
@@ -680,8 +680,7 @@ let paragraphIndex = 0;
     --active-shadow: rgba(147, 124, 91, 0.18);
     --hover-bg: rgba(255, 254, 251, 0.86);
     min-height: 100vh;
-    background:
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+    background: linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
       var(--page-bg);
     background-size: clamp(28px, 4vw, 54px) 100%;
   }
@@ -703,14 +702,14 @@ let paragraphIndex = 0;
     --sage: #9ba9bb;
     --clay: #d3dce8;
     --quote-ink: #d3dce8;
-    --grid-line: rgba(255, 255, 255, 0.035);
+    --grid-line: color-mix(in srgb, var(--color-surface) 3.5%, transparent);
     --accent: #c9183a;
     --accent-strong: #ff6a83;
-    --active-bg: #151515;
+    --active-bg: var(--color-text);
     --active-border: #3f3f3f;
     --active-ink: #f8fafc;
     --active-number: #d3dce8;
-    --active-shadow: rgba(0, 0, 0, 0.32);
+    --active-shadow: color-mix(in srgb, var(--ui-shadow-color) 32%, transparent);
     --hover-bg: rgba(21, 21, 21, 0.92);
   }
 
@@ -731,7 +730,7 @@ let paragraphIndex = 0;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(83, 107, 88, 0.28) transparent;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--ui-shadow-color) 2%, transparent);
   }
 
   .toc-kicker {
@@ -821,7 +820,7 @@ let paragraphIndex = 0;
     padding: 0.34rem;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.88);
+    background: color-mix(in srgb, var(--color-surface) 88%, transparent);
   }
 
   .reader-toggle--floating {
@@ -848,15 +847,15 @@ let paragraphIndex = 0;
   }
 
   :global(html[data-uk2026-reader="dark"]) .reader-toggle--floating {
-    border-color: rgba(255, 255, 255, 0.14);
+    border-color: color-mix(in srgb, var(--color-surface) 14%, transparent);
     background: rgba(10, 10, 10, 0.74);
-    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 18px 42px color-mix(in srgb, var(--ui-shadow-color) 45%, transparent);
   }
 
   :global(html[data-uk2026-reader="dark"]) .reader-toggle--floating:hover,
   :global(html[data-uk2026-reader="dark"]) .reader-toggle--floating:focus-within {
-    border-color: rgba(255, 255, 255, 0.26);
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.58);
+    border-color: color-mix(in srgb, var(--color-surface) 26%, transparent);
+    box-shadow: 0 20px 48px color-mix(in srgb, var(--ui-shadow-color) 58%, transparent);
   }
 
   .reader-toggle button {
@@ -901,7 +900,7 @@ let paragraphIndex = 0;
   }
 
   :global(html[data-uk2026-reader="dark"]) .reader-toggle button {
-    color: rgba(255, 255, 255, 0.86);
+    color: color-mix(in srgb, var(--color-surface) 86%, transparent);
   }
 
   :global(html[data-uk2026-reader="dark"]) .reader-toggle button svg {
@@ -910,8 +909,8 @@ let paragraphIndex = 0;
 
   :global(html[data-uk2026-reader="dark"]) .reader-toggle button:hover,
   :global(html[data-uk2026-reader="dark"]) .reader-toggle button:focus-visible {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
+    color: var(--color-primary-text);
   }
 
   .toc-list a {
@@ -1116,7 +1115,7 @@ let paragraphIndex = 0;
   }
 
   :global(html[data-uk2026-reader="dark"]) .reading-nudge-card {
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--ui-shadow-color) 28%, transparent);
   }
 
   @media (max-width: 980px) {
@@ -1446,18 +1445,18 @@ let paragraphIndex = 0;
   /* Header overrides for cohesive dark reader mode style */
   :global(html[data-uk2026-reader="dark"]) :global(.top-menu-bar) {
     background: #050505 !important;
-    color: #ffffff !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2) !important;
+    color: var(--color-primary-text) !important;
+    border-color: color-mix(in srgb, var(--color-surface) 12%, transparent) !important;
+    box-shadow: 0 14px 36px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent) !important;
   }
 
   :global(html[data-uk2026-reader="dark"]) :global(.top-menu-line),
   :global(html[data-uk2026-reader="dark"]) :global(.top-menu-scroll-bar) {
-    background: #ffffff !important;
+    background: var(--color-surface) !important;
   }
 
   :global(html[data-uk2026-reader="dark"]) :global(.top-menu-primary-link) {
-    color: rgba(255, 255, 255, 0.78) !important;
+    color: color-mix(in srgb, var(--color-surface) 78%, transparent) !important;
   }
 
   :global(html[data-uk2026-reader="dark"]) :global(.top-menu-primary-link:hover),
@@ -1466,7 +1465,7 @@ let paragraphIndex = 0;
   }
 
   :global(html[data-uk2026-reader="dark"]) :global(.top-menu-breadcrumbs .breadcrumbs-nav.mobile .breadcrumb-list) {
-    color: rgba(255, 255, 255, 0.68) !important;
+    color: color-mix(in srgb, var(--color-surface) 68%, transparent) !important;
   }
 
   :global(html[data-uk2026-reader="dark"]) :global(.top-menu-primary-link::after) {
@@ -1484,7 +1483,7 @@ let paragraphIndex = 0;
     border: 1px solid var(--line);
     background: var(--panel-bg);
     backdrop-filter: blur(18px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--ui-shadow-color) 3%, transparent);
     display: none;
     align-items: center;
     gap: 0.9rem;
@@ -1539,6 +1538,6 @@ let paragraphIndex = 0;
   }
 
   :global(html[data-uk2026-reader="dark"]) .anim-panels {
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 10px 32px color-mix(in srgb, var(--ui-shadow-color) 35%, transparent);
   }
 </style>

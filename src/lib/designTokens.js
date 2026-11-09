@@ -1,3 +1,17 @@
+// Compatibility keys for saved drafts, published versions and older browsers.
+export const LEGACY_COLOR_TOKENS = {
+  "--pop-blue": "--color-primary",
+  "--pop-pink": "--color-secondary",
+  "--pop-yellow": "--color-button",
+  "--pop-lime": "--color-accent",
+  "--pop-orange": "--color-additional-1",
+  "--pop-purple": "--color-additional-2",
+  "--pop-cyan": "--color-additional-3",
+  "--pop-cream": "--color-background",
+  "--pop-white": "--color-surface",
+  "--pop-ink": "--color-text"
+};
+
 export const DESIGN_TOKEN_GROUPS = [
   {
     id: "colour",
@@ -5,18 +19,27 @@ export const DESIGN_TOKEN_GROUPS = [
     description: "The shared chromatic language used by the public site, editorial pages, cards and calls to action.",
     sections: [
       {
-        label: "Pop Editorial palette",
+        label: "Colour roles",
         tokens: [
-          ["--pop-blue", "Cobalt", "#2444ca"],
-          ["--pop-pink", "Hot pink", "#ff7eb5"],
-          ["--pop-yellow", "Acid yellow", "#ffe44f"],
-          ["--pop-lime", "Lime", "#caff48"],
-          ["--pop-orange", "Orange", "#ff875c"],
-          ["--pop-purple", "Purple", "#5524c7"],
-          ["--pop-cyan", "Cyan", "#62e6ff"],
-          ["--pop-cream", "Warm cream", "#fff8e8"],
-          ["--pop-white", "White", "#ffffff"],
-          ["--pop-ink", "Ink", "#15130f"],
+          ["--color-primary", "Primary colour", "#2444ca"],
+          ["--color-secondary", "Secondary colour", "#ff7eb5"],
+          ["--color-button", "Button colour", "#ffe44f"],
+          ["--color-accent", "Accent colour", "#caff48"],
+          ["--color-additional-1", "Additional Colour 1", "#ff875c"],
+          ["--color-additional-2", "Additional Colour 2", "#5524c7"],
+          ["--color-additional-3", "Additional Colour 3", "#62e6ff"],
+          ["--color-background", "Background colour", "#fff8e8"],
+          ["--color-surface", "Raised surface colour", "#ffffff"],
+          ["--color-text", "Text colour", "#15130f"],
+        ].map(([name, label, defaultValue]) => ({ name, label, defaultValue, type: "color" })),
+      },
+      {
+        label: "Control text and feedback",
+        tokens: [
+          ["--color-button-text", "Button text colour", "#15130f"],
+          ["--color-primary-text", "Primary surface text colour", "#fff8e8"],
+          ["--color-success", "Success colour", "#16734a"],
+          ["--color-error", "Error colour", "#b42318"],
         ].map(([name, label, defaultValue]) => ({ name, label, defaultValue, type: "color" })),
       },
       {
@@ -118,15 +141,15 @@ export const DESIGN_TOKEN_GROUPS = [
  * an unsafe palette before it is published.
  */
 export const POP_SURFACE_CONTRACTS = [
-  { id: "cream", label: "Cream", surfaceToken: "--pop-cream", foregroundToken: "--pop-ink", tone: "light" },
-  { id: "white", label: "White", surfaceToken: "--pop-white", foregroundToken: "--pop-ink", tone: "light" },
-  { id: "pink", label: "Pink", surfaceToken: "--pop-pink", foregroundToken: "--pop-ink", tone: "light" },
-  { id: "yellow", label: "Yellow", surfaceToken: "--pop-yellow", foregroundToken: "--pop-ink", tone: "light" },
-  { id: "lime", label: "Lime", surfaceToken: "--pop-lime", foregroundToken: "--pop-ink", tone: "light" },
-  { id: "orange", label: "Orange", surfaceToken: "--pop-orange", foregroundToken: "--pop-ink", tone: "light" },
-  { id: "cyan", label: "Cyan", surfaceToken: "--pop-cyan", foregroundToken: "--pop-ink", tone: "light" },
-  { id: "blue", label: "Cobalt", surfaceToken: "--pop-blue", foregroundToken: "--pop-cream", tone: "deep" },
-  { id: "purple", label: "Purple", surfaceToken: "--pop-purple", foregroundToken: "--pop-cream", tone: "deep" },
+  { id: "cream", label: "Background colour", surfaceToken: "--color-background", foregroundToken: "--color-text", tone: "light" },
+  { id: "white", label: "Raised surface colour", surfaceToken: "--color-surface", foregroundToken: "--color-text", tone: "light" },
+  { id: "pink", label: "Secondary colour", surfaceToken: "--color-secondary", foregroundToken: "--color-text", tone: "light" },
+  { id: "yellow", label: "Button colour", surfaceToken: "--color-button", foregroundToken: "--color-button-text", tone: "light" },
+  { id: "lime", label: "Accent colour", surfaceToken: "--color-accent", foregroundToken: "--color-text", tone: "light" },
+  { id: "orange", label: "Additional Colour 1", surfaceToken: "--color-additional-1", foregroundToken: "--color-text", tone: "light" },
+  { id: "cyan", label: "Additional Colour 3", surfaceToken: "--color-additional-3", foregroundToken: "--color-text", tone: "light" },
+  { id: "blue", label: "Primary colour", surfaceToken: "--color-primary", foregroundToken: "--color-primary-text", tone: "deep" },
+  { id: "purple", label: "Additional Colour 2", surfaceToken: "--color-additional-2", foregroundToken: "--color-primary-text", tone: "deep" },
 ];
 
 export const MINIMUM_TEXT_CONTRAST = 4.5;
@@ -160,7 +183,10 @@ export function normaliseDesignTokens(candidate = {}) {
   const fields = new Map(DESIGN_TOKEN_FIELDS.map((field) => [field.name, field]));
   const result = { ...DEFAULT_DESIGN_TOKENS };
 
-  for (const [name, rawValue] of Object.entries(candidate || {})) {
+  for (const [name, rawValue] of [
+    ...Object.entries(LEGACY_COLOR_TOKENS).map(([legacy, name]) => [name, candidate?.[legacy]]),
+    ...Object.entries(candidate || {}),
+  ]) {
     const field = fields.get(name);
     if (!field) continue;
 
@@ -175,7 +201,33 @@ export function normaliseDesignTokens(candidate = {}) {
     result[name] = String(Math.min(field.max, Math.max(field.min, numericValue)));
   }
 
+  // Old palettes inherit their existing foreground choices.
+  if (!/^#[0-9a-f]{6}$/i.test(candidate?.["--color-button-text"] || "")) {
+    result["--color-button-text"] = result["--color-text"];
+  }
+  if (!/^#[0-9a-f]{6}$/i.test(candidate?.["--color-primary-text"] || "")) {
+    result["--color-primary-text"] = result["--color-background"];
+  }
   return result;
+}
+
+// Colour-only defaults, history and publishing preserve the other design roles.
+export function mergeColourTokens(base, palette) {
+  const current = normaliseDesignTokens(base);
+  const next = normaliseDesignTokens(palette);
+  for (const field of DESIGN_TOKEN_FIELDS.filter((field) => field.type === "color")) {
+    current[field.name] = next[field.name];
+  }
+  return current;
+}
+
+// Include compatibility keys so already-open pages can consume new publications.
+export function serialiseDesignTokens(candidate) {
+  const tokens = normaliseDesignTokens(candidate);
+  return {
+    ...tokens,
+    ...Object.fromEntries(Object.entries(LEGACY_COLOR_TOKENS).map(([legacy, name]) => [legacy, tokens[name]])),
+  };
 }
 
 export function contrastRatio(first, second) {
@@ -193,11 +245,24 @@ export function contrastRatio(first, second) {
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
+// Match the shared CSS hover/pressed mixes so publication checks the real states.
+function mixForeground(background, foreground, amount) {
+  const channels = [1, 3, 5].map((offset) => Math.round(
+    parseInt(background.slice(offset, offset + 2), 16) * (1 - amount) +
+    parseInt(foreground.slice(offset, offset + 2), 16) * amount,
+  ));
+  return "#" + channels.map((channel) => channel.toString(16).padStart(2, "0")).join("");
+}
+
 export function evaluateSurfaceContracts(candidate = {}, minimum = MINIMUM_TEXT_CONTRAST) {
   const tokens = normaliseDesignTokens(candidate);
-  return POP_SURFACE_CONTRACTS.map((contract) => {
-    const background = tokens[contract.surfaceToken];
+  const stateContracts = ["button", "primary"].flatMap((role) => [
+    { id: role + "-hover", label: role + " hover", surfaceToken: "--color-" + role, foregroundToken: "--color-" + (role === "button" ? "button-text" : "primary-text"), tone: "deep", amount: 0.08 },
+    { id: role + "-active", label: role + " pressed", surfaceToken: "--color-" + role, foregroundToken: "--color-" + (role === "button" ? "button-text" : "primary-text"), tone: "deep", amount: 0.14 },
+  ]);
+  return [...POP_SURFACE_CONTRACTS, ...stateContracts].map((contract) => {
     const foreground = tokens[contract.foregroundToken];
+    const background = mixForeground(tokens[contract.surfaceToken], foreground, contract.amount || 0);
     const ratio = contrastRatio(foreground, background);
     return { ...contract, background, foreground, ratio, passes: ratio >= minimum };
   });

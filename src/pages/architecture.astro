@@ -396,20 +396,20 @@ const consultationHref =
 
 <style is:global>
   body.pop-arch-page {
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --pop-line: color-mix(in srgb, var(--color-text) 24%, transparent);
     --pop-gap: 8px;
     --pop-radius-panel: clamp(18px, 2vw, 28px);
     --pop-radius-card: clamp(14px, 1.5vw, 22px);
     --pop-radius-control: 14px;
     --pop-motion: 180ms ease;
 
-    background: var(--pop-blue);
-    color: var(--pop-ink);
+    background: var(--color-primary);
+    color: var(--color-text);
   }
 
   html:has(body.pop-arch-page) {
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   /* Robust contrast enforcement for headings and body copy */
@@ -423,7 +423,7 @@ const consultationHref =
   body.pop-arch-page th,
   body.pop-arch-page td,
   body.pop-arch-page a {
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 </style>
 
@@ -441,8 +441,8 @@ const consultationHref =
   .arch-hero {
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-pink);
-    color: var(--pop-ink) !important;
+    background: var(--color-secondary);
+    color: var(--color-text) !important;
     padding: clamp(2.5rem, 5.5vw, 4.5rem) clamp(1.5rem, 4vw, 4rem);
   }
 
@@ -457,14 +457,14 @@ const consultationHref =
     font: 720 clamp(2.8rem, 6.5vw, 5.5rem)/0.92 var(--font-display, sans-serif);
     letter-spacing: -0.05em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     text-wrap: balance;
   }
 
   .arch-hero__lede {
     font: 480 clamp(1.15rem, 1.8vw, 1.5rem)/1.35 var(--font-display, sans-serif);
     letter-spacing: -0.02em;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     margin: 0;
     max-width: 50rem;
     text-wrap: pretty;
@@ -478,8 +478,8 @@ const consultationHref =
   .arch-stack-card {
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     padding: clamp(2rem, 4.5vw, 3.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
     display: flex;
     flex-direction: column;
@@ -506,13 +506,13 @@ const consultationHref =
     font: 650 clamp(2rem, 4vw, 3.2rem)/0.96 var(--font-display, sans-serif);
     letter-spacing: -0.045em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-section-desc {
     font: 450 clamp(0.95rem, 1.1vw, 1.05rem)/1.5 var(--font-body, sans-serif);
     margin: 0;
-    color: rgba(21, 19, 15, 0.8) !important;
+    color: color-mix(in srgb, var(--color-text) 80%, transparent) !important;
     max-width: 480px;
   }
 
@@ -520,7 +520,7 @@ const consultationHref =
     overflow-x: auto;
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-card);
-    background: #ffffff;
+    background: var(--color-surface);
   }
 
   .arch-tech-table {
@@ -531,10 +531,10 @@ const consultationHref =
   }
 
   .arch-tech-table th {
-    background: var(--pop-yellow);
+    background: var(--color-button);
     border-bottom: 1px solid var(--pop-border);
     padding: 1rem 1.25rem;
-    color: var(--pop-ink) !important;
+    color: var(--color-button-text) !important;
     font: 750 0.78rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -543,7 +543,7 @@ const consultationHref =
   .arch-tech-table td {
     padding: 1.15rem 1.25rem;
     border-bottom: 1px solid var(--pop-line);
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     vertical-align: middle;
   }
 
@@ -555,7 +555,7 @@ const consultationHref =
     font: 700 0.85rem/1.2 var(--font-mono, monospace);
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-table-tech {
@@ -563,12 +563,12 @@ const consultationHref =
   }
 
   .arch-table-tech strong {
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-table-purpose {
     font: 450 0.94rem/1.5 var(--font-body, sans-serif);
-    color: rgba(21, 19, 15, 0.85) !important;
+    color: color-mix(in srgb, var(--color-text) 85%, transparent) !important;
   }
 
   /* Deep Dives Grid */
@@ -591,19 +591,19 @@ const consultationHref =
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     transition: transform var(--pop-motion), box-shadow var(--pop-motion);
   }
 
   .arch-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(21, 19, 15, 0.08);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--color-text) 8%, transparent);
   }
 
-  .arch-card--yellow { background: var(--pop-yellow); }
-  .arch-card--cream { background: var(--pop-cream); }
-  .arch-card--lime { background: var(--pop-lime); }
-  .arch-card--pink { background: var(--pop-pink); }
+  .arch-card--yellow { background: var(--color-button); }
+  .arch-card--cream { background: var(--color-background); }
+  .arch-card--lime { background: var(--color-accent); }
+  .arch-card--pink { background: var(--color-secondary); }
 
   .arch-card__top {
     display: flex;
@@ -616,14 +616,14 @@ const consultationHref =
   .arch-card__num {
     font: 750 0.85rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-card__title {
     font: 650 clamp(1.3rem, 1.8vw, 1.7rem)/1.1 var(--font-display, sans-serif);
     letter-spacing: -0.03em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-feature-list {
@@ -643,21 +643,21 @@ const consultationHref =
 
   .arch-feature-list strong {
     font: 650 0.95rem/1.3 var(--font-display, sans-serif);
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-feature-list p {
     font: 450 0.88rem/1.5 var(--font-body, sans-serif);
     margin: 0;
-    color: rgba(21, 19, 15, 0.85) !important;
+    color: color-mix(in srgb, var(--color-text) 85%, transparent) !important;
   }
 
   .arch-feature-list code {
     font: 700 0.85em var(--font-mono, monospace);
-    background: rgba(21, 19, 15, 0.08);
+    background: color-mix(in srgb, var(--color-text) 8%, transparent);
     padding: 0.15rem 0.35rem;
     border-radius: 4px;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-card-link {
@@ -670,11 +670,11 @@ const consultationHref =
     text-transform: uppercase;
     text-decoration: underline;
     text-underline-offset: 3px;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-card-link:hover {
-    color: var(--pop-blue) !important;
+    color: var(--color-primary) !important;
   }
 
   /* Closing Consultation Card */
@@ -685,8 +685,8 @@ const consultationHref =
   .arch-cta-card {
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-yellow);
-    color: var(--pop-ink) !important;
+    background: var(--color-button);
+    color: var(--color-button-text) !important;
     padding: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
     display: flex;
     justify-content: space-between;
@@ -706,13 +706,13 @@ const consultationHref =
     font: 650 clamp(1.8rem, 3.2vw, 2.6rem)/1.05 var(--font-display, sans-serif);
     letter-spacing: -0.04em;
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-cta-card__text {
     font: 450 clamp(0.95rem, 1.1vw, 1.08rem)/1.55 var(--font-body, sans-serif);
     margin: 0;
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
   }
 
   .arch-cta-btn {
@@ -723,8 +723,8 @@ const consultationHref =
     padding: 0 1.75rem;
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-control);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
+    background: var(--color-background);
+    color: var(--color-text) !important;
     font: 750 0.88rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -734,8 +734,8 @@ const consultationHref =
 
   .arch-cta-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(21, 19, 15, 0.14);
-    background: #ffffff;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--color-text) 14%, transparent);
+    background: var(--color-surface);
   }
 
   .link-destination-arrow {
@@ -761,8 +761,8 @@ const consultationHref =
     padding: 1rem;
     border-radius: var(--pop-radius-card);
     border: 1px solid var(--pop-border);
-    background: var(--pop-cream);
-    box-shadow: 0 12px 32px rgba(21, 19, 15, 0.2);
+    background: var(--color-background);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--color-text) 20%, transparent);
     z-index: 80;
     transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
     display: flex;
@@ -779,7 +779,7 @@ const consultationHref =
   .floating-consult-copy {
     margin: 0;
     font: 700 0.76rem/1.2 var(--font-mono, monospace);
-    color: var(--pop-ink) !important;
+    color: var(--color-text) !important;
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
@@ -793,8 +793,8 @@ const consultationHref =
     min-height: 48px;
     border-radius: var(--pop-radius-control);
     border: 1px solid var(--pop-border);
-    background: var(--pop-yellow);
-    color: var(--pop-ink) !important;
+    background: var(--color-button);
+    color: var(--color-button-text) !important;
     font: 750 0.82rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -804,7 +804,7 @@ const consultationHref =
 
   .floating-consult-button:hover {
     transform: translateY(-2px);
-    background: var(--pop-lime);
+    background: var(--color-accent);
   }
 
   /* Responsive Rules */
@@ -842,7 +842,7 @@ const consultationHref =
       font: 700 0.72rem/1 var(--font-mono, monospace);
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: rgba(21, 19, 15, 0.6);
+      color: color-mix(in srgb, var(--color-text) 60%, transparent);
       display: inline-block;
       margin-right: 0.35rem;
     }

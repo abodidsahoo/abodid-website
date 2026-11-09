@@ -188,23 +188,23 @@ const statItems = [
 <style>
   :global(body.collaboration-downloads-page) {
     background: #050505;
-    color: #ffffff;
+    color: var(--color-primary-text);
   }
 
   :global(body.collaboration-downloads-page .site-footer) {
     background: #050505;
-    border-top-color: rgba(255, 255, 255, 0.08);
+    border-top-color: color-mix(in srgb, var(--color-surface) 8%, transparent);
   }
 
   .collaboration-page {
     --page-shell: #050505;
     --page-surface: #0b0b0b;
     --page-surface-strong: #101010;
-    --page-line: rgba(255, 255, 255, 0.09);
-    --page-line-strong: rgba(255, 255, 255, 0.16);
-    --page-text: #ffffff;
-    --page-muted: rgba(255, 255, 255, 0.7);
-    --page-muted-soft: rgba(255, 255, 255, 0.52);
+    --page-line: color-mix(in srgb, var(--color-surface) 9%, transparent);
+    --page-line-strong: color-mix(in srgb, var(--color-surface) 16%, transparent);
+    --page-text: var(--color-surface);
+    --page-muted: color-mix(in srgb, var(--color-surface) 70%, transparent);
+    --page-muted-soft: color-mix(in srgb, var(--color-surface) 52%, transparent);
     --page-accent: var(--color-brand-red);
     width: min(1440px, calc(100vw - 2rem));
     margin: 0 auto;
@@ -332,8 +332,7 @@ const statItems = [
   .portfolio-card__media {
     position: relative;
     aspect-ratio: 1 / 1;
-    background:
-      linear-gradient(160deg, rgba(163, 0, 33, 0.45), rgba(255, 255, 255, 0.04)),
+    background: linear-gradient(160deg, rgba(163, 0, 33, 0.45), color-mix(in srgb, var(--color-surface) 4%, transparent)),
       #111111;
     overflow: hidden;
   }
@@ -377,10 +376,10 @@ const statItems = [
     align-items: center;
     min-height: 1.8rem;
     padding: 0.1rem 0.55rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
     border-radius: 999px;
     background: rgba(163, 0, 33, 0.12);
-    color: rgba(255, 255, 255, 0.88);
+    color: color-mix(in srgb, var(--color-surface) 88%, transparent);
     font-family: var(--font-mono);
     font-size: 0.68rem;
     letter-spacing: 0.05em;
@@ -402,19 +401,19 @@ const statItems = [
   h3 {
     font-size: clamp(1.15rem, 1.6vw, 1.4rem);
     line-height: 1.02;
-    color: #ffffff;
+    color: var(--color-primary-text);
   }
 
   .series-link {
     width: fit-content;
     text-decoration: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-surface) 16%, transparent);
   }
 
   .series-link:hover,
   .series-link:focus-visible {
-    color: #ffffff;
-    border-bottom-color: rgba(255, 255, 255, 0.44);
+    color: var(--color-primary-text);
+    border-bottom-color: color-mix(in srgb, var(--color-surface) 44%, transparent);
     outline: none;
   }
 
@@ -429,7 +428,7 @@ const statItems = [
     border-radius: 12px;
     border: 1px solid transparent;
     background: var(--page-accent);
-    color: #ffffff;
+    color: var(--color-primary-text);
     font-family: var(--font-ui);
     font-size: 0.84rem;
     font-weight: 700;
@@ -456,7 +455,7 @@ const statItems = [
     width: 1.9rem;
     height: 1.9rem;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.18);
+    background: color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
     font-size: 1rem;
     line-height: 1;
   }

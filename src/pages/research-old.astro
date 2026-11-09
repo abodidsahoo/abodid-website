@@ -143,7 +143,7 @@ const isTensorFlowProject = (slug = "", title = "") =>
     transform: translateY(-4px);
     border-color: color-mix(in srgb, var(--text-primary) 35%, var(--border-subtle));
     background: var(--bg-surface);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
   }
 
   .card-image-container {
@@ -177,7 +177,7 @@ const isTensorFlowProject = (slug = "", title = "") =>
     font-size: 0.72rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    background: rgba(0, 0, 0, 0.75);
+    background: color-mix(in srgb, var(--ui-shadow-color) 75%, transparent);
     backdrop-filter: blur(4px);
     color: #f59e0b;
     border: 1px solid rgba(245, 158, 11, 0.3);

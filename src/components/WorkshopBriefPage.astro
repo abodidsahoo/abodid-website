@@ -196,7 +196,7 @@ const structuredData = [
 <style>
   :global(html:has(body.workshop-landing-page)),
   :global(body.workshop-landing-page) {
-    background: var(--pop-blue, #2444ca) !important;
+    background: var(--color-primary) !important;
   }
 
   :global(body.workshop-landing-page main.page-content-full) {
@@ -204,18 +204,18 @@ const structuredData = [
   }
 
   :global(body.workshop-landing-page .site-footer) {
-    --footer-bg: var(--pop-blue, #2444ca);
-    --footer-text-header: var(--pop-cream, #fff8e8);
-    --footer-text-dim: rgba(255, 248, 232, 0.82);
-    --footer-border: rgba(255, 248, 232, 0.3);
+    --footer-bg: var(--color-primary);
+    --footer-text-header: var(--color-background);
+    --footer-text-dim: color-mix(in srgb, var(--color-primary-text) 82%, transparent);
+    --footer-border: color-mix(in srgb, var(--color-primary-text) 30%, transparent);
   }
 
   .workshop-site {
-    --workshop-ink: var(--pop-ink, #15130f);
-    --workshop-cream: var(--pop-cream, #fff8e8);
-    --workshop-blue: var(--pop-blue, #2444ca);
-    --workshop-pink: var(--pop-pink, #ff7eb5);
-    --workshop-yellow: var(--pop-yellow, #ffe44f);
+    --workshop-ink: var(--color-text);
+    --workshop-cream: var(--color-background);
+    --workshop-blue: var(--color-primary);
+    --workshop-pink: var(--color-secondary);
+    --workshop-yellow: var(--color-button);
     width: 100%;
     max-width: 1440px;
     margin: 0 auto;

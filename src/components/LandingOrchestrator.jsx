@@ -1212,14 +1212,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     pointer-events: none;
                     will-change: transform, opacity;
                 }
-                .pointer-instruction-label {
+                    .pointer-instruction-label {
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
                     max-width: min(78vw, ${POINTER_INSTRUCTION_MAX_WIDTH_PX}px);
                     padding: 0.95rem 1.2rem;
                     border-radius: 16px;
-                    border: 1px solid rgba(255, 255, 255, 0.75);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 75%, transparent);
                     background: rgba(8, 8, 10, 0.42);
                     backdrop-filter: blur(10px);
                     font-family: "Satoshi-Variable", "Satoshi-Regular", var(--font-ui);
@@ -1230,10 +1230,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     text-transform: none;
                     white-space: pre-line;
                     text-align: left;
-                    color: rgba(255, 255, 255, 0.95);
-                    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+                    color: color-mix(in srgb, var(--color-surface) 95%, transparent);
+                    box-shadow: 0 10px 28px color-mix(in srgb, var(--ui-shadow-color) 34%, transparent);
                 }
-                .start-overlay {
+                    .start-overlay {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                     z-index: 10000;
                     display: flex; justify-content: flex-end; align-items: flex-start;
@@ -1249,11 +1249,11 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .control-panel-toggle {
                     width: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.45);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 45%, transparent);
                     border-radius: 10px;
-                    background: rgba(0, 0, 0, 0.22);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 22%, transparent);
                     backdrop-filter: blur(4px);
-                    color: rgba(255, 255, 255, 0.92);
+                    color: color-mix(in srgb, var(--color-surface) 92%, transparent);
                     cursor: pointer;
                     padding: 0.78rem 1rem;
                     text-align: center;
@@ -1266,13 +1266,13 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     z-index: 2;
                 }
                 .control-panel-toggle:hover {
-                    border-color: rgba(255, 255, 255, 0.78);
-                    background: rgba(255, 255, 255, 0.08);
-                    box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+                    border-color: color-mix(in srgb, var(--color-surface) 78%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 8%, transparent);
+                    box-shadow: 0 0 18px color-mix(in srgb, var(--color-surface) 8%, transparent);
                 }
                 .control-panel-toggle.open {
-                    border-color: rgba(255, 255, 255, 0.7);
-                    background: rgba(0, 0, 0, 0.34);
+                    border-color: color-mix(in srgb, var(--color-surface) 70%, transparent);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 34%, transparent);
                 }
                 .control-panel-toggle-label {
                     display: block;
@@ -1300,14 +1300,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 .start-btn {
                     width: 100%;
                     background: transparent;
-                    border: 1px solid rgba(255, 255, 255, 0.65);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 65%, transparent);
                     padding: 0.68rem 1.05rem;
                     color: var(--feature-stack-primary-btn-color, white);
                     cursor: pointer;
                     text-align: center;
                     font-family: var(--feature-stack-primary-btn-font, var(--font-ui));
                     transition: all 0.3s ease;
-                    background: rgba(0, 0, 0, 0.25);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 25%, transparent);
                     backdrop-filter: blur(4px);
                     border-radius: 10px;
                     display: flex; 
@@ -1318,9 +1318,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .size-control {
                     width: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 30%, transparent);
                     border-radius: 10px;
-                    background: rgba(0, 0, 0, 0.32);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 32%, transparent);
                     backdrop-filter: blur(4px);
                     padding: 10px 12px;
                     cursor: ew-resize;
@@ -1328,21 +1328,21 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     transition: padding-bottom 260ms cubic-bezier(0.22, 1, 0.36, 1);
                 }
                 .size-control.dragging {
-                    border-color: rgba(255, 255, 255, 0.55);
+                    border-color: color-mix(in srgb, var(--color-surface) 55%, transparent);
                 }
                 .size-control-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     margin-bottom: 6px;
-                    color: rgba(255, 255, 255, 0.95);
+                    color: color-mix(in srgb, var(--color-surface) 95%, transparent);
                     font-family: var(--font-ui);
                     text-transform: uppercase;
                     letter-spacing: 0.04em;
                     font-size: 0.62rem;
                 }
                 .size-control-value {
-                    color: #ffffff;
+                    color: var(--color-primary-text);
                 }
                 .size-slider {
                     -webkit-appearance: none;
@@ -1376,7 +1376,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     top: 50%;
                     height: 4px;
                     border-radius: 999px;
-                    background: rgba(255, 255, 255, 0.28);
+                    background: color-mix(in srgb, var(--color-surface) 28%, transparent);
                     transform: translateY(-50%);
                     transition: width 140ms cubic-bezier(0.22, 1, 0.36, 1);
                 }
@@ -1406,11 +1406,11 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     width: 12px;
                     height: 12px;
                     border-radius: 999px;
-                    border: 1px solid rgba(255, 255, 255, 0.95);
-                    background: #ffffff;
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 95%, transparent);
+                    background: var(--color-surface);
                     color: rgba(15, 15, 15, 0.95);
                     transform: translate(-50%, -50%);
-                    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+                    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -1436,7 +1436,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     width: 46px;
                     height: 18px;
                     border-radius: 999px;
-                    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.18);
+                    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-surface) 12%, transparent), 0 0 0 1px color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
                 }
                 .size-slider-hit-area.expanded .size-slider-knob-label,
                 .size-slider-hit-area.dragging .size-slider-knob-label {
@@ -1450,10 +1450,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     font-family: var(--font-ui);
                     font-size: 0.56rem;
                     letter-spacing: 0.03em;
-                    color: rgba(255, 255, 255, 0.65);
+                    color: color-mix(in srgb, var(--color-surface) 65%, transparent);
                 }
                 .sensitivity-note {
-                    color: rgba(255, 255, 255, 0.82);
+                    color: color-mix(in srgb, var(--color-surface) 82%, transparent);
                     font-family: var(--font-ui);
                     font-size: 0.62rem;
                     line-height: 1.35;
@@ -1480,14 +1480,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     margin-top: 6px;
                 }
                 .photo-story-live-header {
-                    color: rgba(255, 255, 255, 0.95);
+                    color: color-mix(in srgb, var(--color-surface) 95%, transparent);
                     font-family: var(--font-ui);
                     text-transform: uppercase;
                     letter-spacing: 0.04em;
                     font-size: 0.66rem;
                     line-height: 1.2;
                 }
-                .left-story-panel {
+                    .left-story-panel {
                     position: fixed;
                     left: 4vw;
                     z-index: 9800;
@@ -1499,21 +1499,21 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 .left-story-shell {
                     display: flex;
                     flex-direction: column;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 30%, transparent);
                     border-radius: 12px;
-                    background: rgba(0, 0, 0, 0.5);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 50%, transparent);
                     backdrop-filter: blur(8px);
                     overflow: hidden;
                     transition:
                         box-shadow 360ms ease,
                         border-color 320ms ease;
                     border-color: rgba(56, 189, 248, 0.45);
-                    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.34);
+                    box-shadow: 0 24px 54px color-mix(in srgb, var(--ui-shadow-color) 34%, transparent);
                 }
                 .left-story-title-row {
                     padding: 0.6rem 0.86rem 0.56rem;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
-                    color: var(--feature-stack-main-text-color, rgba(255, 255, 255, 0.96));
+                    border-bottom: 1px solid color-mix(in srgb, var(--color-surface) 22%, transparent);
+                    color: var(--feature-stack-main-text-color, color-mix(in srgb, var(--color-surface) 96%, transparent));
                     font-family: var(--feature-stack-main-text-font, var(--font-mono));
                     font-size: 1rem;
                     line-height: 1.34;
@@ -1527,7 +1527,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     padding: 0.72rem 0.86rem 0.84rem;
                 }
                 .left-story-body-label {
-                    color: rgba(255, 255, 255, 0.95);
+                    color: color-mix(in srgb, var(--color-surface) 95%, transparent);
                     font-family: var(--font-ui);
                     text-transform: uppercase;
                     letter-spacing: 0.06em;
@@ -1535,7 +1535,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     line-height: 1.2;
                 }
                 .left-story-copy {
-                    color: var(--feature-stack-main-text-color, rgba(255, 255, 255, 0.9));
+                    color: var(--feature-stack-main-text-color, color-mix(in srgb, var(--color-surface) 90%, transparent));
                     font-family: var(--feature-stack-main-text-font, var(--font-mono));
                     white-space: pre-wrap;
                     overflow-wrap: anywhere;
@@ -1548,9 +1548,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 .feed-control-panel,
                 .filter-control-panel {
                     width: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 30%, transparent);
                     border-radius: 10px;
-                    background: rgba(0, 0, 0, 0.35);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 35%, transparent);
                     backdrop-filter: blur(4px);
                     padding: 10px;
                     display: flex;
@@ -1563,9 +1563,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     gap: 8px;
                 }
                 .mode-btn {
-                    border: 1px solid rgba(255, 255, 255, 0.32);
-                    background: rgba(255, 255, 255, 0.04);
-                    color: var(--feature-stack-secondary-btn-color, rgba(255, 255, 255, 0.8));
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 32%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
+                    color: var(--feature-stack-secondary-btn-color, color-mix(in srgb, var(--color-surface) 80%, transparent));
                     border-radius: 8px;
                     padding: 0.46rem 0.62rem;
                     font-size: var(--feature-stack-secondary-btn-size, 0.69rem);
@@ -1579,7 +1579,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     white-space: nowrap;
                 }
                 .mode-btn.active {
-                    color: #ffffff;
+                    color: var(--color-primary-text);
                     border-color: rgba(56, 189, 248, 0.72);
                     background: rgba(56, 189, 248, 0.2);
                 }
@@ -1601,18 +1601,18 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     background: rgba(56, 189, 248, 0.2);
                     color: #e0f2fe;
                 }
-                .hand-feedback-panel {
+                    .hand-feedback-panel {
                     width: 284px;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 30%, transparent);
                     border-radius: 10px;
-                    background: rgba(0, 0, 0, 0.35);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 35%, transparent);
                     backdrop-filter: blur(4px);
                     padding: 10px;
                     display: flex;
                     flex-direction: column;
                     gap: 9px;
                 }
-                .hand-feedback-floating {
+                    .hand-feedback-floating {
                     position: fixed;
                     top: ${HAND_FEEDBACK_TOP_PX}px;
                     left: 4vw;
@@ -1641,9 +1641,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     aspect-ratio: 4 / 3;
                     border-radius: 7px;
                     overflow: hidden;
-                    border: 1px solid rgba(255, 255, 255, 0.22);
-                    background: rgba(0, 0, 0, 0.82);
-                    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 22%, transparent);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 82%, transparent);
+                    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 5%, transparent);
                 }
                 .start-btn.gesture-btn.active {
                     border-color: rgba(76, 175, 80, 0.6);
@@ -1654,9 +1654,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     font-weight: 600;
                 }
                 .start-btn:hover {
-                    border-color: rgba(255, 255, 255, 0.9);
-                    background: rgba(255, 255, 255, 0.08);
-                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+                    border-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 8%, transparent);
+                    box-shadow: 0 0 15px color-mix(in srgb, var(--color-surface) 10%, transparent);
                 }
                 .start-label-large {
                     font-size: var(--feature-stack-primary-btn-size, 0.98rem); 
@@ -1681,7 +1681,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     transform: translateX(-50%);
                     font-family: var(--font-ui);
                     font-size: 0.9rem;
-                    color: rgba(255, 255, 255, 0.6);
+                    color: color-mix(in srgb, var(--color-surface) 60%, transparent);
                     animation: bounce 2s infinite;
                     z-index: 50; 
                     pointer-events: none;
@@ -1701,10 +1701,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     max-width: min(560px, 86vw);
                     padding: 16px 20px;
                     border-radius: 12px;
-                    border: 1px solid rgba(0, 0, 0, 0.14);
-                    background: rgba(255, 255, 255, 0.96);
+                    border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 14%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 96%, transparent);
                     backdrop-filter: blur(10px);
-                    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+                    box-shadow: 0 12px 40px color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
                     text-align: center;
                     display: flex;
                     flex-direction: column;
@@ -1713,7 +1713,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .stability-notice p {
                     margin: 0;
-                    color: rgba(0, 0, 0, 0.86);
+                    color: color-mix(in srgb, var(--ui-shadow-color) 86%, transparent);
                     font-family: var(--font-ui);
                     font-size: 0.86rem;
                     letter-spacing: 0.03em;
@@ -1721,13 +1721,13 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .stability-notice .stability-subtext {
                     font-size: 0.79rem;
-                    color: rgba(0, 0, 0, 0.7);
+                    color: color-mix(in srgb, var(--ui-shadow-color) 70%, transparent);
                 }
                 .stability-refresh-btn {
-                    border: 1px solid rgba(0, 0, 0, 0.45);
+                    border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 45%, transparent);
                     border-radius: 8px;
-                    background: #ffffff;
-                    color: rgba(0, 0, 0, 0.86);
+                    background: var(--color-surface);
+                    color: color-mix(in srgb, var(--ui-shadow-color) 86%, transparent);
                     font-family: var(--font-ui);
                     font-size: 0.74rem;
                     font-weight: 600;
@@ -1772,9 +1772,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 /* LIGHT MODE OVERRIDES - BRIGHT WHITE THEME */
                 [data-theme="light"] .pointer-instruction-label {
                     color: rgba(18, 18, 18, 0.95);
-                    border-color: rgba(0, 0, 0, 0.2);
-                    background: rgba(255, 255, 255, 0.84);
-                    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+                    border-color: color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 84%, transparent);
+                    box-shadow: 0 10px 24px color-mix(in srgb, var(--ui-shadow-color) 12%, transparent);
                 }
 
                 [data-theme="light"] .start-btn, 
@@ -1783,106 +1783,106 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 [data-theme="light"] .feed-control-panel,
                 [data-theme="light"] .filter-control-panel,
                 [data-theme="light"] .hand-feedback-panel {
-                    background: #ffffff !important;
-                    border: 1px solid #000000 !important;
-                    color: #000000 !important;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                    background: var(--color-surface) !important;
+                    border: 1px solid var(--color-text) !important;
+                    color: var(--color-text) !important;
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
                 }
 
                 /* Force ALL text inside these controls to be black */
                 [data-theme="light"] .activation-stack *,
                 [data-theme="light"] .control-panel-toggle * {
-                    color: #000000;
+                    color: var(--color-text);
                 }
 
                 [data-theme="light"] .size-control-header,
                 [data-theme="light"] .photo-story-live-header,
                 [data-theme="light"] .size-control-scale span,
                 [data-theme="light"] .sensitivity-note {
-                    color: #000000 !important;
+                    color: var(--color-text) !important;
                     font-weight: 600;
                     opacity: 1;
                 }
 
                 [data-theme="light"] .size-control-value,
                 [data-theme="light"] .hand-feedback-status {
-                    color: #000000 !important;
+                    color: var(--color-text) !important;
                     font-weight: 700;
                 }
 
                 /* High Contrast Hover States */
                 [data-theme="light"] .start-btn:hover,
                 [data-theme="light"] .control-panel-toggle:hover {
-                    background: #000000 !important;
-                    border-color: #000000 !important;
-                    color: #ffffff !important;
-                    box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
+                    background: var(--color-text) !important;
+                    border-color: var(--color-text) !important;
+                    color: var(--color-primary-text) !important;
+                    box-shadow: 0 6px 16px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent) !important;
                 }
                 /* IMPORTANT: When button is hovered, ensure children (text) turn white */
                 [data-theme="light"] .start-btn:hover *,
                 [data-theme="light"] .control-panel-toggle:hover * {
-                    color: #ffffff !important;
+                    color: var(--color-primary-text) !important;
                 }
 
                 /* Sliders */
                 [data-theme="light"] .size-slider-segment {
-                    background: rgba(0, 0, 0, 0.2) !important;
+                    background: color-mix(in srgb, var(--ui-shadow-color) 20%, transparent) !important;
                 }
                 [data-theme="light"] .size-slider-knob {
-                    background: #000000 !important;
-                    border: 2px solid #ffffff !important;
-                    color: #ffffff !important;
-                    box-shadow: 0 0 0 1px #000000 !important;
+                    background: var(--color-text) !important;
+                    border: 2px solid var(--color-primary-text) !important;
+                    color: var(--color-primary-text) !important;
+                    box-shadow: 0 0 0 1px var(--color-text) !important;
                 }
                 
                 /* EXPLICITLY FORCE SLIDER TEXT WHITE (Override blanket black rule) */
                 [data-theme="light"] .size-slider-knob-label {
-                    color: #ffffff !important;
+                    color: var(--color-primary-text) !important;
                     font-weight: 700;
                     /* opacity handled by interaction classes */
                 }
 
                 /* Mode Buttons */
                 [data-theme="light"] .mode-btn {
-                    background: #ffffff !important;
-                    border: 1px solid #000000 !important;
-                    color: #000000 !important;
+                    background: var(--color-surface) !important;
+                    border: 1px solid var(--color-text) !important;
+                    color: var(--color-text) !important;
                 }
                 [data-theme="light"] .mode-btn:hover {
-                    background: #000000 !important;
-                    color: #ffffff !important;
+                    background: var(--color-text) !important;
+                    color: var(--color-primary-text) !important;
                 }
                 [data-theme="light"] .mode-btn.active {
-                    background: #000000 !important;
-                    color: #ffffff !important;
-                    border-color: #000000 !important;
+                    background: var(--color-text) !important;
+                    color: var(--color-primary-text) !important;
+                    border-color: var(--color-text) !important;
                     font-weight: 700;
                 }
 
                 /* Category Buttons (Specific Colors - High Contrast) */
                 [data-theme="light"] .category-btn.art.active {
                     background: #0000ff !important; /* Pure Blue */
-                    color: #ffffff !important;
+                    color: var(--color-primary-text) !important;
                     border-color: #0000ff !important;
                 }
                 [data-theme="light"] .category-btn.commercial.active {
                     background: #ff6b00 !important; /* Deep Orange */
-                    color: #ffffff !important;
+                    color: var(--color-primary-text) !important;
                     border-color: #ff6b00 !important;
                 }
 
                 /* Left Story Panel */
                 [data-theme="light"]  .left-story-shell {
-                    background: rgba(255, 255, 255, 0.9);
-                    border: 1px solid rgba(0, 0, 0, 0.1);
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+                    background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+                    border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
+                    box-shadow: 0 10px 40px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
                 [data-theme="light"] .left-story-title-row {
-                    color: #000000;
-                    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                    color: var(--color-text);
+                    border-bottom: 1px solid color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
                 [data-theme="light"] .left-story-body-label {
-                    color: rgba(0, 0, 0, 0.6);
+                    color: color-mix(in srgb, var(--ui-shadow-color) 60%, transparent);
                 }
                 [data-theme="light"] .left-story-copy {
                     color: #333333;
@@ -1890,7 +1890,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
                 /* Scroll Hint */
                 [data-theme="light"] .scroll-hint {
-                    color: #000000;
+                    color: var(--color-text);
                 }
             `}</style>
 

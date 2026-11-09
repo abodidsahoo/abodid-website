@@ -6,15 +6,15 @@
 
 /* ---------- design tokens ---------- */
 .av {
-  --pop-yellow: #ffe44f;
-  --pop-ink:    #15130f;
-  --pop-cream:  #fff8e8;
-  --pop-blue:   #2444ca;
-  --pop-cyan:   #62e6ff;
-  --pop-pink:   #ff7eb5;
-  --pop-lime:   #caff48;
-  --pop-orange: #ff875c;
-  --pop-purple: #5524c7;
+  --color-button: #ffe44f;
+  --color-text:    #15130f;
+  --color-background:  #fff8e8;
+  --color-primary:   #2444ca;
+  --color-additional-3:   #62e6ff;
+  --color-secondary:   #ff7eb5;
+  --color-accent:   #caff48;
+  --color-additional-1: #ff875c;
+  --color-additional-2: #5524c7;
   --pop-border: rgba(21, 19, 15, 0.82);
 
   /* panel surface */
@@ -41,7 +41,7 @@
 
 .av button:focus-visible,
 .av summary:focus-visible {
-  outline: 2px solid var(--pop-purple);
+  outline: 2px solid var(--color-additional-2);
   outline-offset: 3px;
 }
 
@@ -93,8 +93,8 @@
   padding: 0 14px;
   border: 1.5px solid var(--pop-border);
   border-radius: 14px;
-  background: var(--pop-yellow);
-  color: var(--pop-ink);
+  background: var(--color-button);
+  color: var(--color-text);
   box-shadow: none;
   cursor: pointer;
   font: 750 0.62rem/1 "Satoshi-Variable", monospace;
@@ -104,8 +104,8 @@
 }
 .av__panel-reveal:hover {
   transform: translateY(-1px);
-  box-shadow: 3px 3px 0 var(--pop-ink);
-  background: var(--pop-cyan);
+  box-shadow: 3px 3px 0 var(--color-text);
+  background: var(--color-additional-3);
 }
 
 /* ============================================================
@@ -151,7 +151,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 13px 14px 12px 16px;
-  background: var(--pop-blue);
+  background: var(--color-primary);
   border-bottom: 1.5px solid var(--pop-border);
 }
 
@@ -172,7 +172,7 @@
 
 .av__header h1 {
   margin: 0;
-  color: var(--pop-cream);
+  color: var(--color-background);
   font: 800 1.18rem/1.1 "Satoshi-Variable", sans-serif;
   letter-spacing: -0.03em;
   white-space: nowrap;
@@ -190,24 +190,24 @@
   height: 44px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 12px;
-  background: var(--pop-yellow);
-  color: var(--pop-ink);
-  color: var(--pop-cream);
+  background: var(--color-button);
+  color: var(--color-text);
+  color: var(--color-background);
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
 
 .av .av__header-btn,
 .av .av__header-btn svg {
-  color: var(--pop-ink);
-  stroke: var(--pop-ink);
+  color: var(--color-text);
+  stroke: var(--color-text);
 }
 
 .av__header-btn:hover {
-  background: var(--pop-cyan);
-  border-color: var(--pop-ink);
+  background: var(--color-additional-3);
+  border-color: var(--color-text);
   transform: translateY(-1px);
 }
 
@@ -255,7 +255,7 @@
   padding: 5px 6px 5px 10px;
   border: 1.5px solid var(--pop-border);
   border-radius: 10px;
-  background: var(--pop-cream);
+  background: var(--color-background);
 }
 .av__microphone-picker > span {
   font: 750 0.55rem/1 "Satoshi-Variable", monospace;
@@ -276,7 +276,7 @@
   text-overflow: ellipsis;
 }
 .av__microphone-picker select:focus-visible {
-  outline: 2px solid var(--pop-purple);
+  outline: 2px solid var(--color-additional-2);
   outline-offset: 2px;
 }
 .av__source-button {
@@ -286,26 +286,26 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 14px;
-  background: var(--pop-cream);
+  background: var(--color-background);
   cursor: pointer;
   text-align: left;
   transition: border-color 130ms ease, background 130ms ease, box-shadow 130ms ease, transform 130ms ease;
 }
-.av__source-button--microphone { grid-column: 1 / -1; background: var(--pop-lime); }
-.av__source-button--file { background: var(--pop-pink); }
-.av__source-button--tab { background: var(--pop-cyan); }
-.av__source-button:hover { border-color: var(--pop-ink); box-shadow: 3px 3px 0 var(--pop-ink); transform: translate(-1px, -1px); }
-.av__source-button.is-active { border-color: var(--pop-ink); background: var(--pop-yellow); }
+.av__source-button--microphone { grid-column: 1 / -1; background: var(--color-accent); }
+.av__source-button--file { background: var(--color-secondary); }
+.av__source-button--tab { background: var(--color-additional-3); }
+.av__source-button:hover { border-color: var(--color-text); box-shadow: 3px 3px 0 var(--color-text); transform: translate(-1px, -1px); }
+.av__source-button.is-active { border-color: var(--color-text); background: var(--color-button); }
 .av__source-button--stop,
-.av__source-button--stop:last-of-type { background: var(--pop-orange); }
+.av__source-button--stop:last-of-type { background: var(--color-additional-1); }
 .av__source-button > svg, .av__capture-mark { flex: 0 0 auto; }
 .av__source-button span:not(.av__capture-mark) { min-width: 0; display: grid; gap: 2px; }
 .av__source-button strong { overflow: hidden; font: 700 0.64rem/1.15 "Satoshi-Variable", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 .av__source-button small { color: var(--av-muted); font: 500 0.54rem/1.2 "Satoshi-Variable", monospace; }
 .av__capture-mark { width: 13px; height: 9px; border: 1.5px solid var(--av-ink); border-radius: 2px; position: relative; }
-.av__capture-mark::after { content: ""; position: absolute; inset: 1.5px; border-radius: 1px; background: var(--pop-blue); }
+.av__capture-mark::after { content: ""; position: absolute; inset: 1.5px; border-radius: 1px; background: var(--color-primary); }
 
 /* ---------- transport ---------- */
 .av__transport {
@@ -328,15 +328,15 @@
   padding: 0;
   border: 1.5px solid var(--pop-border) !important;
   border-radius: 14px;
-  background: var(--pop-yellow) !important;
-  color: var(--pop-ink) !important;
+  background: var(--color-button) !important;
+  color: var(--color-text) !important;
   cursor: pointer;
   transition: transform 120ms ease, background 120ms ease;
   box-shadow: none;
 }
 .av__play-button:hover {
   transform: scale(1.06);
-  background: var(--pop-cyan) !important;
+  background: var(--color-additional-3) !important;
 }
 .av__play-button:active {
   transform: scale(0.95);
@@ -408,7 +408,7 @@
 
 .av input[type="range"]:focus,
 .av input[type="range"]:focus-visible {
-  outline: 2px solid var(--pop-purple) !important;
+  outline: 2px solid var(--color-additional-2) !important;
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -428,7 +428,7 @@
   margin-top: -5px;
   border: none;
   border-radius: 50%;
-  background: var(--pop-ink);
+  background: var(--color-text);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
   -webkit-appearance: none;
   appearance: none;
@@ -440,7 +440,7 @@
 }
 .av input[type="range"]:active::-webkit-slider-thumb {
   transform: scale(1.2);
-  background: var(--pop-blue);
+  background: var(--color-primary);
 }
 
 /* Mozilla Track */
@@ -457,7 +457,7 @@
   height: 13px;
   border: none;
   border-radius: 50%;
-  background: var(--pop-ink);
+  background: var(--color-text);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
   transition: transform 100ms ease;
 }
@@ -491,7 +491,7 @@
   font: 600 0.56rem/1.2 "Satoshi-Variable", monospace;
 }
 .av__diagnostic-overlay strong, .av__diagnostic-overlay small { grid-column: 1 / -1; }
-.av__diagnostic-overlay strong { color: var(--pop-cream); text-transform: uppercase; letter-spacing: 0.06em; }
+.av__diagnostic-overlay strong { color: var(--color-background); text-transform: uppercase; letter-spacing: 0.06em; }
 .av__diagnostic-overlay small { color: rgba(245, 240, 230, 0.35); font-size: 0.50rem; }
 
 /* ---------- visually hidden ---------- */
@@ -521,17 +521,17 @@
   padding-inline: 6px;
 }
 
-.avm__tab-bar--three .avm__tab-btn:nth-child(2) { background: var(--pop-cyan); }
-.avm__tab-bar--three .avm__tab-btn:nth-child(3) { background: var(--pop-yellow); }
-.avm__tab-bar--three .avm__tab-btn.is-active { background: var(--pop-blue); }
+.avm__tab-bar--three .avm__tab-btn:nth-child(2) { background: var(--color-additional-3); }
+.avm__tab-bar--three .avm__tab-btn:nth-child(3) { background: var(--color-button); }
+.avm__tab-bar--three .avm__tab-btn.is-active { background: var(--color-primary); }
 
 .avm__tab-btn {
   min-height: 44px;
   padding: 10px 12px;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 14px;
-  background: var(--pop-pink);
-  color: var(--pop-ink);
+  background: var(--color-secondary);
+  color: var(--color-text);
   font: 750 0.58rem/1 "Satoshi-Variable", monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -541,18 +541,18 @@
 }
 
 .avm__tab-btn:hover {
-  border-color: var(--pop-ink);
-  color: var(--pop-ink);
+  border-color: var(--color-text);
+  color: var(--color-text);
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 var(--pop-ink);
+  box-shadow: 3px 3px 0 var(--color-text);
 }
 
-.avm__tab-btn:last-child { background: var(--pop-cyan); }
+.avm__tab-btn:last-child { background: var(--color-additional-3); }
 
 .avm__tab-btn.is-active {
   border-color: var(--pop-border);
-  background: var(--pop-blue);
-  color: var(--pop-cream);
+  background: var(--color-primary);
+  color: var(--color-background);
   font-weight: 800;
   box-shadow: none;
 }
@@ -566,9 +566,9 @@
   gap: 3px;
   padding: 13px 16px;
   border-bottom: 1px solid var(--av-line);
-  background: color-mix(in srgb, var(--pop-pink) 44%, var(--av-panel));
+  background: color-mix(in srgb, var(--color-secondary) 44%, var(--av-panel));
 }
-.avm__tier-intro--hyper { background: color-mix(in srgb, var(--pop-yellow) 42%, var(--av-panel)); }
+.avm__tier-intro--hyper { background: color-mix(in srgb, var(--color-button) 42%, var(--av-panel)); }
 .avm__tier-intro strong {
   color: var(--av-ink);
   font-size: 0.76rem;
@@ -620,20 +620,20 @@
   justify-content: center;
   min-height: 44px;
   padding: 0;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 12px;
-  background: var(--pop-cream);
+  background: var(--color-background);
   cursor: pointer;
   transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
 }
 .avm__shape-btn:hover {
-  border-color: var(--pop-ink);
+  border-color: var(--color-text);
   transform: translate(-1px, -1px);
-  box-shadow: 2px 2px 0 var(--pop-ink);
+  box-shadow: 2px 2px 0 var(--color-text);
 }
 .avm__shape-btn.is-active {
   border-color: var(--pop-border);
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 .avm__shape-glyph {
   font-size: 0.92rem;
@@ -641,7 +641,7 @@
   color: var(--av-muted);
 }
 .avm__shape-btn.is-active .avm__shape-glyph {
-  color: var(--pop-ink);
+  color: var(--color-text);
   font-weight: 700;
 }
 
@@ -665,7 +665,7 @@
   padding: 3px 4px;
   border: 1px solid rgba(21, 19, 15, 0.48);
   border-radius: 7px;
-  background: var(--pop-cream);
+  background: var(--color-background);
   cursor: pointer;
   font: 750 0.49rem/1 "Satoshi-Variable", monospace;
   letter-spacing: 0.02em;
@@ -674,14 +674,14 @@
   transition: border-color 120ms ease, background 120ms ease, color 120ms ease, transform 120ms ease;
 }
 .avm__palette-btn:hover {
-  border-color: var(--pop-ink);
+  border-color: var(--color-text);
   color: var(--av-ink);
   background: rgba(21, 19, 15, 0.04);
 }
 .avm__palette-btn.is-active {
-  border-color: var(--pop-ink);
-  background: var(--pop-yellow);
-  color: var(--pop-ink);
+  border-color: var(--color-text);
+  background: var(--color-button);
+  color: var(--color-text);
 }
 .avm__palette-swatch {
   width: 7px;
@@ -753,9 +753,9 @@
   grid-template-columns: auto minmax(64px, 1fr) 44px;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 11px;
-  background: var(--pop-pink);
+  background: var(--color-secondary);
   box-shadow: none;
   transition: opacity 140ms ease, border-color 140ms ease, background 140ms ease;
 }
@@ -768,11 +768,11 @@
   line-height: 1.25;
 }
 
-.avm__band-card:nth-child(2) { background: var(--pop-cyan); }
-.avm__band-card:nth-child(3) { background: var(--pop-yellow); }
+.avm__band-card:nth-child(2) { background: var(--color-additional-3); }
+.avm__band-card:nth-child(3) { background: var(--color-button); }
 
 .avm__band-card.is-active {
-  border-color: var(--pop-ink);
+  border-color: var(--color-text);
 }
 
 .avm__band-card.is-muted {
@@ -801,16 +801,16 @@
 .avm__band-badge {
   font: 750 0.46rem/1 "Satoshi-Variable", monospace;
   letter-spacing: 0.03em;
-  color: var(--pop-ink);
-  background: var(--pop-cream);
+  color: var(--color-text);
+  background: var(--color-background);
   padding: 2px 5px;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 6px;
 }
 
 .avm__band-card.is-active .avm__band-badge {
-  color: var(--pop-ink);
-  background: var(--pop-cream);
+  color: var(--color-text);
+  background: var(--color-background);
 }
 
 /* ---- Compact Editorial Switch Component ---- */
@@ -864,7 +864,7 @@
 }
 
 .avm__switch:focus-visible .avm__switch-track {
-  box-shadow: 0 0 0 2px var(--pop-cream), 0 0 0 4px var(--pop-blue);
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-primary);
 }
 
 .avm__switch-track {
@@ -873,16 +873,16 @@
   width: 38px;
   height: 22px;
   border-radius: 8px;
-  background: var(--pop-cream);
-  border: 1px solid var(--pop-ink);
+  background: var(--color-background);
+  border: 1px solid var(--color-text);
   transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
               border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 200ms ease;
 }
 
 .avm__switch.is-checked .avm__switch-track {
-  background: var(--pop-blue);
-  border-color: var(--pop-ink);
+  background: var(--color-primary);
+  border-color: var(--color-text);
   box-shadow: none;
 }
 
@@ -892,16 +892,16 @@
   left: 2px;
   width: 16px;
   height: 16px;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 5px;
-  background: var(--pop-pink);
+  background: var(--color-secondary);
   box-shadow: none;
   transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .avm__switch.is-checked .avm__switch-thumb {
   transform: translateX(16px);
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 
 .avm__switch:hover .avm__switch-track {
@@ -909,8 +909,8 @@
 }
 
 .avm__switch.is-checked:hover .avm__switch-track {
-  border-color: var(--pop-ink);
-  background: var(--pop-purple);
+  border-color: var(--color-text);
+  background: var(--color-additional-2);
 }
 
 .avm__band-name {
@@ -952,10 +952,10 @@
 .avm__toggle-btn {
   min-height: 44px;
   padding: 9px;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 12px;
-  background: var(--pop-cream);
-  color: var(--pop-ink);
+  background: var(--color-background);
+  color: var(--color-text);
   cursor: pointer;
   font: 750 0.56rem/1 "Satoshi-Variable", monospace;
   letter-spacing: 0.03em;
@@ -963,15 +963,15 @@
   transition: border-color 120ms ease, background 120ms ease, color 120ms ease, transform 120ms ease;
 }
 .avm__toggle-btn:hover {
-  border-color: var(--pop-ink);
+  border-color: var(--color-text);
   color: var(--av-ink);
   transform: translate(-1px, -1px);
-  box-shadow: 2px 2px 0 var(--pop-ink);
+  box-shadow: 2px 2px 0 var(--color-text);
 }
 .avm__toggle-btn.is-active {
   border-color: var(--pop-border);
-  background: var(--pop-yellow);
-  color: var(--pop-ink);
+  background: var(--color-button);
+  color: var(--color-text);
 }
 
 /* ---- Footer Reset ---- */
@@ -990,29 +990,29 @@
   width: 100%;
   min-height: 48px;
   padding: 0 16px;
-  border: 1.5px solid var(--pop-ink);
+  border: 1.5px solid var(--color-text);
   border-radius: 12px;
-  background: var(--pop-yellow);
-  color: var(--pop-ink) !important;
+  background: var(--color-button);
+  color: var(--color-text) !important;
   cursor: pointer;
-  box-shadow: 3px 3px 0 var(--pop-ink);
+  box-shadow: 3px 3px 0 var(--color-text);
   font: 800 0.68rem/1 "Satoshi-Variable", monospace;
   letter-spacing: 0.055em;
   text-transform: uppercase;
   transition: color 120ms ease, background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
 .avm__reset-btn:hover {
-  color: var(--pop-ink) !important;
-  background: var(--pop-orange);
+  color: var(--color-text) !important;
+  background: var(--color-additional-1);
   transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 var(--pop-ink);
+  box-shadow: 4px 4px 0 var(--color-text);
 }
 .avm__reset-btn:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--pop-ink);
+  box-shadow: 1px 1px 0 var(--color-text);
 }
 .avm__reset-btn:focus-visible {
-  outline: 3px solid var(--pop-blue);
+  outline: 3px solid var(--color-primary);
   outline-offset: 3px;
 }
 

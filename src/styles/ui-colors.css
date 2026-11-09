@@ -1,0 +1,70 @@
+/*
+ * Shared UI colour roles. State colours are derived from their base and label
+ * colours, so choosing a new palette cannot leave an old hue on hover.
+ * Redeclare at local surface/preview boundaries to respect nested palettes.
+ */
+:root,
+body,
+[data-pop-surface],
+.design-inspector,
+.site-header,
+.story-footer,
+.newsletter-container,
+.inline-enquiry {
+  --ui-button-bg: var(--color-button);
+  --ui-button-text: var(--color-button-text);
+  --ui-button-hover-bg: color-mix(in srgb, var(--color-button) 92%, var(--color-button-text));
+  --ui-button-active-bg: color-mix(in srgb, var(--color-button) 86%, var(--color-button-text));
+  --ui-primary-hover-bg: color-mix(in srgb, var(--color-primary) 92%, var(--color-primary-text));
+  --ui-primary-active-bg: color-mix(in srgb, var(--color-primary) 86%, var(--color-primary-text));
+  --ui-surface-hover-bg: color-mix(in srgb, var(--color-surface) 94%, var(--color-text));
+  --ui-text-muted: color-mix(in srgb, var(--color-text) 78%, var(--color-background));
+  --ui-text-subtle: color-mix(in srgb, var(--color-text) 65%, var(--color-background));
+  --ui-on-primary-muted: color-mix(in srgb, var(--color-primary-text) 82%, transparent);
+  --ui-border: color-mix(in srgb, var(--color-text) 35%, transparent);
+  --ui-border-strong: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --ui-shadow-color: var(--color-text);
+  --ui-error-surface: color-mix(in srgb, var(--color-error) 10%, var(--color-background));
+  --ui-overlay: color-mix(in srgb, var(--color-text) 72%, transparent);
+  --ui-form-bg: var(--color-additional-2);
+  --ui-form-text: var(--color-primary-text);
+  --ui-field-bg: var(--color-background);
+  --ui-field-text: var(--color-text);
+  --ui-field-placeholder: var(--ui-text-muted);
+}
+
+/* currentColor resolves on the focused control, including nested deep bands. */
+:root {
+  --ui-focus-ring: currentColor;
+  --ui-disabled-opacity: 0.55;
+  --ui-success-text: color-mix(in srgb, var(--color-success) 25%, currentColor);
+  --ui-error-text: color-mix(in srgb, var(--color-error) 25%, currentColor);
+}
+
+:where(body:not(.experiment-page):not(.creative-database-page)) :where(.btn, .btn-primary, button, input[type="submit"], [role="button"]):disabled,
+:where(body:not(.experiment-page):not(.creative-database-page)) :where(.btn, .btn-primary, button, [role="button"])[aria-disabled="true"] {
+  opacity: var(--ui-disabled-opacity);
+}
+
+/* Explicit action surfaces have a label role independent from body text. */
+:where([data-pop-surface="yellow"], .btn-yellow, .badge-yellow, .pill-yellow) {
+  --surface-fg: var(--color-button-text);
+  --surface-fg-secondary: var(--color-button-text);
+  --surface-fg-tertiary: var(--color-button-text);
+  --text-primary: var(--color-button-text);
+  --link-color: var(--color-button-text);
+  --link-hover-color: var(--color-button-text);
+  color: var(--color-button-text);
+}
+
+/* Shared action classes opt into these states, preserving local geometry. */
+:is(.btn-primary, .landing-hero__enter-btn, .newsletter-submit-btn, .pwa-install-btn, .site-header__contact, .site-header__menu-trigger, .inline-enquiry__submit-row button):hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: var(--ui-button-hover-bg);
+}
+:is(.btn-primary, .landing-hero__enter-btn, .newsletter-submit-btn, .pwa-install-btn, .site-header__contact, .site-header__menu-trigger, .inline-enquiry__submit-row button):active:not(:disabled):not([aria-disabled="true"]) {
+  background-color: var(--ui-button-active-bg);
+}
+:is(.btn-primary, .landing-hero__enter-btn, .newsletter-submit-btn, .pwa-install-btn, .site-header__contact, .site-header__menu-trigger, .inline-enquiry__submit-row button):focus-visible {
+  outline: 3px solid var(--ui-focus-ring);
+  outline-offset: 3px;
+}

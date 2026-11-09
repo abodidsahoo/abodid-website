@@ -76,7 +76,7 @@ const cards = [
 
     .nav-card {
         background: rgba(10, 15, 20, 0.4) !important; /* Dark Sci-Fi BG */
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent) !important;
         border-radius: 8px !important;
         padding: 2rem !important;
         display: flex !important;
@@ -102,9 +102,9 @@ const cards = [
         line-height: var(--feature-nav-card-title-line-height, 1.2) !important;
         text-transform: uppercase !important;
         letter-spacing: var(--feature-nav-card-title-letter-spacing, 0.1em) !important;
-        color: var(--feature-nav-card-title-color, #fff) !important;
+        color: var(--feature-nav-card-title-color, var(--color-primary-text)) !important;
         margin: 0 !important;
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
+        text-shadow: 0 0 10px color-mix(in srgb, var(--ui-shadow-color) 50%, transparent) !important;
     }
 
     .card-list {
@@ -139,7 +139,7 @@ const cards = [
     }
 
     .card-link:hover {
-        color: #fff !important;
+        color: var(--color-primary-text) !important;
         text-shadow: 0 0 5px rgba(0, 243, 255, 0.5) !important;
     }
 

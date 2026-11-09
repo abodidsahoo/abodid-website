@@ -70,7 +70,7 @@ const ThemeToggle = ({ variant = 'rail' }) => {
                 .rail-theme-toggle {
                     box-sizing: border-box;
                     background: transparent;
-                    border: 2.5px solid rgba(255, 255, 255, 0.6);
+                    border: 2.5px solid color-mix(in srgb, var(--color-surface) 60%, transparent);
                     cursor: pointer;
                     padding: 0;
                     margin: 0;
@@ -88,7 +88,7 @@ const ThemeToggle = ({ variant = 'rail' }) => {
                 }
 
                 .rail-theme-toggle.light {
-                    border: 3px solid rgba(0, 0, 0, 0.3);
+                    border: 3px solid color-mix(in srgb, var(--ui-shadow-color) 30%, transparent);
                 }
 
                 .rail-toggle-slider {
@@ -97,7 +97,7 @@ const ThemeToggle = ({ variant = 'rail' }) => {
                     left: 50%;
                     width: 24px;
                     height: 24px;
-                    background: #ffffff;
+                    background: var(--color-surface);
                     border-radius: 50%;
                     transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1), background 0.4s ease;
                     z-index: 1;
@@ -105,7 +105,7 @@ const ThemeToggle = ({ variant = 'rail' }) => {
 
                 .rail-theme-toggle.dark .rail-toggle-slider {
                     transform: translateX(-50%) translateY(30px);
-                    background: #ffffff;
+                    background: var(--color-surface);
                 }
 
                 .rail-theme-toggle.light .rail-toggle-slider {
@@ -133,7 +133,7 @@ const ThemeToggle = ({ variant = 'rail' }) => {
 
                 .rail-theme-toggle.dark .rail-sun-icon {
                     opacity: 1;
-                    color: rgba(255, 255, 255, 0.6);
+                    color: color-mix(in srgb, var(--color-surface) 60%, transparent);
                 }
                 .rail-theme-toggle.dark .rail-moon-icon {
                     opacity: 0;
@@ -144,7 +144,7 @@ const ThemeToggle = ({ variant = 'rail' }) => {
                 }
                 .rail-theme-toggle.light .rail-moon-icon {
                     opacity: 1;
-                    color: rgba(0, 0, 0, 0.6);
+                    color: color-mix(in srgb, var(--ui-shadow-color) 60%, transparent);
                 }
 
                 .rail-theme-toggle:hover {

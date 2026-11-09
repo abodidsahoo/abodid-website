@@ -107,8 +107,8 @@ const tones = ["pink", "yellow", "blue", "cyan"];
   body.awards-pop-page {
     margin: 0;
     padding: 0 !important;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink);
+    background: var(--color-primary) !important;
+    color: var(--color-text);
   }
 
   body.awards-pop-page main.page-content-full {
@@ -120,14 +120,14 @@ const tones = ["pink", "yellow", "blue", "cyan"];
   }
 
   body.awards-pop-page ::selection {
-    background: var(--pop-purple);
-    color: var(--pop-cream);
+    background: var(--color-additional-2);
+    color: var(--color-primary-text);
   }
 
   .awards-page {
     overflow: clip;
-    background: var(--pop-blue);
-    color: var(--pop-ink);
+    background: var(--color-primary);
+    color: var(--color-text);
   }
 
   .awards-eyebrow {
@@ -144,7 +144,7 @@ const tones = ["pink", "yellow", "blue", "cyan"];
     grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.7fr);
     gap: var(--pop-gap);
     align-items: stretch;
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   .awards-hero__copy,
@@ -167,7 +167,7 @@ const tones = ["pink", "yellow", "blue", "cyan"];
     flex-direction: column;
     justify-content: space-between;
     gap: clamp(3rem, 8vw, 7rem);
-    background: var(--pop-pink);
+    background: var(--color-secondary);
   }
 
   .awards-hero h1 {
@@ -190,7 +190,7 @@ const tones = ["pink", "yellow", "blue", "cyan"];
   .awards-hero__lede {
     max-width: 38rem;
     margin-bottom: 0;
-    color: rgba(21, 19, 15, 0.82);
+    color: color-mix(in srgb, var(--color-text) 82%, transparent);
     font: 450 clamp(1.08rem, 1.6vw, 1.5rem) / 1.42 var(--font-body, sans-serif);
     letter-spacing: -0.012em;
     text-wrap: pretty;
@@ -200,7 +200,7 @@ const tones = ["pink", "yellow", "blue", "cyan"];
     padding: clamp(1.5rem, 3vw, 3rem);
     display: flex;
     flex-direction: column;
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .awards-hero__metric {
@@ -257,7 +257,7 @@ const tones = ["pink", "yellow", "blue", "cyan"];
     margin: 0 var(--pop-gap) var(--pop-gap);
     padding: clamp(2rem, 5vw, 5.75rem);
     border-radius: var(--pop-radius-panel);
-    background: var(--pop-cream);
+    background: var(--color-background);
   }
 
   .awards-index__header {
@@ -280,7 +280,7 @@ const tones = ["pink", "yellow", "blue", "cyan"];
   .awards-index__header > p {
     max-width: 35rem;
     margin-bottom: 0.3rem;
-    color: rgba(21, 19, 15, 0.78);
+    color: color-mix(in srgb, var(--color-text) 78%, transparent);
     font: 450 clamp(0.98rem, 1.15vw, 1.12rem) / 1.55 var(--font-body, sans-serif);
     text-wrap: pretty;
   }
@@ -301,7 +301,7 @@ const tones = ["pink", "yellow", "blue", "cyan"];
     display: flex;
     flex-direction: column;
     border-radius: var(--pop-radius-card);
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 
   .award-card:nth-child(4n + 2),
@@ -319,21 +319,21 @@ const tones = ["pink", "yellow", "blue", "cyan"];
   }
 
   .award-card[data-tone="pink"] {
-    background: var(--pop-pink);
+    background: var(--color-secondary);
   }
 
   .award-card[data-tone="yellow"] {
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .award-card[data-tone="blue"] {
-    border-color: rgba(255, 248, 232, 0.5);
-    background: var(--pop-blue);
-    color: var(--pop-cream);
+    border-color: color-mix(in srgb, var(--color-primary-text) 50%, transparent);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
   }
 
   .award-card[data-tone="cyan"] {
-    background: var(--pop-cyan);
+    background: var(--color-additional-3);
   }
 
   .award-card__meta {

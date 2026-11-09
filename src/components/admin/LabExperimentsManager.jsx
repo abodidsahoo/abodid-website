@@ -501,7 +501,7 @@ export default function LabExperimentsManager() {
                 .lab-admin-row-copy strong, .lab-admin-row-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
                 .lab-admin-row-copy strong { font-size: .74rem; }
                 .lab-admin-row-copy small { color: var(--text-tertiary); font-size: .6rem; }
-                .lab-admin-surface-dot { width: 9px; height: 9px; border: 1px solid rgba(0,0,0,.45); border-radius: 50%; }
+                .lab-admin-surface-dot { width: 9px; height: 9px; border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 45%, transparent); border-radius: 50%; }
                 .lab-admin-empty { min-height: 220px; display: grid; place-items: center; align-content: center; gap: .65rem; color: var(--text-tertiary); font-size: .75rem; }
                 .lab-admin-editor { overflow-y: auto; }
                 .lab-admin-editor-header { position: sticky; top: 0; z-index: 3; min-height: 64px; padding: .75rem .85rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-card) 96%, transparent); backdrop-filter: blur(10px); }
@@ -530,7 +530,7 @@ export default function LabExperimentsManager() {
                 .lab-admin-media-link { margin-top: .7rem; display: inline-flex; color: var(--text-secondary); font-size: .65rem; }
                 .lab-admin-choice-group { margin-bottom: .85rem; display: flex; flex-wrap: wrap; gap: .42rem; }
                 .lab-admin-choice-group button { min-height: 34px; padding: 0 .6rem; display: inline-flex; align-items: center; gap: .38rem; border: 1px solid var(--border-subtle); border-radius: 7px; background: var(--bg-card); color: var(--text-secondary); cursor: pointer; font: inherit; font-size: .62rem; text-transform: capitalize; }
-                .lab-admin-choice-group button span { width: 12px; height: 12px; border: 1px solid rgba(0,0,0,.5); border-radius: 50%; background: var(--choice-colour); }
+                .lab-admin-choice-group button span { width: 12px; height: 12px; border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 50%, transparent); border-radius: 50%; background: var(--choice-colour); }
                 .lab-admin-choice-group button.is-active { border-color: var(--text-primary); color: var(--text-primary); }
                 .lab-admin-danger { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-color: rgba(248,113,113,.25) !important; }
                 .lab-admin-danger h3 { margin-bottom: .25rem; color: #fca5a5; }

@@ -219,49 +219,49 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
 <style>
   :global(html:has(body.ftii-curation-page)),
   :global(body.ftii-curation-page) {
-    background: var(--pop-blue, #2444ca) !important;
+    background: var(--color-primary, #2444ca) !important;
   }
 
   :global(body.ftii-curation-page .header-padding) { padding-top: 0; }
   :global(body.ftii-curation-page main.page-content-full) { max-width: 100% !important; padding: 0 !important; overflow: visible; }
 
   .ftii-page {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-purple: #5524c7;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
+    --color-primary: #2444ca;
+    --color-secondary: #ff7eb5;
+    --color-button: #ffe44f;
+    --color-additional-2: #5524c7;
+    --color-background: #fff8e8;
+    --color-text: #15130f;
     --pop-border: rgba(21, 19, 15, 0.78);
     --pop-line: rgba(21, 19, 15, 0.24);
     --pop-motion: 180ms ease;
     min-width: 0;
-    background: var(--pop-blue);
-    color: var(--pop-ink);
+    background: var(--color-primary);
+    color: var(--color-text);
     font-family: var(--font-display, "Satoshi-Variable", "Poppins", sans-serif);
   }
 
-  .ftii-shell { width: 100%; min-height: 100vh; padding: 8px; box-sizing: border-box; background: var(--pop-blue); }
+  .ftii-shell { width: 100%; min-height: 100vh; padding: 8px; box-sizing: border-box; background: var(--color-primary); }
 
   .ftii-file {
     width: 100%;
     overflow: hidden;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(20px, 3vw, 34px);
-    background: var(--pop-cream);
+    background: var(--color-background);
     box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
   }
 
   .ftii-heading {
     padding: clamp(1.6rem, 4vw, 3.5rem);
-    border-bottom: 1px solid var(--pop-ink);
-    background: var(--pop-pink);
+    border-bottom: 1px solid var(--color-text);
+    background: var(--color-secondary);
   }
 
   .ftii-file-tag,
   .ftii-label {
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 750 0.72rem/1.25 var(--font-mono, "Space Mono", monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -309,13 +309,13 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
-    background: var(--pop-cream);
+    background: var(--color-background);
   }
 
   .ftii-collection-meta b { font-size: 1rem; }
-  .ftii-board { padding: clamp(1.2rem, 3.5vw, 3rem); background: var(--pop-cream); }
+  .ftii-board { padding: clamp(1.2rem, 3.5vw, 3rem); background: var(--color-background); }
   .ftii-browser { display: flex; flex-direction: column; gap: 28px; width: 100%; }
 
   .ftii-control-row {
@@ -335,10 +335,10 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
     cursor: pointer;
     font: 750 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.055em;
@@ -357,8 +357,8 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     font-size: 0.65rem;
   }
 
-  .ftii-genre:hover { transform: translateY(-2px); background: var(--pop-pink); box-shadow: 0 3px 0 var(--pop-ink); }
-  .ftii-genre.is-active { background: var(--pop-yellow); box-shadow: inset 0 -3px 0 var(--pop-ink); }
+  .ftii-genre:hover { transform: translateY(-2px); background: var(--color-secondary); box-shadow: 0 3px 0 var(--color-text); }
+  .ftii-genre.is-active { background: var(--color-button); box-shadow: inset 0 -3px 0 var(--color-text); }
 
   .ftii-search-field {
     height: 46px;
@@ -366,12 +366,12 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
     background: #fff;
   }
 
-  .ftii-search-field:focus-within { outline: 3px solid var(--pop-purple); outline-offset: 3px; }
+  .ftii-search-field:focus-within { outline: 3px solid var(--color-additional-2); outline-offset: 3px; }
   .ftii-search-field svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; }
   .ftii-search-field input {
     width: 100%;
@@ -380,7 +380,7 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     border: 0;
     outline: 0;
     background: transparent;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 520 0.96rem/1 var(--font-display, sans-serif);
   }
 
@@ -392,7 +392,7 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    border-top: 1px solid var(--pop-ink);
+    border-top: 1px solid var(--color-text);
   }
 
   .ftii-results-heading h2 {
@@ -416,10 +416,10 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
   .ftii-empty button {
     min-height: 44px;
     padding: 7px 14px;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 12px;
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
     cursor: pointer;
     font: 750 0.7rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
@@ -428,7 +428,7 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
   }
 
   .ftii-results-meta button:hover,
-  .ftii-empty button:hover { transform: translateY(-1px); background: var(--pop-yellow); }
+  .ftii-empty button:hover { transform: translateY(-1px); background: var(--color-button); }
 
   .ftii-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 
@@ -437,25 +437,25 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     padding: 12px;
     display: flex;
     flex-direction: column;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 20px;
     background: #fff;
-    color: var(--pop-ink);
-    box-shadow: 0 4px 0 var(--pop-ink);
+    color: var(--color-text);
+    box-shadow: 0 4px 0 var(--color-text);
     transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
   }
 
-  .ftii-card:hover { transform: translateY(-3px); background: var(--pop-cream); box-shadow: 0 8px 0 var(--pop-ink); }
+  .ftii-card:hover { transform: translateY(-3px); background: var(--color-background); box-shadow: 0 8px 0 var(--color-text); }
 
   .ftii-card__media {
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
     background: linear-gradient(135deg, #d8e9ff, #ffd9e8);
-    color: var(--pop-ink);
+    color: var(--color-text);
     text-decoration: none;
   }
 
@@ -498,16 +498,16 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     display: grid;
     place-items: center;
     transform: translate(-50%, -50%);
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 50%;
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-    box-shadow: 0 3px 0 var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-text);
+    box-shadow: 0 3px 0 var(--color-text);
     transition: transform var(--pop-motion), background-color var(--pop-motion);
   }
 
   .ftii-card__play svg { fill: currentColor; }
-  .ftii-card:hover .ftii-card__play { transform: translate(-50%, -50%) scale(1.08); background: var(--pop-pink); }
+  .ftii-card:hover .ftii-card__play { transform: translate(-50%, -50%) scale(1.08); background: var(--color-secondary); }
 
   .ftii-card__genre {
     position: absolute;
@@ -515,11 +515,11 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     right: 12px;
     z-index: 2;
     padding: 6px 12px;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 999px;
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-    box-shadow: 0 2px 0 var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-text);
+    box-shadow: 0 2px 0 var(--color-text);
     font: 750 0.67rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -541,7 +541,7 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
     flex: 0 0 44px;
     display: grid;
     place-items: center;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font-size: 1.4rem;
     font-weight: 800;
     line-height: 1;
@@ -578,25 +578,25 @@ const genres = [...new Set(ftiiStudentFilms.map((film) => film.genre))]
   .ftii-card__people span,
   .ftii-card__year {
     padding: 5px 9px;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 8px;
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
     font: 750 0.66rem/1.2 var(--font-mono, monospace);
     letter-spacing: 0.045em;
     text-transform: uppercase;
   }
 
-  .ftii-card__year { flex: 0 0 auto; background: var(--pop-yellow); box-shadow: 0 2px 0 var(--pop-ink); font-size: 0.7rem; }
+  .ftii-card__year { flex: 0 0 auto; background: var(--color-button); box-shadow: 0 2px 0 var(--color-text); font-size: 0.7rem; }
 
-  .ftii-empty { padding: clamp(2rem, 5vw, 4rem); border: 1px solid var(--pop-ink); border-radius: 20px; background: var(--pop-yellow); }
+  .ftii-empty { padding: clamp(2rem, 5vw, 4rem); border: 1px solid var(--color-text); border-radius: 20px; background: var(--color-button); }
   .ftii-empty h2 { margin: 0.4rem 0 1.5rem; font: 720 clamp(2rem, 4vw, 4rem)/0.95 var(--font-display, sans-serif); letter-spacing: -0.055em; }
 
   .ftii-genre:focus-visible,
   .ftii-results-meta button:focus-visible,
   .ftii-card__media:focus-visible,
   .ftii-card__title-row > a:focus-visible,
-  .ftii-empty button:focus-visible { outline: 3px solid var(--pop-purple); outline-offset: 3px; }
+  .ftii-empty button:focus-visible { outline: 3px solid var(--color-additional-2); outline-offset: 3px; }
 
   [hidden] { display: none !important; }
 

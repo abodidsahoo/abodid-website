@@ -186,20 +186,20 @@ const lastDay = schedule[schedule.length - 1];
 
   :global(body.bff2026-page .skip-link) {
     background: #111827;
-    color: #ffffff;
+    color: var(--color-primary-text);
   }
 
   .bff-page {
     --bff-bg: #f6f7f9;
-    --bff-surface: #ffffff;
+    --bff-surface: var(--color-surface);
     --bff-surface-soft: #eef2f6;
     --bff-ink: #111827;
     --bff-muted: #5b6472;
     --bff-soft: #7a8493;
     --bff-border: #d8dde5;
     --bff-border-strong: #aab3c0;
-    --bff-film: #b42318;
-    --bff-event: #2563eb;
+    --bff-film: var(--color-error);
+    --bff-event: var(--color-primary);
     --bff-panel: #047857;
     --bff-workshop: #7c3aed;
     --bff-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
@@ -330,7 +330,7 @@ const lastDay = schedule[schedule.length - 1];
     padding: 0.78rem 0.88rem;
     border-left: 4px solid var(--bff-film);
     border-radius: 8px;
-    background: #ffffff;
+    background: var(--color-surface);
     box-shadow: 0 1px 0 rgba(17, 24, 39, 0.06);
     color: var(--bff-ink);
     font-size: 0.94rem;

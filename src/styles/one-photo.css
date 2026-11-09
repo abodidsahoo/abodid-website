@@ -17,7 +17,7 @@ body.one-photo-route {
   --rw-muted: #564d46;
   --rw-text: #1e1815;
   --rw-subtle-text: #736960;
-  --rw-note-sheen: rgba(255, 255, 255, 0.58);
+  --rw-note-sheen: color-mix(in srgb, var(--color-surface) 58%, transparent);
   --rw-card-shadow: 0 12px 28px rgba(36, 24, 15, 0.05);
   --rw-status-ready-bg: #eef8f1;
   --rw-status-ready-text: #22543d;
@@ -43,8 +43,7 @@ body.one-photo-route .rw-stage.one-photo-stage {
   border: 1px solid rgba(35, 28, 24, 0.08) !important;
   border-radius: 32px !important;
   background: linear-gradient(180deg, #fcfaf7 0%, #f5efe8 100%) !important;
-  box-shadow:
-    0 20px 48px rgba(36, 24, 15, 0.08),
+  box-shadow: 0 20px 48px rgba(36, 24, 15, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
   overflow: hidden !important;
 }
@@ -191,7 +190,7 @@ body.one-photo-route .rw-label {
 
 body.one-photo-route .rw-textarea,
 body.one-photo-route .rw-input {
-  background: #ffffff !important;
+  background: var(--color-surface) !important;
   color: #1e1815 !important;
   border: 1px solid #d8cfc5 !important;
 }
@@ -213,13 +212,13 @@ body.one-photo-route .one-photo-upload-card:focus-within {
 
 body.one-photo-route .rw-button--primary {
   background: var(--color-brand-red) !important;
-  color: #ffffff !important;
+  color: var(--color-primary-text) !important;
   border-color: var(--color-brand-red) !important;
   box-shadow: 0 12px 24px rgba(163, 0, 33, 0.16) !important;
 }
 
 body.one-photo-route .rw-button--secondary {
-  background: #ffffff !important;
+  background: var(--color-surface) !important;
   color: #1e1815 !important;
   border: 1px solid rgba(35, 28, 24, 0.12) !important;
 }
@@ -562,8 +561,7 @@ body.one-photo-route .one-photo-response-card__inner {
   padding: 1rem;
   border-radius: 24px;
   border: 1px solid rgba(35, 28, 24, 0.08);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(251, 246, 240, 0.95));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 96%, transparent), rgba(251, 246, 240, 0.95));
   box-shadow: 0 14px 30px rgba(36, 24, 15, 0.05);
 }
 
@@ -649,7 +647,7 @@ body.one-photo-route .one-photo-audio-player__button {
   border: 0;
   border-radius: 999px;
   background: var(--color-brand-red);
-  color: #ffffff;
+  color: var(--color-primary-text);
   cursor: pointer;
   flex-shrink: 0;
   box-shadow: 0 12px 22px rgba(163, 0, 33, 0.18);
@@ -721,7 +719,7 @@ body.one-photo-route .one-photo-lightbox__close {
   height: 46px;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   color: #1e1815;
   cursor: pointer;
 }

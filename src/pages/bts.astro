@@ -131,16 +131,16 @@ Astro.response.headers.set(
 <style is:global>
   body.story-moodboard-page {
     --story-gutter: clamp(1rem, 3vw, 3.5rem);
-    --pop-border: 1px solid var(--pop-ink);
+    --pop-border: 1px solid var(--color-text);
     margin: 0;
     padding: 0 !important;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink);
+    background: var(--color-primary) !important;
+    color: var(--color-text);
     min-height: 100vh;
   }
 
   html:has(body.story-moodboard-page) {
-    background: var(--pop-blue);
+    background: var(--color-primary);
     margin: 0;
     padding: 0;
   }
@@ -165,7 +165,7 @@ Astro.response.headers.set(
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   .moodboard-file {
@@ -174,16 +174,16 @@ Astro.response.headers.set(
     margin-inline: 0;
     box-sizing: border-box;
     overflow: hidden;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(20px, 3vw, 34px);
-    background: var(--pop-cream);
-    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+    background: var(--color-background);
+    box-shadow: 0 10px 0 color-mix(in srgb, var(--color-text) 20%, transparent);
   }
 
   .moodboard-heading {
     padding: clamp(1.4rem, 4vw, 3.5rem);
-    border-bottom: 1px solid var(--pop-ink);
-    background: var(--pop-pink);
+    border-bottom: 1px solid var(--color-text);
+    background: var(--color-secondary);
   }
 
   .moodboard-heading__tag {
@@ -192,7 +192,7 @@ Astro.response.headers.set(
     align-items: center;
     justify-content: space-between;
     gap: 0.55rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 700 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -208,7 +208,7 @@ Astro.response.headers.set(
   .moodboard-heading h1 {
     max-width: 12ch;
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 720 clamp(3.2rem, 8vw, 7.5rem)/0.84 var(--font-display, sans-serif);
     letter-spacing: -0.075em;
   }
@@ -216,14 +216,14 @@ Astro.response.headers.set(
   .moodboard-heading__hero p {
     max-width: 34rem;
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 500 clamp(1.15rem, 2vw, 1.65rem)/1.32 var(--font-display, sans-serif);
     letter-spacing: -0.025em;
   }
 
   .moodboard-board {
     --grid-gap: 25px;
-    background: #f5ede0;
+    background: var(--color-background);
     padding: var(--grid-gap);
   }
 
@@ -259,7 +259,7 @@ Astro.response.headers.set(
   .moodboard-empty {
     padding: 6rem 2rem;
     text-align: center;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 600 1.2rem/1.4 var(--font-display, sans-serif);
   }
 
@@ -267,10 +267,10 @@ Astro.response.headers.set(
   .moodboard-footer {
     margin-top: clamp(2.5rem, 6vw, 5rem);
     padding: clamp(2rem, 4.5vw, 4rem);
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(16px, 2.5vw, 28px);
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
   }
 
   .moodboard-footer__top {
@@ -302,7 +302,7 @@ Astro.response.headers.set(
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
     font: 700 0.76rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
@@ -314,18 +314,18 @@ Astro.response.headers.set(
   }
 
   .moodboard-cta--primary {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-button-text);
   }
 
   .moodboard-cta--primary:hover {
     transform: translateY(-2px);
-    background: #ffe96e;
+    background: var(--ui-button-hover-bg);
   }
 
   .moodboard-cta--secondary {
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
   }
 
   .moodboard-cta--secondary:hover {
@@ -334,7 +334,7 @@ Astro.response.headers.set(
 
   .moodboard-footer__divider {
     height: 1px;
-    background: var(--pop-ink);
+    background: var(--color-text);
     margin: clamp(2rem, 4vw, 3rem) 0;
     opacity: 0.25;
   }
@@ -350,26 +350,26 @@ Astro.response.headers.set(
     display: flex;
     flex-direction: column;
     gap: 1.4rem;
-    color: #000000 !important;
+    color: var(--color-button-text) !important;
     text-align: left;
-    background: var(--pop-yellow) !important;
-    border: 2.5px solid #000000 !important;
+    background: var(--color-button) !important;
+    border: 2.5px solid var(--color-text) !important;
     border-radius: 24px;
     padding: clamp(2rem, 5vw, 3rem);
-    box-shadow: 0 8px 0 #000000 !important;
+    box-shadow: 0 8px 0 var(--color-text) !important;
   }
 
   .moodboard-footer__byline {
     margin: 0;
     font: 850 clamp(2rem, 4.5vw, 3.2rem)/1.05 var(--font-display, sans-serif) !important;
     letter-spacing: -0.04em;
-    color: #000000 !important;
+    color: var(--color-text) !important;
     padding-bottom: 1.25rem;
-    border-bottom: 3px solid #000000;
+    border-bottom: 3px solid var(--color-text);
   }
 
   .moodboard-footer__byline a {
-    color: #000000 !important;
+    color: var(--color-text) !important;
     text-decoration: underline !important;
     text-decoration-thickness: 3px !important;
     text-underline-offset: 4px;
@@ -378,7 +378,7 @@ Astro.response.headers.set(
   .moodboard-footer__quote p {
     margin: 0;
     font: 600 clamp(1.15rem, 2vw, 1.55rem)/1.45 var(--font-display, sans-serif) !important;
-    color: #000000 !important;
+    color: var(--color-text) !important;
     letter-spacing: -0.015em;
   }
 

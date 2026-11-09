@@ -61,21 +61,20 @@ const pageDescription =
 
 <style is:global>
   html:has(body.yt-downloader-page) {
-    background: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
   }
 
   body.yt-downloader-page {
     --films-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-    --films-mono:
-      "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
+    --films-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
       monospace;
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --pop-line: color-mix(in srgb, var(--color-text) 24%, transparent);
     margin: 0;
     padding: 0 !important;
     min-height: 100vh;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink);
+    background: var(--color-primary) !important;
+    color: var(--color-text);
     color-scheme: light;
   }
 
@@ -92,7 +91,7 @@ const pageDescription =
     min-height: 100vh;
     padding: clamp(12px, 3vw, 28px);
     box-sizing: border-box;
-    background: var(--pop-blue);
+    background: var(--color-primary);
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -122,19 +121,19 @@ const pageDescription =
     font: 700 0.8rem/1 var(--films-mono, monospace);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
     text-decoration: none;
     padding: 8px 14px;
-    background: rgba(21, 19, 15, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--color-text) 40%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
     border-radius: 999px;
     transition: all 0.18s ease;
   }
 
   .downloader-back-link:hover {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-    border-color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-button-text);
+    border-color: var(--color-text);
     transform: translateX(-3px);
   }
 
@@ -142,16 +141,16 @@ const pageDescription =
     font: 700 0.72rem/1 var(--films-mono, monospace);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
     opacity: 0.85;
   }
 
   .downloader-header {
-    background: var(--pop-pink);
-    border: 1px solid var(--pop-ink);
+    background: var(--color-secondary);
+    border: 1px solid var(--color-text);
     border-radius: clamp(18px, 3vw, 28px);
     padding: clamp(1.8rem, 4vw, 3rem);
-    box-shadow: 0 8px 0 rgba(21, 19, 15, 0.25);
+    box-shadow: 0 8px 0 color-mix(in srgb, var(--color-text) 25%, transparent);
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -168,25 +167,25 @@ const pageDescription =
     font: 700 0.72rem/1 var(--films-mono, monospace);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--pop-ink);
-    background: var(--pop-cream);
+    color: var(--color-text);
+    background: var(--color-background);
     padding: 6px 12px;
     border-radius: 999px;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
   }
 
   .downloader-title {
     margin: 0;
     font: 720 clamp(2.4rem, 6vw, 3.8rem)/0.95 var(--films-font, sans-serif);
     letter-spacing: -0.055em;
-    color: var(--pop-ink);
+    color: var(--color-text);
     overflow-wrap: anywhere;
   }
 
   .downloader-lead {
     margin: 0;
     font: 500 clamp(1.05rem, 2vw, 1.25rem)/1.35 var(--films-font, sans-serif);
-    color: var(--pop-ink);
+    color: var(--color-text);
     letter-spacing: -0.02em;
     max-width: 580px;
   }
@@ -201,12 +200,12 @@ const pageDescription =
   }
 
   .downloader-notes-card {
-    background: rgba(255, 248, 232, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: color-mix(in srgb, var(--color-primary-text) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 25%, transparent);
     backdrop-filter: blur(8px);
     border-radius: 18px;
     padding: 20px 24px;
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
   }
 
   .downloader-notes-card h4 {

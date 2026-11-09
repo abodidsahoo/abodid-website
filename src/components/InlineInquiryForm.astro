@@ -324,8 +324,8 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     gap: clamp(2rem, 7vw, 7rem);
     padding: clamp(2rem, 5vw, 5rem);
     border-radius: clamp(18px, 2vw, 30px);
-    background: #171512;
-    color: #f8f4ec;
+    background: var(--ui-form-bg);
+    color: var(--ui-form-text);
   }
 
   .inline-enquiry__intro {
@@ -336,20 +336,20 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry__eyebrow {
     margin: 0 0 1rem !important;
-    color: #ff6c65 !important;
+    color: var(--color-button) !important;
     text-transform: uppercase;
   }
 
   .inline-enquiry h2 {
     margin: 0;
     max-width: 12ch;
-    color: #ffffff;
+    color: var(--ui-form-text);
   }
 
   .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow) {
     max-width: 34rem;
     margin: 1.4rem 0 0;
-    color: rgba(248, 244, 236, 0.68);
+    color: color-mix(in srgb, var(--ui-form-text) 68%, transparent);
   }
 
   .inline-enquiry__intro > a {
@@ -357,7 +357,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     margin-top: 1rem;
     display: inline-flex;
     align-items: center;
-    color: #f8f4ec;
+    color: var(--ui-form-text);
     text-underline-offset: 0.25em;
   }
 
@@ -378,7 +378,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry label > span {
-    color: rgba(248, 244, 236, 0.72);
+    color: color-mix(in srgb, var(--ui-form-text) 72%, transparent);
   }
 
   .inline-enquiry input,
@@ -387,10 +387,10 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     width: 100%;
     min-height: 52px;
     box-sizing: border-box;
-    border: 1px solid rgba(248, 244, 236, 0.22);
+    border: 1px solid color-mix(in srgb, var(--ui-form-text) 22%, transparent);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.055);
-    color: #fff;
+    background: color-mix(in srgb, var(--color-surface) 5.5%, transparent);
+    color: var(--color-primary-text);
   }
 
   .inline-enquiry input,
@@ -427,10 +427,10 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     min-height: 52px;
     padding: 0 1rem;
     box-sizing: border-box;
-    border: 1px solid rgba(248, 244, 236, 0.22);
+    border: 1px solid color-mix(in srgb, var(--ui-form-text) 22%, transparent);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.055);
-    color: #fff;
+    background: color-mix(in srgb, var(--color-surface) 5.5%, transparent);
+    color: var(--color-primary-text);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -446,8 +446,8 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .custom-select__trigger:focus-visible {
-    border-color: #ff6c65;
-    outline: 2px solid rgba(255, 108, 101, 0.3);
+    border-color: var(--color-button);
+    outline: 2px solid var(--ui-focus-ring);
     outline-offset: 2px;
   }
 
@@ -506,20 +506,20 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 16px;
-    background: #23201b;
-    border: 1px solid rgba(248, 244, 236, 0.22);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    background: var(--ui-field-bg);
+    border: 1px solid color-mix(in srgb, var(--ui-form-text) 22%, transparent);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--ui-shadow-color) 45%, transparent);
     display: grid;
     gap: 3px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(248, 244, 236, 0.25) transparent;
+    scrollbar-color: color-mix(in srgb, var(--ui-form-text) 25%, transparent) transparent;
   }
 
   .custom-select__options::-webkit-scrollbar {
     width: 4px;
   }
   .custom-select__options::-webkit-scrollbar-thumb {
-    background: rgba(248, 244, 236, 0.25);
+    background: color-mix(in srgb, var(--ui-form-text) 25%, transparent);
     border-radius: 4px;
   }
 
@@ -527,7 +527,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     min-height: 44px;
     padding: 0.65rem 0.95rem;
     border-radius: 10px;
-    color: #f8f4ec;
+    color: var(--ui-form-text);
     font-family: inherit;
     font-size: 0.96rem;
     font-weight: 500;
@@ -542,14 +542,14 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .custom-select__option:hover,
   .custom-select__option.is-focused {
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
+    background: color-mix(in srgb, var(--color-surface) 12%, transparent);
+    color: var(--color-primary-text);
     transform: translateX(2px);
   }
 
   .custom-select__option.is-selected {
-    background: #ff6c65;
-    color: #fff;
+    background: var(--color-button);
+    color: var(--color-primary-text);
     font-weight: 600;
     transform: none;
   }
@@ -571,14 +571,14 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry select option {
-    background: #171512;
+    background: var(--ui-form-bg);
   }
 
   .inline-enquiry input:focus,
   .inline-enquiry select:focus,
   .inline-enquiry textarea:focus {
-    border-color: #ff6c65;
-    outline: 2px solid rgba(255, 108, 101, 0.3);
+    border-color: var(--color-button);
+    outline: 2px solid var(--ui-focus-ring);
     outline-offset: 2px;
   }
 
@@ -595,29 +595,29 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     padding: 0 1.2rem;
     border: 0;
     border-radius: 999px;
-    background: var(--color-brand-red, #a30021);
-    color: #fff;
+    background: var(--ui-button-bg);
+    color: var(--ui-button-text);
     cursor: pointer;
   }
 
   .inline-enquiry__submit-row button:disabled {
     cursor: progress;
-    opacity: 0.7;
+    opacity: var(--ui-disabled-opacity);
   }
 
   .inline-enquiry__submit-row p {
     margin: 0;
-    color: rgba(248, 244, 236, 0.68);
+    color: color-mix(in srgb, var(--ui-form-text) 68%, transparent);
   }
 
-  .inline-enquiry__submit-row p[data-state="success"] { color: #a8e7b2; }
-  .inline-enquiry__submit-row p[data-state="error"] { color: #ffaaa5; }
+  .inline-enquiry__submit-row p[data-state="success"] { color: var(--ui-success-text); }
+  .inline-enquiry__submit-row p[data-state="error"] { color: var(--ui-error-text); }
 
   .inline-enquiry--pop {
     border: 0;
     border-radius: 0;
     background: transparent;
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
     box-shadow: none;
     padding: 0;
     width: 100%;
@@ -627,61 +627,61 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry--pop .inline-enquiry__eyebrow {
-    color: var(--pop-yellow) !important;
+    color: var(--color-button) !important;
   }
 
   .inline-enquiry--pop h2 {
-    color: #ffffff !important;
+    color: var(--ui-form-text) !important;
   }
 
   .inline-enquiry--pop .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow),
   .inline-enquiry--pop label > span,
   .inline-enquiry--pop .custom-select__label-wrap > span,
   .inline-enquiry--pop .inline-enquiry__submit-row p {
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
   }
 
   .inline-enquiry--pop input,
   .inline-enquiry--pop select,
   .inline-enquiry--pop textarea {
-    border-color: var(--pop-ink);
+    border-color: var(--color-text);
     border-radius: 15px;
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
   }
 
   .inline-enquiry--pop textarea::placeholder {
-    color: #5a534a;
+    color: var(--ui-field-placeholder);
     opacity: 1;
   }
 
   .inline-enquiry--pop input:focus,
   .inline-enquiry--pop select:focus,
   .inline-enquiry--pop textarea:focus {
-    border-color: var(--pop-yellow);
-    outline-color: var(--pop-cream);
+    border-color: var(--color-button);
+    outline-color: var(--color-background);
   }
 
   .inline-enquiry--pop .custom-select__trigger {
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 15px;
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
     font-size: 1.05rem;
     font-weight: 520;
-    box-shadow: 0 2px 0 rgba(21, 19, 15, 0.12);
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--color-text) 12%, transparent);
   }
 
   .inline-enquiry--pop .custom-select__trigger:focus-visible,
   .inline-enquiry--pop .custom-select.is-open .custom-select__trigger {
-    border-color: var(--pop-ink);
+    border-color: var(--color-text);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 228, 79, 0.8), 0 2px 0 rgba(21, 19, 15, 0.12);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-button) 80%, transparent), 0 2px 0 color-mix(in srgb, var(--color-text) 12%, transparent);
   }
 
   .inline-enquiry--pop .custom-select__selected-text {
     opacity: 0.65;
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 
   .inline-enquiry--pop .custom-select__selected-text.has-value {
@@ -689,19 +689,19 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry--pop .custom-select__options {
-    background: var(--pop-cream);
-    border: 2px solid var(--pop-ink);
+    background: var(--color-background);
+    border: 2px solid var(--color-text);
     border-radius: 18px;
-    box-shadow: 0 16px 40px rgba(21, 19, 15, 0.22);
-    scrollbar-color: rgba(21, 19, 15, 0.3) transparent;
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--color-text) 22%, transparent);
+    scrollbar-color: color-mix(in srgb, var(--color-text) 30%, transparent) transparent;
   }
 
   .inline-enquiry--pop .custom-select__options::-webkit-scrollbar-thumb {
-    background: rgba(21, 19, 15, 0.3);
+    background: color-mix(in srgb, var(--color-text) 30%, transparent);
   }
 
   .inline-enquiry--pop .custom-select__option {
-    color: var(--pop-ink);
+    color: var(--color-text);
     font-size: 1rem;
     font-weight: 520;
     border-radius: 12px;
@@ -709,26 +709,26 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--pop .custom-select__option:hover,
   .inline-enquiry--pop .custom-select__option.is-focused {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-button-text);
     transform: translateX(3px);
   }
 
   .inline-enquiry--pop .custom-select__option.is-selected {
-    background: var(--pop-ink);
-    color: var(--pop-cream);
+    background: var(--color-text);
+    color: var(--color-primary-text);
     font-weight: 650;
     transform: none;
   }
 
   .inline-enquiry--pop .custom-select__option.is-selected .custom-select__option-icon {
-    color: var(--pop-yellow);
+    color: var(--color-button);
   }
 
   .inline-enquiry--pop .inline-enquiry__submit-row button {
-    border: 1px solid var(--pop-ink);
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    border: 1px solid var(--color-text);
+    background: var(--color-button);
+    color: var(--ui-button-text);
   }
 
   .inline-enquiry--obsidian {
@@ -791,7 +791,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     min-height: 48px;
     border-radius: var(--radius-base);
     background: var(--btn-primary-bg);
-    color: var(--btn-primary-text);
+    color: var(--ui-button-text);
   }
 
   @media (max-width: 980px) {
@@ -815,10 +815,10 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
     gap: clamp(1.5rem, 3.2vw, 3.5rem);
     padding: clamp(1.5rem, 3.5vw, 2.75rem);
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(18px, 2vw, 26px);
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
   }
 
   .inline-enquiry--obsidian .inline-enquiry__intro {
@@ -830,15 +830,15 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     width: fit-content;
     margin-bottom: 0.75rem !important;
     padding: 0.45rem 0.65rem;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 999px;
-    background: var(--pop-yellow);
-    color: var(--pop-ink) !important;
+    background: var(--color-button);
+    color: var(--color-button-text) !important;
   }
 
   .inline-enquiry--obsidian h2 {
     max-width: none;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font-family: var(--font-display);
     font-size: clamp(1.85rem, 3.2vw, 3.8rem);
     font-weight: 640;
@@ -854,7 +854,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--obsidian .inline-enquiry__intro .t-body {
     margin: 0.85rem 0 0;
-    color: color-mix(in srgb, #15130f 80%, transparent);
+    color: color-mix(in srgb, var(--color-text) 80%, transparent);
     font-size: clamp(0.98rem, 1.25vw, 1.12rem);
     line-height: 1.45;
   }
@@ -883,20 +883,20 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   .inline-enquiry--obsidian label > span {
     display: block;
     margin-bottom: 0.1rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font-weight: 700;
   }
 
   .inline-enquiry--obsidian .inline-enquiry__submit-row p {
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 
   .inline-enquiry--obsidian input,
   .inline-enquiry--obsidian textarea {
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 13px;
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
   }
 
   .inline-enquiry--obsidian textarea {
@@ -904,14 +904,14 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry--obsidian textarea::placeholder {
-    color: #625c52;
+    color: var(--ui-field-placeholder);
     opacity: 1;
   }
 
   .inline-enquiry--obsidian input:focus,
   .inline-enquiry--obsidian textarea:focus {
-    border-color: var(--pop-ink);
-    outline: 3px solid var(--pop-yellow);
+    border-color: var(--color-text);
+    outline: 3px solid var(--color-button);
     outline-offset: 2px;
   }
 
@@ -924,21 +924,21 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--obsidian .inline-enquiry__submit-row button {
     min-height: 50px;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 13px;
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--ui-button-text);
     transition: transform 160ms ease, box-shadow 160ms ease;
   }
 
   .inline-enquiry--obsidian .inline-enquiry__submit-row button:hover,
   .inline-enquiry--obsidian .inline-enquiry__submit-row button:focus-visible {
     transform: translateY(-2px);
-    box-shadow: 0 3px 0 var(--pop-ink);
+    box-shadow: 0 3px 0 var(--color-text);
   }
 
-  .inline-enquiry--obsidian .inline-enquiry__submit-row p[data-state="success"] { color: #075b37; }
-  .inline-enquiry--obsidian .inline-enquiry__submit-row p[data-state="error"] { color: #7c0018; }
+  .inline-enquiry--obsidian .inline-enquiry__submit-row p[data-state="success"] { color: var(--ui-success-text); }
+  .inline-enquiry--obsidian .inline-enquiry__submit-row p[data-state="error"] { color: var(--ui-error-text); }
 
   @media (max-width: 980px) {
     .inline-enquiry--obsidian {

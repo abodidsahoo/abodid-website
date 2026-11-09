@@ -168,7 +168,7 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                     gap: 0.6rem;
                     font-weight: 700;
                     opacity: 0.85;
-                    color: #ffffff;
+                    color: var(--color-primary-text);
                 }
                 
                 .breadcrumbs-nav.vertical .breadcrumb-link {
@@ -193,7 +193,7 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                     left: -4px; /* Offset below the text baseline */
                     width: 1px; /* Line thickness */
                     height: 0; /* Initial line length */
-                    background-color: #ffffff;
+                    background-color: var(--color-surface);
                     transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
                 }
                 
@@ -204,7 +204,7 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                 
                 .breadcrumbs-nav.vertical .current-page {
                     opacity: 1;
-                    color: #ffffff;
+                    color: var(--color-primary-text);
                     font-weight: 800;
                 }
                 
@@ -228,7 +228,7 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                     white-space: nowrap;
                     font-size: 0.68rem;
                     letter-spacing: 0.08em;
-                    color: rgba(255, 255, 255, 0.74);
+                    color: color-mix(in srgb, var(--color-surface) 74%, transparent);
                 }
 
                 .breadcrumbs-nav.mobile .breadcrumb-list::-webkit-scrollbar {
@@ -250,14 +250,14 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                 }
 
                 .breadcrumbs-nav.mobile .current-page {
-                    color: #ffffff;
+                    color: var(--color-primary-text);
                     font-weight: 700;
                 }
 
                 .vertical-separator-line {
                     width: 1px;
                     height: 40px; /* Thin white line above Menu */
-                    background: rgba(255, 255, 255, 0.4);
+                    background: color-mix(in srgb, var(--color-surface) 40%, transparent);
                     margin: 0 auto;
                 }
 

@@ -543,15 +543,15 @@ const structuredData = [
 
 <style is:global>
   :root {
-    --services-blue: var(--pop-blue);
-    --services-pink: var(--pop-pink);
-    --services-yellow: var(--pop-yellow);
-    --services-lime: var(--pop-lime);
-    --services-orange: var(--pop-orange);
-    --services-purple: var(--pop-purple);
-    --services-cream: var(--pop-cream);
-    --services-ink: var(--pop-ink);
-    --services-border: rgba(21, 19, 15, 0.78);
+    --services-blue: var(--color-primary);
+    --services-pink: var(--color-secondary);
+    --services-yellow: var(--color-button);
+    --services-lime: var(--color-accent);
+    --services-orange: var(--color-additional-1);
+    --services-purple: var(--color-additional-2);
+    --services-cream: var(--color-background);
+    --services-ink: var(--color-text);
+    --services-border: color-mix(in srgb, var(--color-text) 78%, transparent);
     --services-gutter: clamp(1rem, 3vw, 3.5rem);
     --services-gap: 8px;
     --services-radius-panel: clamp(18px, 2vw, 28px);
@@ -711,7 +711,7 @@ const structuredData = [
   .services-hero__lede,
   .services-hero__fit {
     max-width: 710px;
-    color: rgba(21, 19, 15, .82);
+    color: color-mix(in srgb, var(--color-text) 82%, transparent);
     font: 450 clamp(1rem, 1.3vw, 1.18rem)/1.5 var(--font-body, sans-serif);
   }
 
@@ -875,7 +875,7 @@ const structuredData = [
     object-fit: contain;
     border-radius: clamp(10px, 1.2vw, 14px);
     border: 1px solid var(--services-ink);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
   }
 
   .services-hero__slide--letterboxed > span {
@@ -1056,7 +1056,7 @@ const structuredData = [
   .services-engagement ul { margin: 0 0 2rem; padding: 0; display: grid; list-style: none; }
   .services-engagement li {
     padding: .72rem 0;
-    border-bottom: 1px solid rgba(21, 19, 15, .28);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text) 28%, transparent);
     font: 700 .68rem/1.25 var(--font-mono, monospace);
     letter-spacing: .06em;
     text-transform: uppercase;
@@ -1175,7 +1175,7 @@ const structuredData = [
   .story-footer__card--about { background: var(--services-cream); color: var(--services-ink); }
   .story-footer__card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(21, 19, 15, 0.08);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--color-text) 8%, transparent);
   }
   .story-footer__card-header {
     display: flex;
@@ -1208,7 +1208,7 @@ const structuredData = [
     align-items: center;
     justify-content: space-between;
     padding: .52rem 0;
-    border-bottom: 1px solid rgba(21, 19, 15, .22);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text) 22%, transparent);
     color: var(--services-ink);
     font: 750 clamp(.75rem, .88vw, .84rem)/1.35 var(--font-mono, monospace);
     letter-spacing: .05em;
@@ -1270,7 +1270,7 @@ const structuredData = [
   }
   .story-footer__copyright {
     font: 600 .72rem/1.35 var(--font-mono, monospace);
-    color: rgba(21, 19, 15, .82);
+    color: color-mix(in srgb, var(--color-text) 82%, transparent);
   }
   .story-footer__social {
     display: flex;
@@ -1285,7 +1285,7 @@ const structuredData = [
     align-items: center;
     border: 1px solid var(--services-ink);
     border-radius: var(--services-radius-control);
-    background: #ffffff;
+    background: var(--color-surface);
     color: var(--services-ink);
     font: 700 .68rem/1 var(--font-mono, monospace);
     letter-spacing: .05em;
@@ -1302,14 +1302,14 @@ const structuredData = [
     gap: .85rem;
     font: 650 .7rem/1.3 var(--font-mono, monospace);
     text-transform: uppercase;
-    color: rgba(21, 19, 15, .75);
+    color: color-mix(in srgb, var(--color-text) 75%, transparent);
   }
   .story-footer__legal a {
     color: inherit;
     transition: color 160ms ease;
   }
   .story-footer__legal a:hover {
-    color: #000000;
+    color: var(--color-text);
     text-decoration: underline;
   }
 
@@ -1340,7 +1340,7 @@ const structuredData = [
       color: var(--services-ink);
       border-bottom: 1px solid var(--services-ink);
     }
-    .services-nav__mobile nav a { padding: 1rem 0; border-bottom: 1px solid rgba(21, 19, 15, .2); }
+    .services-nav__mobile nav a { padding: 1rem 0; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent); }
     .services-hero { height: auto; grid-template-columns: 1fr; }
     .services-hero__showcase { grid-template-rows: 520px minmax(320px, auto); }
     .services-evidence { grid-template-columns: 1fr; }
@@ -1372,22 +1372,22 @@ const structuredData = [
     .story-footer__social a { transition-duration: .01ms !important; }
   }
   .story-enquiry {
-    --type-h2-color: #ffffff;
+    --type-h2-color: var(--color-surface);
     padding-block: clamp(4rem, 6.5vw, 7rem);
     padding-inline: clamp(1rem, 6vw, 6rem);
-    background: var(--services-purple, #5524c7);
-    color: var(--services-cream, #fff8e8);
+    background: var(--services-purple, var(--color-additional-2));
+    color: var(--services-cream, var(--color-primary-text));
   }
   .story-enquiry h2,
   .story-enquiry :global(h2) {
-    color: #ffffff !important;
+    color: var(--color-primary-text) !important;
   }
   .story-enquiry .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow),
   .story-enquiry .inline-enquiry__intro > a,
   .story-enquiry .inline-enquiry--pop label > span,
   .story-enquiry .inline-enquiry--pop .custom-select__label-wrap > span,
   .story-enquiry .inline-enquiry--pop .inline-enquiry__submit-row p {
-    color: var(--services-cream, #fff8e8);
+    color: var(--services-cream, var(--color-primary-text));
   }
 
   @media (max-width: 720px) {

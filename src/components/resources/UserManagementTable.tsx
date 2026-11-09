@@ -456,12 +456,12 @@ export default function UserManagementTable({ initialUsers, currentUserId }: Pro
                 }
 
                 .action-btn.upgrade {
-                    color: #2563eb;
-                    border-color: #2563eb;
+                    color: var(--color-primary);
+                    border-color: var(--color-primary);
                 }
 
                 .action-btn.upgrade:hover:not(:disabled) {
-                    background: #2563eb;
+                    background: var(--color-primary);
                     color: white;
                 }
 

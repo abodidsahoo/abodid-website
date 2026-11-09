@@ -1533,19 +1533,19 @@ export default function VisualMoodboard({
                     --ui-text: rgba(245, 236, 227, 0.94);
                     --ui-text-strong: rgba(255, 249, 242, 0.98);
                     --ui-muted: rgba(242, 228, 218, 0.86);
-                    --ui-border: rgba(255, 255, 255, 0.24);
-                    --ui-bg: rgba(0, 0, 0, 0.52);
-                    --ui-bg-subtle: rgba(255, 255, 255, 0.04);
+                    --ui-border: color-mix(in srgb, var(--color-surface) 24%, transparent);
+                    --ui-bg: color-mix(in srgb, var(--ui-shadow-color) 52%, transparent);
+                    --ui-bg-subtle: color-mix(in srgb, var(--color-surface) 4%, transparent);
                     --ui-active-bg: rgba(234, 42, 16, 0.22);
                     --ui-active-border: rgba(234, 42, 16, 0.98);
                     --ui-active-text: rgba(255, 248, 244, 0.98);
                     --ui-focus-border: rgba(234, 42, 16, 0.9);
                     --ui-focus-ring: rgba(234, 42, 16, 0.22);
-                    --fab-bg: rgba(255, 255, 255, 0.98);
-                    --fab-border: rgba(255, 255, 255, 1);
+                    --fab-bg: color-mix(in srgb, var(--color-surface) 98%, transparent);
+                    --fab-border: var(--color-surface);
                     --fab-text: rgba(10, 10, 10, 0.96);
-                    --fab-shadow: 0 8px 18px rgba(0, 0, 0, 0.34);
-                    --fab-hover-shadow: 0 12px 22px rgba(0, 0, 0, 0.4);
+                    --fab-shadow: 0 8px 18px color-mix(in srgb, var(--ui-shadow-color) 34%, transparent);
+                    --fab-hover-shadow: 0 12px 22px color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
                 }
 
                 .visual-moodboard-root.surface-light {
@@ -1884,7 +1884,7 @@ export default function VisualMoodboard({
                     left: 50%;
                     transform: translateX(-50%);
                     margin: 0;
-                    background: rgba(0, 0, 0, 0.72);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 72%, transparent);
                     backdrop-filter: blur(4px);
                 }
 
@@ -1907,7 +1907,7 @@ export default function VisualMoodboard({
                         padding: 0 0.5rem;
                         font-size: 0.54rem;
                         letter-spacing: 0.06em;
-                        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+                        box-shadow: 0 3px 8px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
                     }
 
                     .surface-toggle-btn {

@@ -155,13 +155,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         display: inline-block;
         padding: 6px 14px;
         border-radius: 999px;
-        background: var(--pop-yellow);
-        color: var(--pop-ink);
+        background: var(--color-button);
+        color: var(--color-button-text);
         font-weight: 900;
         font-size: 0.75rem;
         letter-spacing: 0.08em;
         margin-bottom: 12px;
-        border: 2px solid var(--pop-ink);
+        border: 2px solid var(--color-text);
     }
 
     h1 {
@@ -183,12 +183,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .preview-section,
     .quick-links-section,
     .whatsapp-section {
-        background: var(--bg-card, #ffffff);
-        border: 2px solid var(--pop-ink);
+        background: var(--bg-card, var(--color-surface));
+        border: 2px solid var(--color-text);
         border-radius: 16px;
         padding: 28px;
         margin-bottom: 32px;
-        box-shadow: 4px 4px 0px var(--pop-ink);
+        box-shadow: 4px 4px 0px var(--color-text);
     }
 
     h2 {
@@ -231,7 +231,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         padding: 12px 14px;
         font-size: 0.95rem;
         font-weight: 600;
-        border: 2px solid var(--pop-ink);
+        border: 2px solid var(--color-text);
         border-radius: 8px;
         outline: none;
         background: #fafafa;
@@ -239,8 +239,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .input-group input:focus,
     .input-group select:focus {
-        border-color: var(--pop-purple);
-        background: #ffffff;
+        border-color: var(--color-additional-2);
+        background: var(--color-surface);
     }
 
     .btn-actions {
@@ -251,32 +251,32 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .primary-btn {
         padding: 12px 22px;
-        background: var(--pop-yellow);
-        color: var(--pop-ink);
-        border: 2px solid var(--pop-ink);
+        background: var(--color-button);
+        color: var(--color-button-text);
+        border: 2px solid var(--color-text);
         border-radius: 8px;
         font-weight: 850;
         font-size: 0.92rem;
         cursor: pointer;
-        box-shadow: 2px 2px 0px var(--pop-ink);
+        box-shadow: 2px 2px 0px var(--color-text);
         transition: transform 0.1s ease;
     }
 
     .primary-btn:hover {
         transform: translateY(-1px);
-        box-shadow: 3px 3px 0px var(--pop-ink);
+        box-shadow: 3px 3px 0px var(--color-text);
     }
 
     .secondary-btn {
         padding: 12px 20px;
-        background: #ffffff;
-        color: var(--pop-ink);
-        border: 2px solid var(--pop-ink);
+        background: var(--color-surface);
+        color: var(--color-text);
+        border: 2px solid var(--color-text);
         border-radius: 8px;
         font-weight: 750;
         font-size: 0.92rem;
         cursor: pointer;
-        box-shadow: 2px 2px 0px var(--pop-ink);
+        box-shadow: 2px 2px 0px var(--color-text);
     }
 
     .image-preview-wrapper {
@@ -284,10 +284,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .image-preview {
-        border: 2px solid var(--pop-ink);
+        border: 2px solid var(--color-text);
         border-radius: 12px;
         overflow: hidden;
-        background: var(--pop-ink);
+        background: var(--color-text);
         aspect-ratio: 1200 / 630;
     }
 
@@ -322,21 +322,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .page-btn {
         padding: 12px 14px;
-        background: #ffffff;
-        border: 2px solid var(--pop-ink);
+        background: var(--color-surface);
+        border: 2px solid var(--color-text);
         border-radius: 8px;
         font-size: 0.88rem;
         font-weight: 750;
         text-align: left;
         cursor: pointer;
-        box-shadow: 2px 2px 0px var(--pop-ink);
+        box-shadow: 2px 2px 0px var(--color-text);
         transition: all 0.12s ease;
     }
 
     .page-btn:hover {
-        background: var(--pop-yellow);
+        background: var(--color-button);
         transform: translateY(-1px);
-        box-shadow: 3px 3px 0px var(--pop-ink);
+        box-shadow: 3px 3px 0px var(--color-text);
     }
 
     .instructions ol {

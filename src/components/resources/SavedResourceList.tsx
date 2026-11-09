@@ -55,7 +55,7 @@ export default function SavedResourceList() {
                 padding: '0 16px 60px',
             }}>
                 <div style={{
-                    background: 'var(--pop-cream)',
+                    background: 'var(--color-background)',
                     border: '1px solid var(--pop-border)',
                     borderRadius: '24px',
                     padding: 'clamp(28px, 5vw, 48px)',
@@ -68,8 +68,8 @@ export default function SavedResourceList() {
                         padding: '5px 14px',
                         border: '1px solid var(--pop-border)',
                         borderRadius: '999px',
-                        background: 'var(--pop-yellow)',
-                        color: 'var(--pop-ink)',
+                        background: 'var(--color-button)',
+                        color: 'var(--color-text)',
                         fontFamily: 'var(--resources-mono)',
                         fontSize: '0.72rem',
                         fontWeight: 800,
@@ -86,7 +86,7 @@ export default function SavedResourceList() {
                         fontWeight: 720,
                         lineHeight: 1.05,
                         letterSpacing: '-0.045em',
-                        color: 'var(--pop-ink)',
+                        color: 'var(--color-text)',
                         margin: '0 0 12px',
                     }}>
                         Your saved collection
@@ -120,7 +120,7 @@ export default function SavedResourceList() {
                         <a
                             href="/resources"
                             style={{
-                                color: 'var(--pop-ink)',
+                                color: 'var(--color-text)',
                                 fontFamily: 'var(--resources-mono)',
                                 fontSize: '0.8rem',
                                 fontWeight: 700,
@@ -146,7 +146,7 @@ export default function SavedResourceList() {
                 padding: '0 16px 60px',
             }}>
                 <div style={{
-                    background: 'var(--pop-cream)',
+                    background: 'var(--color-background)',
                     border: '1px solid var(--pop-border)',
                     borderRadius: '24px',
                     padding: 'clamp(28px, 5vw, 48px)',
@@ -159,8 +159,8 @@ export default function SavedResourceList() {
                         padding: '5px 14px',
                         border: '1px solid var(--pop-border)',
                         borderRadius: '999px',
-                        background: 'var(--pop-pink)',
-                        color: 'var(--pop-ink)',
+                        background: 'var(--color-secondary)',
+                        color: 'var(--color-text)',
                         fontFamily: 'var(--resources-mono)',
                         fontSize: '0.72rem',
                         fontWeight: 800,
@@ -176,7 +176,7 @@ export default function SavedResourceList() {
                         fontWeight: 720,
                         lineHeight: 1.05,
                         letterSpacing: '-0.045em',
-                        color: 'var(--pop-ink)',
+                        color: 'var(--color-text)',
                         margin: '0 0 12px',
                     }}>
                         No saved resources yet

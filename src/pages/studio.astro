@@ -105,26 +105,26 @@ const founderPortrait = 'https://assets.abodid.com/photos/variants/landing-page-
 </BaseLayout>
 
 <style is:global>
-  html:has(body.aco-page),body.aco-page { background:#2949d4; }
-  body.aco-page { --aco-blue:#2949d4;--aco-yellow:#ffe457;--aco-ink:#151515;--aco-white:#fff;--page-bg:var(--aco-blue);color:var(--aco-white);color-scheme:light; }
+  html:has(body.aco-page),body.aco-page { background: #2949d4; }
+  body.aco-page { --aco-blue: #2949d4;--aco-yellow: #ffe457;--aco-ink: var(--color-text);--aco-white: var(--color-surface);--page-bg: var(--aco-blue);color: var(--aco-white);color-scheme:light; }
   .aco-page #main-content { padding:0; }
 </style>
 <style>
-  .aco-shell { max-inline-size:1280px;margin-inline:auto;padding-inline:clamp(1.25rem,4vw,3.5rem);font-family:"Satoshi-Variable","Satoshi-Regular",sans-serif;color:var(--aco-white); }
-  .aco-shell :where(h1,h2,h3,p,figure) { margin:0;color:inherit; }
-  .aco-shell a { color:inherit;text-decoration:none; }
-  .aco-shell a:focus-visible { outline:2px solid currentColor;outline-offset:5px;border-radius:2px; }
-  .aco-yellow { background:var(--aco-yellow);color:var(--aco-ink);border-radius:20px; }
+  .aco-shell { max-inline-size:1280px;margin-inline:auto;padding-inline:clamp(1.25rem,4vw,3.5rem);font-family:"Satoshi-Variable","Satoshi-Regular",sans-serif;color: var(--aco-white); }
+  .aco-shell :where(h1,h2,h3,p,figure) { margin:0;color: inherit; }
+  .aco-shell a { color: inherit;text-decoration:none; }
+  .aco-shell a:focus-visible { outline: 2px solid currentColor;outline-offset:5px;border-radius:2px; }
+  .aco-yellow { background: var(--aco-yellow);color: var(--aco-ink);border-radius:20px; }
   .aco-header { display:flex;align-items:center;justify-content:space-between;gap:32px;min-block-size:116px;padding-block:12px;box-sizing:border-box;border-block-end:1px solid #ffffff70; }
   .aco-identity { min-inline-size:0; }
   .aco-identity p { max-inline-size:48ch;font-size:13px;line-height:1.45; }
   .aco-brand { display:inline-flex;align-items:center;gap:5px;font-size:24px;font-weight:750;letter-spacing:-.055em;white-space:nowrap;min-block-size:44px; }
   .aco-brand span { font-weight:450; }
   .aco-header nav { display:flex;flex-wrap:wrap;gap:10px;flex:none; }
-  .aco-button { display:inline-flex;align-items:center;justify-content:center;min-block-size:46px;padding:11px 18px;box-sizing:border-box;max-inline-size:100%;border:1px solid currentColor;border-radius:8px;color:inherit;background:transparent;font-size:14px;font-weight:650;line-height:1.4;text-align:center; }
-  .aco-shell .aco-button:is(:hover,:focus-visible),.aco-contact-link:is(:hover,:focus-visible) { background:var(--aco-white);color:var(--aco-ink);text-decoration:none; }
-  .aco-shell .aco-button:focus-visible { outline-color:var(--aco-white); }
-  .aco-yellow .aco-button:focus-visible { outline-color:var(--aco-ink); }
+  .aco-button { display:inline-flex;align-items:center;justify-content:center;min-block-size:46px;padding:11px 18px;box-sizing:border-box;max-inline-size:100%;border: 1px solid currentColor;border-radius:8px;color: inherit;background: transparent;font-size:14px;font-weight:650;line-height:1.4;text-align:center; }
+  .aco-shell .aco-button:is(:hover,:focus-visible),.aco-contact-link:is(:hover,:focus-visible) { background: var(--aco-white);color: var(--aco-ink);text-decoration:none; }
+  .aco-shell .aco-button:focus-visible { outline-color: var(--aco-white); }
+  .aco-yellow .aco-button:focus-visible { outline-color: var(--aco-ink); }
   .aco-hero { padding-block:48px 56px; }
   .aco-hero h1 { margin-block:0 40px;font-size:clamp(2.5rem,1rem + 5.7vw,6rem);line-height:1.02;letter-spacing:-.065em;font-weight:650; }
   .aco-hero h1 > span { font-weight:450; }
@@ -147,13 +147,13 @@ const founderPortrait = 'https://assets.abodid.com/photos/variants/landing-page-
   .aco-founder { display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr);align-items:center;gap:clamp(32px,6vw,96px);padding-block:48px 64px;border-block-start:1px solid #ffffff70; }
   .aco-founder-portrait { max-inline-size:390px;padding:8px;overflow:hidden; }
   .aco-founder-portrait img { display:block;inline-size:100%;block-size:auto;aspect-ratio:4/5;object-fit:cover;object-position:center;border-radius:13px; }
-  .aco-founder-portrait figcaption { display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;padding:12px 8px 6px;font-size:11px;line-height:1.5;color:var(--aco-ink); }
+  .aco-founder-portrait figcaption { display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;padding:12px 8px 6px;font-size:11px;line-height:1.5;color: var(--aco-ink); }
   .aco-founder h2 { margin-block-end:24px;font-size:clamp(1.8rem,1rem + 1.8vw,2.8rem);font-weight:600;letter-spacing:-.04em;line-height:1.1; }
   .aco-contact-panel { display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center;gap:48px;padding:32px;scroll-margin-block:24px; }
   .aco-contact-intro { max-inline-size:32ch;font-size:clamp(1.25rem,1rem + .7vw,1.65rem);line-height:1.35;letter-spacing:-.02em;margin-block-end:20px !important; }
   .aco-contact-panel h2 { font-size:clamp(2rem,1rem + 2.3vw,3rem);line-height:1.05;letter-spacing:-.045em;font-weight:650; }
   .aco-contact-panel address { display:grid;gap:8px;font-style:normal;min-inline-size:0; }
-  .aco-contact-link { display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:16px;min-block-size:52px;padding:10px 14px;border:1px solid var(--aco-ink);border-radius:8px;box-sizing:border-box; }
+  .aco-contact-link { display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:16px;min-block-size:52px;padding:10px 14px;border: 1px solid var(--aco-ink);border-radius:8px;box-sizing:border-box; }
   .aco-contact-link > span { font-size:12px;line-height:1.4; }.aco-contact-link > strong { font-size:16px;font-weight:600;line-height:1.4;white-space:nowrap; }
   .aco-footer { display:flex;align-items:center;justify-content:space-between;gap:32px;padding-block:32px; }
   .aco-footer p { font-size:13px;line-height:1.5; }.aco-footer-location { white-space:nowrap; }

@@ -355,11 +355,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .offers-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
     }
 
     [data-theme="dark"] .offers-btn:hover {
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--color-surface) 10%, transparent);
     }
 
     /* --- MICROCOPY --- */

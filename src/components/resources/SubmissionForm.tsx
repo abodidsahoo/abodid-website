@@ -126,8 +126,8 @@ export default function SubmissionForm() {
                         padding: '5px 14px',
                         border: '1px solid var(--pop-border)',
                         borderRadius: '999px',
-                        background: 'var(--pop-yellow)',
-                        color: 'var(--pop-ink)',
+                        background: 'var(--color-button)',
+                        color: 'var(--color-text)',
                         fontFamily: 'var(--resources-mono)',
                         fontSize: '0.72rem',
                         fontWeight: 800,
@@ -143,7 +143,7 @@ export default function SubmissionForm() {
                         fontWeight: 720,
                         lineHeight: 1.05,
                         letterSpacing: '-0.05em',
-                        color: 'var(--pop-ink)',
+                        color: 'var(--color-text)',
                         margin: '0 0 12px',
                     }}>
                         Submit a resource
@@ -175,7 +175,7 @@ export default function SubmissionForm() {
                         <a
                             href="/resources"
                             style={{
-                                color: 'var(--pop-ink)',
+                                color: 'var(--color-text)',
                                 fontFamily: 'var(--resources-mono)',
                                 fontSize: '0.8rem',
                                 fontWeight: 700,
@@ -228,7 +228,7 @@ export default function SubmissionForm() {
                         border-radius: 12px;
                         border: 1px solid var(--border-subtle);
                         overflow: hidden;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+                        box-shadow: 0 4px 20px color-mix(in srgb, var(--ui-shadow-color) 4%, transparent);
                     }
                 `}</style>
             </div>
@@ -238,7 +238,7 @@ export default function SubmissionForm() {
     return (
         <form onSubmit={handleSubmit} className="submission-card-container">
             {error && (
-                <div style={{ padding: '14px', background: '#fee2e2', color: '#b91c1c', borderRadius: '12px', border: '1px solid #fca5a5', marginBottom: '20px', maxWidth: '760px', margin: '0 auto 20px' }}>
+                <div style={{ padding: '14px', background: "var(--ui-error-surface)", color: "var(--color-error)", borderRadius: '12px', border: "1px solid var(--color-error)", marginBottom: '20px', maxWidth: '760px', margin: '0 auto 20px' }}>
                     {error}
                 </div>
             )}
@@ -324,7 +324,7 @@ export default function SubmissionForm() {
                     overflow: hidden;
                     max-width: 800px;
                     margin: 0 auto;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+                    box-shadow: 0 4px 20px color-mix(in srgb, var(--ui-shadow-color) 4%, transparent);
                 }
 
                 .form-header {

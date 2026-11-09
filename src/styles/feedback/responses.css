@@ -1,7 +1,7 @@
 
     body.du-responses-route {
         --du-red: var(--palette-red, #ea2a10);
-        --du-light: var(--palette-light, #f9f8f3);
+        --du-light: var(--palette-light, var(--color-background));
         --du-dark: var(--palette-dark, #010101);
         --du-sand: var(--palette-sand, #e0dbd3);
         --du-grey: var(--palette-grey, #9e9992);
@@ -17,8 +17,7 @@
         position: relative;
         min-height: 100svh;
         overflow: auto;
-        background:
-            linear-gradient(90deg, rgba(234, 42, 16, 0.08) 0 3px, transparent 3px 100%),
+        background: linear-gradient(90deg, rgba(234, 42, 16, 0.08) 0 3px, transparent 3px 100%),
             linear-gradient(rgba(224, 219, 211, 0.45) 1px, transparent 1px),
             linear-gradient(90deg, rgba(224, 219, 211, 0.45) 1px, transparent 1px),
             var(--du-light);
@@ -34,8 +33,7 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background:
-            linear-gradient(180deg, rgba(249, 248, 243, 0.4), rgba(249, 248, 243, 0.85)),
+        background: linear-gradient(180deg, rgba(249, 248, 243, 0.4), rgba(249, 248, 243, 0.85)),
             linear-gradient(90deg, transparent 0 68%, rgba(1, 1, 1, 0.03) 68% 100%);
         z-index: 0;
     }
@@ -106,11 +104,11 @@
     .du-response-card {
         break-inside: avoid;
         margin-bottom: 1.5rem;
-        background: rgba(255, 255, 255, 0.85);
+        background: color-mix(in srgb, var(--color-surface) 85%, transparent);
         backdrop-filter: blur(12px);
         border: 1px solid rgba(1, 1, 1, 0.08);
         border-radius: 12px;
-        box-shadow: 0 12px 30px rgba(1, 1, 1, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        box-shadow: 0 12px 30px rgba(1, 1, 1, 0.04), inset 0 1px 0 color-mix(in srgb, var(--color-surface) 60%, transparent);
         padding: 1.6rem;
         display: flex;
         flex-direction: column;
@@ -120,8 +118,8 @@
 
     .du-response-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 16px 40px rgba(1, 1, 1, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 16px 40px rgba(1, 1, 1, 0.06), inset 0 1px 0 color-mix(in srgb, var(--color-surface) 80%, transparent);
+        background: color-mix(in srgb, var(--color-surface) 95%, transparent);
     }
 
     .card-header {
@@ -147,7 +145,7 @@
         height: 2.4rem;
         border-radius: 50%;
         flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 10px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
     }
 
     .status-arrow.has-email {

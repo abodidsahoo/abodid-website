@@ -161,23 +161,23 @@ Astro.response.headers.set("Cache-Control", "no-store");
 
 <style is:global>
   body.story-moodboard-page {
-    --pop-blue: #2444ca;
-    --pop-purple: #6657d8;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
-    --pop-border: 1px solid var(--pop-ink);
+    --color-primary: #2444ca;
+    --color-additional-2: #6657d8;
+    --color-secondary: #ff7eb5;
+    --color-button: #ffe44f;
+    --color-background: #fff8e8;
+    --color-text: #15130f;
+    --pop-border: 1px solid var(--color-text);
     /* Exact same resets as landing page */
     margin: 0;
     padding: 0 !important;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink);
+    background: var(--color-primary) !important;
+    color: var(--color-text);
     min-height: 100vh;
   }
 
   html:has(body.story-moodboard-page) {
-    background: var(--pop-blue);
+    background: var(--color-primary);
     margin: 0;
     padding: 0;
   }
@@ -211,8 +211,8 @@ Astro.response.headers.set("Cache-Control", "no-store");
     align-items: center !important;
     gap: 1.5rem !important;
     border-bottom: 0 !important;
-    background: var(--pop-blue) !important;
-    color: var(--pop-cream) !important;
+    background: var(--color-primary) !important;
+    color: var(--color-background) !important;
   }
   body.story-moodboard-page .story-nav a,
   body.story-moodboard-page .story-nav summary {
@@ -228,10 +228,10 @@ Astro.response.headers.set("Cache-Control", "no-store");
     padding: 0 0.9rem !important;
     display: inline-flex !important;
     align-items: center !important;
-    border: 1px solid var(--pop-ink) !important;
+    border: 1px solid var(--color-text) !important;
     border-radius: 14px !important;
-    background: var(--pop-yellow) !important;
-    color: var(--pop-ink) !important;
+    background: var(--color-button) !important;
+    color: var(--color-text) !important;
   }
   body.story-moodboard-page .story-nav__links {
     display: flex !important;
@@ -256,17 +256,17 @@ Astro.response.headers.set("Cache-Control", "no-store");
     display: inline-flex !important;
     align-items: center !important;
     gap: 0.5rem !important;
-    border: 1px solid var(--pop-ink) !important;
+    border: 1px solid var(--color-text) !important;
     border-radius: 14px !important;
-    background: var(--pop-pink) !important;
-    color: var(--pop-ink) !important;
+    background: var(--color-secondary) !important;
+    color: var(--color-text) !important;
     transition:
       transform 180ms ease,
       box-shadow 180ms ease;
   }
   body.story-moodboard-page .story-nav__contact:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink);
+    box-shadow: 0 4px 0 var(--color-text);
   }
   body.story-moodboard-page .story-nav__mobile {
     display: none !important;
@@ -290,10 +290,10 @@ Astro.response.headers.set("Cache-Control", "no-store");
       padding: 0 0.9rem;
       display: flex;
       align-items: center;
-      border: 1px solid var(--pop-ink);
+      border: 1px solid var(--color-text);
       border-radius: 14px;
-      background: var(--pop-yellow);
-      color: var(--pop-ink);
+      background: var(--color-button);
+      color: var(--color-text);
       cursor: pointer;
       list-style: none;
     }
@@ -308,8 +308,8 @@ Astro.response.headers.set("Cache-Control", "no-store");
       padding: 1.5rem var(--story-gutter) 2rem;
       display: grid;
       gap: 0;
-      background: var(--pop-yellow);
-      border-bottom: 1px solid var(--pop-ink);
+      background: var(--color-button);
+      border-bottom: 1px solid var(--color-text);
     }
     body.story-moodboard-page .story-nav__mobile nav a {
       padding: 1rem 0;
@@ -323,23 +323,23 @@ Astro.response.headers.set("Cache-Control", "no-store");
   /* ── Moodboard Layout ───────────────────── */
   .moodboard-shell {
     padding: clamp(10px, 2vw, 20px);
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   .moodboard-file {
     width: min(100%, 1600px);
     margin-inline: auto;
     overflow: hidden;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(20px, 3vw, 34px);
-    background: var(--pop-cream);
+    background: var(--color-background);
     box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
   }
 
   .moodboard-heading {
     padding: clamp(1.4rem, 4vw, 3.5rem);
-    border-bottom: 1px solid var(--pop-ink);
-    background: var(--pop-pink);
+    border-bottom: 1px solid var(--color-text);
+    background: var(--color-secondary);
   }
 
   .moodboard-heading__tag {
@@ -348,7 +348,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     align-items: center;
     justify-content: space-between;
     gap: 0.55rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 700 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -360,12 +360,12 @@ Astro.response.headers.set("Cache-Control", "no-store");
     flex: 0 0 auto;
     border: 1px solid currentColor;
     border-radius: 50%;
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .moodboard-legacy-link {
     font-size: 0.72rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
     text-decoration: underline;
     text-underline-offset: 3px;
     font-weight: 700;
@@ -381,7 +381,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
   .moodboard-heading h1 {
     max-width: 9ch;
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.84 var(--font-display, sans-serif);
     letter-spacing: -0.075em;
   }
@@ -389,7 +389,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
   .moodboard-heading__hero p {
     max-width: 34rem;
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 500 clamp(1.15rem, 2vw, 1.65rem)/1.32 var(--font-display, sans-serif);
     letter-spacing: -0.025em;
   }
@@ -433,7 +433,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
   .moodboard-empty {
     padding: 6rem 2rem;
     text-align: center;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 600 1.2rem/1.4 var(--font-display, sans-serif);
   }
 
@@ -441,10 +441,10 @@ Astro.response.headers.set("Cache-Control", "no-store");
   .moodboard-footer {
     margin-top: clamp(2.5rem, 6vw, 5rem);
     padding: clamp(2rem, 4.5vw, 4rem);
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(16px, 2.5vw, 28px);
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
   }
 
   .moodboard-footer__top {
@@ -483,7 +483,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
     font: 700 0.76rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
@@ -495,8 +495,8 @@ Astro.response.headers.set("Cache-Control", "no-store");
   }
 
   .moodboard-cta--primary {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-text);
   }
 
   .moodboard-cta--primary:hover {
@@ -505,8 +505,8 @@ Astro.response.headers.set("Cache-Control", "no-store");
   }
 
   .moodboard-cta--secondary {
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
   }
 
   .moodboard-cta--secondary:hover {
@@ -515,7 +515,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
 
   .moodboard-footer__divider {
     height: 1px;
-    background: var(--pop-ink);
+    background: var(--color-text);
     margin: clamp(2rem, 4vw, 3rem) 0;
     opacity: 0.25;
   }

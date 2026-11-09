@@ -175,10 +175,10 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                     background: var(--bg-surface-hover);
                 }
                 .uploader-container.drag-over {
-                    border-color: #fff !important;
+                    border-color: var(--color-primary-text) !important;
                     background: #222 !important;
                     transform: scale(1.02);
-                    box-shadow: 0 0 20px rgba(255,255,255,0.1);
+                    box-shadow: 0 0 20px color-mix(in srgb, var(--color-surface) 10%, transparent);
                 }
                 .uploader-container.uploading {
                     opacity: 0.7;

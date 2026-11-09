@@ -3,12 +3,12 @@ import { vaultTags as fallbackVaultTags } from '../utils/tags';
 
 // Vivid palette popping against the blue background (pink, yellow, cream, lime)
 const TAG_COLOR_THEMES = [
-  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-yellow, #ffe44f)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-cream, #fff8e8)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.3)' },
-  { bg: 'var(--pop-lime, #caff48)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-secondary, #f78bb1)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-secondary, #f78bb1)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-button, #ffe44f)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-background, #fff8e8)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.3)' },
+  { bg: 'var(--color-accent, #caff48)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--color-secondary, #f78bb1)', color: 'var(--color-text, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
 ];
 
 const EMPTY_TAG_POOL = [];
@@ -267,8 +267,8 @@ export default function HeroVaultTagsCard({
                 className="hero-tag-content"
                 style={{
                   backgroundColor: tag.theme.bg,
-                  color: 'var(--pop-ink, #15130f)',
-                  WebkitTextFillColor: 'var(--pop-ink, #15130f)',
+                  color: 'var(--color-text, #15130f)',
+                  WebkitTextFillColor: 'var(--color-text, #15130f)',
                   borderColor: tag.theme.border,
                 }}
               >
@@ -343,10 +343,10 @@ export default function HeroVaultTagsCard({
           justify-content: space-between;
           gap: 2rem;
           overflow: hidden;
-          border: var(--home-next-border, 1px solid var(--pop-ink, #17150f));
+          border: var(--home-next-border, 1px solid var(--color-text, #17150f));
           border-radius: var(--home-next-radius-panel, 18px);
-          background: var(--pop-blue, #2442e3);
-          color: var(--pop-cream, #fdfbf7);
+          background: var(--color-primary, #2442e3);
+          color: var(--color-background, #fdfbf7);
           text-decoration: none;
           cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none'%3E%3Cline x1='8' y1='8' x2='26' y2='26' stroke='%23fdfbf7' stroke-width='4.5' stroke-linecap='round'/%3E%3Cline x1='8' y1='8' x2='16' y2='16' stroke='%23f78bb1' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='16' x2='26' y2='26' stroke='%2317150f' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M5 0L6.5 3.5L10 5L6.5 6.5L5 10L3.5 6.5L0 5L3.5 3.5Z' fill='%23fdfbf7' stroke='%2317150f' stroke-width='0.8'/%3E%3Ccircle cx='5' cy='5' r='1.2' fill='%23f6e05e'/%3E%3Cpath d='M13 1L14 3.2L16.2 4.2L14 5.2L13 7.5L12 5.2L9.8 4.2L12 3.2Z' fill='%23f6e05e'/%3E%3Cpath d='M2 12L3 14.2L5.2 15.2L3 16.2L2 18.5L1 16.2L-1.2 15.2L1 14.2Z' fill='%23f78bb1'/%3E%3C/svg%3E") 4 4, crosshair;
           user-select: none;
@@ -355,7 +355,7 @@ export default function HeroVaultTagsCard({
 
         .hero-vault-tags-card:hover,
         .hero-vault-tags-card:focus-visible {
-          color: var(--pop-cream, #fdfbf7) !important;
+          color: var(--color-background, #fdfbf7) !important;
           text-decoration: none !important;
         }
 
@@ -377,24 +377,24 @@ export default function HeroVaultTagsCard({
         .hero-tag-content {
           display: inline-block;
           padding: 8px 18px;
-          border: 1px solid rgba(23, 21, 15, 0.3);
+          border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent);
           border-radius: 999px;
-          color: var(--pop-ink, #15130f) !important;
-          -webkit-text-fill-color: var(--pop-ink, #15130f) !important;
+          color: var(--color-text) !important;
+          -webkit-text-fill-color: var(--color-text) !important;
           font-family: var(--font-display, sans-serif);
           font-size: 1.05rem;
           font-weight: 480;
           letter-spacing: -0.01em;
           white-space: nowrap;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 16px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent), 0 1px 4px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
         }
 
         .hero-vault-tags-card:hover .hero-tag-content,
         .hero-vault-tags-card:focus-visible .hero-tag-content,
         .hero-vault-tags-card .hero-floating-tag .hero-tag-content,
         .hero-vault-tags-card[data-auto-contrast] .hero-tag-content {
-          color: var(--pop-ink, #15130f) !important;
-          -webkit-text-fill-color: var(--pop-ink, #15130f) !important;
+          color: var(--color-text) !important;
+          -webkit-text-fill-color: var(--color-text) !important;
         }
 
         @keyframes trailFade {
@@ -432,7 +432,7 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card__heading {
           max-width: 14ch;
           margin: 0;
-          color: var(--pop-cream, #fdfbf7) !important;
+          color: var(--color-background, #fdfbf7) !important;
           font: 620 clamp(1.85rem, 2.9vw, 3.1rem)/0.94 var(--font-display, sans-serif);
           letter-spacing: -0.045em;
           text-wrap: balance;
@@ -441,7 +441,7 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card__cta {
           max-width: 32ch;
           display: block;
-          color: var(--pop-cream, #fdfbf7);
+          color: var(--color-background, #fdfbf7);
           font: 650 0.72rem/1.45 var(--font-mono, monospace);
           letter-spacing: 0.04em;
           text-transform: uppercase;
@@ -451,14 +451,14 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card__helper {
           max-width: 48ch;
           display: block;
-          color: var(--pop-cream, #fdfbf7) !important;
+          color: var(--color-background, #fdfbf7) !important;
           font: 500 clamp(0.9rem, 1.05vw, 1.08rem)/1.45 var(--font-body, sans-serif);
           opacity: 1 !important;
         }
 
         .hero-vault-tags-card:hover .hero-vault-tags-card__heading,
         .hero-vault-tags-card:hover .hero-vault-tags-card__helper {
-          color: var(--pop-cream, #fdfbf7) !important;
+          color: var(--color-background, #fdfbf7) !important;
           opacity: 1 !important;
         }
 
@@ -498,10 +498,10 @@ export default function HeroVaultTagsCard({
           display: inline-flex;
           align-items: center;
           gap: 0.3rem;
-          border: 1px solid var(--pop-ink, #17150f);
+          border: 1px solid var(--color-text, #17150f);
           border-radius: 999px;
-          background: var(--pop-cream, #fdfbf7);
-          color: var(--pop-ink, #17150f) !important;
+          background: var(--color-background, #fdfbf7);
+          color: var(--color-text, #17150f) !important;
           opacity: 1;
           pointer-events: auto;
           text-decoration: none;
@@ -510,7 +510,7 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card--standalone .hero-vault-tags-card__cta:hover,
         .hero-vault-tags-card--standalone .hero-vault-tags-card__cta:focus-visible {
           transform: translateY(-2px);
-          box-shadow: 0 4px 0 var(--pop-ink, #17150f);
+          box-shadow: 0 4px 0 var(--color-text, #17150f);
         }
 
         .hero-vault-tags-card--papers .hero-vault-tags-card__heading {
@@ -536,10 +536,10 @@ export default function HeroVaultTagsCard({
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid var(--pop-ink, #17150f);
+          border: 1px solid var(--color-text, #17150f);
           border-radius: 14px;
-          background: var(--pop-cream, #fdfbf7);
-          color: var(--pop-ink, #17150f) !important;
+          background: var(--color-background, #fdfbf7);
+          color: var(--color-text, #17150f) !important;
           font-family: var(--research-font-action-family, var(--font-ui, sans-serif));
           font-size: var(--research-font-action-size, 0.82rem);
           font-weight: var(--research-font-action-weight, 700);
@@ -555,13 +555,13 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card--non-interactive .hero-vault-tags-card__cta:hover,
         .hero-vault-tags-card--non-interactive .hero-vault-tags-card__cta:focus-visible {
           transform: translateY(-2px);
-          box-shadow: 0 4px 0 var(--pop-ink, #17150f);
+          box-shadow: 0 4px 0 var(--color-text, #17150f);
         }
 
         .hero-vault-tags-card--papers .hero-vault-tags-card__cta:active,
         .hero-vault-tags-card--non-interactive .hero-vault-tags-card__cta:active {
           transform: translateY(0);
-          box-shadow: 0 2px 0 var(--pop-ink, #17150f);
+          box-shadow: 0 2px 0 var(--color-text, #17150f);
         }
 
         .hero-vault-tags-card__details {
@@ -579,8 +579,8 @@ export default function HeroVaultTagsCard({
           padding: 0.35rem 0.6rem;
           border: 1px solid rgba(253, 251, 247, 0.42);
           border-radius: 999px;
-          background: rgba(23, 21, 15, 0.22);
-          color: var(--pop-cream, #fdfbf7);
+          background: color-mix(in srgb, var(--color-text) 22%, transparent);
+          color: var(--color-background, #fdfbf7);
           font: 700 0.68rem/1.15 var(--font-mono, monospace);
           letter-spacing: 0.025em;
           backdrop-filter: blur(8px);
@@ -598,7 +598,7 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card__odometer {
           display: inline-flex;
           align-items: baseline;
-          color: var(--pop-cream, #fdfbf7);
+          color: var(--color-background, #fdfbf7);
           font: 800 clamp(1.75rem, 3.2vw, 2.5rem)/1 var(--font-mono, monospace);
           letter-spacing: -0.03em;
           text-transform: uppercase;
@@ -607,7 +607,7 @@ export default function HeroVaultTagsCard({
 
         .hero-vault-tags-card__metric-label {
           display: inline-flex;
-          color: var(--pop-cream, #fdfbf7);
+          color: var(--color-background, #fdfbf7);
           font: 800 clamp(1.45rem, 2.5vw, 2.2rem)/1 var(--font-mono, monospace);
           letter-spacing: -0.03em;
           text-transform: uppercase;
@@ -651,7 +651,7 @@ export default function HeroVaultTagsCard({
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          color: var(--pop-cream, #fdfbf7);
+          color: var(--color-background, #fdfbf7);
           font-family: "Courier New", Courier, "SF Mono", monospace !important;
           font-size: 0.6rem !important;
           font-weight: 700 !important;

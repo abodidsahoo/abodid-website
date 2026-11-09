@@ -1,8 +1,8 @@
 body.workshop-hub-route {
-    --hub-blue: var(--pop-blue, #2444ca);
-    --hub-white: var(--pop-white, #fff);
-    --hub-yellow: var(--pop-yellow, #ffe44f);
-    --hub-ink: var(--pop-ink, #15130f);
+    --hub-blue: var(--color-primary);
+    --hub-white: var(--color-surface);
+    --hub-yellow: var(--color-button);
+    --hub-ink: var(--color-text);
     --hub-muted: #5c606d;
     --hub-line: #c5cced;
     background: var(--hub-blue);
@@ -303,7 +303,7 @@ body.workshop-hub-route {
     .workshop-hub *, .workshop-hub *::before, .workshop-hub *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
     .hub-button:hover, .hub-disclosure[open] > summary .hub-plus { transform: none; }
 }
-@media (forced-colors: active) {
+@media (forced-colors:active) {
     .hub-button, .hub-question :is(input,textarea,select), .hub-tag, .hub-step-number, .hub-disclosure { border-color: ButtonText; }
     .workshop-hub :is(a,button,input,select,textarea,summary):focus-visible { outline-color: Highlight; }
 }
@@ -337,13 +337,13 @@ dialog.hub-dialog {
     color: var(--hub-ink);
     max-width: min(92vw, 520px);
     width: 100%;
-    box-shadow: 0 24px 60px rgba(21,19,15,.35);
+    box-shadow: 0 24px 60px color-mix(in srgb, var(--color-text) 35%, transparent);
 }
 dialog.hub-dialog:modal {
     overscroll-behavior: contain;
 }
 dialog.hub-dialog::backdrop {
-    background: rgba(21,19,15,.55);
+    background: color-mix(in srgb, var(--color-text) 55%, transparent);
     backdrop-filter: blur(4px);
     overflow: hidden;
     overscroll-behavior: contain;

@@ -234,12 +234,12 @@ const letterboxedSlideIds = new Set(["gesture-control", "punctum-walkthrough"]);
 
 <style>
   .featured-work-carousel {
-    --carousel-ink: var(--pop-ink, #15130f);
-    --carousel-blue: var(--pop-blue, #2444ca);
-    --carousel-pink: var(--pop-pink, #ff7eb5);
-    --carousel-yellow: var(--pop-yellow, #ffe44f);
-    --carousel-lime: var(--pop-lime, #caff48);
-    --carousel-cream: var(--pop-cream, #fff8e8);
+    --carousel-ink: var(--color-text);
+    --carousel-blue: var(--color-primary);
+    --carousel-pink: var(--color-secondary);
+    --carousel-yellow: var(--color-button);
+    --carousel-lime: var(--color-accent);
+    --carousel-cream: var(--color-background);
     padding: 0 var(--home-next-gap, 8px) var(--home-next-gap, 8px);
     background: var(--carousel-blue);
   }
@@ -335,7 +335,7 @@ const letterboxedSlideIds = new Set(["gesture-control", "punctum-walkthrough"]);
     object-fit: contain;
     border: 1px solid var(--carousel-ink);
     border-radius: clamp(10px, 1.2vw, 14px);
-    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
   }
   .featured-work-carousel__slide.is-letterboxed > span { position: static; }
   .featured-work-carousel__slide.is-letterboxed:hover :is(img, video) { transform: scale(1.015); }

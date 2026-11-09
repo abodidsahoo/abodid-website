@@ -384,7 +384,7 @@ const aswinFeedback = feedback.filter((f) => f.source === "Aswin");
                     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                     "Helvetica Neue", Arial, sans-serif;
                 background: #1a1a1a;
-                color: #ffffff;
+                color: var(--color-primary-text);
                 line-height: 1.6;
                 padding: 60px 30px;
             }
@@ -435,7 +435,7 @@ const aswinFeedback = feedback.filter((f) => f.source === "Aswin");
 
             .legend-label {
                 font-weight: 600;
-                color: #ffffff;
+                color: var(--color-primary-text);
             }
 
             .legend-desc {
@@ -449,7 +449,7 @@ const aswinFeedback = feedback.filter((f) => f.source === "Aswin");
                 margin: 50px 0 24px 0;
                 font-size: 22px;
                 font-weight: 600;
-                color: #ffffff;
+                color: var(--color-primary-text);
             }
 
             .section-header:first-of-type {
@@ -545,14 +545,14 @@ const aswinFeedback = feedback.filter((f) => f.source === "Aswin");
                 position: fixed;
                 bottom: 24px;
                 right: 24px;
-                background: #ffffff;
+                background: var(--color-surface);
                 color: #1a1a1a;
                 padding: 14px 24px;
                 border-radius: 10px;
                 font-size: 13px;
                 font-weight: 600;
                 font-variant-numeric: tabular-nums;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+                box-shadow: 0 8px 24px color-mix(in srgb, var(--ui-shadow-color) 40%, transparent);
             }
 
             @media (max-width: 768px) {

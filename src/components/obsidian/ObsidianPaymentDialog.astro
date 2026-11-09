@@ -153,11 +153,11 @@ import ContactProtection from "../ContactProtection.astro";
     width: min(520px, calc(100vw - 2rem));
     margin: auto;
     padding: 0;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: clamp(20px, 2.5vw, 28px);
-    background: var(--pop-cream);
-    color: var(--pop-ink);
-    box-shadow: 10px 10px 0 var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
+    box-shadow: 10px 10px 0 var(--color-text);
   }
 
   .obsidian-payment-dialog::backdrop {
@@ -176,10 +176,10 @@ import ContactProtection from "../ContactProtection.astro";
     right: 1.25rem;
     width: 40px;
     height: 40px;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 12px;
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-button-text);
     font-size: 1.5rem;
     font-weight: 800;
     line-height: 1;
@@ -187,12 +187,12 @@ import ContactProtection from "../ContactProtection.astro";
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 2px 2px 0 var(--pop-ink);
+    box-shadow: 2px 2px 0 var(--color-text);
     transition: transform 120ms ease, background 120ms ease;
   }
 
   .obsidian-payment-dialog__close:hover {
-    background: var(--pop-lime);
+    background: var(--color-accent);
     transform: translateY(-1px);
   }
 
@@ -200,21 +200,21 @@ import ContactProtection from "../ContactProtection.astro";
     width: fit-content;
     margin: 0 0 1rem;
     padding: 6px 14px;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 999px;
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
     font-family: var(--font-sans);
     font-size: 0.72rem;
     font-weight: 750;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    box-shadow: 0 2px 0 var(--pop-ink);
+    box-shadow: 0 2px 0 var(--color-text);
   }
 
   .obsidian-payment-dialog h2 {
     margin: 0 0 0.8rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font-family: var(--font-display);
     font-size: clamp(2rem, 4.5vw, 2.6rem);
     font-weight: 720;
@@ -228,18 +228,18 @@ import ContactProtection from "../ContactProtection.astro";
     flex-direction: column;
     gap: 0.25rem;
     margin: 1.25rem 0 1.75rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font-family: var(--font-sans);
   }
 
   .obsidian-payment-dialog__price s {
-    color: rgba(21, 19, 15, 0.65);
+    color: color-mix(in srgb, var(--color-text) 65%, transparent);
     font-size: 0.95rem;
     font-weight: 600;
   }
 
   .obsidian-payment-dialog__price strong {
-    color: var(--pop-ink);
+    color: var(--color-text);
     font-size: 1.15rem;
     font-weight: 750;
     letter-spacing: -0.01em;
@@ -264,7 +264,7 @@ import ContactProtection from "../ContactProtection.astro";
     font-weight: 750;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 
   .obsidian-booking-field input {
@@ -272,10 +272,10 @@ import ContactProtection from "../ContactProtection.astro";
     min-height: 54px;
     padding: 0 1.1rem;
     box-sizing: border-box;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 14px;
-    background: #ffffff !important;
-    color: var(--pop-ink) !important;
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
     font-family: var(--font-sans);
     font-size: 1.05rem;
     font-weight: 700 !important;
@@ -287,15 +287,15 @@ import ContactProtection from "../ContactProtection.astro";
   .obsidian-booking-field input:-webkit-autofill:focus,
   .obsidian-booking-field input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
-    -webkit-text-fill-color: var(--pop-ink) !important;
-    caret-color: var(--pop-ink) !important;
+    -webkit-text-fill-color: var(--color-text) !important;
+    caret-color: var(--color-text) !important;
     font-weight: 700 !important;
-    border-color: var(--pop-ink) !important;
+    border-color: var(--color-text) !important;
     transition: background-color 5000s ease-in-out 0s;
   }
 
   .obsidian-booking-field input::placeholder {
-    color: rgba(21, 19, 15, 0.45);
+    color: color-mix(in srgb, var(--color-text) 45%, transparent);
     font-family: var(--font-sans);
     font-weight: 450;
     opacity: 1;
@@ -303,8 +303,8 @@ import ContactProtection from "../ContactProtection.astro";
 
   .obsidian-booking-field input:focus {
     outline: none;
-    border-color: var(--pop-blue);
-    background: #ffffff;
+    border-color: var(--color-primary);
+    background: var(--color-surface);
     box-shadow: 0 0 0 3px rgba(36, 68, 202, 0.25);
   }
 
@@ -313,53 +313,53 @@ import ContactProtection from "../ContactProtection.astro";
     width: 100%;
     margin-top: 0.25rem;
     padding: 0 1.6rem;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 14px;
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-button-text);
     font-family: var(--font-sans);
     font-size: 0.85rem;
     font-weight: 750;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    box-shadow: 0 4px 0 var(--pop-ink);
+    box-shadow: 0 4px 0 var(--color-text);
     cursor: pointer;
     transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
   }
 
   .obsidian-booking-submit-btn:hover {
-    background: var(--pop-lime);
+    background: var(--color-accent);
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 var(--pop-ink);
+    box-shadow: 0 6px 0 var(--color-text);
   }
 
   .obsidian-booking-submit-btn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 0 var(--pop-ink);
+    box-shadow: 0 2px 0 var(--color-text);
   }
 
   .obsidian-booking-success-message {
     padding: 1.4rem;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 16px;
-    background: var(--pop-lime);
-    color: var(--pop-ink);
-    box-shadow: 4px 4px 0 var(--pop-ink);
+    background: var(--color-accent);
+    color: var(--color-text);
+    box-shadow: 4px 4px 0 var(--color-text);
     margin-top: 0.75rem;
   }
 
   .obsidian-booking-error-message {
     padding: 1rem 1.2rem;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 14px;
     background: #ff7e7e;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font-family: var(--font-sans);
     font-size: 0.95rem;
     font-weight: 650;
     line-height: 1.4;
     margin-top: 0.75rem;
-    box-shadow: 3px 3px 0 var(--pop-ink);
+    box-shadow: 3px 3px 0 var(--color-text);
   }
 
   .success-badge {

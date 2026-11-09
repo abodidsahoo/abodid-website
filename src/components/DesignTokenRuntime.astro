@@ -1,12 +1,17 @@
 ---
-import { DESIGN_TOKEN_NAMES } from "../lib/designTokens.js";
+import { DESIGN_TOKEN_NAMES, LEGACY_COLOR_TOKENS, DEFAULT_DESIGN_TOKENS } from "../lib/designTokens.js";
+
+import { EDITORIAL_CURSOR_SVG } from "../lib/editorialCursor.js";
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
 const tokenNames = DESIGN_TOKEN_NAMES;
+const legacyColorTokens = LEGACY_COLOR_TOKENS;
+const editorialCursorSvg = EDITORIAL_CURSOR_SVG;
+const tokenDefaults = DEFAULT_DESIGN_TOKENS;
 ---
 
-<script is:inline define:vars={{ supabaseUrl, supabaseAnonKey, tokenNames }}>
+<script is:inline define:vars={{ supabaseUrl, supabaseAnonKey, tokenNames, legacyColorTokens, editorialCursorSvg, tokenDefaults }}>
   (() => {
     const cacheKey = "abodid-published-design-tokens-v1";
     const allowedNames = new Set(tokenNames);
@@ -18,9 +23,30 @@ const tokenNames = DESIGN_TOKEN_NAMES;
 
     const applyTokens = (tokens) => {
       if (!tokens || typeof tokens !== "object") return;
-      for (const [name, value] of Object.entries(tokens)) {
+      for (const [name, value] of [
+        ...Object.entries(legacyColorTokens).map(([legacy, name]) => [name, tokens[legacy]]),
+        ...Object.entries(tokens),
+      ]) {
         if (!allowedNames.has(name) || !isSafeValue(value)) continue;
         document.documentElement.style.setProperty(name, String(value));
+      }
+      const styles = getComputedStyle(document.documentElement);
+      const cursorSvg = editorialCursorSvg.replace(/\{(background|secondary|text|button)\}/g, (_match, role) => {
+        const name = "--color-" + role;
+        const value = styles.getPropertyValue(name).trim();
+        return /^#[0-9a-f]{6}$/i.test(value) ? value : tokenDefaults[name];
+      });
+      document.documentElement.style.setProperty(
+        "--ui-editorial-cursor",
+        'url("data:image/svg+xml,' + encodeURIComponent(cursorSvg) + '") 5 5, auto',
+      );
+
+      // Publications saved before foreground roles inherit the original pairing.
+      if (!isSafeValue(tokens["--color-button-text"])) {
+        document.documentElement.style.setProperty("--color-button-text", "var(--color-text)");
+      }
+      if (!isSafeValue(tokens["--color-primary-text"])) {
+        document.documentElement.style.setProperty("--color-primary-text", "var(--color-background)");
       }
     };
 

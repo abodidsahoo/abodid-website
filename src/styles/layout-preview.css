@@ -30,15 +30,15 @@
   color: var(--text-secondary);
   backdrop-filter: blur(8px);
   cursor: pointer; transition: all .2s ease; font-family: inherit;
-  box-shadow: 0 4px 12px rgba(0,0,0,.05);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
 }
 .lp-switcher-btn:hover { 
   border-color: var(--text-tertiary); background: var(--bg-color); color: var(--text-primary); 
-  transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1);
+  transform: translateY(-2px); box-shadow: 0 6px 16px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
 }
 .lp-switcher-btn.is-active { 
   border-color: var(--text-primary); background: var(--text-primary); color: var(--bg-color); 
-  transform: none; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  transform: none; box-shadow: 0 2px 8px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
 }
 .lp-switcher-num { font-size: .95rem; font-weight: 500; line-height: 1; }
 
@@ -59,7 +59,7 @@
   opacity: 0;
   visibility: hidden;
   transition: all .15s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
 }
 
 .lp-switcher-tooltip::before {

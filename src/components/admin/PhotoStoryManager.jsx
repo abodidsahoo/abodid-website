@@ -607,7 +607,7 @@ export default function PhotoStoryManager() {
                 .photo-tile {
                     border: 1px solid var(--border-subtle);
                     border-radius: 10px;
-                    background: rgba(255, 255, 255, 0.02);
+                    background: color-mix(in srgb, var(--color-surface) 2%, transparent);
                     cursor: pointer;
                     padding: 0;
                     position: relative;
@@ -634,8 +634,8 @@ export default function PhotoStoryManager() {
                     width: 10px;
                     height: 10px;
                     border-radius: 50%;
-                    border: 1px solid rgba(255, 255, 255, 0.8);
-                    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 80%, transparent);
+                    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-shadow-color) 45%, transparent);
                 }
 
                 .story-dot.pending {
@@ -654,10 +654,10 @@ export default function PhotoStoryManager() {
                     text-transform: uppercase;
                     letter-spacing: 0.08em;
                     color: #f8fafc;
-                    background: rgba(0, 0, 0, 0.56);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 56%, transparent);
                     border-radius: 6px;
                     padding: 0.15rem 0.4rem;
-                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 25%, transparent);
                 }
 
                 .story-editor-panel {
@@ -729,7 +729,7 @@ export default function PhotoStoryManager() {
                     border: 1px solid var(--border-subtle);
                     border-radius: 10px;
                     overflow: hidden;
-                    background: rgba(255, 255, 255, 0.03);
+                    background: color-mix(in srgb, var(--color-surface) 3%, transparent);
                     height: 120px;
                 }
 
@@ -756,8 +756,8 @@ export default function PhotoStoryManager() {
                     width: 28px;
                     height: 28px;
                     border-radius: 6px;
-                    border: 1px solid rgba(255, 255, 255, 0.42);
-                    background: rgba(0, 0, 0, 0.62);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 42%, transparent);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 62%, transparent);
                     color: #f8fafc;
                     display: flex;
                     align-items: center;
@@ -819,7 +819,7 @@ export default function PhotoStoryManager() {
                     resize: vertical;
                     border: 1px solid var(--border-subtle);
                     border-radius: 10px;
-                    background: rgba(0, 0, 0, 0.28);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 28%, transparent);
                     color: #f8fafc;
                     font-family: var(--font-mono);
                     font-size: 0.9rem;
@@ -843,9 +843,9 @@ export default function PhotoStoryManager() {
                 }
 
                 .update-story-btn {
-                    background: #2563eb;
-                    border-color: #2563eb;
-                    color: #ffffff;
+                    background: var(--color-primary);
+                    border-color: var(--color-primary);
+                    color: var(--color-primary-text);
                 }
 
                 .update-story-btn:disabled,
@@ -868,7 +868,7 @@ export default function PhotoStoryManager() {
 
                 .story-url code {
                     font-size: 0.66rem;
-                    background: rgba(255, 255, 255, 0.06);
+                    background: color-mix(in srgb, var(--color-surface) 6%, transparent);
                     border: 1px solid var(--border-subtle);
                     border-radius: 6px;
                     padding: 0.12rem 0.3rem;

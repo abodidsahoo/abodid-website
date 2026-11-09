@@ -811,14 +811,14 @@ const ExperienceModule = ({
                     line-height: 1.5;
                     letter-spacing: 0.03em;
                     font-weight: 400;
-                    color: rgba(255, 255, 255, 0.98);
-                    text-shadow: 0 0 14px rgba(255, 255, 255, 0.24);
+                    color: color-mix(in srgb, var(--color-surface) 98%, transparent);
+                    text-shadow: 0 0 14px color-mix(in srgb, var(--color-surface) 24%, transparent);
                     background: rgba(8, 10, 16, 0.58);
                     padding: 0.72rem 0.96rem;
                     border-radius: 14px;
-                    border: 1px solid rgba(255, 255, 255, 0.14);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 14%, transparent);
                     backdrop-filter: blur(10px);
-                    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+                    box-shadow: 0 18px 40px color-mix(in srgb, var(--ui-shadow-color) 24%, transparent);
                 }
 
                 .controls-bottom-center {
@@ -849,9 +849,9 @@ const ExperienceModule = ({
                     min-width: 280px;
                     padding: 0.96rem 1.08rem 1.04rem;
                     border-radius: 20px;
-                    border: 1px solid rgba(255, 255, 255, 0.14);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 14%, transparent);
                     background: linear-gradient(180deg, rgba(11, 14, 20, 0.88), rgba(8, 9, 14, 0.8));
-                    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.26);
+                    box-shadow: 0 18px 38px color-mix(in srgb, var(--ui-shadow-color) 26%, transparent);
                     backdrop-filter: blur(14px);
                 }
 
@@ -867,17 +867,17 @@ const ExperienceModule = ({
                 }
 
                 [data-theme="light"] .lyric-text {
-                    color: rgba(0, 0, 0, 0.88);
-                    text-shadow: 0 0 15px rgba(255, 255, 255, 0.72);
-                    background: rgba(255, 255, 255, 0.76);
-                    border-color: rgba(0, 0, 0, 0.08);
-                    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
+                    color: color-mix(in srgb, var(--ui-shadow-color) 88%, transparent);
+                    text-shadow: 0 0 15px color-mix(in srgb, var(--color-surface) 72%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 76%, transparent);
+                    border-color: color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
+                    box-shadow: 0 18px 40px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
 
                 [data-theme="light"] .spectrum-display-group.stack-layout {
-                    background: rgba(255, 255, 255, 0.88);
-                    border-color: rgba(0, 0, 0, 0.1);
-                    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.1);
+                    background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+                    border-color: color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
+                    box-shadow: 0 18px 38px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
 
                 @media (max-width: 1024px) {

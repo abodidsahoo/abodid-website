@@ -5,7 +5,7 @@
   --ni-positive: #6fae8a;
   --ni-warning: #d4a75f;
   --ni-danger: #d86f72;
-  --ni-row-hover: rgba(255, 255, 255, 0.035);
+  --ni-row-hover: color-mix(in srgb, var(--color-surface) 3.5%, transparent);
   --ni-row-selected: rgba(79, 127, 227, 0.09);
   position: relative;
   min-width: 0;
@@ -145,7 +145,7 @@
   padding: 0.52rem 0.8rem;
   border-color: var(--ni-accent);
   background: var(--ni-accent);
-  color: #fff;
+  color: var(--color-primary-text);
 }
 
 .ni-button-primary:hover {
@@ -188,7 +188,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   background: var(--bg-surface);
-  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 22px 55px color-mix(in srgb, var(--ui-shadow-color) 24%, transparent);
 }
 
 .ni-popover-heading {
@@ -363,7 +363,7 @@
   place-items: center;
   border-radius: 9px;
   background: var(--ni-accent);
-  color: #fff;
+  color: var(--color-primary-text);
   font-size: 0.62rem;
 }
 
@@ -401,7 +401,7 @@
 
 .ni-email-toggle.is-active .ni-toggle-track > span {
   left: 16px;
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .ni-search-meta {
@@ -1091,7 +1091,7 @@
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(0, 0, 0, 0.48);
+  background: color-mix(in srgb, var(--ui-shadow-color) 48%, transparent);
   backdrop-filter: blur(2px);
 }
 
@@ -1105,7 +1105,7 @@
   flex-direction: column;
   border-left: 1px solid var(--border-subtle);
   background: var(--bg-color);
-  box-shadow: -22px 0 70px rgba(0, 0, 0, 0.32);
+  box-shadow: -22px 0 70px color-mix(in srgb, var(--ui-shadow-color) 32%, transparent);
   animation: ni-drawer-in 180ms ease-out;
 }
 
@@ -1417,8 +1417,7 @@
   padding: 0.9rem;
   border: 1px solid var(--ni-accent-border);
   border-radius: 10px;
-  background:
-    linear-gradient(145deg, var(--ni-accent-soft), transparent 58%),
+  background: linear-gradient(145deg, var(--ni-accent-soft), transparent 58%),
     var(--bg-surface);
 }
 
@@ -1958,7 +1957,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: 13px;
   background: var(--bg-color);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 28px 90px color-mix(in srgb, var(--ui-shadow-color) 38%, transparent);
 }
 
 .ni-import-modal > header {
@@ -2270,7 +2269,7 @@
   place-items: center;
   border-radius: 50%;
   background: var(--ni-positive);
-  color: #fff;
+  color: var(--color-primary-text);
 }
 
 .ni-import-success strong {

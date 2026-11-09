@@ -343,15 +343,15 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         position: relative;
                         width: 100%;
                         max-width: 440px;
-                        background: var(--pop-cream);
-                        border: 2.5px solid var(--pop-ink);
+                        background: var(--color-background);
+                        border: 2.5px solid var(--color-text);
                         border-radius: 20px;
                         padding: 28px 30px;
                         box-shadow:
                             0 16px 0 #15130f,
                             0 28px 50px rgba(0, 0, 0, 0.45);
                         box-sizing: border-box;
-                        color: var(--pop-ink);
+                        color: var(--color-text);
                         font-family: var(--font-body, "Satoshi-Variable", "Poppins", sans-serif);
                     }
 
@@ -366,29 +366,29 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         display: inline-flex;
                         align-items: center;
                         gap: 6px;
-                        background: var(--pop-yellow);
-                        border: 1.8px solid var(--pop-ink);
+                        background: var(--color-button);
+                        border: 1.8px solid var(--color-text);
                         border-radius: 9999px;
                         padding: 4px 10px;
                         font-size: 10.5px;
                         font-weight: 900;
                         letter-spacing: 0.12em;
                         text-transform: uppercase;
-                        color: var(--pop-ink);
-                        box-shadow: 0 2px 0 var(--pop-ink);
+                        color: var(--color-text);
+                        box-shadow: 0 2px 0 var(--color-text);
                     }
 
                     .pop-auth-dot {
                         width: 6px;
                         height: 6px;
                         border-radius: 50%;
-                        background: var(--pop-pink);
-                        border: 1px solid var(--pop-ink);
+                        background: var(--color-secondary);
+                        border: 1px solid var(--color-text);
                     }
 
                     .pop-auth-close-btn {
                         background: #ffffff;
-                        border: 2px solid var(--pop-ink);
+                        border: 2px solid var(--color-text);
                         border-radius: 50%;
                         width: 32px;
                         height: 32px;
@@ -397,31 +397,31 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         justify-content: center;
                         font-size: 13px;
                         font-weight: 900;
-                        color: var(--pop-ink);
+                        color: var(--color-text);
                         cursor: pointer;
-                        box-shadow: 0 3px 0 var(--pop-ink);
+                        box-shadow: 0 3px 0 var(--color-text);
                         transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
                     }
                     .pop-auth-close-btn:hover {
-                        background: var(--pop-pink);
+                        background: var(--color-secondary);
                         transform: translateY(-1px);
-                        box-shadow: 0 4px 0 var(--pop-ink);
+                        box-shadow: 0 4px 0 var(--color-text);
                     }
                     .pop-auth-close-btn:active {
                         transform: translateY(2px);
-                        box-shadow: 0 1px 0 var(--pop-ink);
+                        box-shadow: 0 1px 0 var(--color-text);
                     }
 
                     .pop-auth-tabs {
                         display: grid;
                         grid-template-columns: 1fr 1fr;
                         background: #ffffff;
-                        border: 2px solid var(--pop-ink);
+                        border: 2px solid var(--color-text);
                         border-radius: 12px;
                         padding: 3px;
                         gap: 4px;
                         margin-bottom: 18px;
-                        box-shadow: 0 3px 0 var(--pop-ink);
+                        box-shadow: 0 3px 0 var(--color-text);
                     }
 
                     .pop-auth-tab {
@@ -437,17 +437,17 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         transition: all 0.15s ease;
                     }
                     .pop-auth-tab.active {
-                        background: var(--pop-pink);
-                        color: var(--pop-ink);
-                        border: 1.5px solid var(--pop-ink);
-                        box-shadow: 0 2px 0 var(--pop-ink);
+                        background: var(--color-secondary);
+                        color: var(--color-text);
+                        border: 1.5px solid var(--color-text);
+                        box-shadow: 0 2px 0 var(--color-text);
                     }
 
                     .pop-auth-title {
                         font-size: 20px;
                         font-weight: 900;
                         line-height: 1.25;
-                        color: var(--pop-ink);
+                        color: var(--color-text);
                         margin: 0 0 6px 0;
                         letter-spacing: -0.02em;
                     }
@@ -466,25 +466,25 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         justify-content: center;
                         gap: 10px;
                         background: #ffffff;
-                        border: 2px solid var(--pop-ink);
+                        border: 2px solid var(--color-text);
                         min-height: 52px;
                         border-radius: 14px;
                         padding: 11px 18px;
                         font-size: 13.5px;
                         font-weight: 800;
-                        color: var(--pop-ink);
+                        color: var(--color-text);
                         cursor: pointer;
-                        box-shadow: 0 4px 0 var(--pop-ink);
+                        box-shadow: 0 4px 0 var(--color-text);
                         transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
                     }
                     .pop-google-btn:hover:not(:disabled) {
                         background: #fffcf4;
                         transform: translateY(-2px);
-                        box-shadow: 0 6px 0 var(--pop-ink);
+                        box-shadow: 0 6px 0 var(--color-text);
                     }
                     .pop-google-btn:active:not(:disabled) {
                         transform: translateY(2px);
-                        box-shadow: 0 2px 0 var(--pop-ink);
+                        box-shadow: 0 2px 0 var(--color-text);
                     }
                     .pop-google-btn:disabled {
                         opacity: 0.6;
@@ -527,27 +527,27 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         font-weight: 800;
                         letter-spacing: 0.04em;
                         text-transform: uppercase;
-                        color: var(--pop-ink);
+                        color: var(--color-text);
                     }
 
                     .pop-input {
                         width: 100%;
                         background: #ffffff;
-                        border: 2px solid var(--pop-ink);
+                        border: 2px solid var(--color-text);
                         border-radius: 10px;
                         min-height: 52px;
                         padding: 10px 14px;
                         font-size: 13.5px;
                         font-weight: 600;
-                        color: var(--pop-ink);
-                        box-shadow: 0 2px 0 var(--pop-ink);
+                        color: var(--color-text);
+                        box-shadow: 0 2px 0 var(--color-text);
                         box-sizing: border-box;
                         transition: border-color 0.15s ease, box-shadow 0.15s ease;
                     }
                     .pop-input:focus {
                         outline: none;
-                        border-color: var(--pop-blue);
-                        box-shadow: 0 4px 0 var(--pop-blue);
+                        border-color: var(--color-primary);
+                        box-shadow: 0 4px 0 var(--color-primary);
                     }
                     .pop-input::placeholder {
                         color: #9d998d;
@@ -566,8 +566,8 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
 
                     .pop-auth-submit-btn {
                         width: 100%;
-                        background: var(--pop-pink);
-                        border: 2px solid var(--pop-ink);
+                        background: var(--color-secondary);
+                        border: 2px solid var(--color-text);
                         min-height: 52px;
                         border-radius: 14px;
                         padding: 12px 18px;
@@ -575,20 +575,20 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         font-weight: 900;
                         letter-spacing: 0.03em;
                         text-transform: uppercase;
-                        color: var(--pop-ink);
+                        color: var(--color-text);
                         cursor: pointer;
-                        box-shadow: 0 4px 0 var(--pop-ink);
+                        box-shadow: 0 4px 0 var(--color-text);
                         margin-top: 4px;
                         transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
                     }
                     .pop-auth-submit-btn:hover:not(:disabled) {
                         background: #ff60a0;
                         transform: translateY(-2px);
-                        box-shadow: 0 6px 0 var(--pop-ink);
+                        box-shadow: 0 6px 0 var(--color-text);
                     }
                     .pop-auth-submit-btn:active:not(:disabled) {
                         transform: translateY(2px);
-                        box-shadow: 0 2px 0 var(--pop-ink);
+                        box-shadow: 0 2px 0 var(--color-text);
                     }
                     .pop-auth-submit-btn:disabled {
                         opacity: 0.6;
@@ -615,10 +615,10 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         width: 64px;
                         height: 64px;
                         margin-bottom: 22px;
-                        border: 2px solid var(--pop-ink);
+                        border: 2px solid var(--color-text);
                         border-radius: 18px;
-                        background: var(--pop-lime);
-                        color: var(--pop-ink);
+                        background: var(--color-accent);
+                        color: var(--color-text);
                         font-size: 28px;
                         font-weight: 900;
                     }
@@ -627,13 +627,13 @@ export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }
                         background: none;
                         border: none;
                         padding: 0;
-                        color: var(--pop-ink);
+                        color: var(--color-text);
                         font-weight: 800;
                         text-decoration: underline;
                         cursor: pointer;
                     }
                     .pop-mode-link:hover {
-                        color: var(--pop-pink);
+                        color: var(--color-secondary);
                     }
                 `}</style>
             </div>

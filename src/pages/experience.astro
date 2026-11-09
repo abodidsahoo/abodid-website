@@ -181,24 +181,24 @@ const description = "Selected experience across cultural photography, exhibition
 
 <style is:global>
   body.experience-next-page {
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --story-ink: var(--pop-ink);
-    --story-cream: var(--pop-cream);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --story-ink: var(--color-text);
+    --story-cream: var(--color-background);
     --story-gutter: clamp(1rem, 3vw, 3.5rem);
 
-    --experience-ink: var(--pop-ink);
-    --experience-cream: var(--pop-cream);
-    --experience-lime: var(--pop-lime);
-    --experience-pink: var(--pop-pink);
-    --experience-yellow: var(--pop-yellow);
-    --experience-blue: var(--pop-blue);
-    --experience-purple: var(--pop-purple);
-    --experience-cyan: var(--pop-cyan);
-    --experience-orange: var(--pop-orange);
-    --color-brand-red: var(--pop-purple);
-    --link-hover-color: var(--pop-purple);
-    --theme-color-primary: var(--pop-blue);
-    --theme-color-accent: var(--pop-purple);
+    --experience-ink: var(--color-text);
+    --experience-cream: var(--color-background);
+    --experience-lime: var(--color-accent);
+    --experience-pink: var(--color-secondary);
+    --experience-yellow: var(--color-button);
+    --experience-blue: var(--color-primary);
+    --experience-purple: var(--color-additional-2);
+    --experience-cyan: var(--color-additional-3);
+    --experience-orange: var(--color-additional-1);
+    --color-brand-red: var(--color-additional-2);
+    --link-hover-color: var(--color-additional-2);
+    --theme-color-primary: var(--color-primary);
+    --theme-color-accent: var(--color-additional-2);
 
     /* Layout Tokens */
     --experience-gap: 8px;
@@ -249,14 +249,14 @@ const description = "Selected experience across cultural photography, exhibition
     --experience-font-action-weight: 700;
     --experience-font-action-line-height: 1;
 
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
   }
 
   /* Lock each panel to its intended contrast pair so global theme colours do
      not turn headings and supporting copy white on bright backgrounds. */
   body.experience-next-page .experience-next {
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 
   body.experience-next-page .experience-next :is(h1, h2, h3, p, li, dt, dd, strong, span) {
@@ -277,8 +277,8 @@ const description = "Selected experience across cultural photography, exhibition
     align-items: center;
     gap: 1.5rem;
     border-bottom: 0;
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
   }
 
   .story-nav a,
@@ -296,10 +296,10 @@ const description = "Selected experience across cultural photography, exhibition
     padding: 0 .9rem;
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
-    background: var(--pop-yellow);
-    color: var(--pop-ink) !important;
+    background: var(--color-button);
+    color: var(--color-button-text) !important;
   }
 
   .story-nav__links {
@@ -335,23 +335,23 @@ const description = "Selected experience across cultural photography, exhibition
     display: inline-flex;
     align-items: center;
     gap: .5rem;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
-    background: var(--pop-yellow);
-    color: var(--pop-ink) !important;
+    background: var(--color-button);
+    color: var(--color-button-text) !important;
     transition: transform 180ms ease, box-shadow 180ms ease;
   }
 
   .story-nav__contact:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink);
+    box-shadow: 0 4px 0 var(--color-text);
   }
 
   .story-nav__mobile {
     display: none;
   }
 
-  .experience-next { padding: var(--experience-page-padding); background: var(--pop-pink); }
+  .experience-next { padding: var(--experience-page-padding); background: var(--color-secondary); }
   .experience-next :is(h1, h2, h3, p) { margin-top: 0; }
   .experience-eyebrow {
     margin: 0;
@@ -382,7 +382,7 @@ const description = "Selected experience across cultural photography, exhibition
   .experience-actions a:first-child { background: var(--experience-cream); }
 
   .experience-next__hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(430px, .92fr); gap: var(--experience-gap); }
-  .experience-next__hero-copy, .experience-next__hero-mosaic { min-height: calc(100svh - 88px); border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); overflow: hidden; }
+  .experience-next__hero-copy, .experience-next__hero-mosaic { min-height: calc(100svh - 88px); border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-panel-radius); overflow: hidden; }
   .experience-next__hero-copy { padding: var(--experience-panel-padding); display: flex; flex-direction: column; background: var(--experience-yellow); }
   .experience-next__hero-copy h1 {
     max-width: var(--experience-hero-h1-max-width);
@@ -404,15 +404,15 @@ const description = "Selected experience across cultural photography, exhibition
     line-height: 1.5;
   }
   .experience-next__hero-mosaic { position: relative; background: var(--experience-blue); }
-  .experience-next__hero-photo { position: absolute; margin: 0; overflow: hidden; border: 1px solid var(--experience-ink); border-radius: 18px; background: var(--experience-cream); box-shadow: 0 14px 36px rgba(21,19,15,.27); }
+  .experience-next__hero-photo { position: absolute; margin: 0; overflow: hidden; border: 1px solid var(--experience-ink); border-radius: 18px; background: var(--experience-cream); box-shadow: 0 14px 36px color-mix(in srgb, var(--color-text) 27%, transparent); }
   .experience-next__hero-photo img { width: 100%; height: 100%; display: block; object-fit: cover; }
-  .experience-next__hero-photo figcaption { position: absolute; left: 10px; bottom: 10px; padding: .45rem .6rem; border-radius: 999px; background: rgba(21,19,15,.78); color: var(--experience-cream); font: 700 .65rem/1 var(--font-ui, sans-serif); }
+  .experience-next__hero-photo figcaption { position: absolute; left: 10px; bottom: 10px; padding: .45rem .6rem; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 78%, transparent); color: var(--experience-cream); font: 700 .65rem/1 var(--font-ui, sans-serif); }
   .experience-next__hero-photo--1 { inset: 5% 8% 45% 6%; transform: rotate(1.5deg); }
   .experience-next__hero-photo--2 { inset: 41% 38% 8% 4%; transform: rotate(-2deg); }
   .experience-next__hero-photo--3 { inset: 48% 4% 5% 51%; transform: rotate(2.5deg); }
   .experience-next__hero-note { position: absolute; z-index: 5; top: 28px; right: 28px; padding: .7rem .8rem; display: flex; gap: .55rem; border: 1px solid var(--experience-ink); border-radius: 999px; background: var(--experience-lime); font: 700 .65rem/1 var(--font-ui, sans-serif); }
 
-  .experience-next__position { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); background: var(--experience-lime); }
+  .experience-next__position { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-panel-radius); background: var(--experience-lime); }
   .experience-next__position-header { margin-bottom: clamp(2rem, 3.5vw, 3.5rem); }
   .experience-next__position-header h2 {
     max-width: 16ch;
@@ -427,20 +427,20 @@ const description = "Selected experience across cultural photography, exhibition
   
   .experience-next__position-track-wrapper { width: 100%; }
   .experience-next__position-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 22px); align-items: stretch; }
-  .experience-next__position-card { height: 100%; min-height: 0; padding: clamp(1.35rem, 1.7vw, 1.8rem); display: flex; flex-direction: column; justify-content: flex-start; gap: 1.25rem; border: 1px solid rgba(21,19,15,.28); border-radius: 20px; background: var(--experience-cream); box-shadow: 0 4px 18px rgba(21,19,15,.04); transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease; }
-  .experience-next__position-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(21,19,15,.1); border-color: rgba(21,19,15,.55); }
+  .experience-next__position-card { height: 100%; min-height: 0; padding: clamp(1.35rem, 1.7vw, 1.8rem); display: flex; flex-direction: column; justify-content: flex-start; gap: 1.25rem; border: 1px solid color-mix(in srgb, var(--color-text) 28%, transparent); border-radius: 20px; background: var(--experience-cream); box-shadow: 0 4px 18px color-mix(in srgb, var(--color-text) 4%, transparent); transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease; }
+  .experience-next__position-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px color-mix(in srgb, var(--color-text) 10%, transparent); border-color: color-mix(in srgb, var(--color-text) 55%, transparent); }
   .experience-next__position-card-top { display: flex; align-items: center; justify-content: space-between; }
-  .experience-next__card-index { display: inline-flex; align-items: center; justify-content: center; padding: .35rem .65rem; border-radius: 999px; background: rgba(21,19,15,.06); border: 1px solid rgba(21,19,15,.12); font: 700 .75rem/1 var(--font-ui, sans-serif); letter-spacing: .04em; }
+  .experience-next__card-index { display: inline-flex; align-items: center; justify-content: center; padding: .35rem .65rem; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 6%, transparent); border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent); font: 700 .75rem/1 var(--font-ui, sans-serif); letter-spacing: .04em; }
   .experience-next__position-card-body { display: flex; flex-direction: column; gap: 0.75rem; flex: 1; }
   .experience-next__position-card-body h3 { margin: 0; min-height: 2.3em; display: flex; align-items: flex-end; font: 700 clamp(1.25rem, 1.55vw, 1.65rem)/1.12 var(--font-display, sans-serif); letter-spacing: -.04em; }
-  .experience-next__position-card-body p { margin: 0; font-size: clamp(.9rem, 1vw, 1rem); line-height: 1.5; color: rgba(21,19,15,.84); }
+  .experience-next__position-card-body p { margin: 0; font-size: clamp(.9rem, 1vw, 1rem); line-height: 1.5; color: color-mix(in srgb, var(--color-text) 84%, transparent); }
 
   @media (max-width: 1120px) {
     .experience-next__position-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     .experience-next__position-card-body h3 { min-height: 0; }
   }
 
-  .experience-next__contexts { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid rgba(255,248,232,.25); border-radius: var(--experience-panel-radius); background: var(--experience-purple); color: var(--experience-cream); }
+  .experience-next__contexts { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid color-mix(in srgb, var(--color-primary-text) 25%, transparent); border-radius: var(--experience-panel-radius); background: var(--experience-purple); color: var(--experience-cream); }
   .experience-next__contexts > header, .experience-next__timeline > header, .experience-next__learning > header { display: grid; grid-template-columns: .5fr 1.5fr; gap: 2rem; margin-bottom: 3rem; }
   .experience-next__contexts > header h2, .experience-next__timeline > header h2, .experience-next__learning > header h2 {
     max-width: 12ch;
@@ -452,7 +452,7 @@ const description = "Selected experience across cultural photography, exhibition
     overflow-wrap: break-word;
   }
   .experience-next__context-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--experience-gap); }
-  .experience-next__context { min-height: 650px; display: grid; grid-template-rows: clamp(320px, 34vw, 480px) 1fr; overflow: hidden; border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-card-radius); background: var(--experience-cream); color: var(--experience-ink); text-decoration: none; }
+  .experience-next__context { min-height: 650px; display: grid; grid-template-rows: clamp(320px, 34vw, 480px) 1fr; overflow: hidden; border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-card-radius); background: var(--experience-cream); color: var(--experience-ink); text-decoration: none; }
   .experience-next__context figure { min-height: 0; margin: 0; overflow: hidden; }
   .experience-next__context img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform 400ms ease; }
   .experience-next__context:hover img { transform: scale(1.035); }
@@ -469,17 +469,17 @@ const description = "Selected experience across cultural photography, exhibition
   .experience-next__context p { line-height: 1.5; }
   .experience-next__context strong { display: block; margin-top: auto; padding-top: 1.5rem; font: 700 .72rem/1 var(--font-ui, sans-serif); }
 
-  .experience-next__timeline { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); background: var(--experience-cyan); }
+  .experience-next__timeline { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-panel-radius); background: var(--experience-cyan); }
   .experience-next__timeline-list { display: grid; }
-  .experience-next__timeline-list article { padding: 1.5rem 0; display: grid; grid-template-columns: 55px minmax(220px,.65fr) 1.35fr; gap: 1.5rem; border-top: 1px solid rgba(21,19,15,.3); }
+  .experience-next__timeline-list article { padding: 1.5rem 0; display: grid; grid-template-columns: 55px minmax(220px,.65fr) 1.35fr; gap: 1.5rem; border-top: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); }
   .experience-next__timeline-index { font: 700 .72rem/1 var(--font-ui, sans-serif); }
   .experience-next__timeline-list h3 { margin: .5rem 0 0; font: 700 clamp(1.5rem, 2.1vw, 2.7rem)/1 var(--font-display, sans-serif); letter-spacing: -.04em; }
   .experience-next__timeline-list strong { font-size: 1.05rem; }
   .experience-next__timeline-list article > div:last-child p { max-width: 68ch; margin: .65rem 0 0; line-height: 1.5; }
 
-  .experience-next__learning { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); background: var(--experience-cream); }
+  .experience-next__learning { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-panel-radius); background: var(--experience-cream); }
   .experience-next__learning-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--experience-gap); }
-  .experience-next__learning-grid article { min-height: 360px; padding: 1.5rem; display: flex; flex-direction: column; border: 1px solid rgba(21,19,15,.3); border-radius: 18px; background: var(--experience-yellow); }
+  .experience-next__learning-grid article { min-height: 360px; padding: 1.5rem; display: flex; flex-direction: column; border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: 18px; background: var(--experience-yellow); }
   .experience-next__learning-grid article:nth-child(2n) { background: var(--experience-pink); }
   .experience-next__learning-grid h3 {
     margin: auto 0 .75rem;
@@ -493,7 +493,7 @@ const description = "Selected experience across cultural photography, exhibition
   .experience-next__learning-grid p { line-height: 1.5; }
 
   .experience-next__future { width: 100%; margin-top: var(--experience-gap); }
-  .experience-next__future > div { width: 100%; min-height: 700px; margin: 0; border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); overflow: hidden; }
+  .experience-next__future > div { width: 100%; min-height: 700px; margin: 0; border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-panel-radius); overflow: hidden; }
   .experience-next__future > div { padding: var(--experience-panel-padding); display: flex; flex-direction: column; background: var(--experience-orange); }
   .experience-next__future h2 {
     max-width: 22ch;
@@ -525,10 +525,10 @@ const description = "Selected experience across cultural photography, exhibition
       padding: 0 .9rem;
       display: flex;
       align-items: center;
-      border: 1px solid var(--pop-ink);
+      border: 1px solid var(--color-text);
       border-radius: 14px;
-      background: var(--pop-yellow);
-      color: var(--pop-ink);
+      background: var(--color-button);
+      color: var(--color-button-text);
       cursor: pointer;
       list-style: none;
     }
@@ -541,15 +541,15 @@ const description = "Selected experience across cultural photography, exhibition
       padding: 1.5rem clamp(1rem, 3vw, 3.5rem) 2rem;
       display: grid;
       gap: 0;
-      background: var(--pop-yellow);
-      border-bottom: 1px solid var(--pop-ink);
+      background: var(--color-button);
+      border-bottom: 1px solid var(--color-text);
       z-index: 99;
     }
     .story-nav__mobile nav a {
       padding: 1rem 0;
-      border-bottom: 1px solid rgba(23, 21, 15, 0.2);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
       font-size: .85rem;
-      color: var(--pop-ink);
+      color: var(--color-text);
     }
   }
 

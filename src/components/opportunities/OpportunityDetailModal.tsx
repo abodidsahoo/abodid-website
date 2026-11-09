@@ -268,8 +268,11 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
 
     const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
         const target = event.target;
+        // Mouse and pen drags belong to native text selection; only touch browses cards.
         if (
-            !canNavigate
+            event.pointerType !== 'touch'
+            || !event.isPrimary
+            || !canNavigate
             || motionPhase !== 'idle'
             || swipeTimerRef.current !== null
             || event.button !== 0
@@ -290,7 +293,6 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
             velocityX: 0,
         };
         event.currentTarget.setPointerCapture(event.pointerId);
-        if (event.pointerType === 'mouse') event.preventDefault();
     };
 
     const handlePointerMove = (event: React.PointerEvent<HTMLElement>) => {

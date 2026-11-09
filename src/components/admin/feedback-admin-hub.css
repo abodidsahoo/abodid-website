@@ -21,7 +21,7 @@
 
 .feedback-workshop-tabs {
     display: inline-flex;
-    background: var(--bg-card-muted, rgba(0, 0, 0, 0.04));
+    background: var(--bg-card-muted, color-mix(in srgb, var(--ui-shadow-color) 4%, transparent));
     padding: 4px;
     border-radius: 12px;
     gap: 4px;
@@ -46,13 +46,13 @@
 
 .feedback-workshop-tab:hover {
     color: var(--text-primary, #1a1918);
-    background: rgba(0, 0, 0, 0.03);
+    background: color-mix(in srgb, var(--ui-shadow-color) 3%, transparent);
 }
 
 .feedback-workshop-tab.is-active {
-    background: var(--bg-card, #ffffff);
+    background: var(--bg-card, var(--color-surface));
     color: var(--text-primary, #1a1918);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
 }
 
 .feedback-tab-badge {
@@ -63,13 +63,13 @@
     border-radius: 10px;
     font-size: 0.72rem;
     font-weight: 700;
-    background: rgba(0, 0, 0, 0.06);
+    background: color-mix(in srgb, var(--ui-shadow-color) 6%, transparent);
     color: var(--text-secondary, #6e685f);
 }
 
 .feedback-workshop-tab.is-active .feedback-tab-badge {
     background: var(--text-primary, #1a1918);
-    color: #ffffff;
+    color: var(--color-primary-text);
 }
 
 .feedback-top-actions {
@@ -84,7 +84,7 @@
     padding: 8px 14px;
     border-radius: 8px;
     border: 1px solid var(--border-subtle, #e8e4dc);
-    background: var(--bg-card, #ffffff);
+    background: var(--bg-card, var(--color-surface));
     color: var(--text-primary, #1a1918);
     font-family: inherit;
     font-size: 0.85rem;
@@ -103,7 +103,7 @@
     padding: 8px 14px;
     border-radius: 8px;
     border: 1px solid var(--border-subtle, #e8e4dc);
-    background: var(--bg-card, #ffffff);
+    background: var(--bg-card, var(--color-surface));
     color: var(--text-primary, #1a1918);
     font-family: inherit;
     font-size: 0.82rem;
@@ -115,18 +115,18 @@
 
 .feedback-btn:hover {
     border-color: var(--text-primary, #1a1918);
-    background: var(--bg-card-muted, rgba(0, 0, 0, 0.02));
+    background: var(--bg-card-muted, color-mix(in srgb, var(--ui-shadow-color) 2%, transparent));
 }
 
 .feedback-btn-primary {
     background: var(--text-primary, #1a1918);
-    color: #ffffff;
+    color: var(--color-primary-text);
     border-color: var(--text-primary, #1a1918);
 }
 
 .feedback-btn-primary:hover {
-    background: #000000;
-    color: #ffffff;
+    background: var(--color-text);
+    color: var(--color-primary-text);
 }
 
 /* Sub-section Navigation (NIFT clean minimal pills) */
@@ -160,20 +160,20 @@
 
 .feedback-sub-pill.is-active {
     background: var(--text-primary, #1a1918);
-    color: #ffffff;
+    color: var(--color-primary-text);
     border-color: var(--text-primary, #1a1918);
 }
 
 .feedback-sub-pill.is-active .feedback-pill-count {
-    background: rgba(255, 255, 255, 0.25);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--color-surface) 25%, transparent);
+    color: var(--color-primary-text);
 }
 
 .feedback-pill-count {
     padding: 1px 6px;
     border-radius: 8px;
     font-size: 0.7rem;
-    background: rgba(0, 0, 0, 0.06);
+    background: color-mix(in srgb, var(--ui-shadow-color) 6%, transparent);
     color: inherit;
 }
 
@@ -210,7 +210,7 @@
 }
 
 .feedback-card {
-    background: var(--bg-card, #ffffff);
+    background: var(--bg-card, var(--color-surface));
     border: 1px solid var(--border-subtle, #e8e4dc);
     border-radius: 12px;
     padding: 20px 24px;
@@ -220,7 +220,7 @@
 
 .feedback-card:hover {
     border-color: #cfc9be;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--ui-shadow-color) 3%, transparent);
 }
 
 .feedback-card__topline {
@@ -245,7 +245,7 @@
     height: 38px;
     border-radius: 50%;
     background: var(--text-primary, #1a1918);
-    color: #ffffff;
+    color: var(--color-primary-text);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -294,7 +294,7 @@
 
 .feedback-copy-icon-btn:hover {
     color: var(--text-primary, #1a1918);
-    background: rgba(0, 0, 0, 0.05);
+    background: color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
 }
 
 .feedback-card__meta-right {
@@ -307,7 +307,7 @@
 .feedback-date-pill {
     font-size: 0.76rem;
     color: var(--text-secondary, #78736c);
-    background: var(--bg-card-muted, rgba(0, 0, 0, 0.03));
+    background: var(--bg-card-muted, color-mix(in srgb, var(--ui-shadow-color) 3%, transparent));
     padding: 3px 8px;
     border-radius: 6px;
 }
@@ -370,7 +370,7 @@
 .feedback-empty-state {
     padding: 48px 24px;
     text-align: center;
-    background: var(--bg-card, #ffffff);
+    background: var(--bg-card, var(--color-surface));
     border: 1px dashed var(--border-subtle, #e8e4dc);
     border-radius: 12px;
     color: var(--text-secondary, #78736c);

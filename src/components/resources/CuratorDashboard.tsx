@@ -450,20 +450,20 @@ export default function CuratorDashboard({ user, role }: Props) {
                         {pendingSubmissions.length === 0 ? (
                             <div className="empty-state" style={{ padding: '3rem 1rem', textAlign: 'center' }}>
                                 <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🎉</div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 8px', color: 'var(--pop-ink)' }}>No pending submissions!</h3>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 8px', color: 'var(--color-text)' }}>No pending submissions!</h3>
                                 <p style={{ color: 'rgba(21, 19, 15, 0.75)', margin: 0 }}>All submitted resources have been reviewed.</p>
                             </div>
                         ) : (
                             pendingSubmissions.map(submission => (
-                                <div key={submission.id} className="submission-card pending-review" style={{ background: 'var(--pop-cream)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '24px', marginBottom: '16px' }}>
+                                <div key={submission.id} className="submission-card pending-review" style={{ background: 'var(--color-background)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '24px', marginBottom: '16px' }}>
                                     <div className="card-content">
                                         <div className="submission-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '8px' }}>
-                                            <h3 style={{ font: '620 1.4rem/1.2 var(--resources-font)', color: 'var(--pop-ink)', margin: 0 }}>{submission.title}</h3>
+                                            <h3 style={{ font: '620 1.4rem/1.2 var(--resources-font)', color: 'var(--color-text)', margin: 0 }}>{submission.title}</h3>
                                             <span
                                                 className="status-badge"
                                                 style={{
-                                                    background: 'var(--pop-yellow)',
-                                                    color: 'var(--pop-ink)',
+                                                    background: 'var(--color-button)',
+                                                    color: 'var(--color-text)',
                                                     border: '1px solid var(--pop-border)',
                                                     fontSize: '0.72rem',
                                                     padding: '4px 10px',
@@ -478,13 +478,13 @@ export default function CuratorDashboard({ user, role }: Props) {
                                         </div>
                                         <p className="submission-url" style={{ color: 'rgba(21, 19, 15, 0.75)', fontSize: '0.9rem', margin: '0 0 12px 0', wordBreak: 'break-all' }}>{submission.url}</p>
                                         {submission.description && (
-                                            <p className="submission-description" style={{ color: 'var(--pop-ink)', fontSize: '0.98rem', lineHeight: '1.5', margin: '0 0 16px 0' }}>{submission.description}</p>
+                                            <p className="submission-description" style={{ color: 'var(--color-text)', fontSize: '0.98rem', lineHeight: '1.5', margin: '0 0 16px 0' }}>{submission.description}</p>
                                         )}
 
                                         {/* Curation Controls: Tags & Thumbnail */}
                                         <div className="curation-box">
                                             <div className="curation-row">
-                                                <label className="curation-label" style={{ display: 'block', font: '750 0.7rem/1.3 var(--resources-mono)', letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--pop-ink)', marginBottom: '8px' }}>Assign Curator Tags</label>
+                                                <label className="curation-label" style={{ display: 'block', font: '750 0.7rem/1.3 var(--resources-mono)', letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--color-text)', marginBottom: '8px' }}>Assign Curator Tags</label>
                                                 <TagInput
                                                     selectedTags={getDraft(submission).selectedTags}
                                                     onChange={(newTags) => setDraft(submission.id, { selectedTags: newTags })}
@@ -577,15 +577,15 @@ export default function CuratorDashboard({ user, role }: Props) {
                             </div>
                         ) : (
                             (globalResources.length > 0 ? globalResources.filter(r => r.status === 'approved') : submissions.filter(s => s.status === 'approved')).map(submission => (
-                                <div key={submission.id} className="submission-card" style={{ background: 'var(--pop-cream)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '20px', marginBottom: '12px' }}>
+                                <div key={submission.id} className="submission-card" style={{ background: 'var(--color-background)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '20px', marginBottom: '12px' }}>
                                     <div className="card-content">
                                         <div className="submission-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '6px' }}>
-                                            <h3 style={{ font: '620 1.25rem/1.2 var(--resources-font)', color: 'var(--pop-ink)', margin: 0 }}>{submission.title}</h3>
+                                            <h3 style={{ font: '620 1.25rem/1.2 var(--resources-font)', color: 'var(--color-text)', margin: 0 }}>{submission.title}</h3>
                                             <span
                                                 className="status-badge"
                                                 style={{
-                                                    background: 'var(--pop-lime)',
-                                                    color: 'var(--pop-ink)',
+                                                    background: 'var(--color-accent)',
+                                                    color: 'var(--color-text)',
                                                     border: '1px solid var(--pop-border)',
                                                     fontSize: '0.68rem',
                                                     padding: '3px 8px',
@@ -626,15 +626,15 @@ export default function CuratorDashboard({ user, role }: Props) {
                             </div>
                         ) : (
                             [...deletedSubmissions, ...submissions.filter(s => s.status === 'rejected')].map(submission => (
-                                <div key={submission.id} className="submission-card" style={{ background: 'var(--pop-cream)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '20px', marginBottom: '12px' }}>
+                                <div key={submission.id} className="submission-card" style={{ background: 'var(--color-background)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '20px', marginBottom: '12px' }}>
                                     <div className="card-content">
                                         <div className="submission-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '6px' }}>
-                                            <h3 style={{ font: '620 1.25rem/1.2 var(--resources-font)', color: 'var(--pop-ink)', margin: 0 }}>{submission.title}</h3>
+                                            <h3 style={{ font: '620 1.25rem/1.2 var(--resources-font)', color: 'var(--color-text)', margin: 0 }}>{submission.title}</h3>
                                             <span
                                                 className="status-badge"
                                                 style={{
-                                                    background: submission.status === 'rejected' ? 'var(--pop-orange)' : 'var(--pop-pink)',
-                                                    color: 'var(--pop-ink)',
+                                                    background: submission.status === 'rejected' ? 'var(--color-additional-1)' : 'var(--color-secondary)',
+                                                    color: 'var(--color-text)',
                                                     border: '1px solid var(--pop-border)',
                                                     fontSize: '0.68rem',
                                                     padding: '3px 8px',
@@ -648,7 +648,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                                         </div>
                                         <p className="submission-url" style={{ color: 'rgba(21, 19, 15, 0.75)', fontSize: '0.85rem', margin: '0 0 8px 0', wordBreak: 'break-all' }}>{submission.url}</p>
                                         {(submission.admin_notes || submission.rejection_reason) && (
-                                            <div className="rejection-reason" style={{ background: 'var(--pop-yellow)', border: '1px solid var(--pop-border)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--pop-ink)', margin: '8px 0 12px' }}>
+                                            <div className="rejection-reason" style={{ background: 'var(--color-button)', border: '1px solid var(--pop-border)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text)', margin: '8px 0 12px' }}>
                                                 <strong>Curator Note:</strong> {submission.admin_notes || submission.rejection_reason}
                                             </div>
                                         )}
@@ -721,7 +721,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                 <div className="submissions-section">
                     <div className="section-header">
                         <h2>🗑 Trash Bin</h2>
-                        <span className="pending-count" style={{ background: '#EF4444' }}>{deletedSubmissions.length} items</span>
+                        <span className="pending-count" style={{ background: "var(--color-error)" }}>{deletedSubmissions.length} items</span>
                     </div>
 
                     <div className="submissions-list">
@@ -738,7 +738,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                                     </div>
                                     <p className="submission-url">{submission.url}</p>
                                     <div style={{ marginBottom: '1rem' }}>
-                                        <span className="status-badge" style={{ background: '#EF4444', color: 'white', fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '100px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Deleted</span>
+                                        <span className="status-badge" style={{ background: "var(--color-error)", color: 'white', fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '100px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Deleted</span>
                                     </div>
                                     <div className="submission-meta">
                                         Deleted at {submission.reviewed_at ? new Date(submission.reviewed_at).toLocaleDateString() : 'Unknown'}
@@ -829,8 +829,8 @@ export default function CuratorDashboard({ user, role }: Props) {
                 /* Back to Resources */
                 /* Light Mode: Black BG, White Text */
                 html[data-theme="light"] .btn-back-logo {
-                    background: #000000;
-                    color: #ffffff;
+                    background: var(--color-text);
+                    color: var(--color-primary-text);
                 }
                 html[data-theme="light"] .btn-back-logo:hover {
                      background: #333333;
@@ -838,8 +838,8 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 /* Dark Mode: White BG, Black Text */
                 html[data-theme="dark"] .btn-back-logo {
-                    background: #ffffff;
-                    color: #000000;
+                    background: var(--color-surface);
+                    color: var(--color-text);
                 }
                 html[data-theme="dark"] .btn-back-logo:hover {
                      background: #e5e5e5;
@@ -879,7 +879,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                     font-weight: 600; /* Slightly lighter weight */
                     font-size: 0.95rem; /* Reduced font size */
                     transition: transform 0.2s, opacity 0.2s;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    box-shadow: 0 2px 4px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
                     font-family: var(--font-ui); /* Consistent font */
                     width: auto; /* Allow auto width */
                     min-width: 200px;
@@ -887,19 +887,19 @@ export default function CuratorDashboard({ user, role }: Props) {
                 
                 /* Force Black Text on White Button (Dark Mode) */
                 html[data-theme="dark"] .btn-submit-new-prominent {
-                    background: #ffffff;
-                    color: #000000;
+                    background: var(--color-surface);
+                    color: var(--color-text);
                 }
                 /* Force White Text on Black Button (Light Mode) */
                 html[data-theme="light"] .btn-submit-new-prominent {
-                    background: #000000;
-                    color: #ffffff;
+                    background: var(--color-text);
+                    color: var(--color-primary-text);
                 }
 
                 .btn-submit-new-prominent:hover {
                     transform: translateY(-1px);
                     opacity: 0.95;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 8px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
 
                 .stats-grid {
@@ -987,12 +987,12 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 /* Filter Tabs Active Text Fix */
                 html[data-theme="dark"] .filter-tabs button.active {
-                    color: #000000;
-                    background: #ffffff;
+                    color: var(--color-text);
+                    background: var(--color-surface);
                 }
                 html[data-theme="light"] .filter-tabs button.active {
-                    color: #ffffff;
-                    background: #000000;
+                    color: var(--color-primary-text);
+                    background: var(--color-text);
                 }
 
 
@@ -1015,7 +1015,7 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .submission-card:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
 
                 .card-thumbnail {
@@ -1038,7 +1038,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                     text-transform: uppercase;
                     letter-spacing: 0.02em;
                     backdrop-filter: blur(4px);
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                    box-shadow: 0 2px 8px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
                 }
 
                 .card-thumbnail img {
@@ -1128,12 +1128,12 @@ export default function CuratorDashboard({ user, role }: Props) {
                 }
                 
                 html[data-theme="dark"] .btn-view {
-                    background: #ffffff;
-                    color: #000000;
+                    background: var(--color-surface);
+                    color: var(--color-text);
                 }
                 html[data-theme="light"] .btn-view {
-                    background: #000000;
-                    color: #ffffff;
+                    background: var(--color-text);
+                    color: var(--color-primary-text);
                 }
 
                 .btn-edit {
@@ -1251,13 +1251,13 @@ export default function CuratorDashboard({ user, role }: Props) {
                     font-weight: 600;
                     font-size: 1rem;
                     transition: all 0.2s;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    box-shadow: 0 2px 4px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
                 }
                 .btn-quick-nav:hover {
                     background: var(--bg-surface-hover);
                     border-color: var(--text-primary);
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 8px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
 
                 .btn-delete {
@@ -1284,7 +1284,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                 .moderation-modal-backdrop {
                     position: fixed;
                     inset: 0;
-                    background: rgba(21, 19, 15, 0.65);
+                    background: color-mix(in srgb, var(--color-text) 65%, transparent);
                     backdrop-filter: blur(4px);
                     display: flex;
                     align-items: center;
@@ -1295,42 +1295,42 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .moderation-modal {
                     width: min(560px, 100%);
-                    background: var(--pop-cream, #fff8e8);
-                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+                    background: var(--color-background);
+                    border: 1px solid var(--pop-border, color-mix(in srgb, var(--color-text) 78%, transparent));
                     border-radius: 20px;
                     padding: 28px;
-                    box-shadow: 0 20px 50px rgba(21, 19, 15, 0.25);
-                    color: var(--pop-ink, #15130f);
+                    box-shadow: 0 20px 50px color-mix(in srgb, var(--color-text) 25%, transparent);
+                    color: var(--color-text);
                 }
 
                 .moderation-modal h3 {
                     margin: 0 0 0.5rem;
                     font: 720 1.6rem/1.1 var(--resources-font, sans-serif);
-                    color: var(--pop-ink, #15130f);
+                    color: var(--color-text);
                 }
 
                 .moderation-modal-subtitle {
                     margin: 0 0 0.75rem;
-                    color: rgba(21, 19, 15, 0.8);
+                    color: color-mix(in srgb, var(--color-text) 80%, transparent);
                     font: 450 0.92rem/1.4 var(--resources-font, sans-serif);
                 }
 
                 .moderation-modal-resource {
                     margin: 0 0 1rem;
-                    color: var(--pop-ink, #15130f);
+                    color: var(--color-button-text);
                     font: 600 0.95rem/1.4 var(--resources-font, sans-serif);
-                    background: var(--pop-yellow, #ffe44f);
+                    background: var(--color-button);
                     padding: 8px 12px;
                     border-radius: 8px;
-                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+                    border: 1px solid var(--pop-border, color-mix(in srgb, var(--color-text) 78%, transparent));
                 }
 
                 .moderation-note-input {
                     width: 100%;
-                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+                    border: 1px solid var(--pop-border, color-mix(in srgb, var(--color-text) 78%, transparent));
                     border-radius: 12px;
-                    background: var(--pop-cream, #fff8e8);
-                    color: var(--pop-ink, #15130f);
+                    background: var(--color-background);
+                    color: var(--color-text);
                     padding: 12px;
                     resize: vertical;
                     min-height: 120px;
@@ -1338,7 +1338,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                 }
 
                 .moderation-note-input:focus {
-                    outline: 3px solid var(--pop-purple, var(--pop-purple));
+                    outline: 3px solid var(--color-additional-2);
                     outline-offset: 2px;
                 }
 

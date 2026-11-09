@@ -163,14 +163,14 @@ export default function ListView({ table, title, onCreate }) {
     };
 
     if (loading) return <div className="loading-state">Loading {table}...</div>;
-    if (errorMsg) return <div style={{ color: '#ef4444' }}>Error: {errorMsg}</div>;
+    if (errorMsg) return <div style={{ color: "var(--color-error)" }}>Error: {errorMsg}</div>;
 
     return (
         <div className="list-wrapper">
             <header className="content-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <h2 className="section-title">{title}</h2>
-                    {isSavingOrder && <span style={{ fontSize: '0.8rem', color: '#10B981' }}>Saving order...</span>}
+                    {isSavingOrder && <span style={{ fontSize: '0.8rem', color: "var(--color-success)" }}>Saving order...</span>}
                     {supportReorder && !isSavingOrder && items.length > 1 && (
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Drag to reorder</span>
                     )}
@@ -226,7 +226,7 @@ export default function ListView({ table, title, onCreate }) {
                                                                 }}
                                                                 title="Toggle Status"
                                                             >
-                                                                <span className={`status-dot-inner`} style={{ background: status.isLive ? '#10B981' : 'currentColor' }}></span>
+                                                                <span className={`status-dot-inner`} style={{ background: status.isLive ? "var(--color-success)" : 'currentColor' }}></span>
                                                                 {status.text}
                                                             </button>
                                                         )}
@@ -262,7 +262,7 @@ export default function ListView({ table, title, onCreate }) {
                                                 onClick={() => handleToggleStatus(item)}
                                                 title="Toggle Status"
                                             >
-                                                <span className={`status-dot-inner`} style={{ background: status.isLive ? '#10B981' : 'currentColor' }}></span>
+                                                <span className={`status-dot-inner`} style={{ background: status.isLive ? "var(--color-success)" : 'currentColor' }}></span>
                                                 {status.text}
                                             </button>
                                         )}

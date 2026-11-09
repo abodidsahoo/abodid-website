@@ -88,12 +88,12 @@
 }
 
 .newsletter-sender .campaign-workspace-tab.active {
-    color: #fff;
+    color: var(--color-primary-text);
     font-weight: 700;
 }
 
 .newsletter-sender .campaign-workspace-tab.active:hover {
-    color: #fff;
+    color: var(--color-primary-text);
 }
 
 .newsletter-sender .campaign-tab-glider {
@@ -289,13 +289,13 @@
 .newsletter-sender .full-gmail-preview-trigger:focus-visible {
     border-color: var(--color-brand-red, #a30021);
     background: var(--color-brand-red, #a30021);
-    color: #fff;
+    color: var(--color-primary-text);
     outline: none;
 }
 
 .newsletter-sender .full-gmail-preview-trigger:hover span,
 .newsletter-sender .full-gmail-preview-trigger:focus-visible span {
-    color: #fff;
+    color: var(--color-primary-text);
 }
 
 .newsletter-sender .preview-inspector-panel .preview-metadata-grid {
@@ -524,7 +524,7 @@
 .newsletter-sender .merge-tag-button:hover,
 .newsletter-sender .merge-tag-button:focus-visible {
     background: var(--newsletter-accent);
-    color: #fff;
+    color: var(--color-primary-text);
     outline: none;
 }
 
@@ -607,7 +607,7 @@
 .newsletter-sender .gmail-preview {
     --gmail-bg: #f6f8fc;
     --gmail-search-bg: #eaf1fb;
-    --gmail-row-bg: #ffffff;
+    --gmail-row-bg: var(--color-surface);
     --gmail-text: #202124;
     --gmail-muted: #5f6368;
     --gmail-icon: #9aa0a6;
@@ -693,7 +693,7 @@
 .newsletter-sender .gmail-avatar {
     border-radius: 50%;
     background: #7e57c2;
-    color: #fff;
+    color: var(--color-primary-text);
     font-weight: 700;
 }
 
@@ -863,11 +863,11 @@
     height: 48px;
     padding: 0;
     place-items: center;
-    border: 2px solid rgba(255, 255, 255, 0.28);
+    border: 2px solid color-mix(in srgb, var(--color-surface) 28%, transparent);
     border-radius: 50%;
     background: var(--color-brand-red, #a30021);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
-    color: #fff;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--ui-shadow-color) 34%, transparent);
+    color: var(--color-primary-text);
     cursor: pointer;
 }
 
@@ -881,7 +881,7 @@
 .newsletter-sender .full-gmail-preview-close:hover,
 .newsletter-sender .full-gmail-preview-close:focus-visible {
     background: #e12b36;
-    outline: 3px solid rgba(255, 255, 255, 0.9);
+    outline: 3px solid color-mix(in srgb, var(--color-surface) 90%, transparent);
     outline-offset: 2px;
     transform: scale(1.04);
 }
@@ -966,7 +966,7 @@
 
 .newsletter-sender .full-gmail-top-actions .avatar {
     background: #6f55bb;
-    color: #fff;
+    color: var(--color-primary-text);
     font-weight: 700;
 }
 
@@ -996,7 +996,7 @@
     gap: 0.75rem;
     border: 0;
     border-radius: 14px;
-    background: #fff;
+    background: var(--color-surface);
     color: #3c4043;
     font: inherit;
     font-size: 0.9rem;
@@ -1026,7 +1026,7 @@
 
 .newsletter-sender .full-gmail-sidebar nav > span.active {
     background: #5f6368;
-    color: #fff;
+    color: var(--color-primary-text);
     font-weight: 700;
 }
 
@@ -1046,7 +1046,7 @@
     min-height: 0;
     grid-template-rows: 54px auto auto minmax(0, 1fr);
     overflow: hidden;
-    background: #fff;
+    background: var(--color-surface);
     color: #202124;
 }
 
@@ -1102,7 +1102,7 @@
     align-items: center;
     gap: 0.65rem;
     padding: 1rem 1.5rem 0.5rem;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .newsletter-sender .full-gmail-subject-row h2 {
@@ -1137,7 +1137,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.45rem 1.5rem 0.9rem;
-    background: #fff;
+    background: var(--color-surface);
     color: #202124;
 }
 
@@ -1149,7 +1149,7 @@
     place-items: center;
     border-radius: 50%;
     background: #7598ef;
-    color: #fff;
+    color: var(--color-primary-text);
     font-size: 1rem;
     font-weight: 700;
 }
@@ -1299,7 +1299,7 @@
 
 .newsletter-sender .notification-app-toggle button.active {
     background: var(--color-brand-red, #a30021);
-    color: #fff;
+    color: var(--color-primary-text);
 }
 
 .newsletter-sender .phone-preview-shell {
@@ -1338,11 +1338,10 @@
     min-height: 615px;
     overflow: hidden;
     border-radius: 44px;
-    background:
-        radial-gradient(circle at 16% 20%, rgba(255, 206, 104, 0.92) 0 18%, transparent 42%),
+    background: radial-gradient(circle at 16% 20%, rgba(255, 206, 104, 0.92) 0 18%, transparent 42%),
         radial-gradient(circle at 87% 36%, rgba(255, 88, 79, 0.88) 0 18%, transparent 44%),
         linear-gradient(150deg, #6c63d9 0%, #8f58b7 38%, #f06f63 72%, #f5a04a 100%);
-    color: #fff;
+    color: var(--color-primary-text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     box-shadow: inset 0 0 20px rgba(14, 10, 36, 0.2);
 }
@@ -1355,14 +1354,12 @@
 }
 
 .newsletter-sender .phone-lock-screen.gmail-notification-screen {
-    background:
-        linear-gradient(165deg, transparent 0 24%, rgba(53, 126, 197, 0.72) 24.2% 41%, transparent 41.2%),
+    background: linear-gradient(165deg, transparent 0 24%, rgba(53, 126, 197, 0.72) 24.2% 41%, transparent 41.2%),
         linear-gradient(13deg, #16365f 0 30%, #1d4a80 30.2% 54%, #245f9f 54.2% 76%, #3290cf 76.2% 100%);
 }
 
 .newsletter-sender .phone-lock-screen.gmail-notification-screen::before {
-    background:
-        linear-gradient(192deg, transparent 0 46%, rgba(15, 49, 91, 0.38) 46.2% 68%, transparent 68.2%),
+    background: linear-gradient(192deg, transparent 0 46%, rgba(15, 49, 91, 0.38) 46.2% 68%, transparent 68.2%),
         linear-gradient(180deg, rgba(3, 27, 57, 0.03), rgba(4, 25, 51, 0.22));
 }
 
@@ -1399,7 +1396,7 @@
     width: 18px;
     height: 15px;
     margin: 52px auto 0;
-    border: 2px solid rgba(255, 255, 255, 0.92);
+    border: 2px solid color-mix(in srgb, var(--color-surface) 92%, transparent);
     border-radius: 4px;
 }
 
@@ -1409,7 +1406,7 @@
     left: 3px;
     width: 9px;
     height: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.92);
+    border: 2px solid color-mix(in srgb, var(--color-surface) 92%, transparent);
     border-bottom: 0;
     border-radius: 8px 8px 0 0;
 }
@@ -1446,11 +1443,11 @@
     margin: 42px 13px 0;
     padding: 0.8rem 0.85rem 0.9rem;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
     border-radius: 20px;
     background: rgba(45, 35, 64, 0.42);
     box-shadow: 0 9px 26px rgba(29, 20, 48, 0.16);
-    color: #fff;
+    color: var(--color-primary-text);
     backdrop-filter: blur(18px) saturate(1.25);
 }
 
@@ -1461,10 +1458,10 @@
     align-items: center;
     min-height: 82px;
     padding: 0.62rem 0.7rem;
-    border-color: rgba(255, 255, 255, 0.34);
+    border-color: color-mix(in srgb, var(--color-surface) 34%, transparent);
     border-radius: 20px;
     background: rgba(145, 194, 243, 0.86);
-    box-shadow: 0 10px 28px rgba(5, 31, 68, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    box-shadow: 0 10px 28px rgba(5, 31, 68, 0.16), inset 0 1px 0 color-mix(in srgb, var(--color-surface) 28%, transparent);
     color: #080d14;
     backdrop-filter: blur(24px) saturate(1.08);
 }
@@ -1530,7 +1527,7 @@
     align-items: center;
     gap: 0.45rem;
     margin-bottom: 0.25rem;
-    color: rgba(255, 255, 255, 0.78);
+    color: color-mix(in srgb, var(--color-surface) 78%, transparent);
     font-size: 0.65rem;
 }
 
@@ -1541,7 +1538,7 @@
     place-items: center;
     border-radius: 6px;
     background: linear-gradient(180deg, #57b7ff, #1579e6);
-    color: #fff;
+    color: var(--color-primary-text);
     font-size: 0.72rem;
 }
 
@@ -1549,7 +1546,7 @@
     width: 34px;
     height: 34px;
     align-self: center;
-    background: #fff;
+    background: var(--color-surface);
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(13, 40, 73, 0.08);
 }
@@ -1594,7 +1591,7 @@
 }
 
 .newsletter-sender .phone-notification-card p {
-    color: rgba(255, 255, 255, 0.88);
+    color: color-mix(in srgb, var(--color-surface) 88%, transparent);
     font-size: 0.76rem;
     line-height: 1.4;
 }
@@ -1618,7 +1615,7 @@
     place-items: center;
     border-radius: 50%;
     background: rgba(7, 28, 54, 0.5);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 1px color-mix(in srgb, var(--color-surface) 8%, transparent);
     backdrop-filter: blur(12px);
 }
 
@@ -1627,7 +1624,7 @@
     width: 9px;
     height: 19px;
     border-radius: 2px 2px 4px 4px;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .newsletter-sender .phone-flashlight i::before {
@@ -1637,7 +1634,7 @@
     width: 13px;
     height: 6px;
     border-radius: 2px;
-    background: #fff;
+    background: var(--color-surface);
     content: '';
 }
 
@@ -1657,7 +1654,7 @@
     width: 22px;
     height: 15px;
     border-radius: 3px;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .newsletter-sender .phone-camera i::before {
@@ -1667,7 +1664,7 @@
     width: 10px;
     height: 5px;
     border-radius: 2px 2px 0 0;
-    background: #fff;
+    background: var(--color-surface);
     content: '';
 }
 
@@ -1690,7 +1687,7 @@
     width: 112px;
     height: 4px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.88);
+    background: color-mix(in srgb, var(--color-surface) 88%, transparent);
     transform: translateX(-50%);
 }
 
@@ -1715,8 +1712,7 @@
 .newsletter-sender .phone-lock-screen.gmail-notification-screen {
     min-height: 660px;
     border-radius: 41px;
-    background:
-        radial-gradient(ellipse 83% 65% at 1% 74%, rgba(58, 126, 115, 0.98) 0 55%, transparent 55.5%),
+    background: radial-gradient(ellipse 83% 65% at 1% 74%, rgba(58, 126, 115, 0.98) 0 55%, transparent 55.5%),
         radial-gradient(ellipse 72% 72% at 73% 18%, #203f7a 0 57%, transparent 57.5%),
         linear-gradient(148deg, #748486 0 38%, #657979 38.2% 55%, #0a1a4d 55.2% 100%);
     box-shadow: inset 0 0 24px rgba(2, 12, 37, 0.32);
@@ -1724,8 +1720,7 @@
 
 .newsletter-sender .phone-lock-screen::before,
 .newsletter-sender .phone-lock-screen.gmail-notification-screen::before {
-    background:
-        linear-gradient(154deg, transparent 0 55%, rgba(15, 73, 82, 0.34) 55.3% 71%, transparent 71.3%),
+    background: linear-gradient(154deg, transparent 0 55%, rgba(15, 73, 82, 0.34) 55.3% 71%, transparent 71.3%),
         linear-gradient(180deg, rgba(3, 12, 31, 0.04), rgba(2, 14, 42, 0.18));
 }
 
@@ -1739,7 +1734,7 @@
     align-items: center;
     gap: 0.4rem;
     height: 14px;
-    color: #fff;
+    color: var(--color-primary-text);
     letter-spacing: 0;
 }
 
@@ -1754,7 +1749,7 @@
     display: block;
     width: 3px;
     border-radius: 1px;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .newsletter-sender .phone-cellular b:nth-child(1) { height: 4px; }
@@ -1765,14 +1760,14 @@
 .newsletter-sender .phone-wifi {
     width: 17px;
     height: 12px;
-    background: radial-gradient(circle at 50% 100%, #fff 0 1.4px, transparent 1.7px 3.4px, #fff 3.7px 4.8px, transparent 5.1px 7px, #fff 7.3px 8.6px, transparent 8.9px);
+    background: radial-gradient(circle at 50% 100%, var(--color-surface) 0 1.4px, transparent 1.7px 3.4px, var(--color-surface) 3.7px 4.8px, transparent 5.1px 7px, var(--color-surface) 7.3px 8.6px, transparent 8.9px);
 }
 
 .newsletter-sender .phone-battery {
     position: relative;
     width: 21px;
     height: 10px;
-    border: 1.5px solid rgba(255, 255, 255, 0.94);
+    border: 1.5px solid color-mix(in srgb, var(--color-surface) 94%, transparent);
     border-radius: 3px;
 }
 
@@ -1780,7 +1775,7 @@
     position: absolute;
     inset: 1.5px;
     border-radius: 1px;
-    background: #fff;
+    background: var(--color-surface);
     content: '';
 }
 
@@ -1791,7 +1786,7 @@
     width: 2px;
     height: 4px;
     border-radius: 0 1px 1px 0;
-    background: rgba(255, 255, 255, 0.72);
+    background: color-mix(in srgb, var(--color-surface) 72%, transparent);
     content: '';
 }
 
@@ -1800,7 +1795,7 @@
     width: 94px;
     height: 27px;
     background: #030406;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 1.5%, transparent);
 }
 
 .newsletter-sender .phone-dynamic-island::after {
@@ -1816,7 +1811,7 @@
 
 .newsletter-sender .phone-date {
     margin-top: 54px;
-    color: rgba(255, 255, 255, 0.96);
+    color: color-mix(in srgb, var(--color-surface) 96%, transparent);
     font-size: 1rem;
     font-weight: 650;
     letter-spacing: -0.015em;
@@ -1829,7 +1824,7 @@
     font-size: 5.1rem;
     font-weight: 250;
     letter-spacing: -0.075em;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.48), 0 4px 12px rgba(3, 18, 49, 0.22);
+    text-shadow: 0 1px 0 color-mix(in srgb, var(--color-surface) 48%, transparent), 0 4px 12px rgba(3, 18, 49, 0.22);
 }
 
 .newsletter-sender .phone-notification-card,
@@ -1842,16 +1837,16 @@
     min-height: 82px;
     margin: 140px 12px 0;
     padding: 0.62rem 0.7rem;
-    border: 1px solid rgba(255, 255, 255, 0.45);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 45%, transparent);
     border-radius: 19px;
     background: rgba(159, 178, 187, 0.48);
-    box-shadow: 0 8px 22px rgba(3, 19, 47, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-    color: #fff;
+    box-shadow: 0 8px 22px rgba(3, 19, 47, 0.12), inset 0 1px 0 color-mix(in srgb, var(--color-surface) 18%, transparent);
+    color: var(--color-primary-text);
     backdrop-filter: blur(23px) saturate(1.05);
 }
 
 .newsletter-sender .phone-notification-card.gmail-notification {
-    border-color: rgba(255, 255, 255, 0.34);
+    border-color: color-mix(in srgb, var(--color-surface) 34%, transparent);
     background: rgba(145, 194, 243, 0.86);
     color: #080d14;
 }
@@ -1906,7 +1901,7 @@
 .newsletter-sender .phone-notification-card.mail-notification p {
     display: -webkit-box;
     overflow: hidden;
-    color: rgba(255, 255, 255, 0.94);
+    color: color-mix(in srgb, var(--color-surface) 94%, transparent);
     font-size: 0.76rem;
     font-weight: 400;
     letter-spacing: -0.008em;
@@ -1937,13 +1932,13 @@
 .newsletter-sender .phone-mail-icon.apple-mail {
     overflow: hidden;
     background: linear-gradient(180deg, #63c7ff 0%, #1687f1 58%, #0869e2 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 4px rgba(4, 24, 54, 0.18);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-surface) 35%, transparent), 0 1px 4px rgba(4, 24, 54, 0.18);
 }
 
 .newsletter-sender .phone-mail-icon.apple-mail::after {
     position: absolute;
     inset: 0;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.24), transparent 48%);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 24%, transparent), transparent 48%);
     content: '';
     pointer-events: none;
 }
@@ -1954,7 +1949,7 @@
     width: 23px;
     height: 15px;
     border-radius: 2px;
-    background: #fff;
+    background: var(--color-surface);
     box-shadow: 0 1px 2px rgba(5, 85, 170, 0.18);
 }
 
@@ -1981,14 +1976,14 @@
     height: 45px;
     border: 1px solid rgba(177, 221, 255, 0.42);
     background: rgba(14, 61, 100, 0.48);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 5px 14px rgba(2, 17, 46, 0.12);
+    box-shadow: inset 0 1px 1px color-mix(in srgb, var(--color-surface) 12%, transparent), 0 5px 14px rgba(2, 17, 46, 0.12);
 }
 
 .newsletter-sender .phone-home-indicator {
     bottom: 9px;
     width: 108px;
     height: 4px;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .newsletter-sender .preview-stage {
@@ -2205,8 +2200,7 @@
     padding: 1rem;
     border: 1px solid color-mix(in srgb, var(--color-brand-red, #a30021) 28%, var(--border-subtle));
     border-radius: 11px;
-    background:
-        radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--newsletter-accent-soft) 72%, transparent), transparent 34%),
+    background: radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--newsletter-accent-soft) 72%, transparent), transparent 34%),
         var(--bg-color);
 }
 
@@ -2224,7 +2218,7 @@
     place-items: center;
     border-radius: 7px;
     background: var(--color-brand-red, #a30021);
-    color: #ffffff;
+    color: var(--color-primary-text);
     font-size: 1.1rem;
 }
 
@@ -2265,7 +2259,7 @@
     border: 0;
     border-radius: 7px;
     background: var(--color-brand-red, #a30021);
-    color: #ffffff;
+    color: var(--color-primary-text);
     cursor: pointer;
     font: inherit;
     font-size: 0.72rem;
@@ -2402,7 +2396,7 @@
 
 .newsletter-sender .editor-segment button.active {
     background: var(--newsletter-accent);
-    color: #fff;
+    color: var(--color-primary-text);
 }
 
 .newsletter-sender .block-stack {
@@ -2558,7 +2552,7 @@
     border: 0;
     border-radius: 5px;
     background: #20242d;
-    color: #ffffff;
+    color: var(--color-primary-text);
     cursor: pointer;
     font: inherit;
     font-size: 0.65rem;
@@ -2572,7 +2566,7 @@
 
 .newsletter-sender .block-card-actions button.danger {
     background: #c92a2a;
-    color: #ffffff;
+    color: var(--color-primary-text);
 }
 
 .newsletter-sender .block-card-actions button.customize {
@@ -2582,7 +2576,7 @@
 
 .newsletter-sender .block-card-actions button.customize.active {
     background: var(--newsletter-accent);
-    color: #ffffff;
+    color: var(--color-primary-text);
 }
 
 .newsletter-sender .block-card-body {
@@ -2961,7 +2955,7 @@
     object-fit: contain;
     border: 1px solid var(--border-subtle);
     border-radius: 7px;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .newsletter-sender .newsletter-block-uploader.uploader-container {
@@ -3088,7 +3082,7 @@
     display: grid;
     place-items: center;
     padding: 1.25rem;
-    background: rgba(0, 0, 0, 0.68);
+    background: color-mix(in srgb, var(--ui-shadow-color) 68%, transparent);
     backdrop-filter: blur(4px);
 }
 
@@ -3102,7 +3096,7 @@
     border: 1px solid var(--border-strong);
     border-radius: 10px;
     background: var(--bg-card);
-    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+    box-shadow: 0 28px 90px color-mix(in srgb, var(--ui-shadow-color) 42%, transparent);
     color: var(--text-primary);
 }
 
@@ -3808,7 +3802,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: 9px;
     background: var(--bg-surface);
-    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 14px 35px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
 }
 
 .newsletter-sender .add-subscriber-form-row {
@@ -3986,7 +3980,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: 12px;
     background: var(--bg-surface);
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 24px 70px color-mix(in srgb, var(--ui-shadow-color) 28%, transparent);
 }
 
 .newsletter-sender .subscriber-picker-header {
@@ -4075,7 +4069,7 @@
     border: 1px solid #b91c1c;
     border-radius: 6px;
     background: #c62828;
-    color: #ffffff;
+    color: var(--color-primary-text);
     font-weight: 700;
     line-height: 1;
     text-decoration: none;
@@ -4483,7 +4477,7 @@
     width: 100%;
     padding: 0.9rem;
     background: var(--newsletter-accent) !important;
-    color: #fff !important;
+    color: var(--color-primary-text) !important;
     font-size: 0.82rem;
 }
 
@@ -4519,7 +4513,7 @@
 .newsletter-sender .status-alert.sending {
     border-color: rgba(59, 130, 246, 0.25);
     background: rgba(59, 130, 246, 0.1);
-    color: #2563eb;
+    color: var(--color-primary);
 }
 
 @media (max-width: 1180px) {

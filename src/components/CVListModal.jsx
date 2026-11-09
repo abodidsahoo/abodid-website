@@ -85,7 +85,7 @@ const CVListModal = ({ title, icon, cvs }) => {
                         .hub-card:hover {
                             transform: translateY(-4px);
                             border-color: var(--text-secondary);
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                            box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
                         }
                         .card-content {
                             display: flex;
@@ -120,7 +120,7 @@ const CVListModal = ({ title, icon, cvs }) => {
                             left: 0;
                             right: 0;
                             bottom: 0;
-                            background: rgba(0, 0, 0, 0.7);
+                            background: color-mix(in srgb, var(--ui-shadow-color) 70%, transparent);
                             backdrop-filter: blur(5px);
                             display: flex;
                             align-items: center;
@@ -129,13 +129,13 @@ const CVListModal = ({ title, icon, cvs }) => {
                             animation: fadeIn 0.2s ease;
                         }
                         .modal-content {
-                            background: var(--bg-surface, #fff);
+                            background: var(--bg-surface, var(--color-surface));
                             padding: 2.5rem;
                             border-radius: 12px;
                             width: 90%;
                             max-width: 450px;
                             position: relative;
-                            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                            box-shadow: 0 10px 40px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
                             border: 1px solid var(--border-subtle, #eee);
                             animation: slideUp 0.3s ease;
                         }
@@ -151,7 +151,7 @@ const CVListModal = ({ title, icon, cvs }) => {
                             line-height: 1;
                         }
                         .modal-close:hover {
-                            color: var(--text-primary, #000);
+                            color: var(--text-primary, var(--color-text));
                         }
                         h2 {
                             margin-top: 0;
@@ -159,7 +159,7 @@ const CVListModal = ({ title, icon, cvs }) => {
                             font-size: 1.5rem;
                             font-weight: 600;
                             font-family: var(--font-display);
-                            color: var(--text-primary, #000);
+                            color: var(--text-primary, var(--color-text));
                         }
                         .cv-list {
                              display: flex;
@@ -181,7 +181,7 @@ const CVListModal = ({ title, icon, cvs }) => {
                         .cv-item:hover {
                             border-color: var(--text-secondary, #666);
                             transform: translateY(-2px);
-                            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                            box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
                         }
                         .file-icon {
                             font-size: 1.2rem;

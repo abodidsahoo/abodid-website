@@ -166,8 +166,8 @@ export default function BrandShowcase({ limit = null }) {
                     justify-content: space-between;
                     align-items: center;
                     padding: 0.6rem 1rem;
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: color-mix(in srgb, var(--color-surface) 3%, transparent);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 10%, transparent);
                     backdrop-filter: blur(10px);
                     border-radius: 8px;
                     cursor: pointer;
@@ -178,8 +178,8 @@ export default function BrandShowcase({ limit = null }) {
                 }
 
                 .glass-dropdown-trigger:hover, .glass-dropdown-trigger.open {
-                    background: rgba(255, 255, 255, 0.08);
-                    border-color: rgba(255, 255, 255, 0.2);
+                    background: color-mix(in srgb, var(--color-surface) 8%, transparent);
+                    border-color: color-mix(in srgb, var(--color-surface) 20%, transparent);
                 }
 
                 .dropdown-arrow {
@@ -198,10 +198,10 @@ export default function BrandShowcase({ limit = null }) {
                     width: 100%;
                     margin-top: 0.5rem;
                     background: #111;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 10%, transparent);
                     border-radius: 8px;
                     overflow: hidden;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                    box-shadow: 0 10px 30px color-mix(in srgb, var(--ui-shadow-color) 50%, transparent);
                 }
 
                 .dropdown-item {
@@ -213,13 +213,13 @@ export default function BrandShowcase({ limit = null }) {
                 }
 
                 .dropdown-item:hover {
-                    background: rgba(255, 255, 255, 0.05);
+                    background: color-mix(in srgb, var(--color-surface) 5%, transparent);
                     color: var(--text-primary);
                 }
 
                 .dropdown-item.active {
                     color: var(--text-primary);
-                    background: rgba(255, 255, 255, 0.1);
+                    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
                 }
 
                 /* Grid Styles */
@@ -271,7 +271,7 @@ export default function BrandShowcase({ limit = null }) {
                     color: #333;
                     border-radius: 6px;
                     pointer-events: none;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
                     min-width: 100px;
                     max-width: 180px;
                 }

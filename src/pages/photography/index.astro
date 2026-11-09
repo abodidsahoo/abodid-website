@@ -301,21 +301,21 @@ const structuredData = [
   }
 
   .press-page .press-topic--yellow {
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .press-page .press-topic--yellow:hover {
-    background: var(--pop-pink);
+    background: var(--color-secondary);
   }
 
   .press-page .photography-enquiry {
     margin-top: 8px;
     padding: clamp(1.25rem, 3.5vw, 3rem);
     overflow: hidden;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(20px, 3vw, 34px);
-    background: var(--pop-purple);
-    color: var(--pop-cream);
+    background: var(--color-additional-2);
+    color: var(--color-background);
     box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
   }
 
@@ -331,14 +331,14 @@ const structuredData = [
     padding: 0;
     width: min(94vw, 1100px);
     max-height: 90vh;
-    border: 2px solid var(--pop-ink, #15130f);
+    border: 2px solid var(--color-text, #15130f);
     border-radius: clamp(20px, 3vw, 32px);
-    background: var(--pop-cream, #fff8e8);
+    background: var(--color-background, #fff8e8);
     box-shadow:
-      0 20px 0 var(--pop-ink, #15130f),
+      0 20px 0 var(--color-text, #15130f),
       0 30px 60px rgba(0, 0, 0, 0.4);
     overflow: hidden;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
     outline: none;
     z-index: 1000;
   }
@@ -377,8 +377,8 @@ const structuredData = [
     align-items: flex-start;
     justify-content: space-between;
     gap: 1.5rem;
-    border-bottom: 2px solid var(--pop-ink, #15130f);
-    background: var(--pop-pink, #ff7eb5);
+    border-bottom: 2px solid var(--color-text, #15130f);
+    background: var(--color-secondary, #ff7eb5);
   }
 
   .agency-pdf-modal__intro {
@@ -392,21 +392,21 @@ const structuredData = [
     font: 700 0.72rem/1 var(--press-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
   }
 
   .agency-pdf-modal__header h2 {
     margin: 0;
     font: 720 clamp(1.8rem, 3.5vw, 3rem)/0.96 var(--press-font, sans-serif);
     letter-spacing: -0.05em;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
   }
 
   .agency-pdf-modal__desc {
     margin: 0.25rem 0 0;
     max-width: 620px;
     font: 500 clamp(0.92rem, 1.2vw, 1.05rem)/1.4 var(--press-font, sans-serif);
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
   }
 
   .agency-pdf-modal__close {
@@ -415,13 +415,13 @@ const structuredData = [
     height: 44px;
     display: grid;
     place-items: center;
-    border: 2px solid var(--pop-ink, #15130f);
+    border: 2px solid var(--color-text, #15130f);
     border-radius: 50%;
-    background: var(--pop-cream, #fff8e8);
-    color: var(--pop-ink, #15130f);
+    background: var(--color-background, #fff8e8);
+    color: var(--color-text, #15130f);
     font: 700 1.2rem/1 var(--press-mono, monospace);
     cursor: pointer;
-    box-shadow: 0 3px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 3px 0 var(--color-text, #15130f);
     transition:
       transform 160ms ease,
       background 160ms ease,
@@ -429,14 +429,14 @@ const structuredData = [
   }
 
   .agency-pdf-modal__close:hover {
-    background: var(--pop-yellow, #ffe44f);
+    background: var(--color-button, #ffe44f);
     transform: rotate(90deg) scale(1.05);
-    box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 4px 0 var(--color-text, #15130f);
   }
 
   .agency-pdf-modal__body {
     padding: clamp(1.2rem, 3vw, 2.5rem);
-    background: var(--pop-blue, #2444ca);
+    background: var(--color-primary, #2444ca);
   }
 
   .agency-pdf-cards {
@@ -452,10 +452,10 @@ const structuredData = [
     flex-direction: column;
     justify-content: space-between;
     gap: 1.25rem;
-    border: 2px solid var(--pop-ink, #15130f);
+    border: 2px solid var(--color-text, #15130f);
     border-radius: 20px;
-    color: var(--pop-ink, #15130f);
-    box-shadow: 0 6px 0 var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
+    box-shadow: 0 6px 0 var(--color-text, #15130f);
     transition:
       transform 180ms ease,
       box-shadow 180ms ease;
@@ -463,19 +463,19 @@ const structuredData = [
 
   .agency-pdf-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 9px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 9px 0 var(--color-text, #15130f);
   }
 
   .agency-pdf-card--art {
-    background: var(--pop-yellow, #ffe44f);
+    background: var(--color-button, #ffe44f);
   }
 
   .agency-pdf-card--commercial {
-    background: var(--pop-pink, #ff7eb5);
+    background: var(--color-secondary, #ff7eb5);
   }
 
   .agency-pdf-card--complete {
-    background: var(--pop-lime, #caff48);
+    background: var(--color-accent, #caff48);
   }
 
   .agency-pdf-card__top {
@@ -488,7 +488,7 @@ const structuredData = [
     font: 750 0.68rem/1 var(--press-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
     opacity: 0.85;
   }
 
@@ -496,7 +496,7 @@ const structuredData = [
     margin: 0;
     font: 720 clamp(1.4rem, 2vw, 1.85rem)/1.05 var(--press-font, sans-serif);
     letter-spacing: -0.04em;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
   }
 
   .agency-pdf-card__count {
@@ -504,13 +504,13 @@ const structuredData = [
     font: 700 0.72rem/1.2 var(--press-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
   }
 
   .agency-pdf-card__desc {
     margin: 0;
     font: 480 0.95rem/1.45 var(--press-font, sans-serif);
-    color: var(--pop-ink, #15130f);
+    color: var(--color-text, #15130f);
     opacity: 0.92;
   }
 
@@ -528,15 +528,15 @@ const structuredData = [
     justify-content: space-between;
     width: 100%;
     box-sizing: border-box;
-    border: 2px solid var(--pop-ink, #15130f);
+    border: 2px solid var(--color-text, #15130f);
     border-radius: 12px;
-    background: var(--pop-cream, #fff8e8);
-    color: var(--pop-ink, #15130f);
+    background: var(--color-background, #fff8e8);
+    color: var(--color-text, #15130f);
     font: 750 0.72rem/1 var(--press-mono, monospace);
     letter-spacing: 0.07em;
     text-transform: uppercase;
     text-decoration: none;
-    box-shadow: 0 3px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 3px 0 var(--color-text, #15130f);
     transition:
       transform 160ms ease,
       box-shadow 160ms ease,
@@ -546,7 +546,7 @@ const structuredData = [
   .agency-pdf-card__btn:hover {
     background: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 5px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 5px 0 var(--color-text, #15130f);
   }
 
   .agency-pdf-card__btn .link-destination-arrow {

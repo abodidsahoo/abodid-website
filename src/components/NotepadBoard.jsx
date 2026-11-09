@@ -2,11 +2,11 @@ import React, { useMemo, useRef, useState } from 'react';
 
 const MAX_BODY_LENGTH = 2000;
 const NOTE_PALETTES = [
-    { surface: 'var(--pop-yellow)', ink: 'var(--pop-ink)', accent: 'var(--pop-pink)' },
-    { surface: 'var(--pop-pink)', ink: 'var(--pop-ink)', accent: 'var(--pop-blue)' },
-    { surface: 'var(--pop-cream)', ink: 'var(--pop-ink)', accent: 'var(--pop-orange)' },
-    { surface: 'var(--pop-blue)', ink: 'var(--pop-cream)', accent: 'var(--pop-yellow)' },
-    { surface: 'var(--pop-lime)', ink: 'var(--pop-ink)', accent: 'var(--pop-purple)' },
+    { surface: 'var(--color-button)', ink: 'var(--color-text)', accent: 'var(--color-secondary)' },
+    { surface: 'var(--color-secondary)', ink: 'var(--color-text)', accent: 'var(--color-primary)' },
+    { surface: 'var(--color-background)', ink: 'var(--color-text)', accent: 'var(--color-additional-1)' },
+    { surface: 'var(--color-primary)', ink: 'var(--color-background)', accent: 'var(--color-button)' },
+    { surface: 'var(--color-accent)', ink: 'var(--color-text)', accent: 'var(--color-additional-2)' },
 ];
 
 const hashString = (value) => {
@@ -179,8 +179,8 @@ export default function NotepadBoard({
                     width: 100%;
                     padding: 8px;
                     overflow: clip;
-                    background: var(--pop-blue);
-                    color: var(--pop-ink);
+                    background: var(--color-primary);
+                    color: var(--color-text);
                     font-family: var(--font-body);
                 }
 
@@ -195,7 +195,7 @@ export default function NotepadBoard({
                     grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
                     gap: 8px;
                     padding: 8px;
-                    background: var(--pop-pink);
+                    background: var(--color-secondary);
                 }
 
                 .notepad-intro__copy,
@@ -211,7 +211,7 @@ export default function NotepadBoard({
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
-                    background: var(--pop-pink);
+                    background: var(--color-secondary);
                 }
 
                 .notepad-eyebrow,
@@ -226,7 +226,7 @@ export default function NotepadBoard({
                 .notepad-intro h1 {
                     max-width: 8ch;
                     margin: auto 0 0;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     font: 720 clamp(4rem, 9vw, 9rem)/0.82 var(--font-display, sans-serif);
                     letter-spacing: -0.075em;
                     text-wrap: balance;
@@ -235,7 +235,7 @@ export default function NotepadBoard({
                 .notepad-intro__description {
                     max-width: 32rem;
                     margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     font: 480 clamp(1.15rem, 1.75vw, 1.85rem)/1.15 var(--font-display, sans-serif);
                     letter-spacing: -0.025em;
                     text-wrap: pretty;
@@ -245,7 +245,7 @@ export default function NotepadBoard({
                     padding: clamp(1.25rem, 2.2vw, 2rem);
                     display: flex;
                     flex-direction: column;
-                    background: var(--pop-yellow);
+                    background: var(--color-button);
                 }
 
                 .notepad-form__label {
@@ -262,20 +262,20 @@ export default function NotepadBoard({
                     border: 1px solid var(--pop-border);
                     border-radius: var(--pop-radius-control);
                     outline: none;
-                    background: var(--pop-cream);
-                    color: var(--pop-ink);
-                    caret-color: var(--pop-purple);
+                    background: var(--color-background);
+                    color: var(--color-text);
+                    caret-color: var(--color-additional-2);
                     font: 500 clamp(1.35rem, 2.3vw, 2.3rem)/1.15 var(--font-display, sans-serif);
                     letter-spacing: -0.035em;
                     transition: box-shadow var(--pop-motion), transform var(--pop-motion);
                 }
 
                 .notepad-form textarea::placeholder {
-                    color: color-mix(in srgb, var(--pop-ink) 55%, transparent);
+                    color: color-mix(in srgb, var(--color-text) 55%, transparent);
                 }
 
                 .notepad-form textarea:focus-visible {
-                    box-shadow: 0 0 0 3px var(--pop-purple);
+                    box-shadow: 0 0 0 3px var(--color-additional-2);
                 }
 
                 .notepad-form__footer {
@@ -289,7 +289,7 @@ export default function NotepadBoard({
 
                 .notepad-status {
                     margin: 0;
-                    color: color-mix(in srgb, var(--pop-ink) 78%, transparent);
+                    color: color-mix(in srgb, var(--color-text) 78%, transparent);
                     font: 700 0.68rem/1.35 var(--font-mono, monospace);
                     letter-spacing: 0.04em;
                     text-transform: uppercase;
@@ -307,10 +307,10 @@ export default function NotepadBoard({
                     align-items: center;
                     justify-content: space-between;
                     gap: 0.8rem;
-                    border: 1px solid var(--pop-ink);
+                    border: 1px solid var(--color-text);
                     border-radius: var(--pop-radius-control);
-                    background: var(--pop-blue);
-                    color: var(--pop-cream);
+                    background: var(--color-primary);
+                    color: var(--color-primary-text);
                     font: 750 0.72rem/1 var(--font-mono, monospace);
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
@@ -320,11 +320,11 @@ export default function NotepadBoard({
 
                 .notepad-form button:hover:not(:disabled) {
                     transform: translateY(-2px);
-                    box-shadow: 0 3px 0 var(--pop-ink);
+                    box-shadow: 0 3px 0 var(--color-text);
                 }
 
                 .notepad-form button:focus-visible {
-                    outline: 3px solid var(--pop-purple);
+                    outline: 3px solid var(--color-additional-2);
                     outline-offset: 3px;
                 }
 
@@ -344,7 +344,7 @@ export default function NotepadBoard({
                 .notepad-archive {
                     margin-top: 8px;
                     padding: clamp(1rem, 2.2vw, 2rem);
-                    background: #f5ede0;
+                    background: var(--color-background);
                 }
 
                 .notepad-archive__header {
@@ -360,7 +360,7 @@ export default function NotepadBoard({
                 .notepad-archive h2 {
                     max-width: 13ch;
                     margin: 0.5rem 0 0;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     font: 620 clamp(2.5rem, 5vw, 5.2rem)/0.9 var(--font-display, sans-serif);
                     letter-spacing: -0.065em;
                     text-wrap: balance;
@@ -369,9 +369,9 @@ export default function NotepadBoard({
                 .notepad-count {
                     flex: none;
                     padding: 0.75rem 0.9rem;
-                    border: 1px solid var(--pop-ink);
+                    border: 1px solid var(--color-text);
                     border-radius: var(--pop-radius-control);
-                    background: var(--pop-cyan);
+                    background: var(--color-additional-3);
                 }
 
                 .notes-grid {
@@ -398,7 +398,7 @@ export default function NotepadBoard({
 
                 .note-card:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 0 color-mix(in srgb, var(--pop-ink) 18%, transparent);
+                    box-shadow: 0 4px 0 color-mix(in srgb, var(--color-text) 18%, transparent);
                 }
 
                 .note-card__meta {
@@ -452,7 +452,7 @@ export default function NotepadBoard({
                 .notepad-empty {
                     margin: 0;
                     padding: clamp(4rem, 10vw, 9rem) 1rem;
-                    color: var(--pop-ink);
+                    color: var(--color-text);
                     text-align: center;
                     font: 600 clamp(1.2rem, 2vw, 1.6rem)/1.4 var(--font-display, sans-serif);
                 }

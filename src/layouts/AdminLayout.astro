@@ -4,10 +4,12 @@ import '../styles/admin-global.css';
 import '../styles/admin-design-tokens.css';
 const { title, fullWidth = false } = Astro.props;
 const pagePath = Astro.url.pathname;
+import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
 ---
 
 <html lang="en" class="admin-document">
   <head>
+    <DesignTokenRuntime />
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/site.webmanifest" />

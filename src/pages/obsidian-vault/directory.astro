@@ -120,39 +120,39 @@ Astro.response.headers.set(
 
 <style is:global>
   :root {
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --pop-line: rgba(21, 19, 15, 0.2);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --pop-line: color-mix(in srgb, var(--color-text) 20%, transparent);
   }
 
   html:has(body.vault-directory-page),
   html body.vault-directory-page,
   body.vault-directory-page {
-    background: var(--pop-blue) !important;
-    background-color: var(--pop-blue) !important;
-    color: var(--pop-ink);
+    background: var(--color-primary) !important;
+    background-color: var(--color-primary) !important;
+    color: var(--color-text);
   }
 
   body.vault-directory-page main.page-content-full {
-    background: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
     overflow: visible;
   }
 
   body.vault-directory-page .site-footer {
-    --footer-bg: var(--pop-blue);
-    --footer-text-header: var(--pop-cream);
-    --footer-text-dim: rgba(255, 248, 232, 0.82);
-    --footer-border: rgba(255, 248, 232, 0.3);
+    --footer-bg: var(--color-primary);
+    --footer-text-header: var(--color-background);
+    --footer-text-dim: color-mix(in srgb, var(--color-primary-text) 82%, transparent);
+    --footer-border: color-mix(in srgb, var(--color-primary-text) 30%, transparent);
   }
 
   body.vault-directory-page .brands-zone {
-    border-top: 1px solid var(--pop-ink);
-    background: var(--pop-blue) !important;
+    border-top: 1px solid var(--color-text);
+    background: var(--color-primary) !important;
   }
 
   .directory-shell {
     width: 100%;
     padding: clamp(0.75rem, 2.5vw, 2rem);
-    background: var(--pop-blue);
+    background: var(--color-primary);
     font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
   }
 
@@ -162,7 +162,7 @@ Astro.response.headers.set(
     padding: clamp(1.5rem, 4vw, 3.5rem);
     border: 1px solid var(--pop-border);
     border-radius: clamp(16px, 2vw, 24px);
-    background: var(--pop-cream);
+    background: var(--color-background);
   }
 
   .directory-nav {
@@ -173,7 +173,7 @@ Astro.response.headers.set(
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
     text-decoration: none;
     font-size: 1.05rem;
     font-weight: 680;
@@ -182,7 +182,7 @@ Astro.response.headers.set(
 
   .directory-back-link:hover {
     padding-inline: 0.5rem;
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .directory-eyebrow {
@@ -190,7 +190,7 @@ Astro.response.headers.set(
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--pop-purple);
+    color: var(--color-additional-2);
     margin: 0 0 0.5rem;
   }
 
@@ -202,12 +202,12 @@ Astro.response.headers.set(
     letter-spacing: -0.04em;
     line-height: 1.05;
     margin: 0 0 1rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 
   .directory-intro {
     font-size: 1.15rem;
-    color: rgba(21, 19, 15, 0.78);
+    color: color-mix(in srgb, var(--color-text) 78%, transparent);
     margin: 0 0 2rem;
     max-width: 45ch;
   }
@@ -230,7 +230,7 @@ Astro.response.headers.set(
     height: 34px;
     font-weight: 650;
     font-size: 0.95rem;
-    color: var(--pop-ink);
+    color: var(--color-text);
     text-decoration: none;
     border-radius: 6px;
     border: 1px solid var(--pop-line);
@@ -238,8 +238,8 @@ Astro.response.headers.set(
   }
 
   .letter-jump-link:hover {
-    background: var(--pop-yellow);
-    border-color: var(--pop-ink);
+    background: var(--color-button);
+    border-color: var(--color-text);
   }
 
   .letter-section {
@@ -251,7 +251,7 @@ Astro.response.headers.set(
     align-items: baseline;
     gap: 1rem;
     padding-bottom: 0.75rem;
-    border-bottom: 2px solid var(--pop-ink);
+    border-bottom: 2px solid var(--color-text);
     margin-bottom: 1rem;
   }
 
@@ -260,12 +260,12 @@ Astro.response.headers.set(
     font-weight: var(--type-role-card-title-weight);
     line-height: var(--type-role-card-title-line);
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 
   .letter-count {
     font-size: 0.88rem;
-    color: rgba(21, 19, 15, 0.62);
+    color: color-mix(in srgb, var(--color-text) 62%, transparent);
   }
 
   .notes-directory-list {
@@ -293,18 +293,18 @@ Astro.response.headers.set(
     padding: 0.75rem 0.95rem;
     border-radius: 10px;
     border: 1px solid var(--pop-line);
-    background: rgba(255, 255, 255, 0.75);
-    color: var(--pop-ink);
+    background: color-mix(in srgb, var(--color-surface) 75%, transparent);
+    color: var(--color-text);
     text-decoration: none;
     transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
-    box-shadow: 0 1px 2px rgba(21, 19, 15, 0.04);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 4%, transparent);
   }
 
   .directory-note-link:hover {
-    background: var(--pop-yellow);
-    border-color: var(--pop-ink);
+    background: var(--color-button);
+    border-color: var(--color-text);
     transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(21, 19, 15, 0.08);
+    box-shadow: 0 3px 6px color-mix(in srgb, var(--color-text) 8%, transparent);
   }
 
   .directory-note-title {
@@ -323,18 +323,18 @@ Astro.response.headers.set(
   .directory-note-arrow {
     font-size: 1.05rem;
     flex-shrink: 0;
-    color: rgba(21, 19, 15, 0.45);
+    color: color-mix(in srgb, var(--color-text) 45%, transparent);
     transition: transform 140ms ease, color 140ms ease;
   }
 
   .directory-note-link:hover .directory-note-arrow {
-    color: var(--pop-ink);
+    color: var(--color-text);
     transform: translateX(3px);
   }
 
   .directory-empty {
     font-size: 1.1rem;
-    color: rgba(21, 19, 15, 0.65);
+    color: color-mix(in srgb, var(--color-text) 65%, transparent);
     padding: 2rem 0;
   }
 </style>

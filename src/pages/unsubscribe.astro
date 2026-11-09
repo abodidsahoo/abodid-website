@@ -141,8 +141,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             padding: 1rem;
             border-radius: 8px;
             /* Default: Dark Theme (High Contrast White Button) */
-            background-color: #ffffff;
-            color: #000000;
+            background-color: var(--color-surface);
+            color: var(--color-text);
             font-weight: 600;
             border: 1px solid var(--border-subtle);
             cursor: pointer;
@@ -155,12 +155,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         /* Light Theme Override (High Contrast Black Button) */
         :global([data-theme="light"]) button {
             background-color: #1a1a1a;
-            color: #ffffff;
+            color: var(--color-primary-text);
         }
         button:hover {
             opacity: 0.9;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
         }
         button:disabled {
             opacity: 0.7;

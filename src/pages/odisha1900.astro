@@ -471,7 +471,7 @@ const structuredData = [
     :global(body.odisha-archive-body) {
         --odisha-bg: #f7f2ea;
         --odisha-surface: #fffdf8;
-        --odisha-ink: #141414;
+        --odisha-ink: var(--color-text);
         --odisha-muted: #5d5a54;
         --odisha-soft: #827a70;
         --odisha-line: #e6ded2;
@@ -497,8 +497,7 @@ const structuredData = [
 
     .odisha-page {
         min-height: 100vh;
-        background:
-            linear-gradient(
+        background: linear-gradient(
                 90deg,
                 rgba(20, 20, 20, 0.035) 1px,
                 transparent 1px

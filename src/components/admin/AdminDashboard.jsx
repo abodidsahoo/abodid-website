@@ -1530,10 +1530,10 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                     width: 32px; height: 32px; flex: 0 0 32px; display: grid; place-items: center;
                     border: 1px solid color-mix(in srgb, currentColor 24%, transparent); border-radius: 50%;
                 }
-                .is-sunrise .world-clock-icon { color: #c65d3b; background: rgba(255, 255, 255, 0.32); }
-                .is-day .world-clock-icon { color: #b26d00; background: rgba(255, 255, 255, 0.34); }
+                .is-sunrise .world-clock-icon { color: #c65d3b; background: color-mix(in srgb, var(--color-surface) 32%, transparent); }
+                .is-day .world-clock-icon { color: #b26d00; background: color-mix(in srgb, var(--color-surface) 34%, transparent); }
                 .is-sunset .world-clock-icon,
-                .is-night .world-clock-icon { color: currentColor; background: rgba(255, 255, 255, 0.08); }
+                .is-night .world-clock-icon { color: currentColor; background: color-mix(in srgb, var(--color-surface) 8%, transparent); }
                 .world-clock-time {
                     font-size: clamp(1.75rem, 2.45vw, 2.65rem); font-weight: 300; line-height: 0.95;
                     letter-spacing: -0.055em; font-variant-numeric: tabular-nums; font-family: var(--font-sans);
@@ -1561,14 +1561,14 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                 }
                 .destination-icon svg { width: 16px; height: 16px; }
                 .destination-card > svg { width: 15px; height: 15px; }
-                .destination-card-primary { background: #a30021; border-color: #a30021; color: #fff; }
+                .destination-card-primary { background: #a30021; border-color: #a30021; color: var(--color-primary-text); }
                 .destination-card-primary:hover {
-                    background: #760018; border-color: #760018; color: #fff;
+                    background: #760018; border-color: #760018; color: var(--color-primary-text);
                     box-shadow: 0 10px 26px rgba(118, 0, 24, 0.24); transform: translateY(-2px);
                 }
                 .destination-card-secondary { background: #f7f3ed; border-color: #d9d1c7; color: #171512; }
                 .destination-card-secondary:hover {
-                    background: #fff; border-color: #8b8176; color: #090807;
+                    background: var(--color-surface); border-color: #8b8176; color: #090807;
                     box-shadow: 0 10px 26px rgba(23, 21, 18, 0.12); transform: translateY(-2px);
                 }
                 .destination-card:focus-visible { outline: 3px solid var(--border-focus); outline-offset: 3px; }
@@ -1595,7 +1595,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                 .list-row-card:hover {
                     transform: translateY(-1px);
                     border-color: var(--text-secondary);
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 3%, transparent);
                 }
 
                 .row-main-info {
@@ -1736,11 +1736,11 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                     }
                     .sidebar.is-open {
                         width: min(286px, calc(100vw - 1rem));
-                        box-shadow: 20px 0 45px rgba(0, 0, 0, 0.3);
+                        box-shadow: 20px 0 45px color-mix(in srgb, var(--ui-shadow-color) 30%, transparent);
                     }
                     .sidebar-backdrop {
                         display: block; position: fixed; inset: 0; z-index: 45;
-                        border: 0; background: rgba(0, 0, 0, 0.5); opacity: 0;
+                        border: 0; background: color-mix(in srgb, var(--ui-shadow-color) 50%, transparent); opacity: 0;
                         pointer-events: none; transition: opacity 0.22s ease;
                     }
                     .admin-layout.sidebar-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
@@ -1825,7 +1825,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                 .brand-title:hover { background: var(--bg-surface-hover); }
                 .brand-mark {
                     width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center;
-                    border-radius: 10px; background: var(--admin-cobalt); color: #fff;
+                    border-radius: 10px; background: var(--admin-cobalt); color: var(--color-primary-text);
                     font-size: 1rem; font-weight: 750; letter-spacing: -0.04em;
                     box-shadow: 0 7px 18px rgba(36, 68, 202, 0.2);
                 }
@@ -1942,7 +1942,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                 }
                 .opportunity-modal-host { position: relative; z-index: 99999; }
                 .studio-media-card, .studio-moodboard-card {
-                    border-color: var(--admin-cobalt); background: var(--admin-cobalt); color: #fff;
+                    border-color: var(--admin-cobalt); background: var(--admin-cobalt); color: var(--color-primary-text);
                     box-shadow: 0 14px 36px rgba(36, 68, 202, 0.18);
                 }
                 .studio-card-heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.8rem; }
@@ -1954,7 +1954,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                     width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center;
                     border-radius: 11px; background: var(--admin-cobalt-soft); color: var(--admin-cobalt);
                 }
-                .studio-card-icon.is-inverted { background: rgba(255,255,255,0.14); color: #fff; }
+                .studio-card-icon.is-inverted { background: color-mix(in srgb, var(--color-surface) 14%, transparent); color: var(--color-primary-text); }
                 [data-theme="dark"] .studio-card-icon:not(.is-inverted) {
                     background: color-mix(in srgb, var(--admin-cobalt) 24%, var(--bg-surface)); color: #aebcff;
                 }
@@ -1964,7 +1964,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                     font-size: var(--admin-card-body-size); line-height: var(--admin-card-copy-line-height);
                 }
                 .studio-media-card .studio-card-copy > span,
-                .studio-moodboard-card .studio-card-copy > span { color: rgba(255,255,255,0.72); }
+                .studio-moodboard-card .studio-card-copy > span { color: color-mix(in srgb, var(--color-surface) 72%, transparent); }
                 .studio-media-card .studio-card-copy,
                 .studio-moodboard-card .studio-card-copy { margin-top: 0.1rem; }
                 .studio-card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem; margin-top: auto; }
@@ -1979,7 +1979,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                     border: 1px solid var(--border-strong); background: var(--text-primary); color: var(--bg-surface);
                 }
                 .studio-card-button:hover { opacity: 0.86; }
-                .studio-card-button.is-on-cobalt { border-color: #fff; background: #fff; color: var(--admin-cobalt-deep); }
+                .studio-card-button.is-on-cobalt { border-color: var(--color-primary-text); background: var(--color-surface); color: var(--admin-cobalt-deep); }
                 .studio-card-text-button {
                     padding: 0.65rem 0.45rem; border: 0; background: transparent; color: var(--admin-cobalt);
                 }
@@ -2083,7 +2083,7 @@ export default function AdminDashboard({ initialSection = 'dashboard' }) {
                         width: min(304px, calc(100vw - 1rem)); transform: translateX(-103%);
                         transition: transform 0.22s ease, box-shadow 0.22s ease;
                     }
-                    .sidebar.is-open { width: min(304px, calc(100vw - 1rem)); transform: translateX(0); box-shadow: 20px 0 55px rgba(0,0,0,0.28); }
+                    .sidebar.is-open { width: min(304px, calc(100vw - 1rem)); transform: translateX(0); box-shadow: 20px 0 55px color-mix(in srgb, var(--ui-shadow-color) 28%, transparent); }
                     .sidebar-backdrop {
                         display: block; position: fixed; inset: 0; z-index: 45; border: 0;
                         background: var(--bg-overlay); opacity: 0; pointer-events: none; transition: opacity 0.22s ease;

@@ -60,8 +60,8 @@ const ReaderModeToggle = () => {
                     align-items: center;
                     gap: 8px;
                     padding: 8px 12px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
                     border-radius: 20px;
                     color: var(--text-secondary);
                     cursor: pointer;
@@ -73,14 +73,14 @@ const ReaderModeToggle = () => {
                 }
 
                 .reader-mode-btn:hover {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: color-mix(in srgb, var(--color-surface) 20%, transparent);
                     color: var(--text-primary);
                 }
 
                 .reader-mode-btn.active {
-                    background: #fff;
-                    color: #000;
-                    border-color: #fff;
+                    background: var(--color-surface);
+                    color: var(--color-text);
+                    border-color: var(--color-primary-text);
                     font-weight: 600;
                 }
 

@@ -238,7 +238,7 @@ const FilmsFilter = ({ items }) => {
 
                 .audience-label {
                     margin: 0;
-                    color: var(--pop-ink, #15130f);
+                    color: var(--color-text);
                     font: 700 0.72rem/1 var(--resources-mono, "Satoshi-Variable", monospace);
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
@@ -253,10 +253,10 @@ const FilmsFilter = ({ items }) => {
                 .filter-chip {
                     min-height: 44px;
                     padding: 10px 18px;
-                    border: 1px solid var(--pop-ink, var(--pop-ink));
+                    border: 1px solid var(--color-text);
                     border-radius: 14px;
-                    background: var(--pop-cream, #fff8e8);
-                    color: var(--pop-ink, #15130f);
+                    background: var(--color-background);
+                    color: var(--color-text);
                     font: 700 0.76rem/1 var(--resources-mono, "Satoshi-Variable", monospace);
                     letter-spacing: 0.06em;
                     text-transform: uppercase;
@@ -266,16 +266,16 @@ const FilmsFilter = ({ items }) => {
                 }
 
                 .filter-chip:hover {
-                    background: var(--pop-pink, #ff7eb5);
+                    background: var(--color-secondary);
                     transform: translateY(-2px);
-                    box-shadow: 0 3px 0 var(--pop-ink, var(--pop-ink));
+                    box-shadow: 0 3px 0 var(--color-text);
                 }
 
                 .filter-chip.active {
-                    background: var(--pop-yellow, #ffe44f);
-                    color: var(--pop-ink, #15130f);
+                    background: var(--color-button);
+                    color: var(--color-button-text);
                     font-weight: 800;
-                    box-shadow: inset 0 -3px 0 var(--pop-ink, var(--pop-ink));
+                    box-shadow: inset 0 -3px 0 var(--color-text);
                 }
 
                 /* Heading Bar */
@@ -285,12 +285,12 @@ const FilmsFilter = ({ items }) => {
                     justify-content: space-between;
                     gap: 16px;
                     padding-top: 20px;
-                    border-top: 1px solid var(--pop-ink, var(--pop-ink));
+                    border-top: 1px solid var(--color-text);
                 }
 
                 .resource-results-heading h2 {
                     margin: 0;
-                    color: var(--pop-ink, #15130f);
+                    color: var(--color-text);
                     font: 720 clamp(1.6rem, 2.5vw, 2.2rem)/1.1 var(--resources-font, "Satoshi-Variable", sans-serif);
                     letter-spacing: -0.04em;
                 }
@@ -304,16 +304,16 @@ const FilmsFilter = ({ items }) => {
                     font: 750 0.72rem/1.4 var(--resources-mono, "Satoshi-Variable", monospace);
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
-                    color: var(--pop-ink, #15130f);
+                    color: var(--color-text);
                 }
 
                 .resource-clear {
                     min-height: 40px;
                     padding: 6px 14px;
-                    border: 1px solid var(--pop-ink, var(--pop-ink));
+                    border: 1px solid var(--color-text);
                     border-radius: 12px;
-                    background: var(--pop-pink, #ff7eb5);
-                    color: var(--pop-ink, #15130f);
+                    background: var(--color-secondary);
+                    color: var(--color-text);
                     font: 700 0.7rem/1 var(--resources-mono, monospace);
                     letter-spacing: 0.06em;
                     text-transform: uppercase;
@@ -322,7 +322,7 @@ const FilmsFilter = ({ items }) => {
                 }
 
                 .resource-clear:hover {
-                    background: var(--pop-yellow, #ffe44f);
+                    background: var(--color-button);
                     transform: translateY(-1px);
                 }
 
@@ -347,29 +347,29 @@ const FilmsFilter = ({ items }) => {
 
                 .resource-card-react {
                     padding: 12px;
-                    border: 1.5px solid var(--pop-ink, var(--pop-ink));
+                    border: 1.5px solid var(--color-text);
                     border-radius: 20px;
-                    background: #ffffff;
-                    color: var(--pop-ink, #15130f);
+                    background: var(--color-surface);
+                    color: var(--color-text);
                     display: flex;
                     flex-direction: column;
-                    box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
+                    box-shadow: 0 4px 0 var(--color-text);
                     transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
                 }
 
                 .resource-card-react:hover {
-                    background: var(--pop-cream, #fff8e8);
+                    background: var(--color-background);
                     transform: translateY(-3px);
-                    box-shadow: 0 8px 0 var(--pop-ink, var(--pop-ink));
+                    box-shadow: 0 8px 0 var(--color-text);
                 }
 
                 .thumbnail-container {
                     position: relative;
                     width: 100%;
                     aspect-ratio: 16 / 9;
-                    border: 1px solid var(--pop-ink, var(--pop-ink));
+                    border: 1px solid var(--color-text);
                     border-radius: 14px;
-                    background: var(--pop-ink, #15130f);
+                    background: var(--color-text);
                     overflow: hidden;
                     cursor: pointer;
                 }
@@ -390,8 +390,8 @@ const FilmsFilter = ({ items }) => {
                     place-items: center;
                     width: 100%;
                     height: 100%;
-                    background: var(--pop-ink, #15130f);
-                    color: var(--pop-cream, #fff8e8);
+                    background: var(--color-text);
+                    color: var(--color-background, var(--color-primary-text));
                     font-size: 2rem;
                 }
 
@@ -403,10 +403,10 @@ const FilmsFilter = ({ items }) => {
                     width: 58px;
                     height: 58px;
                     border-radius: 50%;
-                    background: var(--pop-yellow, #ffe44f);
-                    border: 1.5px solid var(--pop-ink, var(--pop-ink));
-                    color: var(--pop-ink, #15130f);
-                    box-shadow: 0 3px 0 var(--pop-ink, var(--pop-ink));
+                    background: var(--color-button);
+                    border: 1.5px solid var(--color-text);
+                    color: var(--color-button-text);
+                    box-shadow: 0 3px 0 var(--color-text);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -416,7 +416,7 @@ const FilmsFilter = ({ items }) => {
 
                 .resource-card-react:hover .play-button-overlay {
                     transform: translate(-50%, -50%) scale(1.1);
-                    background: var(--pop-pink, #ff7eb5);
+                    background: var(--color-secondary);
                 }
 
                 .film-category-badge {
@@ -425,12 +425,12 @@ const FilmsFilter = ({ items }) => {
                     right: 12px;
                     padding: 6px 14px;
                     border-radius: 999px;
-                    border: 1px solid var(--pop-ink, var(--pop-ink));
+                    border: 1px solid var(--color-text);
                     font: 700 0.72rem/1 var(--resources-mono, "Satoshi-Variable", monospace);
                     letter-spacing: 0.06em;
                     text-transform: uppercase;
-                    color: var(--pop-ink);
-                    box-shadow: 0 2px 0 var(--pop-ink, var(--pop-ink));
+                    color: var(--color-text);
+                    box-shadow: 0 2px 0 var(--color-text);
                     pointer-events: none;
                 }
 
@@ -453,7 +453,7 @@ const FilmsFilter = ({ items }) => {
 
                 .title {
                     margin: 0;
-                    color: var(--pop-ink, #15130f);
+                    color: var(--color-text);
                     font: 720 clamp(1.4rem, 2.2vw, 1.9rem)/1.15 var(--resources-font, "Satoshi-Variable", sans-serif);
                     letter-spacing: -0.04em;
                 }
@@ -470,7 +470,7 @@ const FilmsFilter = ({ items }) => {
                     font-size: 1.4rem;
                     font-weight: 800;
                     line-height: 1;
-                    color: var(--pop-ink, #15130f);
+                    color: var(--color-text);
                     transition: transform 180ms ease;
                 }
 
@@ -481,7 +481,7 @@ const FilmsFilter = ({ items }) => {
                 .meta {
                     padding-top: 12px;
                     margin-top: auto;
-                    border-top: 1px solid var(--pop-line, rgba(21, 19, 15, 0.24));
+                    border-top: 1px solid var(--pop-line, color-mix(in srgb, var(--color-text) 24%, transparent));
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
@@ -496,10 +496,10 @@ const FilmsFilter = ({ items }) => {
 
                 .tag {
                     padding: 5px 10px;
-                    border: 1px solid var(--pop-ink, var(--pop-ink));
+                    border: 1px solid var(--color-text);
                     border-radius: 8px;
-                    background: var(--pop-cream, #fff8e8);
-                    color: var(--pop-ink, #15130f);
+                    background: var(--color-background);
+                    color: var(--color-text);
                     font: 700 0.7rem/1.2 var(--resources-mono, "Satoshi-Variable", monospace);
                     letter-spacing: 0.06em;
                     text-transform: uppercase;
@@ -507,13 +507,13 @@ const FilmsFilter = ({ items }) => {
 
                 .film-year-badge {
                     padding: 5px 10px;
-                    border: 1px solid var(--pop-ink, var(--pop-ink));
+                    border: 1px solid var(--color-text);
                     border-radius: 8px;
-                    background: var(--pop-yellow, #ffe44f);
-                    color: var(--pop-ink, #15130f);
+                    background: var(--color-button);
+                    color: var(--color-button-text);
                     font: 750 0.72rem/1.2 var(--resources-mono, "Satoshi-Variable", monospace);
                     letter-spacing: 0.08em;
-                    box-shadow: 0 2px 0 var(--pop-ink, var(--pop-ink));
+                    box-shadow: 0 2px 0 var(--color-text);
                 }
 
                 @media (max-width: 860px) {

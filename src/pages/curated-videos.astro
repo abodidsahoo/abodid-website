@@ -213,19 +213,18 @@ const totalVideos = videos.length;
 
 <style is:global>
   html:has(body.curated-videos-pop-page) {
-    background: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
   }
 
   body.curated-videos-pop-page {
     --curated-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-    --curated-mono:
-      "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
+    --curated-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
       monospace;
     margin: 0;
     padding: 0 !important;
     min-height: 100vh;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink);
+    background: var(--color-primary) !important;
+    color: var(--color-text);
     color-scheme: light;
   }
 
@@ -240,7 +239,7 @@ const totalVideos = videos.length;
   }
 
   body.curated-videos-pop-page :is(a, button, iframe):focus-visible {
-    outline: 3px solid var(--pop-purple);
+    outline: 3px solid var(--color-additional-2);
     outline-offset: 3px;
   }
 </style>
@@ -250,22 +249,22 @@ const totalVideos = videos.length;
     width: 100%;
     min-height: 100vh;
     padding: 8px;
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   .curated-file {
     width: 100%;
     overflow: hidden;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(20px, 3vw, 34px);
-    background: var(--pop-cream);
-    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+    background: var(--color-background);
+    box-shadow: 0 10px 0 color-mix(in srgb, var(--color-text) 20%, transparent);
   }
 
   .curated-heading {
     padding: clamp(1.6rem, 4vw, 3.5rem);
-    border-bottom: 1px solid var(--pop-ink);
-    background: var(--pop-pink);
+    border-bottom: 1px solid var(--color-text);
+    background: var(--color-secondary);
   }
 
   .curated-heading__topline,
@@ -284,7 +283,7 @@ const totalVideos = videos.length;
   .video-meta,
   .curated-play-note {
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 750 0.72rem/1.35 var(--curated-mono, monospace);
     letter-spacing: 0.09em;
     text-transform: uppercase;
@@ -297,9 +296,9 @@ const totalVideos = videos.length;
   .curated-count {
     flex: 0 0 auto;
     padding: 0.65rem 0.8rem;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 12px;
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .curated-heading__hero {
@@ -312,7 +311,7 @@ const totalVideos = videos.length;
   .curated-heading h1 {
     max-width: 10ch;
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.79 var(--curated-font, sans-serif);
     letter-spacing: -0.075em;
     text-wrap: balance;
@@ -327,7 +326,7 @@ const totalVideos = videos.length;
   .curated-heading__summary > p {
     max-width: 31rem;
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 480 clamp(1.25rem, 2vw, 1.7rem)/1.24 var(--curated-font, sans-serif);
     letter-spacing: -0.025em;
     text-wrap: pretty;
@@ -347,15 +346,15 @@ const totalVideos = videos.length;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
     font: 750 0.72rem/1 var(--curated-mono, monospace);
     letter-spacing: 0.07em;
     text-decoration: none;
     text-transform: uppercase;
-    box-shadow: 0 3px 0 var(--pop-ink);
+    box-shadow: 0 3px 0 var(--color-text);
     transition:
       transform 180ms ease,
       background-color 180ms ease,
@@ -363,9 +362,9 @@ const totalVideos = videos.length;
   }
 
   .curated-action:hover {
-    background: var(--pop-lime);
+    background: var(--color-accent);
     transform: translateY(-2px);
-    box-shadow: 0 5px 0 var(--pop-ink);
+    box-shadow: 0 5px 0 var(--color-text);
   }
 
   .curated-action .link-destination-arrow {
@@ -380,13 +379,13 @@ const totalVideos = videos.length;
 
   .curated-board {
     padding: clamp(1rem, 3.25vw, 3rem);
-    background: var(--pop-cream);
+    background: var(--color-background);
   }
 
   .curated-board__heading {
     margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
     padding-bottom: clamp(1rem, 2vw, 1.5rem);
-    border-bottom: 1px solid var(--pop-ink);
+    border-bottom: 1px solid var(--color-text);
     align-items: end;
   }
 
@@ -396,7 +395,7 @@ const totalVideos = videos.length;
 
   .curated-board h2 {
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 650 clamp(2.4rem, 5.2vw, 5.6rem)/0.9 var(--curated-font, sans-serif);
     letter-spacing: -0.06em;
   }
@@ -434,10 +433,10 @@ const totalVideos = videos.length;
     padding: 10px;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(16px, 1.6vw, 22px);
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
     transition:
       transform 180ms ease,
       box-shadow 180ms ease;
@@ -445,23 +444,23 @@ const totalVideos = videos.length;
 
   .video-grid-item:nth-child(4n + 2) .video-feature,
   .video-grid-item:nth-child(4n + 3) .video-feature {
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .video-grid-item:nth-child(4n) .video-feature {
-    background: var(--pop-blue);
-    color: var(--pop-cream);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
   }
 
   .video-grid-item:last-child .video-feature {
-    background: var(--pop-lime);
-    color: var(--pop-ink);
+    background: var(--color-accent);
+    color: var(--color-text);
   }
 
   .video-feature:hover {
     z-index: 2;
     transform: translateY(-2px);
-    box-shadow: 0 5px 0 var(--pop-ink);
+    box-shadow: 0 5px 0 var(--color-text);
   }
 
   .video-frame {
@@ -469,9 +468,9 @@ const totalVideos = videos.length;
     aspect-ratio: 16 / 9;
     overflow: hidden;
     position: relative;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(10px, 1.2vw, 16px);
-    background: var(--pop-ink);
+    background: var(--color-text);
   }
 
   .video-poster,
@@ -487,8 +486,8 @@ const totalVideos = videos.length;
     z-index: 2;
     padding: 0;
     overflow: hidden;
-    background: var(--pop-ink);
-    color: var(--pop-ink);
+    background: var(--color-text);
+    color: var(--color-text);
     cursor: pointer;
   }
 
@@ -531,10 +530,10 @@ const totalVideos = videos.length;
     height: clamp(58px, 6vw, 76px);
     display: grid;
     place-items: center;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 50%;
-    background: var(--pop-yellow);
-    box-shadow: 0 4px 0 var(--pop-ink);
+    background: var(--color-button);
+    box-shadow: 0 4px 0 var(--color-text);
     transform: translate(-50%, -50%);
     transition:
       background-color 180ms ease,
@@ -543,8 +542,8 @@ const totalVideos = videos.length;
   }
 
   .video-poster:hover .play-button {
-    background: var(--pop-pink);
-    box-shadow: 0 6px 0 var(--pop-ink);
+    background: var(--color-secondary);
+    box-shadow: 0 6px 0 var(--color-text);
     transform: translate(-50%, calc(-50% - 2px));
   }
 
@@ -560,10 +559,10 @@ const totalVideos = videos.length;
     padding: 0 0.75rem;
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 11px;
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
     font: 750 0.68rem/1 var(--curated-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -571,7 +570,7 @@ const totalVideos = videos.length;
 
   .video-frame iframe {
     display: block;
-    background: var(--pop-ink);
+    background: var(--color-text);
   }
 
   .video-content {

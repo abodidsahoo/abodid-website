@@ -155,15 +155,15 @@
 .portfolio-image-grid img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 
 .portfolio-lightbox-cover { margin: 0; }
-.portfolio-lightbox-cover > button { position: relative; display: block; width: 100%; overflow: hidden; border: 0; border-radius: var(--work-radius); background: var(--bg-surface); color: #fff; padding: 0; cursor: zoom-in; }
-.portfolio-lightbox-cover > button::after { position: absolute; inset: 45% 0 0; background: linear-gradient(transparent,rgba(0,0,0,.62)); content: ""; pointer-events: none; }
+.portfolio-lightbox-cover > button { position: relative; display: block; width: 100%; overflow: hidden; border: 0; border-radius: var(--work-radius); background: var(--bg-surface); color: var(--color-primary-text); padding: 0; cursor: zoom-in; }
+.portfolio-lightbox-cover > button::after { position: absolute; inset: 45% 0 0; background: linear-gradient(transparent,color-mix(in srgb, var(--ui-shadow-color) 62%, transparent)); content: ""; pointer-events: none; }
 .portfolio-lightbox-cover > button:hover img, .portfolio-lightbox-cover > button:focus-visible img { transform: scale(1.018); filter: brightness(.88); }
 .portfolio-lightbox-cover > button:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 3px; }
 .portfolio-lightbox-cover img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; transition: filter .28s ease,transform .45s cubic-bezier(.2,.8,.2,1); }
-.portfolio-lightbox-count, .portfolio-lightbox-open { position: absolute; z-index: 2; display: inline-flex; align-items: center; border-radius: 999px; background: rgba(0,0,0,.58); backdrop-filter: blur(7px); }
+.portfolio-lightbox-count, .portfolio-lightbox-open { position: absolute; z-index: 2; display: inline-flex; align-items: center; border-radius: 999px; background: color-mix(in srgb, var(--ui-shadow-color) 58%, transparent); backdrop-filter: blur(7px); }
 .portfolio-lightbox-count { top: .85rem; right: .85rem; padding: .35rem .65rem; font-size: .7rem; letter-spacing: .04em; }
 .portfolio-lightbox-open { right: 1rem; bottom: 1rem; gap: .55rem; padding: .46rem .72rem .46rem .85rem; font-size: .72rem; font-weight: 650; }
-.portfolio-lightbox-open b { display: grid; width: 1.25rem; height: 1.25rem; place-items: center; border-radius: 999px; background: #fff; color: #111; font-size: .9rem; line-height: 1; }
+.portfolio-lightbox-open b { display: grid; width: 1.25rem; height: 1.25rem; place-items: center; border-radius: 999px; background: var(--color-surface); color: #111; font-size: .9rem; line-height: 1; }
 .portfolio-lightbox-cover > figcaption { display: flex; justify-content: space-between; gap: 1rem; padding-top: .65rem; color: var(--text-tertiary); font-size: .75rem; line-height: 1.45; }
 
 .portfolio-floating-gallery { position: relative; width: 100%; min-width: 0; overflow: hidden; isolation: isolate; background: transparent; }
@@ -212,11 +212,11 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, .18);
+  background: color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
   transition: background .22s ease;
 }
 .pf-play-btn svg { width: clamp(52px, 8vw, 72px); height: auto; filter: drop-shadow(0 4px 16px rgba(0,0,0,.45)); transition: transform .22s cubic-bezier(.2,.8,.2,1), filter .22s ease; }
-.pf-video-thumb:hover .pf-play-btn { background: rgba(0, 0, 0, .28); }
+.pf-video-thumb:hover .pf-play-btn { background: color-mix(in srgb, var(--ui-shadow-color) 28%, transparent); }
 .pf-video-thumb:hover .pf-play-btn svg { transform: scale(1.1); filter: drop-shadow(0 6px 24px rgba(0,0,0,.6)); }
 .pf-video-caption { display: block; margin-top: .65rem; color: var(--text-tertiary); font-size: .75rem; line-height: 1.45; }
 
@@ -228,7 +228,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, .95);
+  background: color-mix(in srgb, var(--ui-shadow-color) 95%, transparent);
   backdrop-filter: blur(6px);
   animation: pf-modal-in .22s ease;
 }
@@ -246,7 +246,7 @@
 }
 .pf-video-container {
   border-radius: var(--work-radius);
-  box-shadow: 0 0 60px rgba(0, 0, 0, .55);
+  box-shadow: 0 0 60px color-mix(in srgb, var(--ui-shadow-color) 55%, transparent);
   overflow: hidden;
 }
 .pf-video-close {
@@ -254,13 +254,13 @@
   height: 44px;
   border: none;
   border-radius: 50%;
-  background: #fff;
-  color: #000;
+  background: var(--color-surface);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 30%, transparent);
   transition: transform .2s ease, background-color .2s;
   flex-shrink: 0;
 }
@@ -275,9 +275,9 @@
   overflow: hidden;
 }
 .pf-video-container .plyr__control--overlaid {
-  background: rgba(255,255,255,.2);
+  background: color-mix(in srgb, var(--color-surface) 20%, transparent);
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(255,255,255,.4);
+  border: 1px solid color-mix(in srgb, var(--color-surface) 40%, transparent);
   color: white;
 }
 .pf-video-container .plyr__control--overlaid:hover {
@@ -320,30 +320,30 @@
 .portfolio-lightbox {
   position: fixed; inset: 0; z-index: 20000;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.93); backdrop-filter: blur(6px);
-  color: #fff; animation: pf-modal-in .2s ease;
+  background: color-mix(in srgb, var(--ui-shadow-color) 93%, transparent); backdrop-filter: blur(6px);
+  color: var(--color-primary-text); animation: pf-modal-in .2s ease;
 }
 .lightbox-wrapper { display: flex; flex-direction: column; width: min(92vw, 1060px); max-height: 92dvh; }
 .lightbox-topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: .6rem; }
-.lightbox-counter { color: rgba(255,255,255,.55); font-size: .75rem; letter-spacing: .06em; }
+.lightbox-counter { color: color-mix(in srgb, var(--color-surface) 55%, transparent); font-size: .75rem; letter-spacing: .06em; }
 .lightbox-close {
   width: 40px; height: 40px; border: none; border-radius: 50%;
-  background: rgba(255,255,255,.15); backdrop-filter: blur(4px);
-  color: #fff; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--color-surface) 15%, transparent); backdrop-filter: blur(4px);
+  color: var(--color-primary-text); display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: background .18s ease, transform .18s ease;
 }
-.lightbox-close:hover { background: rgba(255,255,255,.28); transform: scale(1.08); }
+.lightbox-close:hover { background: color-mix(in srgb, var(--color-surface) 28%, transparent); transform: scale(1.08); }
 .lightbox-stage { display: flex; align-items: center; gap: 1rem; min-height: 0; }
 .lightbox-nav {
-  flex-shrink: 0; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.25); border-radius: 50%;
-  background: rgba(255,255,255,.1); backdrop-filter: blur(4px);
-  color: #fff; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; width: 44px; height: 44px; border: 1px solid color-mix(in srgb, var(--color-surface) 25%, transparent); border-radius: 50%;
+  background: color-mix(in srgb, var(--color-surface) 10%, transparent); backdrop-filter: blur(4px);
+  color: var(--color-primary-text); display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: background .18s ease, border-color .18s ease, transform .18s ease;
 }
-.lightbox-nav:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.5); transform: scale(1.08); }
+.lightbox-nav:hover { background: color-mix(in srgb, var(--color-surface) 22%, transparent); border-color: color-mix(in srgb, var(--color-surface) 50%, transparent); transform: scale(1.08); }
 .lightbox-figure { flex: 1; min-width: 0; margin: 0; text-align: center; }
 .lightbox-figure img { max-width: 100%; max-height: 65vh; width: auto; height: auto; object-fit: contain; border-radius: 4px; display: block; margin: 0 auto; }
-.lightbox-figure figcaption { margin-top: .65rem; color: rgba(255,255,255,.6); font-size: .75rem; line-height: 1.4; }
+.lightbox-figure figcaption { margin-top: .65rem; color: color-mix(in srgb, var(--color-surface) 60%, transparent); font-size: .75rem; line-height: 1.4; }
 
 @media (max-width: 900px) {
   .work-page-header { grid-template-columns: 1fr; align-items: start; gap: 1.5rem; }

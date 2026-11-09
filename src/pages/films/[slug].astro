@@ -158,15 +158,15 @@ const structuredData = [
 
 <style>
   :global(body.film-detail) {
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --pop-line: rgba(21, 19, 15, 0.24);
-    --bg-canvas: var(--pop-blue);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --pop-line: color-mix(in srgb, var(--color-text) 24%, transparent);
+    --bg-canvas: var(--color-primary);
   }
 
   .film-detail-page {
     padding: 8px;
-    background: var(--pop-blue);
-    color: var(--pop-ink);
+    background: var(--color-primary);
+    color: var(--color-text);
     font-family: var(--font-body);
   }
 
@@ -179,7 +179,7 @@ const structuredData = [
     max-width: 1360px;
     margin: 0 auto;
     padding: 0 16px 8px;
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
   }
 
   .film-back-link,
@@ -203,13 +203,13 @@ const structuredData = [
   }
 
   .film-detail-page a:focus-visible {
-    outline: 2px solid var(--pop-purple);
+    outline: 2px solid var(--color-additional-2);
     outline-offset: 4px;
     border-radius: 4px;
   }
 
   .film-back-link:focus-visible {
-    outline-color: var(--pop-cream);
+    outline-color: var(--color-background);
   }
 
   .film-detail-page a [aria-hidden] {
@@ -224,14 +224,14 @@ const structuredData = [
     padding: 10px;
     border: 1px solid var(--pop-border);
     border-radius: clamp(18px, 2vw, 28px);
-    background: var(--pop-pink);
+    background: var(--color-secondary);
   }
 
   .film-media-section {
     overflow: hidden;
     border: 1px solid var(--pop-border);
     border-radius: clamp(10px, 1.2vw, 16px);
-    background: var(--pop-ink);
+    background: var(--color-text);
   }
 
   .film-player-wrapper {

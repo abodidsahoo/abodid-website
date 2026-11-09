@@ -134,12 +134,12 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
             <div className="detail-page-card">
                 {resource.status !== 'approved' && (
                     <div style={{
-                        background: 'var(--pop-yellow)',
+                        background: 'var(--color-button)',
                         border: '1px solid var(--pop-border)',
                         borderRadius: '14px',
                         padding: '14px 20px',
                         fontWeight: 700,
-                        color: 'var(--pop-ink)',
+                        color: 'var(--color-text)',
                         marginBottom: '24px',
                         display: 'flex',
                         alignItems: 'center',
@@ -181,7 +181,7 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                         {resource.thumbnail_url ? (
                             <img src={resource.thumbnail_url} alt={resource.title} className="detail-thumbnail" />
                         ) : (
-                            <div className="detail-placeholder" style={{ color: 'var(--pop-cream)', fontSize: '4rem' }}>🔗</div>
+                            <div className="detail-placeholder" style={{ color: 'var(--color-background)', fontSize: '4rem' }}>🔗</div>
                         )}
                     </div>
 
@@ -192,8 +192,8 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                             <div style={{ marginBottom: '14px' }}>
                                 <span style={{
                                     display: 'inline-block',
-                                    background: 'var(--pop-yellow)',
-                                    color: 'var(--pop-ink)',
+                                    background: 'var(--color-button)',
+                                    color: 'var(--color-text)',
                                     border: '1px solid var(--pop-border)',
                                     padding: '6px 14px',
                                     borderRadius: '999px',
@@ -247,8 +247,8 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                                         padding: '6px 12px',
                                         border: '1px solid var(--pop-border)',
                                         borderRadius: '10px',
-                                        background: 'var(--pop-cream)',
-                                        color: 'var(--pop-ink)',
+                                        background: 'var(--color-background)',
+                                        color: 'var(--color-text)',
                                         font: '700 0.8rem/1.3 var(--resources-font)'
                                     }}>
                                         {tag.name}

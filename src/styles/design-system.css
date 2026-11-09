@@ -64,21 +64,21 @@
    * Semantic colour contracts. Components consume these roles instead of
    * choosing a foreground independently from their surface.
    */
-  --pop-foreground-on-light: var(--pop-ink);
-  --pop-foreground-on-deep: var(--pop-cream);
-  --pop-secondary-on-light: color-mix(in srgb, var(--pop-ink) 82%, transparent);
-  --pop-tertiary-on-light: color-mix(in srgb, var(--pop-ink) 78%, transparent);
-  --pop-secondary-on-deep: color-mix(in srgb, var(--pop-cream) 90%, transparent);
-  --pop-tertiary-on-deep: color-mix(in srgb, var(--pop-cream) 84%, transparent);
+  --pop-foreground-on-light: var(--color-text);
+  --pop-foreground-on-deep: var(--color-primary-text);
+  --pop-secondary-on-light: color-mix(in srgb, var(--color-text) 82%, transparent);
+  --pop-tertiary-on-light: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --pop-secondary-on-deep: color-mix(in srgb, var(--color-primary-text) 90%, transparent);
+  --pop-tertiary-on-deep: color-mix(in srgb, var(--color-primary-text) 84%, transparent);
 
   /* Selection reverses the local surface family so the highlight stays clear. */
-  --pop-selection-on-light-bg: var(--pop-blue);
-  --pop-selection-on-light-fg: var(--pop-cream);
-  --pop-selection-on-deep-bg: var(--pop-yellow);
-  --pop-selection-on-deep-fg: var(--pop-ink);
+  --pop-selection-on-light-bg: var(--color-primary);
+  --pop-selection-on-light-fg: var(--color-primary-text);
+  --pop-selection-on-deep-bg: var(--color-button);
+  --pop-selection-on-deep-fg: var(--color-button-text);
 
   /* Default semantic surface context. Named surfaces override these values. */
-  --surface-bg: var(--pop-cream);
+  --surface-bg: var(--color-background);
   --surface-fg: var(--pop-foreground-on-light);
   --surface-fg-secondary: var(--pop-secondary-on-light);
   --surface-fg-tertiary: var(--pop-tertiary-on-light);

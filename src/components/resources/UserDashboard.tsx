@@ -120,15 +120,15 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
             </div>
 
             <div className="stats-grid">
-                <div className="stat-card pending" style={{ borderColor: '#F59E0B' }}>
+                <div className="stat-card pending" style={{ borderColor: "var(--color-additional-1)" }}>
                     <div className="stat-value">{submissions.filter(s => s.status === 'pending').length}</div>
                     <div className="stat-label">Pending</div>
                 </div>
-                <div className="stat-card approved" style={{ borderColor: '#10B981' }}>
+                <div className="stat-card approved" style={{ borderColor: "var(--color-success)" }}>
                     <div className="stat-value">{submissions.filter(s => s.status === 'approved').length}</div>
                     <div className="stat-label">Approved</div>
                 </div>
-                <div className="stat-card rejected" style={{ borderColor: '#EF4444' }}>
+                <div className="stat-card rejected" style={{ borderColor: "var(--color-error)" }}>
                     <div className="stat-value">{submissions.filter(s => s.status === 'rejected').length}</div>
                     <div className="stat-label">Rejected</div>
                 </div>
@@ -300,8 +300,8 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                  /* Back to Resources */
                 /* Light Mode: Black BG, White Text */
                 html[data-theme="light"] .btn-back-logo {
-                    background: #000000;
-                    color: #ffffff;
+                    background: var(--color-text);
+                    color: var(--color-primary-text);
                 }
                 html[data-theme="light"] .btn-back-logo:hover {
                      background: #333333;
@@ -309,8 +309,8 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
 
                 /* Dark Mode: White BG, Black Text */
                 html[data-theme="dark"] .btn-back-logo {
-                    background: #ffffff;
-                    color: #000000;
+                    background: var(--color-surface);
+                    color: var(--color-text);
                 }
                 html[data-theme="dark"] .btn-back-logo:hover {
                      background: #e5e5e5;
@@ -338,7 +338,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     font-weight: 600; /* Slightly lighter weight */
                     font-size: 0.95rem; /* Reduced font size */
                     transition: transform 0.2s, opacity 0.2s;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    box-shadow: 0 2px 4px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
                     font-family: var(--font-ui); /* Consistent font */
                     width: auto; /* Allow auto width */
                     min-width: 200px;
@@ -346,18 +346,18 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
 
                 /* Force High Contrast for Submit Button */
                 html[data-theme="dark"] .btn-submit-new-prominent {
-                    background: #ffffff;
-                    color: #000000;
+                    background: var(--color-surface);
+                    color: var(--color-text);
                 }
                 html[data-theme="light"] .btn-submit-new-prominent {
-                    background: #000000;
-                    color: #ffffff;
+                    background: var(--color-text);
+                    color: var(--color-primary-text);
                 }
 
                 .btn-submit-new-prominent:hover {
                     transform: translateY(-1px);
                     opacity: 0.95;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 8px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 }
 
 
@@ -438,12 +438,12 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                 
                 /* Filter Tabs Active Text Fix */
                 html[data-theme="dark"] .filter-tabs button.active {
-                    color: #000000;
-                    background: #ffffff;
+                    color: var(--color-text);
+                    background: var(--color-surface);
                 }
                 html[data-theme="light"] .filter-tabs button.active {
-                    color: #ffffff;
-                    background: #000000;
+                    color: var(--color-primary-text);
+                    background: var(--color-text);
                 }
 
                 .submissions-list {
@@ -528,12 +528,12 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     color: var(--bg-surface);
                 }
                 html[data-theme="dark"] .btn-view {
-                    background: #ffffff;
-                    color: #000000;
+                    background: var(--color-surface);
+                    color: var(--color-text);
                 }
                 html[data-theme="light"] .btn-view {
-                    background: #000000;
-                    color: #ffffff;
+                    background: var(--color-text);
+                    color: var(--color-primary-text);
                 }
 
                 .btn-edit {

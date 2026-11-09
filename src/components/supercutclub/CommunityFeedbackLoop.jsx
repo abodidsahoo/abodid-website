@@ -143,10 +143,10 @@ export default function CommunityFeedbackLoop() {
 
         .scfb-stage,
         .scfb-loop-legend article {
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
           border-radius: 1.7rem;
           background: rgba(14, 18, 28, 0.82);
-          box-shadow: 0 24px 48px rgba(0, 0, 0, 0.22);
+          box-shadow: 0 24px 48px color-mix(in srgb, var(--ui-shadow-color) 22%, transparent);
         }
 
         .scfb-stage {
@@ -198,8 +198,8 @@ export default function CommunityFeedbackLoop() {
         .scfb-security-stack span {
           padding: 0.48rem 0.65rem;
           border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
+          background: color-mix(in srgb, var(--color-surface) 4%, transparent);
           color: #fff8ee;
           font-size: 0.82rem;
         }
@@ -213,7 +213,7 @@ export default function CommunityFeedbackLoop() {
         .scfb-film-frame,
         .scfb-comment-card {
           border-radius: 1.4rem;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
           overflow: hidden;
         }
 
@@ -225,26 +225,22 @@ export default function CommunityFeedbackLoop() {
         }
 
         .scfb-film-frame-orange {
-          background:
-            radial-gradient(circle at 20% 20%, rgba(238, 90, 54, 0.18), transparent 24%),
+          background: radial-gradient(circle at 20% 20%, rgba(238, 90, 54, 0.18), transparent 24%),
             linear-gradient(145deg, #0f1520, #171f30);
         }
 
         .scfb-film-frame-blue {
-          background:
-            radial-gradient(circle at 60% 20%, rgba(37, 99, 235, 0.2), transparent 24%),
+          background: radial-gradient(circle at 60% 20%, rgba(37, 99, 235, 0.2), transparent 24%),
             linear-gradient(145deg, #0f1520, #171f30);
         }
 
         .scfb-film-frame-emerald {
-          background:
-            radial-gradient(circle at 18% 26%, rgba(15, 118, 110, 0.2), transparent 24%),
+          background: radial-gradient(circle at 18% 26%, rgba(15, 118, 110, 0.2), transparent 24%),
             linear-gradient(145deg, #0f1520, #171f30);
         }
 
         .scfb-film-frame-slate {
-          background:
-            radial-gradient(circle at 68% 18%, rgba(148, 163, 184, 0.18), transparent 24%),
+          background: radial-gradient(circle at 68% 18%, rgba(148, 163, 184, 0.18), transparent 24%),
             linear-gradient(145deg, #0f1520, #171f30);
         }
 
@@ -273,9 +269,8 @@ export default function CommunityFeedbackLoop() {
         .scfb-frame-card {
           min-height: 180px;
           border-radius: 1.1rem;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          background:
-            linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+          border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
+          background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 6%, transparent), color-mix(in srgb, var(--color-surface) 2%, transparent));
           display: flex;
           align-items: end;
           padding: 0.85rem;
@@ -289,14 +284,13 @@ export default function CommunityFeedbackLoop() {
 
         .scfb-frame-card.is-active {
           transform: scale(1);
-          border-color: rgba(255, 255, 255, 0.18);
-          background:
-            linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+          border-color: color-mix(in srgb, var(--color-surface) 18%, transparent);
+          background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 10%, transparent), color-mix(in srgb, var(--color-surface) 4%, transparent));
         }
 
         .scfb-comment-card {
           padding: 1rem;
-          background: rgba(255, 255, 255, 0.04);
+          background: color-mix(in srgb, var(--color-surface) 4%, transparent);
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -344,7 +338,7 @@ export default function CommunityFeedbackLoop() {
           right: 0;
           top: 50%;
           height: 2px;
-          background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18));
+          background: linear-gradient(90deg, color-mix(in srgb, var(--color-surface) 8%, transparent), color-mix(in srgb, var(--color-surface) 18%, transparent));
           transform: translateY(-50%);
         }
 
@@ -366,7 +360,7 @@ export default function CommunityFeedbackLoop() {
           width: 0.95rem;
           height: 0.95rem;
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.16);
+          background: color-mix(in srgb, var(--color-surface) 16%, transparent);
           border: 2px solid rgba(8, 11, 18, 0.92);
           transition: transform 0.22s ease, background-color 0.22s ease;
         }
@@ -378,7 +372,7 @@ export default function CommunityFeedbackLoop() {
         }
 
         .scfb-marker-orange::before { background: #ee5a36; }
-        .scfb-marker-blue::before { background: #2563eb; }
+        .scfb-marker-blue::before { background: var(--color-primary); }
         .scfb-marker-emerald::before { background: #0f766e; }
         .scfb-marker-slate::before { background: #94a3b8; }
 

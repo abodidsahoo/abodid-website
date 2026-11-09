@@ -1,13 +1,13 @@
 .opportunity-admin-page {
     --cream-canvas: #f3ead8;
-    --cream-paper: #fff8e8;
+    --cream-paper: var(--color-background);
     --cream-bright: #fffdf6;
     --cream-soft: #eadfca;
-    --cream-ink: #15130f;
+    --cream-ink: var(--color-text);
     --cream-muted: #655f54;
-    --cream-border: rgba(21, 19, 15, 0.78);
-    --cream-line: rgba(21, 19, 15, 0.22);
-    --cream-wash: rgba(21, 19, 15, 0.055);
+    --cream-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --cream-line: color-mix(in srgb, var(--color-text) 22%, transparent);
+    --cream-wash: color-mix(in srgb, var(--color-text) 5.5%, transparent);
     color: var(--cream-ink);
     display: grid;
     font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;

@@ -1060,8 +1060,8 @@ export default function MoodboardManager({
                 }
 
                 .moodboard-view-link:hover {
-                    border-color: rgba(255, 255, 255, 0.4);
-                    background: rgba(255, 255, 255, 0.04);
+                    border-color: color-mix(in srgb, var(--color-surface) 40%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
                 }
 
                 .upload-panel,
@@ -1069,7 +1069,7 @@ export default function MoodboardManager({
                     border: 1px solid var(--border-subtle);
                     border-radius: 14px;
                     background: var(--bg-surface);
-                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+                    box-shadow: 0 1px 4px color-mix(in srgb, var(--ui-shadow-color) 3%, transparent);
                     padding: 1.15rem;
                 }
 
@@ -1179,7 +1179,7 @@ export default function MoodboardManager({
                     text-transform: uppercase;
                     white-space: nowrap;
                     transition: all 0.16s ease;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+                    box-shadow: 0 1px 3px color-mix(in srgb, var(--ui-shadow-color) 4%, transparent);
                 }
 
                 .dropzone-btn:hover {
@@ -1195,7 +1195,7 @@ export default function MoodboardManager({
                     border: 1px solid rgba(234, 42, 16, 0.35);
                     border-radius: 12px;
                     background: linear-gradient(180deg, rgba(234, 42, 16, 0.06) 0%, var(--bg-surface) 100%);
-                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 8px 24px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                     padding: 1rem 1.15rem;
                     display: flex;
                     flex-direction: column;
@@ -1339,7 +1339,7 @@ export default function MoodboardManager({
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-surface) 40%, transparent), transparent);
                     animation: shimmer 1.5s infinite;
                 }
 
@@ -1390,11 +1390,11 @@ export default function MoodboardManager({
                     width: 16px;
                     height: 16px;
                     border-radius: 50%;
-                    background: rgba(0, 0, 0, 0.85);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 85%, transparent);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: #fff;
+                    color: var(--color-primary-text);
                 }
 
                 .upload-thumb-card.status-uploading .upload-thumb-status-badge {
@@ -1494,14 +1494,14 @@ export default function MoodboardManager({
                     border-radius: 12px;
                     overflow: hidden;
                     background: var(--bg-surface);
-                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+                    box-shadow: 0 1px 4px color-mix(in srgb, var(--ui-shadow-color) 4%, transparent);
                     transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
                 }
 
                 .library-card:hover {
                     border-color: var(--border-strong);
                     transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+                    box-shadow: 0 6px 16px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
                 }
 
                 .library-image-wrap {
@@ -1536,15 +1536,15 @@ export default function MoodboardManager({
                     right: 0.5rem;
                     z-index: 2;
                     background: rgba(15, 15, 15, 0.82);
-                    color: #fff;
+                    color: var(--color-primary-text);
                     font-size: 0.6rem;
                     font-weight: 800;
                     letter-spacing: 0.06em;
                     padding: 0.18rem 0.42rem;
                     border-radius: 4px;
-                    border: 1px solid rgba(255, 255, 255, 0.24);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 24%, transparent);
                     backdrop-filter: blur(6px);
-                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+                    box-shadow: 0 2px 6px color-mix(in srgb, var(--ui-shadow-color) 25%, transparent);
                 }
 
                 /* Image Fallback & Retry */
@@ -1593,10 +1593,10 @@ export default function MoodboardManager({
                     top: 0.6rem;
                     z-index: 2;
                     min-height: 28px;
-                    border: 1px solid rgba(255, 255, 255, 0.24);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 24%, transparent);
                     background: rgba(15, 15, 15, 0.78);
-                    color: rgba(255, 255, 255, 0.95);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+                    color: color-mix(in srgb, var(--color-surface) 95%, transparent);
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 22%, transparent);
                     backdrop-filter: blur(8px);
                     cursor: pointer;
                 }
@@ -1615,7 +1615,7 @@ export default function MoodboardManager({
                 .library-remove-btn:hover {
                     border-color: rgba(255, 107, 107, 0.8);
                     background: rgba(90, 15, 15, 0.92);
-                    color: #fff;
+                    color: var(--color-primary-text);
                 }
 
                 .library-visibility-btn {
@@ -1641,7 +1641,7 @@ export default function MoodboardManager({
                 }
 
                 .library-visibility-btn:hover {
-                    border-color: rgba(255, 255, 255, 0.6);
+                    border-color: color-mix(in srgb, var(--color-surface) 60%, transparent);
                 }
 
                 /* =========================================

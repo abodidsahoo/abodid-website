@@ -1068,7 +1068,7 @@ const slides = [
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--slide-bg);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 18px 45px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
     padding: 2.35rem 2.65rem 2.45rem;
   }
 
@@ -1436,7 +1436,7 @@ const slides = [
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: #000;
+    background: var(--color-text);
   }
 
   .video-frame iframe {
@@ -1525,7 +1525,7 @@ const slides = [
   .transition-strip.fade b {
     height: 1.8rem;
     border-radius: 999px;
-    background: linear-gradient(90deg, var(--line), #000, var(--line));
+    background: linear-gradient(90deg, var(--line), var(--color-text), var(--line));
   }
 
   .rush-row {

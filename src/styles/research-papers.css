@@ -1,18 +1,17 @@
 .research-papers-page {
-  --pop-border: rgba(21, 19, 15, 0.78);
-  --pop-line: rgba(21, 19, 15, 0.24);
+  --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --pop-line: color-mix(in srgb, var(--color-text) 24%, transparent);
   --papers-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-  --papers-mono:
-    "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
+  --papers-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
     monospace;
-  background: var(--pop-blue);
-  color: var(--pop-ink);
+  background: var(--color-primary);
+  color: var(--color-text);
 }
 .research-papers-index {
   padding: 8px;
-  background: var(--pop-blue);
+  background: var(--color-primary);
   font-family: var(--papers-font);
-  color: var(--pop-ink);
+  color: var(--color-text);
 }
 .research-papers-index p {
   color: inherit;
@@ -32,7 +31,7 @@
   font-family: inherit;
 }
 .research-papers-index :is(button, a, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--pop-purple);
+  outline: 3px solid var(--color-additional-2);
   outline-offset: 4px;
 }
 .research-papers-hero {
@@ -43,7 +42,7 @@
   max-width: 1480px;
   margin: 0 auto 8px;
   padding: clamp(24px, 3vw, 48px);
-  background: var(--pop-pink);
+  background: var(--color-secondary);
   border: 1px solid var(--pop-border);
   border-radius: 24px;
 }
@@ -57,7 +56,7 @@
 }
 .research-papers-hero h1 {
   margin: 16px 0 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: var(--type-role-display-weight) var(--type-role-display-size)/var(--type-role-display-line) var(--papers-font);
   letter-spacing: var(--type-role-display-track);
   letter-spacing: -0.065em;
@@ -96,10 +95,10 @@
   overflow: hidden;
 }
 .paper-browser__papers {
-  background: var(--pop-cream);
+  background: var(--color-background);
 }
 .paper-browser__topics {
-  background: var(--pop-pink);
+  background: var(--color-secondary);
   display: flex;
   flex-direction: column;
   padding: 24px clamp(24px, 2.6vw, 40px);
@@ -131,7 +130,7 @@
 /* Only the shelf scrolls, even with all papers selected or an abstract open. */
 .paper-browser__scroll-shell,
 .paper-browser__tag-scroll-shell {
-  --scroll-fade-color: var(--pop-cream);
+  --scroll-fade-color: var(--color-background);
   position: relative;
 }
 .paper-browser__scroll {
@@ -139,7 +138,7 @@
   overflow-y: auto;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: var(--pop-ink) var(--pop-cream);
+  scrollbar-color: var(--color-text) var(--color-background);
   scroll-padding-block: 32px;
 }
 .paper-browser__scroll:focus-visible {
@@ -188,7 +187,7 @@
 }
 .paper-entry:hover,
 .paper-entry:focus-within {
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 .paper-entry:last-child {
   border-bottom: 0;
@@ -211,7 +210,7 @@
   font: var(--type-role-card-title-weight) var(--type-role-card-title-size)/var(--type-role-card-title-line) var(--papers-font);
   letter-spacing: var(--type-role-card-title-track);
   letter-spacing: -0.015em;
-  color: var(--pop-ink);
+  color: var(--color-text);
   overflow-wrap: anywhere;
 }
 .research-papers-index .paper-entry__title button {
@@ -264,7 +263,7 @@
   justify-content: center;
   min-height: 44px;
   padding: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font-size: 0.8rem;
   font-weight: 500;
   text-decoration: underline;
@@ -273,7 +272,7 @@
   flex-shrink: 0;
 }
 .paper-entry__pdf:hover {
-  color: var(--pop-purple);
+  color: var(--color-additional-2);
 }
 .paper-browser__scroll-footer {
   display: flex;
@@ -294,8 +293,8 @@
   height: 44px;
   border: 1px solid var(--pop-border);
   border-radius: 14px;
-  background: var(--pop-yellow);
-  color: var(--pop-ink);
+  background: var(--color-button);
+  color: var(--color-button-text);
   font-size: 1.4rem;
   flex-shrink: 0;
 }
@@ -314,7 +313,7 @@
   border: 1px solid var(--pop-border);
   border-radius: 14px;
   background: transparent;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font-size: 0.86rem;
   font-weight: 650;
   text-align: left;
@@ -323,10 +322,10 @@
   flex: 1;
 }
 .paper-browser__all[aria-pressed="true"] {
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 .paper-browser__tag-scroll-shell {
-  --scroll-fade-color: var(--pop-pink);
+  --scroll-fade-color: var(--color-secondary);
   min-height: 0;
   margin: 16px -4px 0;
 }
@@ -339,7 +338,7 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-gutter: stable;
-  scrollbar-color: var(--pop-ink) var(--pop-pink);
+  scrollbar-color: var(--color-text) var(--color-secondary);
   scroll-padding-block: 32px;
 }
 .paper-browser__tag-scroll:focus-visible {
@@ -363,7 +362,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font-size: 0.75rem;
 }
 .paper-browser__tag-scroll-hint:hover:not(:disabled) {
@@ -382,8 +381,8 @@
   padding: 10px 14px;
   border: 1px solid var(--pop-border);
   border-radius: 14px;
-  background: var(--pop-cream);
-  color: var(--pop-ink);
+  background: var(--color-background);
+  color: var(--color-text);
   font-size: 0.85rem;
   line-height: 1.35;
   text-align: left;
@@ -394,14 +393,14 @@
 }
 .paper-browser__tag-cloud button:hover,
 .paper-browser__all:hover {
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 .paper-browser__tag-cloud button:hover {
   transform: translateY(-2px);
 }
 .paper-browser__tag-cloud button[aria-pressed="true"] {
-  background: var(--pop-blue);
-  color: var(--pop-cream);
+  background: var(--color-primary);
+  color: var(--color-primary-text);
 }
 .paper-browser__tag-count {
   font-size: 0.68rem;
@@ -433,8 +432,8 @@
   padding: 8px 16px;
   border: 1px solid var(--pop-border);
   border-radius: 14px;
-  background: var(--pop-yellow);
-  color: var(--pop-ink);
+  background: var(--color-button);
+  color: var(--color-button-text);
 }
 @keyframes paper-abstract-in {
   from {

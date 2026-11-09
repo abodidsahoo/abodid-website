@@ -126,7 +126,7 @@ const accentColor = getAudienceColor(resource.audience);
 
     .resource-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 12px 24px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
         border-color: var(--border-strong);
     }
 
@@ -163,7 +163,7 @@ const accentColor = getAudienceColor(resource.audience);
     .card-overlay {
         position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.6); /* Darker for contrast */
+        background: color-mix(in srgb, var(--ui-shadow-color) 60%, transparent); /* Darker for contrast */
         display: flex;
         flex-direction: column; /* Stack them */
         align-items: center;
@@ -199,7 +199,7 @@ const accentColor = getAudienceColor(resource.audience);
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
         transform: translateY(10px);
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
@@ -211,7 +211,7 @@ const accentColor = getAudienceColor(resource.audience);
     }
 
     .view-btn {
-        background: rgba(255, 255, 255, 0.2);
+        background: color-mix(in srgb, var(--color-surface) 20%, transparent);
         color: white;
         padding: 8px 16px;
         border-radius: 100px;
@@ -221,7 +221,7 @@ const accentColor = getAudienceColor(resource.audience);
         align-items: center;
         gap: 6px;
         backdrop-filter: blur(4px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid color-mix(in srgb, var(--color-surface) 30%, transparent);
         transform: translateY(10px);
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }

@@ -1,5 +1,6 @@
 @import url("./satoshi.css");
 @import url("./design-system.css");
+@import url("./ui-colors.css");
 
 /* Core Design System */
 *,
@@ -24,20 +25,36 @@
   /* ==========================================================================
      ABODID POP EDITORIAL DESIGN SYSTEM CORE TOKENS
      ========================================================================== */
-  --pop-blue: #2444ca;
-  --pop-pink: #ff7eb5;
-  --pop-yellow: #ffe44f;
-  --pop-lime: #caff48;
-  --pop-orange: #ff875c;
-  --pop-purple: #5524c7;
-  --pop-cyan: #62e6ff;
-  --pop-cream: #fff8e8;
-  --pop-white: #ffffff;
-  --pop-ink: #15130f;
-  --pop-ink-secondary: color-mix(in srgb, var(--pop-ink) 78%, transparent);
-  --pop-ink-tertiary: color-mix(in srgb, var(--pop-ink) 58%, transparent);
-  --pop-border: color-mix(in srgb, var(--pop-ink) 78%, transparent);
-  --pop-line: color-mix(in srgb, var(--pop-ink) 22%, transparent);
+  /* Compatibility for saved content using previous palette keys. */
+  --pop-blue: var(--color-primary);
+  --pop-pink: var(--color-secondary);
+  --pop-yellow: var(--color-button);
+  --pop-lime: var(--color-accent);
+  --pop-orange: var(--color-additional-1);
+  --pop-purple: var(--color-additional-2);
+  --pop-cyan: var(--color-additional-3);
+  --pop-cream: var(--color-background);
+  --pop-white: var(--color-surface);
+  --pop-ink: var(--color-text);
+
+  --color-primary: #2444ca;
+  --color-secondary: #ff7eb5;
+  --color-button: #ffe44f;
+  --color-accent: #caff48;
+  --color-additional-1: #ff875c;
+  --color-additional-2: #5524c7;
+  --color-additional-3: #62e6ff;
+  --color-background: #fff8e8;
+  --color-surface: #ffffff;
+  --color-text: #15130f;
+  --color-button-text: var(--color-text);
+  --color-primary-text: var(--color-background);
+  --color-success: #16734a;
+  --color-error: #b42318;
+  --pop-ink-secondary: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --pop-ink-tertiary: color-mix(in srgb, var(--color-text) 58%, transparent);
+  --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --pop-line: color-mix(in srgb, var(--color-text) 22%, transparent);
   --pop-gap: var(--design-grid-gap);
   --pop-page-gutter: var(--design-page-gutter);
   --pop-radius-panel: var(--design-radius-panel);
@@ -51,19 +68,19 @@
      * MAJOR COLOR PALETTE (Added for reference)
      * Source: Step 39 Request
      */
-  --palette-red: var(--pop-blue);
-  --palette-light: #f9f8f3;
-  --palette-dark: #010101;
-  --palette-sand: #e0dbd3;
-  --palette-grey: #9e9992;
+  --palette-red: var(--color-primary);
+  --palette-light: var(--color-background);
+  --palette-dark: var(--color-text);
+  --palette-sand: color-mix(in srgb, var(--color-background) 85%, var(--color-text));
+  --palette-grey: color-mix(in srgb, var(--color-background) 55%, var(--color-text));
 
   /* Grainy Glitch Palette */
-  --color-glitch-red: var(--pop-blue);
-  --color-glitch-dark: #050505;
+  --color-glitch-red: var(--color-primary);
+  --color-glitch-dark: var(--dark-page-bg);
   /* Brand Blue Accent */
-  --color-brand-red: var(--pop-blue);
+  --color-brand-red: var(--color-primary);
   /* Menu Red */
-  --color-glitch-text: #e0e0e0;
+  --color-glitch-text: var(--dark-text-primary);
 
   /* FONTS - GLOBAL DEFAULTS */
   --font-h1: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
@@ -81,8 +98,7 @@
   --font-serif: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
   --font-display: var(--font-h1);
   --font-sans: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-  --font-mono:
-    "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
+  --font-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
     monospace;
 
   /* Canonical type system: four sizes plus two weight modifiers. */
@@ -123,58 +139,58 @@
   /* MODE TOKENS (Dark + Light) */
   --dark-page-bg: #040404;
   --dark-surface-bg: #0a0a0a;
-  --dark-surface-hover-bg: #151515;
+  --dark-surface-hover-bg: color-mix(in srgb, var(--dark-surface-bg) 94%, var(--dark-text-primary));
   --dark-text-primary: #f8fafc;
-  --dark-text-secondary: #d3dce8;
-  --dark-text-tertiary: #9ba9bb;
-  --dark-border-subtle: #2a2a2a;
-  --dark-border-strong: #3f3f3f;
-  --dark-header-bg: #050505;
-  --dark-header-text: #f8fafc;
-  --dark-header-border: #2a2a2a;
-  --dark-footer-bg: #060606;
-  --dark-footer-text: #edf2f8;
+  --dark-text-secondary: color-mix(in srgb, var(--dark-text-primary) 82%, var(--dark-page-bg));
+  --dark-text-tertiary: color-mix(in srgb, var(--dark-text-primary) 68%, var(--dark-page-bg));
+  --dark-border-subtle: color-mix(in srgb, var(--dark-text-primary) 22%, var(--dark-page-bg));
+  --dark-border-strong: color-mix(in srgb, var(--dark-text-primary) 65%, var(--dark-page-bg));
+  --dark-header-bg: var(--dark-surface-bg);
+  --dark-header-text: var(--dark-text-primary);
+  --dark-header-border: var(--dark-border-subtle);
+  --dark-footer-bg: var(--dark-page-bg);
+  --dark-footer-text: var(--dark-text-primary);
   --dark-link-color: var(--color-brand-red);
-  --dark-link-hover-color: #4b6ef5;
-  --dark-selection-bg: var(--pop-blue);
-  --dark-selection-fg: var(--pop-cream);
+  --dark-link-hover-color: var(--color-primary);
+  --dark-selection-bg: var(--color-primary);
+  --dark-selection-fg: var(--color-primary-text);
 
   --light-page-bg: #f8fafc;
   --light-surface-bg: #ffffff;
-  --light-surface-hover-bg: #eff3f8;
+  --light-surface-hover-bg: color-mix(in srgb, var(--light-surface-bg) 94%, var(--light-text-primary));
   --light-text-primary: #0f172a;
-  --light-text-secondary: #334155;
-  --light-text-tertiary: #64748b;
-  --light-border-subtle: #dbe3ec;
-  --light-border-strong: #0f172a;
-  --light-header-bg: #ffffff;
-  --light-header-text: #0f172a;
-  --light-header-border: #d0d9e3;
-  --light-footer-bg: #f8fafc;
-  --light-footer-text: #0f172a;
-  --light-footer-border: #d0d9e3;
+  --light-text-secondary: color-mix(in srgb, var(--light-text-primary) 82%, var(--light-page-bg));
+  --light-text-tertiary: color-mix(in srgb, var(--light-text-primary) 68%, var(--light-page-bg));
+  --light-border-subtle: color-mix(in srgb, var(--light-text-primary) 22%, var(--light-page-bg));
+  --light-border-strong: color-mix(in srgb, var(--light-text-primary) 65%, var(--light-page-bg));
+  --light-header-bg: var(--light-surface-bg);
+  --light-header-text: var(--light-text-primary);
+  --light-header-border: var(--light-border-subtle);
+  --light-footer-bg: var(--light-page-bg);
+  --light-footer-text: var(--light-text-primary);
+  --light-footer-border: var(--light-border-subtle);
   --light-link-color: var(--color-brand-red);
-  --light-link-hover-color: #19339e;
-  --light-selection-bg: var(--pop-blue);
-  --light-selection-fg: var(--pop-cream);
+  --light-link-hover-color: var(--color-primary);
+  --light-selection-bg: var(--color-primary);
+  --light-selection-fg: var(--color-primary-text);
 
   /* Runtime Theme Variables (default: dark) */
   --bg-canvas: var(--dark-page-bg);
   --bg-color: var(--dark-page-bg);
   --bg-surface: var(--dark-surface-bg);
   --bg-surface-hover: var(--dark-surface-hover-bg);
-  --bg-overlay: rgba(0, 0, 0, 0.8);
+  --bg-overlay: color-mix(in srgb, var(--ui-shadow-color) 80%, transparent);
 
   --text-primary: var(--dark-text-primary);
   --text-secondary: var(--dark-text-secondary);
   --text-tertiary: var(--dark-text-tertiary);
-  --text-inverse: #000000;
+  --text-inverse: var(--color-text);
   --text-main: var(--text-primary);
   --text-muted: var(--text-secondary);
 
   --border-subtle: var(--dark-border-subtle);
   --border-strong: var(--dark-border-strong);
-  --border-focus: #ffffff;
+  --border-focus: currentColor;
 
   --nav-bg: var(--dark-header-bg);
   --nav-border: var(--dark-header-border);
@@ -182,19 +198,19 @@
   --footer-bg-color: var(--dark-footer-bg);
   --footer-text-color: var(--dark-footer-text);
   --footer-border-color: var(--dark-footer-border);
-  --cursor-dot-bg: rgba(255, 255, 255, 0.92);
-  --cursor-dot-outline: rgba(255, 255, 255, 0.18);
-  --cursor-dot-glow: rgba(255, 255, 255, 0.36);
-  --cursor-ring-border: rgba(255, 255, 255, 0.52);
-  --cursor-shadow: rgba(0, 0, 0, 0.65);
+  --cursor-dot-bg: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  --cursor-dot-outline: color-mix(in srgb, var(--color-surface) 18%, transparent);
+  --cursor-dot-glow: color-mix(in srgb, var(--color-surface) 36%, transparent);
+  --cursor-ring-border: color-mix(in srgb, var(--color-surface) 52%, transparent);
+  --cursor-shadow: color-mix(in srgb, var(--ui-shadow-color) 65%, transparent);
 
   --theme-color-primary: var(--color-brand-red);
-  --theme-color-secondary: #f9f8f3;
-  --theme-color-tertiary: #9e9992;
+  --theme-color-secondary: var(--color-background);
+  --theme-color-tertiary: var(--palette-grey);
   --theme-color-accent: var(--color-brand-red);
   --custom-color-1: var(--color-brand-red);
-  --custom-color-2: #f9f8f3;
-  --custom-color-3: #9e9992;
+  --custom-color-2: var(--color-background);
+  --custom-color-3: var(--palette-grey);
 
   --accent-primary: var(--theme-color-accent);
 
@@ -294,7 +310,7 @@
   --feature-photo-overlay-meta-weight: 400;
   --feature-photo-overlay-meta-line-height: 1.2;
   --feature-photo-overlay-meta-letter-spacing: 0.1em;
-  --feature-photo-overlay-meta-color: #00f3ff;
+  --feature-photo-overlay-meta-color: var(--color-additional-3);
   --feature-writing-title-font: var(--font-serif);
   --feature-writing-title-size: var(--type-role-card-title-size);
   --feature-writing-title-weight: var(--type-role-card-title-weight);
@@ -412,23 +428,22 @@
   --link-hover-underline: none;
 
   /* Grid & Glow Tokens - Increased Visibility */
-  --grid-color-1: rgba(255, 255, 255, 0.08);
+  --grid-color-1: color-mix(in srgb, var(--color-surface) 8%, transparent);
   /* Brighter for glow */
-  --grid-color-2: rgba(255, 255, 255, 0.03);
+  --grid-color-2: color-mix(in srgb, var(--color-surface) 3%, transparent);
   /* Subtle background */
 
   /* COMPONENT TOKENS (Default Dark Mode) */
-  --btn-primary-bg: var(--theme-color-primary);
-  --btn-primary-text: #ffffff;
-  --btn-primary-border: var(--theme-color-primary);
+  --btn-primary-bg: var(--color-button);
+  --btn-primary-text: var(--color-button-text);
+  --btn-primary-border: var(--color-text);
   --btn-secondary-bg: transparent;
   --btn-secondary-text: var(--text-primary);
   --btn-secondary-border: var(--border-strong);
-  --theme-transition:
-    background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+  --theme-transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease,
     box-shadow 0.25s ease;
-  --chip-active-bg: var(--accent-primary);
-  --chip-active-text: #ffffff;
+  --chip-active-bg: var(--color-button);
+  --chip-active-text: var(--color-button-text);
 }
 
 /* Opt-in typography roles. Component aliases should point to the same roles. */
@@ -487,23 +502,23 @@
   --bg-color: var(--light-page-bg);
   --bg-surface: var(--light-surface-bg);
   --bg-surface-hover: var(--light-surface-hover-bg);
-  --bg-overlay: rgba(255, 255, 255, 0.95);
+  --bg-overlay: color-mix(in srgb, var(--color-surface) 95%, transparent);
 
   --text-primary: var(--light-text-primary);
   --text-secondary: var(--light-text-secondary);
   --text-tertiary: var(--light-text-tertiary);
-  --text-inverse: #ffffff;
+  --text-inverse: var(--color-surface);
 
   --border-subtle: var(--light-border-subtle);
   --border-strong: var(--light-border-strong);
-  --border-focus: #2563eb;
+  --border-focus: currentColor;
 
-  --accent-glow: rgba(0, 0, 0, 0.05);
+  --accent-glow: color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
   --accent-primary: var(--theme-color-accent);
-  --grid-color-1: rgba(0, 0, 0, 0.08);
-  --grid-color-2: rgba(0, 0, 0, 0.04);
-  --menu-bg: rgba(255, 255, 255, 0.98);
-  --menu-text: #000000;
+  --grid-color-1: color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
+  --grid-color-2: color-mix(in srgb, var(--ui-shadow-color) 4%, transparent);
+  --menu-bg: color-mix(in srgb, var(--color-surface) 98%, transparent);
+  --menu-text: var(--color-text);
 
   --nav-bg: var(--light-header-bg);
   --nav-border: var(--light-header-border);
@@ -511,22 +526,22 @@
   --footer-bg-color: var(--light-footer-bg);
   --footer-text-color: var(--light-footer-text);
   --footer-border-color: var(--light-footer-border);
-  --cursor-dot-bg: rgba(0, 0, 0, 0.92);
-  --cursor-dot-outline: rgba(0, 0, 0, 0.14);
-  --cursor-dot-glow: rgba(0, 0, 0, 0.22);
-  --cursor-ring-border: rgba(0, 0, 0, 0.58);
-  --cursor-shadow: rgba(15, 23, 42, 0.18);
+  --cursor-dot-bg: color-mix(in srgb, var(--ui-shadow-color) 92%, transparent);
+  --cursor-dot-outline: color-mix(in srgb, var(--ui-shadow-color) 14%, transparent);
+  --cursor-dot-glow: color-mix(in srgb, var(--ui-shadow-color) 22%, transparent);
+  --cursor-ring-border: color-mix(in srgb, var(--ui-shadow-color) 58%, transparent);
+  --cursor-shadow: color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
   --link-color: var(--light-link-color);
   --link-hover-color: var(--light-link-hover-color);
   --selection-bg: var(--light-selection-bg);
   --selection-fg: var(--light-selection-fg);
   --btn-primary-bg: var(--light-text-primary);
-  --btn-primary-text: #ffffff;
+  --btn-primary-text: var(--color-button-text);
   --btn-primary-border: var(--light-text-primary);
   --btn-secondary-text: var(--light-text-primary);
   --btn-secondary-border: var(--light-border-strong);
-  --chip-active-bg: var(--accent-primary);
-  --chip-active-text: #ffffff;
+  --chip-active-bg: var(--color-button);
+  --chip-active-text: var(--color-button-text);
 }
 
 /* Reset & Base */
@@ -587,15 +602,15 @@ body::-webkit-scrollbar {
 }
 
 ::selection {
-  background: var(--surface-selection-bg, var(--selection-bg, var(--pop-blue)));
-  color: var(--surface-selection-fg, var(--selection-fg, var(--pop-cream)));
-  -webkit-text-fill-color: var(--surface-selection-fg, var(--selection-fg, var(--pop-cream)));
+  background: var(--surface-selection-bg, var(--selection-bg, var(--color-primary)));
+  color: var(--surface-selection-fg, var(--selection-fg, var(--color-primary-text)));
+  -webkit-text-fill-color: var(--surface-selection-fg, var(--selection-fg, var(--color-background)));
 }
 
 ::-moz-selection {
-  background: var(--surface-selection-bg, var(--selection-bg, var(--pop-blue)));
-  color: var(--surface-selection-fg, var(--selection-fg, var(--pop-cream)));
-  -webkit-text-fill-color: var(--surface-selection-fg, var(--selection-fg, var(--pop-cream)));
+  background: var(--surface-selection-bg, var(--selection-bg, var(--color-primary)));
+  color: var(--surface-selection-fg, var(--selection-fg, var(--color-primary-text)));
+  -webkit-text-fill-color: var(--surface-selection-fg, var(--selection-fg, var(--color-background)));
 }
 
 [data-theme="light"] body {
@@ -961,15 +976,15 @@ main {
  */
 :root[data-reader-mode="true"],
 [data-reader-mode="true"] body {
-  --bg-canvas: #ffffff !important;
-  --bg-surface: #f8f8f8 !important;
-  --text-primary: #000000 !important;
-  --text-secondary: #333333 !important;
-  --text-tertiary: #555555 !important;
-  --border-subtle: #dddddd !important;
+  --bg-canvas: var(--color-surface) !important;
+  --bg-surface: var(--light-surface-bg) !important;
+  --text-primary: var(--color-text) !important;
+  --text-secondary: var(--light-text-secondary) !important;
+  --text-tertiary: var(--light-text-tertiary) !important;
+  --border-subtle: var(--light-border-subtle) !important;
 
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
 }
 
 /* Hide background effects in Reader Mode to reduce distraction */
@@ -1032,7 +1047,7 @@ main {
   background: var(--btn-secondary-bg);
   border: 1px solid var(--btn-secondary-border);
   color: var(--btn-secondary-text);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
 }
 
 [data-theme="light"] a.btn:hover,
@@ -1040,7 +1055,7 @@ main {
   background: var(--btn-secondary-bg);
   border-color: var(--accent-primary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
 }
 
 /* Primary Button: Solid Black */
@@ -1062,7 +1077,7 @@ main {
 [data-theme="light"] .card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--ui-shadow-color) 6%, transparent);
   /* Clean shadow */
 }
 
@@ -1095,9 +1110,9 @@ main {
 
 /* STACKED CARD OVERRIDE for High Legibility */
 [data-theme="light"] :global(.stacked-card) {
-  background: #ffffff !important;
-  border: 1px solid #e0e0e0 !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12) !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--light-border-subtle) !important;
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--ui-shadow-color) 12%, transparent) !important;
   /* Stronger shadow on white */
 }
 
@@ -1142,7 +1157,7 @@ main {
    ========================================================================== */
 
 [data-pop-page="true"] {
-  --text-primary: var(--pop-ink);
+  --text-primary: var(--color-text);
   --text-secondary: var(--pop-secondary-on-light);
   --text-tertiary: var(--pop-tertiary-on-light);
   --type-h1-color: var(--text-primary);
@@ -1200,7 +1215,7 @@ main {
   --type-small-color: var(--surface-fg-secondary);
   --link-color: var(--surface-fg);
   --link-hover-color: var(--surface-fg);
-  --border-focus: var(--pop-purple);
+  --border-focus: currentColor;
   color: var(--surface-fg);
 }
 
@@ -1236,19 +1251,20 @@ main {
   --type-small-color: var(--surface-fg-secondary);
   --link-color: var(--surface-fg);
   --link-hover-color: var(--surface-fg);
-  --border-focus: var(--pop-yellow);
+  --border-focus: currentColor;
   color: var(--surface-fg);
 }
 
-:where([data-pop-surface="cream"], .pop-card--cream, .pop-panel--cream) { --surface-bg: var(--pop-cream); }
-:where([data-pop-surface="white"], .pop-card--white, .pop-panel--white) { --surface-bg: var(--pop-white); }
-:where([data-pop-surface="pink"], .pop-card--pink, .pop-panel--pink) { --surface-bg: var(--pop-pink); }
-:where([data-pop-surface="yellow"], .pop-card--yellow, .pop-panel--yellow, .btn-yellow, .badge-yellow, .pill-yellow) { --surface-bg: var(--pop-yellow); }
-:where([data-pop-surface="lime"], .pop-card--lime, .pop-panel--lime) { --surface-bg: var(--pop-lime); }
-:where([data-pop-surface="orange"], .pop-card--orange, .pop-panel--orange) { --surface-bg: var(--pop-orange); }
-:where([data-pop-surface="cyan"], .pop-card--cyan, .pop-panel--cyan) { --surface-bg: var(--pop-cyan); }
-:where([data-pop-surface="blue"], .pop-card--blue, .pop-panel--blue, .btn-blue, .badge-blue, .pill-blue) { --surface-bg: var(--pop-blue); }
-:where([data-pop-surface="purple"], .pop-card--purple, .pop-panel--purple, .btn-purple, .badge-purple, .pill-purple) { --surface-bg: var(--pop-purple); }
+:where([data-pop-surface="cream"], .pop-card--cream, .pop-panel--cream) { --surface-bg: var(--color-background); }
+:where([data-pop-surface="white"], .pop-card--white, .pop-panel--white) { --surface-bg: var(--color-surface); }
+:where([data-pop-surface="pink"], .pop-card--pink, .pop-panel--pink) { --surface-bg: var(--color-secondary); }
+:where([data-pop-surface="yellow"], .pop-card--yellow, .pop-panel--yellow, .btn-yellow, .badge-yellow, .pill-yellow) { --surface-bg: var(--color-button); }
+:where([data-pop-surface="yellow"], .pop-card--yellow, .pop-panel--yellow, .btn-yellow, .badge-yellow, .pill-yellow) { --surface-fg: var(--color-button-text); --text-primary: var(--color-button-text); --link-color: var(--color-button-text); --link-hover-color: var(--color-button-text); }
+:where([data-pop-surface="lime"], .pop-card--lime, .pop-panel--lime) { --surface-bg: var(--color-accent); }
+:where([data-pop-surface="orange"], .pop-card--orange, .pop-panel--orange) { --surface-bg: var(--color-additional-1); }
+:where([data-pop-surface="cyan"], .pop-card--cyan, .pop-panel--cyan) { --surface-bg: var(--color-additional-3); }
+:where([data-pop-surface="blue"], .pop-card--blue, .pop-panel--blue, .btn-blue, .badge-blue, .pill-blue) { --surface-bg: var(--color-primary); }
+:where([data-pop-surface="purple"], .pop-card--purple, .pop-panel--purple, .btn-purple, .badge-purple, .pill-purple) { --surface-bg: var(--color-additional-2); }
 
 :where([data-pop-surface]) {
   background-color: var(--surface-bg);
@@ -1257,78 +1273,10 @@ main {
 /* ==========================================================================
    BUTTON, BADGE & PILL CONTRAST GUARANTEES
    ========================================================================== */
-/* Light surface controls (Yellow, Lime, Cream, Pink, Cyan, Orange, White)
-   must ALWAYS have dark ink text (#15130f) for the button and all child elements,
-   even when nested inside deep blue or purple containers */
-:is(
-  [data-pop-surface="yellow"],
-  [data-pop-surface="lime"],
-  [data-pop-surface="cream"],
-  [data-pop-surface="pink"],
-  [data-pop-surface="orange"],
-  [data-pop-surface="cyan"],
-  [data-pop-surface="white"],
-  .btn-yellow,
-  .badge-yellow,
-  .pill-yellow,
-  .btn-lime,
-  .badge-lime,
-  .pill-lime,
-  .rp-button,
-  .rp-case__experiment-btn,
-  .rp-case__next-button,
-  .rp-case__caption-badge
-):is(a, button, span, div, .btn, .badge, .pill) {
-  color: var(--pop-ink, #15130f) !important;
-}
-
-:is(
-  [data-pop-surface="yellow"],
-  [data-pop-surface="lime"],
-  [data-pop-surface="cream"],
-  [data-pop-surface="pink"],
-  [data-pop-surface="orange"],
-  [data-pop-surface="cyan"],
-  [data-pop-surface="white"],
-  .btn-yellow,
-  .badge-yellow,
-  .pill-yellow,
-  .btn-lime,
-  .badge-lime,
-  .pill-lime,
-  .rp-button,
-  .rp-case__experiment-btn,
-  .rp-case__next-button,
-  .rp-case__caption-badge
-) :is(span, strong, b, a, svg, p, small, code, em) {
-  color: var(--pop-ink, #15130f) !important;
-}
-
-/* Deep surface controls (Blue, Purple) */
-:is(
-  [data-pop-surface="blue"],
-  [data-pop-surface="purple"],
-  .btn-blue,
-  .badge-blue,
-  .pill-blue,
-  .btn-purple,
-  .badge-purple,
-  .pill-purple
-):is(a, button, span, div, .btn, .badge, .pill) {
-  color: var(--pop-cream, #fff8e8) !important;
-}
-
-:is(
-  [data-pop-surface="blue"],
-  [data-pop-surface="purple"],
-  .btn-blue,
-  .badge-blue,
-  .pill-blue,
-  .btn-purple,
-  .badge-purple,
-  .pill-purple
-) :is(span, strong, b, a, svg, p, small, code, em) {
-  color: var(--pop-cream, #fff8e8) !important;
+/* These contracts apply to the element itself. Nested colour surfaces reset
+ * --surface-fg independently and retain their own readable foreground. */
+:where([data-pop-surface], .btn-yellow, .btn-lime, .btn-blue, .btn-purple) {
+  color: var(--surface-fg);
 }
 
 /* ==========================================================================

@@ -1,13 +1,13 @@
 :root {
-    --career-blue: var(--pop-blue, #2444ca);
-    --career-pink: var(--pop-pink, #ff7eb5);
-    --career-yellow: var(--pop-yellow, #ffe44f);
-    --career-lime: var(--pop-lime, #caff48);
-    --career-purple: var(--pop-purple, #5524c7);
-    --career-cream: var(--pop-cream, #fff8e8);
-    --career-ink: var(--pop-ink, #15130f);
-    --career-border: 1px solid rgba(21, 19, 15, 0.78);
-    --career-line: rgba(21, 19, 15, 0.22);
+    --career-blue: var(--color-primary);
+    --career-pink: var(--color-secondary);
+    --career-yellow: var(--color-button);
+    --career-lime: var(--color-accent);
+    --career-purple: var(--color-additional-2);
+    --career-cream: var(--color-background);
+    --career-ink: var(--color-text);
+    --career-border: 1px solid color-mix(in srgb, var(--color-text) 78%, transparent);
+    --career-line: color-mix(in srgb, var(--color-text) 22%, transparent);
     --career-gap: 8px;
     --career-radius: clamp(16px, 2vw, 24px);
     --career-control-radius: 12px;
@@ -24,8 +24,8 @@ body.career-role-page {
      * cannot turn body copy cream on the cream document.
      */
     --text-primary: var(--career-ink);
-    --text-secondary: rgba(21, 19, 15, 0.74);
-    --text-tertiary: rgba(21, 19, 15, 0.6);
+    --text-secondary: color-mix(in srgb, var(--color-text) 74%, transparent);
+    --text-tertiary: color-mix(in srgb, var(--color-text) 60%, transparent);
     --type-paragraph-color: var(--career-ink);
     --link-color: var(--career-ink);
     background: var(--career-blue) !important;
@@ -101,7 +101,7 @@ body.career-role-page main.page-content-full {
 
 .career-kicker {
     margin: 0;
-    color: rgba(21, 19, 15, 0.74);
+    color: color-mix(in srgb, var(--color-text) 74%, transparent);
 }
 
 .career-hero h1,
@@ -119,7 +119,7 @@ body.career-role-page main.page-content-full {
 .career-hero__intro {
     max-width: 38rem;
     margin: 1.5rem 0 0;
-    color: rgba(21, 19, 15, 0.83);
+    color: color-mix(in srgb, var(--color-text) 83%, transparent);
     font-size: clamp(1.05rem, 1.7vw, 1.35rem);
     font-weight: 460;
     line-height: 1.48;
@@ -235,7 +235,7 @@ body.career-role-page main.page-content-full {
 .career-meta-label {
     display: block;
     margin-bottom: 0.35rem;
-    color: rgba(21, 19, 15, 0.6);
+    color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
 
 .career-meta-value {
@@ -269,7 +269,7 @@ body.career-role-page main.page-content-full {
 
 .career-toc__label {
     margin: 0 0 0.8rem;
-    color: rgba(21, 19, 15, 0.56);
+    color: color-mix(in srgb, var(--color-text) 56%, transparent);
 }
 
 .career-toc nav {
@@ -332,7 +332,7 @@ body.career-role-page main.page-content-full {
 .career-section-kicker {
     display: inline-flex;
     margin: 0 0 0.75rem;
-    color: rgba(21, 19, 15, 0.6);
+    color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
 
 .career-prose h2 {
@@ -406,7 +406,7 @@ body.career-role-page main.page-content-full {
 }
 
 .career-note {
-    background: #fff;
+    background: var(--color-surface);
     border-left: 5px solid var(--career-blue);
 }
 
@@ -440,7 +440,7 @@ body.career-role-page main.page-content-full {
 
 .career-commission-example span {
     display: block;
-    color: rgba(21, 19, 15, 0.62);
+    color: color-mix(in srgb, var(--color-text) 62%, transparent);
     font-size: 0.78rem;
     font-weight: 650;
     text-transform: uppercase;
@@ -478,7 +478,7 @@ body.career-role-page main.page-content-full {
 .career-cta p {
     max-width: 38rem;
     margin: 1rem 0 0;
-    color: rgba(255, 248, 232, 0.82);
+    color: color-mix(in srgb, var(--color-primary-text) 82%, transparent);
     line-height: 1.55;
 }
 
@@ -551,7 +551,7 @@ body.career-role-page main.page-content-full {
 
 .careers-listing__header p {
     margin: 0;
-    color: rgba(21, 19, 15, 0.64);
+    color: color-mix(in srgb, var(--color-text) 64%, transparent);
 }
 
 .careers-card {
@@ -564,7 +564,7 @@ body.career-role-page main.page-content-full {
 
 .career-card__number {
     margin: 0 0 0.65rem;
-    color: rgba(21, 19, 15, 0.56);
+    color: color-mix(in srgb, var(--color-text) 56%, transparent);
 }
 
 .careers-card h3 {

@@ -1,13 +1,13 @@
 /* Pop-editorial press archive, intentionally scoped to this page. */
 body.press-page {
-  --press-border: rgba(21, 19, 15, 0.78);
-  --press-line: rgba(21, 19, 15, 0.24);
+  --press-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --press-line: color-mix(in srgb, var(--color-text) 24%, transparent);
   --press-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
   --press-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
   margin: 0;
   padding: 0 !important;
-  background: var(--pop-blue) !important;
-  color: var(--pop-ink);
+  background: var(--color-primary) !important;
+  color: var(--color-text);
   min-height: 100vh;
   color-scheme: light;
 }
@@ -17,28 +17,28 @@ body.press-page {
   min-height: 100vh;
   padding: 8px;
   box-sizing: border-box;
-  background: var(--pop-blue);
+  background: var(--color-primary);
 }
 
 .press-page .press-file {
   width: 100%;
   overflow: hidden;
   box-sizing: border-box;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: clamp(20px, 3vw, 34px);
-  background: var(--pop-cream);
-  box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  background: var(--color-background);
+  box-shadow: 0 10px 0 color-mix(in srgb, var(--color-text) 20%, transparent);
 }
 
 .press-page .press-masthead {
   padding: clamp(1.6rem, 4vw, 3.5rem);
-  border-bottom: 1px solid var(--pop-ink);
-  background: var(--pop-pink);
+  border-bottom: 1px solid var(--color-text);
+  background: var(--color-secondary);
 }
 
 .press-page .press-file-tag {
   margin: 0 0 clamp(1.5rem, 4vw, 3.5rem);
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 700 0.72rem/1 var(--press-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -54,7 +54,7 @@ body.press-page {
 .press-page .press-masthead h1 {
   max-width: 12ch;
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 720 clamp(3.5rem, 8.5vw, 7.5rem)/0.86 var(--press-font);
   letter-spacing: -0.075em;
   overflow-wrap: anywhere;
@@ -68,7 +68,7 @@ body.press-page {
 .press-page .press-masthead__summary > p {
   max-width: 38rem;
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 500 clamp(1.35rem, 1.8vw, 1.55rem)/1.32 var(--press-font);
   letter-spacing: -0.025em;
   text-wrap: balance;
@@ -101,16 +101,16 @@ body.press-page {
 }
 
 .press-page .press-topic--yellow {
-  background: var(--pop-yellow);
+  background: var(--color-button);
 }
 
 .press-page .press-topic--yellow:hover {
-  background: var(--pop-pink);
+  background: var(--color-secondary);
 }
 
 .press-page .press-board {
   padding: clamp(1.2rem, 3.5vw, 3rem);
-  background: var(--pop-cream);
+  background: var(--color-background);
 }
 
 .press-page .press-archive {
@@ -128,7 +128,7 @@ body.press-page {
 
 .press-page .press-eyebrow {
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 700 0.72rem/1 var(--press-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -143,8 +143,8 @@ body.press-page {
 .press-page .press-topic,
 .press-page .press-reset {
   min-height: 44px;
-  border: 1px solid var(--pop-ink);
-  color: var(--pop-ink);
+  border: 1px solid var(--color-text);
+  color: var(--color-text);
   font: 700 0.76rem/1 var(--press-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -155,19 +155,19 @@ body.press-page {
 .press-page .press-topic {
   padding: 10px 18px;
   border-radius: 14px;
-  background: var(--pop-cream);
+  background: var(--color-background);
 }
 
 .press-page .press-topic:hover {
-  background: var(--pop-pink);
+  background: var(--color-secondary);
   transform: translateY(-2px);
-  box-shadow: 0 3px 0 var(--pop-ink);
+  box-shadow: 0 3px 0 var(--color-text);
 }
 
 .press-page .press-topic[aria-pressed="true"] {
-  background: var(--pop-yellow);
+  background: var(--color-button);
   font-weight: 800;
-  box-shadow: inset 0 -3px 0 var(--pop-ink);
+  box-shadow: inset 0 -3px 0 var(--color-text);
 }
 
 .press-page .press-results-heading {
@@ -176,12 +176,12 @@ body.press-page {
   justify-content: space-between;
   gap: 16px;
   padding-top: 20px;
-  border-top: 1px solid var(--pop-ink);
+  border-top: 1px solid var(--color-text);
 }
 
 .press-page .press-results-heading h2 {
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 720 clamp(1.6rem, 2.5vw, 2.2rem)/1.1 var(--press-font);
   letter-spacing: -0.04em;
   overflow-wrap: anywhere;
@@ -197,7 +197,7 @@ body.press-page {
 
 .press-page .press-results-heading p {
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 750 0.72rem/1.4 var(--press-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -206,12 +206,12 @@ body.press-page {
 .press-page .press-reset {
   padding: 6px 14px;
   border-radius: 12px;
-  background: var(--pop-pink);
+  background: var(--color-secondary);
   font-size: 0.7rem;
 }
 
 .press-page .press-reset:hover {
-  background: var(--pop-yellow);
+  background: var(--color-button);
   transform: translateY(-1px);
 }
 
@@ -232,25 +232,25 @@ body.press-page {
   flex-direction: column;
   height: 100%;
   padding: 12px;
-  border: 1.5px solid var(--pop-ink);
+  border: 1.5px solid var(--color-text);
   border-radius: 20px;
-  background: #fff;
-  color: var(--pop-ink);
-  box-shadow: 0 4px 0 var(--pop-ink);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 4px 0 var(--color-text);
   text-decoration: none;
   transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
 }
 
 .press-page .press-mention-card:hover {
-  background: var(--pop-cream);
-  color: var(--pop-ink);
+  background: var(--color-background);
+  color: var(--color-text);
   transform: translateY(-3px);
-  box-shadow: 0 8px 0 var(--pop-ink);
+  box-shadow: 0 8px 0 var(--color-text);
   text-decoration: none;
 }
 
 .press-page .press-mention-card:focus-visible {
-  color: var(--pop-ink);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -259,9 +259,9 @@ body.press-page {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 14px;
-  background: var(--pop-blue);
+  background: var(--color-primary);
 }
 
 .press-page .press-card-image img {
@@ -282,7 +282,7 @@ body.press-page {
   flex-direction: column;
   justify-content: space-between;
   padding: 16px;
-  color: var(--pop-cream);
+  color: var(--color-primary-text);
   font: 700 0.7rem/1.3 var(--press-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -299,10 +299,10 @@ body.press-page {
   top: -14%;
   width: 42%;
   aspect-ratio: 1;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 50%;
-  background: var(--pop-pink);
-  box-shadow: -42px 62px 0 var(--pop-yellow);
+  background: var(--color-secondary);
+  box-shadow: -42px 62px 0 var(--color-button);
 }
 
 .press-page .press-card-placeholder > span {
@@ -326,7 +326,7 @@ body.press-page {
 
 .press-page .press-card-publication {
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 780 0.72rem/1.2 var(--press-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -341,7 +341,7 @@ body.press-page {
 
 .press-page .press-card-title {
   margin: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 720 clamp(1.4rem, 2.2vw, 1.9rem)/1.15 var(--press-font);
   letter-spacing: -0.04em;
   overflow-wrap: anywhere;
@@ -356,7 +356,7 @@ body.press-page {
 .press-page .press-card-arrow {
   display: inline-block;
   flex-shrink: 0;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font-size: 1.4rem;
   font-weight: 800;
   line-height: 1;
@@ -386,22 +386,22 @@ body.press-page {
 .press-page .press-card-tag,
 .press-page .press-card-date {
   padding: 5px 10px;
-  border: 1px solid var(--pop-ink);
+  border: 1px solid var(--color-text);
   border-radius: 8px;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 700 0.7rem/1.2 var(--press-mono);
   letter-spacing: 0.06em;
 }
 
 .press-page .press-card-tag {
-  background: var(--pop-cream);
+  background: var(--color-background);
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 
 .press-page .press-card-date {
-  background: var(--pop-yellow);
-  box-shadow: 0 2px 0 var(--pop-ink);
+  background: var(--color-button);
+  box-shadow: 0 2px 0 var(--color-text);
   font-weight: 750;
   letter-spacing: 0.08em;
   white-space: nowrap;
@@ -409,26 +409,26 @@ body.press-page {
 
 .press-page .press-empty {
   padding: 32px 24px;
-  border: 1.5px solid var(--pop-ink);
+  border: 1.5px solid var(--color-text);
   border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 4px 0 var(--pop-ink);
+  background: var(--color-surface);
+  box-shadow: 0 4px 0 var(--color-text);
 }
 
 .press-page .press-empty h3 {
   margin: 0 0 12px;
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 720 1.8rem/1.15 var(--press-font);
   letter-spacing: -0.04em;
 }
 
 .press-page .press-empty p {
-  color: var(--pop-ink);
+  color: var(--color-text);
   font: 500 1rem/1.5 var(--press-font);
 }
 
 .press-page .press-editorial :is(a, button):focus-visible {
-  outline: 3px solid var(--pop-blue);
+  outline: 3px solid var(--color-primary);
   outline-offset: 3px;
 }
 

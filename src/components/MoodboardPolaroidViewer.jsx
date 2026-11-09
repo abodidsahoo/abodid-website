@@ -619,7 +619,7 @@ export default function MoodboardPolaroidViewer({
                         display: flex;
                         flex-direction: column;
                         border-radius: 2px;
-                        box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+                        box-shadow: 0 50px 100px color-mix(in srgb, var(--ui-shadow-color) 50%, transparent);
                         margin: auto;
                         box-sizing: border-box;
                     }
@@ -710,7 +710,7 @@ export default function MoodboardPolaroidViewer({
                         font-family: var(--font-ui, "Satoshi", sans-serif);
                         font-size: clamp(0.85rem, 1.2vw, 1.02rem);
                         font-weight: 750;
-                        color: var(--pop-ink);
+                        color: var(--color-text);
                         letter-spacing: 0.06em;
                         text-transform: uppercase;
                         line-height: 1;
@@ -826,13 +826,13 @@ export default function MoodboardPolaroidViewer({
                         font-family: var(--font-ui);
                         font-size: 0.72rem;
                         font-weight: 700;
-                        color: rgba(255, 255, 255, 0.68);
+                        color: color-mix(in srgb, var(--color-surface) 68%, transparent);
                         letter-spacing: 0.14em;
                         display: flex;
                         gap: 0.4rem;
                         align-items: center;
                         padding: 0.55rem 0.8rem;
-                        border: 1px solid rgba(255, 255, 255, 0.22);
+                        border: 1px solid color-mix(in srgb, var(--color-surface) 22%, transparent);
                         border-radius: 999px;
                         background: rgba(10, 10, 10, 0.76);
                         backdrop-filter: blur(10px);
@@ -857,7 +857,7 @@ export default function MoodboardPolaroidViewer({
                         padding: 0;
                         border: 2px solid #111111;
                         border-radius: 999px;
-                        background: rgba(255, 255, 255, 0.96);
+                        background: color-mix(in srgb, var(--color-surface) 96%, transparent);
                         color: #111111;
                         box-shadow: 0 4px 0 rgba(17, 17, 17, 0.95);
                         display: flex;
@@ -884,7 +884,7 @@ export default function MoodboardPolaroidViewer({
 
                     .global-nav-btn:hover:not(:disabled),
                     .close-viewer-btn:hover {
-                        background: #ffffff;
+                        background: var(--color-surface);
                         transform: translateY(-50%) translateY(-2px);
                         box-shadow: 0 6px 0 rgba(17, 17, 17, 0.95);
                     }
@@ -896,7 +896,7 @@ export default function MoodboardPolaroidViewer({
 
                     .global-nav-btn:focus-visible,
                     .close-viewer-btn:focus-visible {
-                        outline: 3px solid #ffffff;
+                        outline: 3px solid var(--color-primary-text);
                         outline-offset: 4px;
                     }
 
@@ -922,7 +922,7 @@ export default function MoodboardPolaroidViewer({
                         padding: 0;
                         border: 2px solid #111111;
                         border-radius: 999px;
-                        background: rgba(255, 255, 255, 0.96);
+                        background: color-mix(in srgb, var(--color-surface) 96%, transparent);
                         color: #111111;
                         box-shadow: 0 4px 0 rgba(17, 17, 17, 0.95);
                         display: flex;

@@ -298,7 +298,7 @@ const workshops = [
     top: -12px;
     right: 2rem;
     background: #ffd140;
-    color: #000;
+    color: var(--color-text);
     font-size: 0.75rem;
     font-weight: 700;
     padding: 0.25rem 0.75rem;
@@ -346,7 +346,7 @@ const workshops = [
     }
 
     .duration-badge {
-        background: rgba(255, 255, 255, 0.05);
+        background: color-mix(in srgb, var(--color-surface) 5%, transparent);
         padding: 0.4rem 0.8rem;
         border-radius: 6px;
         font-size: 0.8rem;
@@ -394,6 +394,6 @@ const workshops = [
 
     .workshop-card.highlight .book-btn {
         background: #ffd140; /* Yellow button for highlight */
-        color: #000;
+        color: var(--color-text);
     }
 </style>

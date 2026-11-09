@@ -255,13 +255,13 @@ Astro.response.headers.set(
 <style>
   .media-lab {
     --pop-border: rgba(21, 19, 15, 0.78);
-    background: var(--pop-blue);
-    color: var(--pop-ink);
+    background: var(--color-primary);
+    color: var(--color-text);
   }
 
   .media-lab__bottom-section {
     padding: 0 clamp(1rem, 6vw, 6rem) clamp(5rem, 8vw, 8rem);
-    background: var(--pop-blue);
+    background: var(--color-primary);
   }
 
   .media-lab__bottom-container {
@@ -282,13 +282,13 @@ Astro.response.headers.set(
   }
 
   .media-lab__card--yellow {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    color: var(--color-text);
   }
 
   .media-lab__card--pink {
-    background: var(--pop-pink);
-    color: var(--pop-ink);
+    background: var(--color-secondary);
+    color: var(--color-text);
   }
 
   /* Top Meta Line (matches .lab-card__meta throughout the page) */
@@ -368,7 +368,7 @@ Astro.response.headers.set(
 
   .media-lab__cta-direct-link {
     font: 750 clamp(0.95rem, 1.1vw, 1.15rem)/1.35 var(--font-mono);
-    color: var(--pop-ink);
+    color: var(--color-text);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
@@ -417,7 +417,7 @@ Astro.response.headers.set(
     font: 750 0.72rem/1.3 var(--font-mono);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--pop-ink);
+    color: var(--color-text);
   }
 
   .media-lab__field input,
@@ -429,7 +429,7 @@ Astro.response.headers.set(
     border-radius: 8px;
     padding: 0.8rem 0.95rem;
     font: 450 0.98rem/1.45 var(--font-body);
-    color: var(--pop-ink);
+    color: var(--color-text);
     transition:
       border-color 0.18s ease,
       box-shadow 0.18s ease;
@@ -443,7 +443,7 @@ Astro.response.headers.set(
   .media-lab__field input:focus,
   .media-lab__field textarea:focus {
     outline: none;
-    border-color: var(--pop-blue);
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(36, 68, 202, 0.2);
   }
 
@@ -464,9 +464,9 @@ Astro.response.headers.set(
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    background: var(--pop-ink) !important;
-    color: var(--pop-cream) !important;
-    border: 1px solid var(--pop-ink);
+    background: var(--color-text) !important;
+    color: var(--color-background) !important;
+    border: 1px solid var(--color-text);
     border-radius: 999px;
     padding: 0.85rem 1.9rem;
     font: 750 0.8rem/1 var(--font-mono);
@@ -480,18 +480,18 @@ Astro.response.headers.set(
   }
 
   .media-lab__submit-btn * {
-    color: var(--pop-cream) !important;
+    color: var(--color-background) !important;
   }
 
   .media-lab__submit-btn:hover:not(:disabled) {
-    background: var(--pop-blue) !important;
-    border-color: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
     transform: translateY(-2px);
   }
 
   .media-lab__btn-arrow {
     display: inline-block;
-    color: var(--pop-cream) !important;
+    color: var(--color-background) !important;
     transition: transform 0.18s ease;
   }
 
@@ -541,13 +541,13 @@ Astro.response.headers.set(
 
 <style is:global>
   html:has(body.lab-page) {
-    background: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
   }
 
   body.lab-page {
     margin: 0;
     padding: 0 !important;
-    background: var(--pop-blue) !important;
-    background-color: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
+    background-color: var(--color-primary) !important;
   }
 </style>

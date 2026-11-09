@@ -250,8 +250,8 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
         max-width: 100%;
         aspect-ratio: 5 / 3;
         background: var(--color-brand-red);
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
+        border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
+        box-shadow: 0 24px 80px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
         padding: 1.5rem;
         display: flex;
         align-items: flex-start;
@@ -268,13 +268,13 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
     .comparison-card p {
         margin-bottom: 1rem;
-        color: #000000;
+        color: var(--color-text);
     }
 
     .note {
         font-size: 0.95rem;
         font-style: italic;
-        color: #000000;
+        color: var(--color-text);
     }
 
     .action-section {
@@ -304,12 +304,12 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     .launch-button.secondary:hover {
         border-color: var(--text-primary);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
     }
 
     .selected-text {
         background: var(--color-brand-red);
-        color: #ffffff;
+        color: var(--color-primary-text);
         padding: 0.08em 0.22em;
         border-radius: 2px;
         box-decoration-break: clone;
@@ -319,22 +319,22 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
     .selected-text em,
     .selected-text strong {
-        color: #ffffff;
+        color: var(--color-primary-text);
     }
 
     .selected-text::selection {
         background: var(--color-brand-red);
-        color: #ffffff;
+        color: var(--color-primary-text);
     }
 
     .comparison-float .selected-text {
-        background: #ffffff;
-        color: #000000;
+        background: var(--color-surface);
+        color: var(--color-text);
     }
 
     .comparison-float .selected-text em,
     .comparison-float .selected-text strong {
-        color: #000000;
+        color: var(--color-text);
     }
 
     @media (max-width: 1200px) {

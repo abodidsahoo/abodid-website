@@ -173,23 +173,22 @@ const toolsList = [
 
 <style is:global>
   html:has(body.tools-moodboard-page) {
-    background: var(--pop-blue) !important;
+    background: var(--color-primary) !important;
   }
 
   body.tools-moodboard-page {
     --films-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-    --films-mono:
-      "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
+    --films-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
       monospace;
     --tools-font: var(--films-font);
     --tools-mono: var(--films-mono);
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
+    --pop-line: color-mix(in srgb, var(--color-text) 24%, transparent);
     margin: 0;
     padding: 0 !important;
     min-height: 100vh;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink);
+    background: var(--color-primary) !important;
+    color: var(--color-text);
     color-scheme: light;
   }
 
@@ -204,7 +203,7 @@ const toolsList = [
   }
 
   body.tools-moodboard-page :is(a, button, summary):focus-visible {
-    outline: 3px solid var(--pop-purple);
+    outline: 3px solid var(--color-additional-2);
     outline-offset: 3px;
   }
 </style>
@@ -214,7 +213,7 @@ const toolsList = [
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
-    background: var(--pop-blue);
+    background: var(--color-primary);
     min-height: 100vh;
   }
 
@@ -224,21 +223,21 @@ const toolsList = [
     margin-inline: 0;
     box-sizing: border-box;
     overflow: hidden;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: clamp(20px, 3vw, 34px);
-    background: var(--pop-cream);
-    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+    background: var(--color-background);
+    box-shadow: 0 10px 0 color-mix(in srgb, var(--color-text) 20%, transparent);
   }
 
   .tools-heading {
     padding: clamp(1.6rem, 4vw, 3.5rem);
-    border-bottom: 1px solid var(--pop-ink);
-    background: var(--pop-pink);
+    border-bottom: 1px solid var(--color-text);
+    background: var(--color-secondary);
   }
 
   .tools-file-tag {
     margin: 0 0 clamp(1.5rem, 4vw, 3.5rem);
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 700 0.72rem/1 var(--tools-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -254,7 +253,7 @@ const toolsList = [
   .tools-heading h1 {
     max-width: 12ch;
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 720 clamp(3.5rem, 8.5vw, 7.5rem)/0.86 var(--tools-font, sans-serif);
     letter-spacing: -0.075em;
     overflow-wrap: anywhere;
@@ -269,7 +268,7 @@ const toolsList = [
   .tools-heading__hero p {
     max-width: 38rem;
     margin: 0;
-    color: var(--pop-ink);
+    color: var(--color-text);
     font: 500 clamp(1.35rem, 1.8vw, 1.55rem)/1.32 var(--tools-font, sans-serif);
     letter-spacing: -0.025em;
     text-wrap: balance;
@@ -290,10 +289,10 @@ const toolsList = [
     gap: 8px;
     min-height: 44px;
     padding: 10px 18px;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
-    background: var(--pop-cream);
-    color: var(--pop-ink);
+    background: var(--color-background);
+    color: var(--color-text);
     font: 700 0.76rem/1 var(--tools-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -304,9 +303,9 @@ const toolsList = [
   }
 
   .tools-action-btn:hover {
-    background: var(--pop-yellow);
+    background: var(--color-button);
     transform: translateY(-2px);
-    box-shadow: 0 3px 0 var(--pop-ink);
+    box-shadow: 0 3px 0 var(--color-text);
     text-decoration: none;
   }
 
@@ -327,7 +326,7 @@ const toolsList = [
 
   .tools-board {
     padding: clamp(1.2rem, 3.5vw, 3rem);
-    background: var(--pop-cream);
+    background: var(--color-background);
   }
 
   .tools-browser {
@@ -342,7 +341,7 @@ const toolsList = [
     align-items: center;
     justify-content: space-between;
     padding-bottom: 14px;
-    border-bottom: 1px solid rgba(21, 19, 15, 0.2);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
   }
 
   .tools-results-heading h2 {
@@ -355,7 +354,7 @@ const toolsList = [
     font: 700 0.72rem/1 var(--tools-mono, monospace);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(21, 19, 15, 0.7);
+    color: color-mix(in srgb, var(--color-text) 70%, transparent);
   }
 
   /* Grid Layout: Matches Films Editorial Grid */
@@ -379,20 +378,20 @@ const toolsList = [
 
   .tool-card {
     padding: 12px;
-    border: 1.5px solid var(--pop-ink);
+    border: 1.5px solid var(--color-text);
     border-radius: 20px;
-    background: #ffffff;
-    color: var(--pop-ink);
+    background: var(--color-surface);
+    color: var(--color-text);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 0 var(--pop-ink);
+    box-shadow: 0 4px 0 var(--color-text);
     transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
   }
 
   .tool-card:hover {
-    background: var(--pop-cream);
+    background: var(--color-background);
     transform: translateY(-3px);
-    box-shadow: 0 8px 0 var(--pop-ink);
+    box-shadow: 0 8px 0 var(--color-text);
   }
 
   .tool-thumbnail-link {
@@ -405,9 +404,9 @@ const toolsList = [
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     border-radius: 14px;
-    background: #15130f;
+    background: var(--color-text);
     overflow: hidden;
     cursor: pointer;
   }
@@ -418,8 +417,8 @@ const toolsList = [
     display: flex;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(circle at center, #262118 0%, #15130f 100%);
-    color: #ffffff;
+    background: radial-gradient(circle at center, #262118 0%, var(--color-text) 100%);
+    color: var(--color-primary-text);
     transition: transform 400ms ease;
   }
 
@@ -438,19 +437,19 @@ const toolsList = [
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--pop-yellow);
-    border: 1.5px solid var(--pop-ink);
-    color: var(--pop-ink);
+    background: var(--color-button);
+    border: 1.5px solid var(--color-text);
+    color: var(--color-button-text);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 3px 0 var(--pop-ink);
+    box-shadow: 0 3px 0 var(--color-text);
     transition: transform 180ms ease, background 180ms ease;
   }
 
   .tool-card:hover .tool-art-icon-ring {
     transform: scale(1.08);
-    background: var(--pop-pink);
+    background: var(--color-secondary);
   }
 
   .tool-art-wave {
@@ -462,13 +461,13 @@ const toolsList = [
 
   .tool-art-wave .bar {
     width: 4px;
-    background: rgba(255, 255, 255, 0.6);
+    background: color-mix(in srgb, var(--color-surface) 60%, transparent);
     border-radius: 2px;
   }
   .tool-art-wave .b1 { height: 6px; }
-  .tool-art-wave .b2 { height: 14px; background: var(--pop-yellow); }
+  .tool-art-wave .b2 { height: 14px; background: var(--color-button); }
   .tool-art-wave .b3 { height: 10px; }
-  .tool-art-wave .b4 { height: 16px; background: var(--pop-pink); }
+  .tool-art-wave .b4 { height: 16px; background: var(--color-secondary); }
   .tool-art-wave .b5 { height: 8px; }
 
   .tool-art-frames {
@@ -481,15 +480,15 @@ const toolsList = [
     position: absolute;
     width: 56px;
     height: 38px;
-    border: 1.5px solid var(--pop-cream);
+    border: 1.5px solid var(--color-background);
     border-radius: 6px;
   }
   .tool-art-frame.f1 { top: 0; left: 0; opacity: 0.35; transform: rotate(-6deg); }
   .tool-art-frame.f2 { top: 6px; left: 12px; opacity: 0.65; transform: rotate(4deg); }
-  .tool-art-frame.f3 { top: 12px; left: 24px; background: rgba(255, 255, 255, 0.1); border-color: var(--pop-yellow); }
+  .tool-art-frame.f3 { top: 12px; left: 24px; background: color-mix(in srgb, var(--color-surface) 10%, transparent); border-color: var(--color-button); }
 
   .tool-art-audio {
-    color: var(--pop-cream);
+    color: var(--color-primary-text);
     opacity: 0.8;
   }
 
@@ -499,12 +498,12 @@ const toolsList = [
     right: 12px;
     padding: 6px 14px;
     border-radius: 999px;
-    border: 1px solid var(--pop-ink);
+    border: 1px solid var(--color-text);
     font: 700 0.72rem/1 var(--tools-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--pop-ink);
-    box-shadow: 0 2px 0 var(--pop-ink);
+    color: var(--color-text);
+    box-shadow: 0 2px 0 var(--color-text);
     pointer-events: none;
   }
 
@@ -514,10 +513,10 @@ const toolsList = [
     left: 12px;
     padding: 4px 10px;
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--ui-shadow-color) 75%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
     font: 700 0.68rem/1 var(--tools-mono, monospace);
-    color: #ffffff;
+    color: var(--color-primary-text);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -543,7 +542,7 @@ const toolsList = [
     margin: 0;
     font: 700 clamp(1.2rem, 1.8vw, 1.35rem)/1.2 var(--tools-font, sans-serif);
     letter-spacing: -0.02em;
-    color: var(--pop-ink);
+    color: var(--color-text);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -556,8 +555,8 @@ const toolsList = [
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: var(--pop-cream);
-    border: 1px solid var(--pop-ink);
+    background: var(--color-background);
+    border: 1px solid var(--color-text);
     font-size: 0.9rem;
     flex-shrink: 0;
     transition: transform 180ms ease, background 180ms ease;
@@ -565,14 +564,14 @@ const toolsList = [
 
   .tool-card:hover .tool-card-arrow {
     transform: translate(2px, -2px);
-    background: var(--pop-yellow);
+    background: var(--color-button);
   }
 
   .tool-description {
     margin: 0;
     font-size: 0.88rem;
     line-height: 1.45;
-    color: rgba(21, 19, 15, 0.75);
+    color: color-mix(in srgb, var(--color-text) 75%, transparent);
     flex: 1;
   }
 
@@ -582,7 +581,7 @@ const toolsList = [
     justify-content: space-between;
     gap: 8px;
     padding-top: 8px;
-    border-top: 1px solid rgba(21, 19, 15, 0.1);
+    border-top: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
   }
 
   .tool-tags {
@@ -595,16 +594,16 @@ const toolsList = [
     font: 700 0.68rem/1 var(--tools-mono, monospace);
     padding: 4px 8px;
     border-radius: 6px;
-    background: rgba(21, 19, 15, 0.05);
-    border: 1px solid rgba(21, 19, 15, 0.12);
-    color: var(--pop-ink);
+    background: color-mix(in srgb, var(--color-text) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
+    color: var(--color-text);
   }
 
   .tool-status-badge {
     font: 700 0.68rem/1 var(--tools-mono, monospace);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: rgba(21, 19, 15, 0.6);
+    color: color-mix(in srgb, var(--color-text) 60%, transparent);
   }
 
   .tool-status-badge.status-ready {

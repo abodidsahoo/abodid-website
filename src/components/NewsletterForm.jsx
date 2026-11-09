@@ -250,17 +250,17 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             <style>{`
                 .newsletter-container {
-                    --newsletter-bg: #0d0d0d;
-                    --newsletter-surface: #151515;
-                    --newsletter-text: #f7f7f3;
-                    --newsletter-copy: #c7c7c1;
-                    --newsletter-muted: #9b9b94;
-                    --newsletter-placeholder: #9b9b94;
-                    --newsletter-border: #3f3f3f;
-                    --newsletter-border-strong: #686862;
-                    --newsletter-focus: #ff6a86;
-                    --newsletter-button: #bb182e;
-                    --newsletter-button-hover: #87001b;
+                    --newsletter-bg: var(--color-background);
+                    --newsletter-surface: var(--color-surface);
+                    --newsletter-text: var(--color-text);
+                    --newsletter-copy: var(--ui-text-muted);
+                    --newsletter-muted: var(--ui-text-subtle);
+                    --newsletter-placeholder: var(--ui-field-placeholder);
+                    --newsletter-border: var(--ui-border);
+                    --newsletter-border-strong: var(--ui-border-strong);
+                    --newsletter-focus: var(--ui-focus-ring);
+                    --newsletter-button: var(--ui-button-bg);
+                    --newsletter-button-hover: var(--ui-button-hover-bg);
                     display: flex;
                     flex-direction: column;
                     position: relative;
@@ -268,7 +268,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                     border-radius: 18px;
                     background: var(--newsletter-bg);
                     color: var(--newsletter-text);
-                    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+                    box-shadow: 0 24px 70px color-mix(in srgb, var(--ui-shadow-color) 42%, transparent);
                     font-family: "Satoshi-Variable", "Satoshi-Regular", var(--font-ui), sans-serif;
                     transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
                 }
@@ -287,18 +287,18 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                 }
 
                 html[data-theme="light"] .newsletter-container {
-                    --newsletter-bg: #faf9f6;
-                    --newsletter-surface: #ffffff;
-                    --newsletter-text: #11110f;
-                    --newsletter-copy: #3f3f3b;
-                    --newsletter-muted: #66665f;
-                    --newsletter-placeholder: #686862;
-                    --newsletter-border: #cac9c2;
-                    --newsletter-border-strong: #777770;
-                    --newsletter-focus: #7d0018;
-                    --newsletter-button: #bb182e;
-                    --newsletter-button-hover: #7d0018;
-                    box-shadow: 0 24px 64px rgba(20, 20, 18, 0.2);
+                    --newsletter-bg: var(--color-background);
+                    --newsletter-surface: var(--color-surface);
+                    --newsletter-text: var(--color-text);
+                    --newsletter-copy: var(--ui-text-muted);
+                    --newsletter-muted: var(--ui-text-subtle);
+                    --newsletter-placeholder: var(--ui-field-placeholder);
+                    --newsletter-border: var(--ui-border);
+                    --newsletter-border-strong: var(--ui-border-strong);
+                    --newsletter-focus: var(--ui-focus-ring);
+                    --newsletter-button: var(--ui-button-bg);
+                    --newsletter-button-hover: var(--ui-button-hover-bg);
+                    box-shadow: 0 24px 64px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
                 }
 
                 .newsletter-close-btn {
@@ -440,7 +440,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                     border: 1px solid var(--newsletter-button);
                     border-radius: 9px;
                     background: var(--newsletter-button);
-                    color: #ffffff;
+                    color: var(--ui-button-text);
                     font-family: inherit;
                     font-size: 0.88rem;
                     font-weight: 650;
@@ -450,7 +450,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
                 }
 
-                .newsletter-submit-btn:hover {
+                .newsletter-submit-btn:hover:not(:disabled):not([aria-disabled="true"]) {
                     border-color: var(--newsletter-button-hover);
                     background: var(--newsletter-button-hover);
                     transform: translateY(-1px);
@@ -461,7 +461,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                 }
 
                 .newsletter-submit-btn:disabled {
-                    opacity: 0.68;
+                    opacity: var(--ui-disabled-opacity);
                     cursor: not-allowed;
                     transform: none;
                 }

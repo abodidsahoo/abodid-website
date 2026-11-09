@@ -557,7 +557,7 @@ const NewsletterPopup = () => {
                         }
 
                         .newsletter-popup-dialog::backdrop {
-                            background: rgba(36, 68, 202, 0.9);
+                            background: var(--ui-overlay);
                         }
 
                         @media (max-width: 720px) {

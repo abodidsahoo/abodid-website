@@ -161,7 +161,7 @@ const FlowCardStack = ({ images = [] }) => {
             </div>
 
             <style>{`
-                .fcs-section {
+                    .fcs-section {
                     position: relative;
                     height: ${STACK_SECTION_H};
                     z-index: 10;
@@ -191,11 +191,10 @@ const FlowCardStack = ({ images = [] }) => {
                 }
 
                 .fcs-card {
-                    background: #fff;
+                    background: var(--color-surface);
                     border-radius: 3px;
                     overflow: hidden;
-                    box-shadow:
-                        0 20px 60px rgba(0,0,0,0.35),
+                    box-shadow: 0 20px 60px color-mix(in srgb, var(--ui-shadow-color) 35%, transparent),
                         0 4px 16px rgba(0,0,0,0.18);
                     width: min(520px, 72vw);
                     aspect-ratio: 16 / 9;

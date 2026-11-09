@@ -1,11 +1,8 @@
-/* 
-   MAJOR COLOR PALETTE REFERENCE 
-   Source: User Request (Step 39)
-*/
+/* Compatibility for older stylesheets. The editable defaults live in global.css. */
 :root {
-    --palette-red: #EA2A10;
-    --palette-light: #F9F8F3;
-    --palette-dark: #010101;
-    --palette-sand: #E0DBD3;
-    --palette-grey: #9E9992;
+  --palette-red: var(--color-primary);
+  --palette-light: var(--color-background);
+  --palette-dark: var(--color-text);
+  --palette-sand: color-mix(in srgb, var(--color-background) 85%, var(--color-text));
+  --palette-grey: color-mix(in srgb, var(--color-background) 55%, var(--color-text));
 }

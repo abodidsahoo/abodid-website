@@ -53,7 +53,7 @@ const pageDescription =
 
     :global(body.one-photo-route) {
         --rw-page-surface: linear-gradient(180deg, #fbf8f4 0%, #f3eee7 100%);
-        --rw-panel-surface: rgba(255, 255, 255, 0.98);
+        --rw-panel-surface: color-mix(in srgb, var(--color-surface) 98%, transparent);
         --rw-panel-border: rgba(35, 28, 24, 0.1);
         --rw-muted: #564d46;
         --rw-subtle-text: #6d635b;
@@ -128,7 +128,7 @@ const pageDescription =
         padding: clamp(1rem, 2.2vw, 1.4rem);
         border-radius: 24px;
         border-color: rgba(35, 28, 24, 0.08);
-        background: rgba(255, 255, 255, 0.96);
+        background: color-mix(in srgb, var(--color-surface) 96%, transparent);
         box-shadow: 0 14px 32px rgba(36, 24, 15, 0.06);
     }
 
@@ -145,7 +145,7 @@ const pageDescription =
 
     :global(.rw-textarea) {
         border-color: rgba(35, 28, 24, 0.12);
-        background: #ffffff;
+        background: var(--color-surface);
         color: var(--rw-text);
     }
 
@@ -164,7 +164,7 @@ const pageDescription =
 
     :global(.rw-button--primary) {
         background: var(--color-brand-red);
-        color: #ffffff;
+        color: var(--color-primary-text);
         box-shadow: 0 12px 24px rgba(163, 0, 33, 0.16);
     }
 
@@ -173,7 +173,7 @@ const pageDescription =
     }
 
     :global(.rw-button--secondary) {
-        background: #ffffff;
+        background: var(--color-surface);
         color: var(--rw-text);
         border-color: rgba(35, 28, 24, 0.12);
     }
@@ -225,7 +225,7 @@ const pageDescription =
         padding: 1rem 1.05rem;
         border-radius: 22px;
         border: 1px solid rgba(22, 28, 38, 0.08);
-        background: #ffffff;
+        background: var(--color-surface);
     }
 
     :global(.one-photo-panel__header) {

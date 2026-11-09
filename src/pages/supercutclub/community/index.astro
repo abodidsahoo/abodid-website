@@ -372,8 +372,7 @@ const quickGuideItems = [
 
 <style>
   :global(body.sccm-page) {
-    background:
-      radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 24%),
+    background: radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 24%),
       radial-gradient(circle at top right, rgba(238, 90, 54, 0.12), transparent 24%),
       #080b12;
     color: #fff8ee;
@@ -398,11 +397,11 @@ const quickGuideItems = [
     justify-content: space-between;
     gap: 1rem;
     padding: 0.9rem 1.2rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
     border-radius: 999px;
     background: rgba(8, 11, 18, 0.84);
     backdrop-filter: blur(18px);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
   }
 
   .sccm-wordmark {
@@ -522,7 +521,7 @@ const quickGuideItems = [
 
   .sccm-hero-copy h1 span {
     display: block;
-    background: linear-gradient(120deg, #0f766e 0%, #2563eb 50%, #ee5a36 100%);
+    background: linear-gradient(120deg, #0f766e 0%, var(--color-primary) 50%, #ee5a36 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     padding-bottom: 0.15em;
@@ -558,10 +557,10 @@ const quickGuideItems = [
   .sccm-card,
   .sccm-copy-panel,
   .sccm-cta-band {
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
     border-radius: 1.7rem;
     background: rgba(14, 18, 28, 0.82);
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 24px 48px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
   }
 
   .sccm-stat-card {
@@ -605,7 +604,7 @@ const quickGuideItems = [
 
   .sccm-panel-list div {
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
   }
 
   .sccm-panel-list span {
@@ -643,7 +642,7 @@ const quickGuideItems = [
   .sccm-divider span {
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-surface) 16%, transparent), transparent);
   }
 
   .sccm-divider i {
@@ -652,7 +651,7 @@ const quickGuideItems = [
     width: 2rem;
     height: 2rem;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 10%, transparent);
     font-style: normal;
     font-family: var(--font-mono);
     font-size: 0.9rem;
@@ -698,9 +697,8 @@ const quickGuideItems = [
     height: 110px;
     margin-bottom: 0.15rem;
     border-radius: 1.2rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 5%, transparent), color-mix(in srgb, var(--color-surface) 2%, transparent));
     overflow: hidden;
   }
 
@@ -716,7 +714,7 @@ const quickGuideItems = [
     height: 66px;
     border-radius: 0.95rem;
     background: rgba(37, 99, 235, 0.2);
-    border: 2px solid #2563eb;
+    border: 2px solid var(--color-primary);
   }
 
   .sccm-pillar-illustration-1 span:nth-child(2) {
@@ -770,8 +768,8 @@ const quickGuideItems = [
     top: 22px;
     height: 34px;
     border-radius: 0.9rem;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--color-surface) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 10%, transparent);
   }
 
   .sccm-pillar-illustration-3 span:nth-child(2) {
@@ -779,8 +777,7 @@ const quickGuideItems = [
     right: 24px;
     bottom: 22px;
     height: 2px;
-    background:
-      linear-gradient(90deg, rgba(37, 99, 235, 0.5), rgba(238, 90, 54, 0.6), rgba(15, 118, 110, 0.5));
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.5), rgba(238, 90, 54, 0.6), rgba(15, 118, 110, 0.5));
   }
 
   .sccm-pillar-illustration-3 span:nth-child(3) {
@@ -853,8 +850,8 @@ const quickGuideItems = [
     align-items: start;
     padding: 1rem;
     border-radius: 1.1rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
   }
 
   .sccm-flow-list span {
@@ -863,7 +860,7 @@ const quickGuideItems = [
     width: 2rem;
     height: 2rem;
     border-radius: 0.7rem;
-    background: linear-gradient(135deg, #0f766e, #2563eb);
+    background: linear-gradient(135deg, #0f766e, var(--color-primary));
     color: #fff8ee;
     font-family: var(--font-mono);
     font-size: 0.8rem;
@@ -889,8 +886,7 @@ const quickGuideItems = [
     gap: 2rem;
     margin-top: clamp(2rem, 5vw, 4rem);
     padding: clamp(1.8rem, 4vw, 2.8rem);
-    background:
-      radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 30%),
+    background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 30%),
       linear-gradient(145deg, rgba(14, 18, 28, 0.98), rgba(23, 29, 44, 0.98));
   }
 
@@ -912,11 +908,11 @@ const quickGuideItems = [
     min-height: 100%;
     text-align: left;
     padding: 1rem 1.15rem;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 16%, transparent);
     border-radius: 1.2rem;
-    background: rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--color-surface) 6%, transparent);
     color: #fff8ee;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 14px 30px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
     transition:
       color 0.2s ease,
       background-color 0.2s ease,
@@ -963,8 +959,8 @@ const quickGuideItems = [
     width: fit-content;
     padding: 0.78rem 1rem;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 10%, transparent);
+    background: color-mix(in srgb, var(--color-surface) 4%, transparent);
     font-family: var(--font-mono);
     font-size: 0.78rem;
     letter-spacing: 0.08em;
@@ -980,8 +976,8 @@ const quickGuideItems = [
   .sccm-cta-link:hover,
   .sccm-cta-link:focus-visible {
     transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.24);
+    background: color-mix(in srgb, var(--color-surface) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-surface) 24%, transparent);
   }
 
   @media (max-width: 1120px) {
@@ -1033,7 +1029,7 @@ const quickGuideItems = [
       flex-basis: 100%;
       margin-top: 1.2rem;
       padding-top: 1.2rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
       justify-content: flex-start;
       animation: sccmMenuSlideDown 0.3s ease forwards;
     }

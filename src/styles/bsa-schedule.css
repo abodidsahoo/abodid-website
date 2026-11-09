@@ -6,7 +6,7 @@
   --bsa-text: var(--text-primary);
   --bsa-muted: var(--text-secondary);
   --bsa-dim: var(--text-tertiary);
-  --bsa-highlight-core: #3f6b52;
+  --bsa-highlight-core: var(--color-success);
   --bsa-highlight-border: color-mix(in srgb, var(--bsa-highlight-core) 74%, var(--bsa-border));
   --bsa-highlight-fill-soft: color-mix(in srgb, var(--bsa-highlight-core) 10%, var(--bsa-surface));
   --bsa-highlight-fill-strong: color-mix(in srgb, var(--bsa-highlight-core) 16%, var(--bsa-surface));
@@ -82,8 +82,7 @@
   border: 1px solid var(--bsa-border);
   border-radius: 18px;
   padding: 1rem;
-  background:
-    linear-gradient(
+  background: linear-gradient(
       140deg,
       color-mix(in srgb, var(--bsa-surface) 88%, transparent),
       color-mix(in srgb, var(--bsa-surface) 70%, transparent)
@@ -108,8 +107,7 @@
 .bsa-day-group {
   grid-column: 1 / -1;
   border-color: color-mix(in srgb, var(--bsa-highlight-core) 34%, var(--bsa-border));
-  background:
-    linear-gradient(
+  background: linear-gradient(
       140deg,
       color-mix(in srgb, var(--bsa-highlight-core) 10%, var(--bsa-surface)),
       color-mix(in srgb, var(--bsa-surface) 88%, transparent)
@@ -386,8 +384,7 @@
   border: 1px solid color-mix(in srgb, var(--bsa-highlight-core) 34%, var(--bsa-border));
   border-radius: 14px;
   padding: 0.7rem 0.8rem;
-  background:
-    linear-gradient(
+  background: linear-gradient(
       145deg,
       color-mix(in srgb, var(--bsa-highlight-core) 12%, var(--bsa-surface)),
       color-mix(in srgb, var(--bsa-surface) 90%, transparent)
@@ -475,8 +472,7 @@
   border: 1px solid color-mix(in srgb, var(--bsa-accent) 30%, var(--bsa-border));
   border-radius: 16px;
   padding: 1rem;
-  background:
-    linear-gradient(
+  background: linear-gradient(
       160deg,
       color-mix(in srgb, var(--bsa-accent) 12%, var(--bsa-surface)),
       color-mix(in srgb, var(--bsa-surface) 92%, transparent)
@@ -737,7 +733,7 @@
   border-radius: 14px;
   background: color-mix(in srgb, var(--bsa-surface) 95%, transparent);
   backdrop-filter: blur(12px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--ui-shadow-color) 25%, transparent);
   padding: 0.95rem;
   z-index: 40;
   transform: translateY(calc(100% + 1.5rem));

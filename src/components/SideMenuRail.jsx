@@ -804,7 +804,7 @@ const SideMenuRail = ({
             display: flex;
             flex-direction: column;
             pointer-events: none;
-            color: #ffffff;
+            color: var(--color-primary-text);
           }
 
           /*
@@ -812,11 +812,11 @@ const SideMenuRail = ({
            * inline style string (">" becomes "&gt;"), so the old selector
            * did not reliably restore interaction after the shell disabled it.
            */
-          .top-menu-bar {
+            .top-menu-bar {
             pointer-events: auto;
           }
 
-          .top-menu-bar {
+            .top-menu-bar {
             height: var(--app-topbar-height);
             display: grid;
             grid-template-columns:
@@ -827,11 +827,11 @@ const SideMenuRail = ({
             gap: clamp(0.85rem, 2.4vw, 2.35rem);
             padding: 0 clamp(1rem, 3vw, 2rem);
             background: #050505;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid color-mix(in srgb, var(--color-surface) 12%, transparent);
+            box-shadow: 0 14px 36px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
           }
 
-          .top-menu-button {
+            .top-menu-button {
             border: 0;
             background: transparent;
             color: inherit;
@@ -857,13 +857,13 @@ const SideMenuRail = ({
           }
 
           .top-menu-button:focus-visible .top-menu-button-text {
-            color: rgba(255, 255, 255, 0.72);
+            color: color-mix(in srgb, var(--color-surface) 72%, transparent);
             text-decoration: underline;
             text-decoration-thickness: 1px;
             text-underline-offset: 0.28em;
           }
 
-          .top-menu-icon {
+            .top-menu-icon {
             position: relative;
             width: 30px;
             height: 30px;
@@ -873,13 +873,13 @@ const SideMenuRail = ({
             flex: 0 0 auto;
           }
 
-          .top-menu-line {
+            .top-menu-line {
             position: absolute;
             left: 50%;
             width: 28px;
             height: 2px;
             border-radius: 999px;
-            background: #ffffff;
+            background: var(--color-surface);
             transform: translate(-50%, -50%);
             transition: transform 0.24s ease, opacity 0.18s ease, top 0.24s ease;
           }
@@ -910,7 +910,7 @@ const SideMenuRail = ({
             transform: translate(-50%, -50%) rotate(-45deg);
           }
 
-          .top-menu-primary {
+            .top-menu-primary {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -926,7 +926,7 @@ const SideMenuRail = ({
           }
 
           .top-menu-primary-link {
-            color: rgba(255, 255, 255, 0.78);
+            color: color-mix(in srgb, var(--color-surface) 78%, transparent);
             text-decoration: none;
             cursor: pointer;
             font-family: var(--font-ui);
@@ -964,7 +964,7 @@ const SideMenuRail = ({
             transform-origin: left center;
           }
 
-          .top-menu-breadcrumbs {
+            .top-menu-breadcrumbs {
             min-width: 0;
             max-width: min(28vw, 360px);
             overflow: hidden;
@@ -982,7 +982,7 @@ const SideMenuRail = ({
             overflow: hidden;
             font-size: 0.72rem;
             letter-spacing: 0.06em;
-            color: rgba(255, 255, 255, 0.68);
+            color: color-mix(in srgb, var(--color-surface) 68%, transparent);
             text-overflow: ellipsis;
           }
 
@@ -1004,7 +1004,7 @@ const SideMenuRail = ({
             min-width: 54px;
           }
 
-          .top-menu-right {
+            .top-menu-right {
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -1030,7 +1030,7 @@ const SideMenuRail = ({
           .top-menu-scroll-bar {
             width: 100%;
             height: 100%;
-            background: #ffffff;
+            background: var(--color-surface);
             transform: scaleX(0);
             transform-origin: left center;
             will-change: transform;
@@ -1045,7 +1045,7 @@ const SideMenuRail = ({
             cursor: pointer;
           }
 
-          .top-menu-panel {
+            .top-menu-panel {
             position: fixed;
             top: var(--app-header-offset);
             left: 0;
@@ -1055,15 +1055,15 @@ const SideMenuRail = ({
             grid-template-columns: minmax(250px, 0.7fr) minmax(0, 1.3fr);
             max-height: calc(100vh - var(--app-header-offset));
             overflow: auto;
-            background: rgba(255, 255, 255, 0.96);
-            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+            box-shadow: 0 28px 70px color-mix(in srgb, var(--ui-shadow-color) 34%, transparent);
             cursor: auto !important;
           }
 
-          .top-menu-panel .side-menu-main {
+            .top-menu-panel .side-menu-main {
             min-height: min(460px, calc(100vh - var(--app-header-offset)));
             background: var(--color-brand-red);
-            color: #fff;
+            color: var(--color-primary-text);
             padding: clamp(2rem, 4vw, 3.6rem);
             display: flex;
             flex-direction: column;
@@ -1084,8 +1084,8 @@ const SideMenuRail = ({
             cursor: pointer !important;
           }
 
-          .top-menu-panel .side-menu-secondary {
-            background: rgba(255, 255, 255, 0.96);
+            .top-menu-panel .side-menu-secondary {
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
             color: #171717;
             padding: clamp(2rem, 4vw, 3.6rem);
             overflow: auto;
@@ -1175,7 +1175,7 @@ const SideMenuRail = ({
           }
 
           [data-theme="light"] .top-menu-bar {
-            background: #ffffff;
+            background: var(--color-surface);
             color: #0f172a;
             border-color: rgba(15, 23, 42, 0.12);
           }
@@ -1527,16 +1527,16 @@ const SideMenuRail = ({
           overflow-x: hidden;
         }
 
-        .fixed-nav {
+          .fixed-nav {
           left: var(--app-rail-width) !important;
           width: calc(100% - var(--app-rail-width)) !important;
         }
 
-        .mobile-nav-shell {
+          .mobile-nav-shell {
           display: none;
         }
 
-        .side-menu-shell {
+          .side-menu-shell {
           --rail-width: var(--app-rail-width);
           --panel-width: min(720px, calc(100vw - var(--app-rail-width)));
           --panel-gap: 0px;
@@ -1549,11 +1549,11 @@ const SideMenuRail = ({
 
         .side-menu-rail,
         .side-menu-backdrop,
-        .side-menu-panel {
+          .side-menu-panel {
           pointer-events: auto;
         }
 
-        .side-menu-rail {
+          .side-menu-rail {
           position: relative;
           z-index: 10005;
           width: var(--rail-width);
@@ -1561,18 +1561,18 @@ const SideMenuRail = ({
           border: 0;
           border-radius: 0;
           background: var(--color-brand-red);
-          color: #fff;
+          color: var(--color-primary-text);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: space-between;
           padding: 1.15rem 0.65rem 2.5rem;
-          box-shadow: 0 22px 44px rgba(0, 0, 0, 0.28);
+          box-shadow: 0 22px 44px color-mix(in srgb, var(--ui-shadow-color) 28%, transparent);
           transition: box-shadow 0.25s ease, border-radius 0.25s ease;
         }
 
         .side-menu-rail:hover {
-          box-shadow: 0 26px 50px rgba(0, 0, 0, 0.34);
+          box-shadow: 0 26px 50px color-mix(in srgb, var(--ui-shadow-color) 34%, transparent);
         }
 
         .side-menu-scroll-track {
@@ -1593,7 +1593,7 @@ const SideMenuRail = ({
         .side-menu-scroll-bar {
           width: 100%;
           height: 100%;
-          background: #ffffff;
+          background: var(--color-surface);
           transform: scaleY(0);
           transform-origin: top center;
           will-change: transform;
@@ -1651,7 +1651,7 @@ const SideMenuRail = ({
           width: 34px;
           height: 2px;
           border-radius: 999px;
-          background: #fff;
+          background: var(--color-surface);
           display: block;
           margin: 0;
           transform-origin: center;
@@ -1700,7 +1700,7 @@ const SideMenuRail = ({
           letter-spacing: 0.32em;
         }
 
-        .side-menu-backdrop {
+          .side-menu-backdrop {
           position: fixed;
           inset: 0;
           border: 0;
@@ -1709,7 +1709,7 @@ const SideMenuRail = ({
           cursor: pointer;
         }
 
-        .side-menu-panel {
+          .side-menu-panel {
           position: fixed;
           top: var(--side-menu-top);
           left: var(--rail-width);
@@ -1717,19 +1717,19 @@ const SideMenuRail = ({
           height: var(--side-panel-height);
           display: grid;
           grid-template-rows: minmax(300px, 51%) 1fr;
-          background: rgba(255, 255, 255, 0.92);
+          background: color-mix(in srgb, var(--color-surface) 92%, transparent);
           z-index: 10003;
           border-radius: 0;
           overflow: hidden;
           border: none;
-          box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+          box-shadow: 0 28px 70px color-mix(in srgb, var(--ui-shadow-color) 34%, transparent);
           transform-origin: left center;
           cursor: auto !important;
         }
 
-        .side-menu-main {
+          .side-menu-main {
           background: var(--color-brand-red);
-          color: #fff;
+          color: var(--color-primary-text);
           padding: 2.45rem 2.5rem 2.55rem 2.9rem;
           display: flex;
           flex-direction: column;
@@ -1737,7 +1737,7 @@ const SideMenuRail = ({
           gap: 1rem;
         }
 
-        .side-menu-primary-link {
+          .side-menu-primary-link {
           color: inherit;
           text-decoration: none;
           font-family: var(--font-display);
@@ -1750,15 +1750,15 @@ const SideMenuRail = ({
           cursor: pointer !important;
         }
 
-        .side-menu-secondary {
-          background: rgba(255, 255, 255, 0.96);
+          .side-menu-secondary {
+          background: color-mix(in srgb, var(--color-surface) 96%, transparent);
           color: #171717;
           padding: 1.7rem 2.3rem 1.85rem 2.85rem;
           overflow: hidden;
           display: block;
         }
 
-        .side-menu-secondary-grid {
+          .side-menu-secondary-grid {
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(0, 0.96fr);
           gap: 1.75rem;
@@ -1914,8 +1914,8 @@ const SideMenuRail = ({
             align-items: center;
             gap: 0.9rem;
             background: #050505;
-            color: #ffffff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--color-primary-text);
+            border-bottom: 1px solid color-mix(in srgb, var(--color-surface) 12%, transparent);
           }
 
           .mobile-topbar-brand {
@@ -1947,9 +1947,9 @@ const SideMenuRail = ({
             justify-content: center;
             min-height: 32px;
             padding: 0.45rem 0.95rem;
-            border: 1px solid rgba(255, 255, 255, 0.26);
+            border: 1px solid color-mix(in srgb, var(--color-surface) 26%, transparent);
             border-radius: 999px;
-            color: #ffffff;
+            color: var(--color-primary-text);
             font-family: var(--font-ui);
             font-size: 0.7rem;
             font-weight: 600;
@@ -2008,7 +2008,7 @@ const SideMenuRail = ({
             width: 22px;
             height: 2px;
             border-radius: 999px;
-            background: #ffffff;
+            background: var(--color-surface);
             transform: translate(-50%, -50%);
             transition: transform 0.24s ease, opacity 0.18s ease;
           }
@@ -2040,7 +2040,7 @@ const SideMenuRail = ({
           }
 
           .mobile-menu-text {
-            color: rgba(255, 255, 255, 0.84);
+            color: color-mix(in srgb, var(--color-surface) 84%, transparent);
           }
 
           .mobile-topbar-spacer {
@@ -2054,8 +2054,8 @@ const SideMenuRail = ({
             align-items: center;
             padding: 0 1rem;
             background: #050505;
-            color: #ffffff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--color-primary-text);
+            border-bottom: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
           }
 
           .side-menu-shell {
@@ -2083,7 +2083,7 @@ const SideMenuRail = ({
             overflow: hidden;
             background: var(--color-brand-red);
             border-radius: 0;
-            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.42);
+            box-shadow: 0 22px 50px color-mix(in srgb, var(--ui-shadow-color) 42%, transparent);
           }
 
           .side-menu-main {

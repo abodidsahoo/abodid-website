@@ -144,8 +144,8 @@ const HandTrackingDemo = ({ images }) => {
                 .hand-tracking-demo {
                     width: 100vw;
                     height: 100vh;
-                    background-color: #000;
-                    color: #fff;
+                    background-color: var(--color-text);
+                    color: var(--color-primary-text);
                     font-family: var(--font-ui);
                     overflow: hidden;
                     position: relative;
@@ -163,10 +163,10 @@ const HandTrackingDemo = ({ images }) => {
                 }
 
                 .gesture-toggle {
-                    background: rgba(0, 0, 0, 0.8);
-                    border: 1px solid rgba(255, 255, 255, 0.4);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 80%, transparent);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 40%, transparent);
                     padding: 12px 24px;
-                    color: #fff;
+                    color: var(--color-primary-text);
                     border-radius: 8px;
                     cursor: pointer;
                     display: flex;
@@ -178,8 +178,8 @@ const HandTrackingDemo = ({ images }) => {
                 }
 
                 .gesture-toggle:hover {
-                    border-color: rgba(255, 255, 255, 0.8);
-                    background: rgba(255, 255, 255, 0.1);
+                    border-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+                    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
                 }
 
                 .gesture-toggle.active {
@@ -191,7 +191,7 @@ const HandTrackingDemo = ({ images }) => {
                     display: flex;
                     align-items: center;
                     gap: 10px;
-                    background: rgba(0, 0, 0, 0.6);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 60%, transparent);
                     padding: 8px 16px;
                     border-radius: 20px;
                     font-size: 0.8rem;
@@ -213,7 +213,7 @@ const HandTrackingDemo = ({ images }) => {
                     left: 0;
                     width: 100%;
                     height: 2px;
-                    background: rgba(255, 255, 255, 0.1);
+                    background: color-mix(in srgb, var(--color-surface) 10%, transparent);
                     border-radius: 0 0 20px 20px;
                     overflow: hidden;
                 }
@@ -232,11 +232,11 @@ const HandTrackingDemo = ({ images }) => {
                     width: 240px;
                     height: 180px;
                     z-index: 1000;
-                    background: rgba(0, 0, 0, 0.9);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    background: color-mix(in srgb, var(--ui-shadow-color) 90%, transparent);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
                     border-radius: 12px;
                     overflow: hidden;
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+                    box-shadow: 0 8px 32px color-mix(in srgb, var(--ui-shadow-color) 50%, transparent);
                     backdrop-filter: blur(10px);
                 }
 
@@ -255,7 +255,7 @@ const HandTrackingDemo = ({ images }) => {
                     left: 0;
                     right: 0;
                     padding: 8px 12px;
-                    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+                    background: linear-gradient(to top, color-mix(in srgb, var(--ui-shadow-color) 80%, transparent), transparent);
                     display: flex;
                     align-items: center;
                     gap: 8px;

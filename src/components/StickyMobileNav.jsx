@@ -45,10 +45,10 @@ const StickyMobileNav = () => {
                     background: rgba(10, 10, 10, 0.8);
                     backdrop-filter: blur(12px);
                     -webkit-backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border: 1px solid color-mix(in srgb, var(--color-surface) 10%, transparent);
                     padding: 0.8rem 1.5rem;
                     border-radius: 100px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                    box-shadow: 0 10px 30px color-mix(in srgb, var(--ui-shadow-color) 30%, transparent);
                     gap: 1.5rem;
                     opacity: 0;
                     animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
@@ -77,7 +77,7 @@ const StickyMobileNav = () => {
                 .divider {
                     width: 1px;
                     height: 12px;
-                    background: rgba(255, 255, 255, 0.2);
+                    background: color-mix(in srgb, var(--color-surface) 20%, transparent);
                 }
 
                 @media (min-width: 769px) {

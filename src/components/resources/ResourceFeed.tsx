@@ -293,14 +293,14 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
                 color: var(--text-primary);
                 font-size: 1.1rem;
                 font-family: inherit;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 3%, transparent);
                 transition: all 0.2s ease;
             }
 
             .search-input-large:focus {
                 outline: none;
                 border-color: var(--text-primary);
-                box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+                box-shadow: 0 8px 24px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
             }
 
             .search-icon-large {
@@ -325,7 +325,7 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
                 font-weight: 600;
                 text-decoration: none;
                 white-space: nowrap;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
                 transition: all 0.2s ease;
                 border: 1px solid var(--btn-primary-bg);
             }
@@ -334,9 +334,9 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
             a.submit-to-hub-btn:visited,
             a.submit-to-hub-btn:hover,
             a.submit-to-hub-btn:focus-visible {
-                color: #ffffff;
+                color: var(--color-primary-text);
                 text-decoration: none;
-                -webkit-text-fill-color: #ffffff;
+                -webkit-text-fill-color: var(--color-primary-text);
             }
 
             a.submit-to-hub-btn:hover,
@@ -344,8 +344,8 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
                 transform: translateY(-1px);
                 background: color-mix(in srgb, var(--btn-primary-bg) 88%, black);
                 border-color: color-mix(in srgb, var(--btn-primary-bg) 88%, black);
-                color: #ffffff;
-                box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+                color: var(--color-primary-text);
+                box-shadow: 0 6px 16px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
             }
 
             .submit-to-hub-btn svg {
@@ -394,7 +394,7 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
                 background: var(--chip-active-bg);
                 color: var(--chip-active-text);
                 border-color: var(--chip-active-bg);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
                 transform: scale(1.05);
             }
 
@@ -429,7 +429,7 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
 
             .resource-card-react:hover {
                 transform: translateY(-4px);
-                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+                box-shadow: 0 12px 24px color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
                 border-color: var(--border-strong);
             }
 
@@ -544,7 +544,7 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
                 transition: opacity 0.15s ease, transform 0.15s ease;
                 background: rgba(17, 24, 39, 0.9);
                 color: #f9fafb;
-                border: 1px solid rgba(255, 255, 255, 0.25);
+                border: 1px solid color-mix(in srgb, var(--color-surface) 25%, transparent);
                 border-radius: 999px;
                 padding: 6px 10px;
                 font-size: 11px;

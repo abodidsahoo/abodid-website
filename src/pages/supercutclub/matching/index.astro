@@ -775,8 +775,7 @@ const quickGuideItems = [
 
 <style>
   :global(body.scm-page) {
-    background:
-      radial-gradient(
+    background: radial-gradient(
         circle at top left,
         rgba(37, 99, 235, 0.12),
         transparent 24%
@@ -902,10 +901,9 @@ const quickGuideItems = [
     margin-top: clamp(0.8rem, 2vw, 1.3rem);
     padding: clamp(1.8rem, 4vw, 2.8rem);
     border-radius: 2.3rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid color-mix(in srgb, var(--color-surface) 8%, transparent);
     overflow: hidden;
-    background:
-      radial-gradient(
+    background: radial-gradient(
         circle at top left,
         rgba(37, 99, 235, 0.3),
         transparent 30%
@@ -958,7 +956,7 @@ const quickGuideItems = [
 
   .scm-hero-title-line {
     display: block;
-    text-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    text-shadow: 0 6px 24px color-mix(in srgb, var(--ui-shadow-color) 18%, transparent);
   }
 
   .scm-hero-title-line-accent {
@@ -1075,11 +1073,10 @@ const quickGuideItems = [
 
   .scm-hero-panel {
     padding: clamp(1.5rem, 3vw, 2rem);
-    border-color: rgba(255, 255, 255, 0.08);
-    background:
-      linear-gradient(180deg, rgba(13, 18, 29, 0.84), rgba(10, 14, 24, 0.92)),
+    border-color: color-mix(in srgb, var(--color-surface) 8%, transparent);
+    background: linear-gradient(180deg, rgba(13, 18, 29, 0.84), rgba(10, 14, 24, 0.92)),
       rgba(13, 18, 29, 0.88);
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 24px 48px color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
   }
 
   .scm-hero-panel h2 {
@@ -1105,7 +1102,7 @@ const quickGuideItems = [
 
   .scm-panel-list div {
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 10%, transparent);
   }
 
   .scm-panel-list span {
@@ -1243,8 +1240,7 @@ const quickGuideItems = [
     padding: clamp(1.8rem, 4vw, 2.5rem);
     margin: clamp(1rem, 3vw, 2rem) 0;
     border-radius: 2rem;
-    background:
-      radial-gradient(
+    background: radial-gradient(
         circle at top right,
         rgba(37, 99, 235, 0.18),
         transparent 28%
@@ -1295,8 +1291,7 @@ const quickGuideItems = [
     margin-top: clamp(2rem, 5vw, 4rem);
     padding: clamp(1.6rem, 4vw, 2.4rem);
     border-radius: 2rem;
-    background:
-      linear-gradient(135deg, rgba(238, 90, 54, 0.94), rgba(37, 99, 235, 0.92)),
+    background: linear-gradient(135deg, rgba(238, 90, 54, 0.94), rgba(37, 99, 235, 0.92)),
       #ee5a36;
     color: #fffaf4;
     box-shadow: 0 26px 48px rgba(37, 99, 235, 0.16);

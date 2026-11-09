@@ -623,7 +623,7 @@ const afterCourse = [
         border-radius: 8px;
         background: var(--bg-surface);
         overflow: hidden;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.16);
+        box-shadow: 0 24px 80px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
     }
 
     .vault-topbar {
@@ -648,8 +648,7 @@ const afterCourse = [
         height: 292px;
         margin: 1rem;
         border: 1px solid var(--border-subtle);
-        background:
-            linear-gradient(to right, var(--grid-color-2) 1px, transparent 1px),
+        background: linear-gradient(to right, var(--grid-color-2) 1px, transparent 1px),
             linear-gradient(to bottom, var(--grid-color-2) 1px, transparent 1px);
         background-size: 36px 36px;
         overflow: hidden;
@@ -735,13 +734,13 @@ const afterCourse = [
         margin: 1rem;
         padding: 1.25rem;
         border: 1px solid var(--border-subtle);
-        background: #ffffff;
-        color: #000000;
+        background: var(--color-surface);
+        color: var(--color-text);
     }
 
     .vault-note p {
         margin: 0 0 0.65rem;
-        color: #000000;
+        color: var(--color-text);
         font-family: var(--font-mono);
         font-size: 0.86rem;
         line-height: 1.55;
@@ -917,7 +916,7 @@ const afterCourse = [
 
     .example-panel {
         min-height: 390px;
-        border: 1px solid rgba(0, 0, 0, 0.08);
+        border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 8%, transparent);
         background: var(--color-brand-red);
         padding: clamp(1.25rem, 2.4vw, 1.8rem);
         display: flex;
@@ -934,18 +933,18 @@ const afterCourse = [
 
     .example-panel p {
         margin: 0 0 1.2rem;
-        color: #000000;
+        color: var(--color-text);
     }
 
     .example-label {
-        color: rgba(255, 255, 255, 0.72);
+        color: color-mix(in srgb, var(--color-surface) 72%, transparent);
         margin-bottom: 1.5rem;
     }
 
     .selected-text {
         display: inline;
-        background: #ffffff;
-        color: #000000;
+        background: var(--color-surface);
+        color: var(--color-text);
         padding: 0.08em 0.22em;
         border-radius: 2px;
         box-decoration-break: clone;
@@ -960,9 +959,9 @@ const afterCourse = [
     }
 
     .example-tags span {
-        background: #ffffff;
-        color: #000000;
-        border: 1px solid rgba(0, 0, 0, 0.16);
+        background: var(--color-surface);
+        color: var(--color-text);
+        border: 1px solid color-mix(in srgb, var(--ui-shadow-color) 16%, transparent);
         border-radius: 4px;
         padding: 0.35rem 0.55rem;
         font-family: var(--font-mono);

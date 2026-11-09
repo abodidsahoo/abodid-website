@@ -245,7 +245,7 @@ const description = `Curated resources by ${profile.full_name || profile.usernam
         background: var(--bg-surface-hover);
         border-color: var(--text-secondary);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
     }
 
     /* Active Tab Styling - Bold highlight with underline */
@@ -257,7 +257,7 @@ const description = `Curated resources by ${profile.full_name || profile.usernam
         border-bottom-width: 4px;
         font-weight: 700;
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 6px 16px color-mix(in srgb, var(--ui-shadow-color) 15%, transparent);
     }
 
     /* Tab Content - Hide all by default */
