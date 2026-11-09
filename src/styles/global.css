@@ -535,9 +535,9 @@
   --link-hover-color: var(--light-link-hover-color);
   --selection-bg: var(--light-selection-bg);
   --selection-fg: var(--light-selection-fg);
-  --btn-primary-bg: var(--light-text-primary);
+  --btn-primary-bg: var(--color-button);
   --btn-primary-text: var(--color-button-text);
-  --btn-primary-border: var(--light-text-primary);
+  --btn-primary-border: var(--color-text);
   --btn-secondary-text: var(--light-text-primary);
   --btn-secondary-border: var(--light-border-strong);
   --chip-active-bg: var(--color-button);
@@ -1056,20 +1056,6 @@ main {
   border-color: var(--accent-primary);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
-}
-
-/* Primary Button: Solid Black */
-[data-theme="light"] a.btn-primary,
-[data-theme="light"] button.btn-primary {
-  background: var(--btn-primary-bg) !important;
-  color: var(--btn-primary-text) !important;
-  border-color: var(--btn-primary-border) !important;
-}
-
-[data-theme="light"] a.btn-primary:hover,
-[data-theme="light"] button.btn-primary:hover {
-  background: var(--btn-primary-bg) !important;
-  border-color: var(--accent-primary) !important;
 }
 
 /* CARDS & PANELS */

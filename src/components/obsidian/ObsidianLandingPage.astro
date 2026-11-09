@@ -1156,14 +1156,19 @@ const headingParts = headingLines.map((line) => {
     padding: 0.85rem 1.15rem !important;
     border: 1.5px solid var(--color-text) !important;
     border-radius: 14px !important;
-    color: var(--color-text) !important;
     font: 750 0.74rem/1.15 var(--font-mono) !important;
     letter-spacing: 0.055em !important;
     text-transform: uppercase;
   }
 
-  .obsidian-primary-cta { background: var(--color-background) !important; }
-  .obsidian-secondary-cta { background: var(--color-button) !important; }
+  .obsidian-primary-cta {
+    background: var(--color-background) !important;
+    color: var(--color-text) !important;
+  }
+  .obsidian-secondary-cta {
+    background: var(--color-button) !important;
+    color: var(--color-button-text) !important;
+  }
 
   .obsidian-primary-cta:hover,
   .obsidian-primary-cta:focus-visible,
