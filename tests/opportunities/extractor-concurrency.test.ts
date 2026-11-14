@@ -73,6 +73,29 @@ describe('Concurrent OpenRouter opportunity extraction', () => {
         }
     });
 
+    it('allows enough output tokens for the full JSON opportunity response', async () => {
+        const provider = vi.fn().mockResolvedValue(successfulOpenRouterResponse('Complete opportunity'));
+        vi.stubGlobal('fetch', provider);
+        await extractOpportunityWithLLM('Long opportunity page');
+        const request = JSON.parse(String(provider.mock.calls[0][1].body));
+        expect(request.max_tokens).toBeGreaterThanOrEqual(3000);
+        expect(request.max_tokens).toBeLessThanOrEqual(4096);
+    });
+
+    it('does not repeat a capped, truncated AI response', async () => {
+        const provider = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            model: 'mock/concurrent-model',
+            choices: [{
+                finish_reason: 'length',
+                message: { content: '{"title":"Truncated page"' },
+            }],
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+        vi.stubGlobal('fetch', provider);
+        await expect(extractOpportunityWithLLM('Long opportunity page'))
+            .rejects.toThrow('exceeded its output limit');
+        expect(provider).toHaveBeenCalledOnce();
+    });
+
     it('honours a transient rate-limit response and retries once', async () => {
         vi.spyOn(Math, 'random').mockReturnValue(0);
         const fetchMock = vi.fn()

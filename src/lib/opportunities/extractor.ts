@@ -7,9 +7,11 @@ const OPENROUTER_TIMEOUT_MS = 28_000;
 const OPENROUTER_MAX_ATTEMPTS = 2;
 const OPENROUTER_MAX_RETRY_DELAY_MS = 4_000;
 const OPENROUTER_RETRYABLE_STATUSES = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
+// A 1200-token budget truncated real JSON responses (finish_reason=length).
+// Keep an explicit cap to control spending while allowing complete extractions.
 const OPENROUTER_MAX_OUTPUT_TOKENS = Math.min(
-    2000,
-    Math.max(300, Number(import.meta.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS || process.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS) || 1200),
+    4096,
+    Math.max(512, Number(import.meta.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS || process.env.OPENROUTER_OPPORTUNITIES_MAX_TOKENS) || 3000),
 );
 
 export const getExtractionSystemPrompt = () => OPPORTUNITY_EXTRACTION_SYSTEM_PROMPT;
@@ -36,6 +38,13 @@ class OpenRouterRequestError extends Error {
     ) {
         super(message);
         this.name = 'OpenRouterRequestError';
+    }
+}
+
+export class OpportunityExtractionTruncatedError extends Error {
+    constructor() {
+        super('The AI response exceeded its output limit before extraction completed.');
+        this.name = 'OpportunityExtractionTruncatedError';
     }
 }
 
@@ -550,8 +559,14 @@ export async function extractOpportunityWithLLM(
 
             const jsonResponse = await response.json() as {
                 model?: string;
-                choices?: Array<{ message?: { content?: string } }>;
+                choices?: Array<{ finish_reason?: string | null; message?: { content?: string } }>;
             };
+            const finishReason = jsonResponse.choices?.[0]?.finish_reason;
+            if (finishReason === 'length') {
+                // Retrying the same capped request would spend more credits
+                // without solving an incomplete JSON response.
+                throw new OpportunityExtractionTruncatedError();
+            }
             const content = jsonResponse.choices?.[0]?.message?.content;
 
             if (!content) {
@@ -575,9 +590,11 @@ export async function extractOpportunityWithLLM(
             };
         } catch (error) {
             lastError = error instanceof Error ? error : new Error('Unknown provider failure');
-            const isRetryable = error instanceof OpenRouterRequestError
-                ? OPENROUTER_RETRYABLE_STATUSES.has(error.status)
-                : true;
+            const isRetryable = error instanceof OpportunityExtractionTruncatedError || error instanceof SyntaxError
+                ? false
+                : error instanceof OpenRouterRequestError
+                    ? OPENROUTER_RETRYABLE_STATUSES.has(error.status)
+                    : true;
             console.warn('Opportunity extraction provider attempt failed', {
                 attempt: attempt + 1,
                 models: modelsToTry,
@@ -593,5 +610,6 @@ export async function extractOpportunityWithLLM(
         }
     }
 
+    if (lastError instanceof OpportunityExtractionTruncatedError) throw lastError;
     throw new Error(`Opportunity extraction failed: ${lastError?.message || 'Unknown error'}`);
 }
