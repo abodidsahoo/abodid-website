@@ -59,6 +59,7 @@ export const SITEMAP_HUB_PATHS = new Set([
   "/awards",
   "/press",
   "/cv",
+  "/academic-portfolio",
   "/contact",
 ]);
 

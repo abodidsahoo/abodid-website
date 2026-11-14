@@ -1,0 +1,197 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { CV_DOWNLOAD_URL } from "../lib/cv";
+import { breadcrumbJsonLd, externalProfiles, personJsonLd, profilePageJsonLd } from "../lib/seoData";
+import "../styles/academic-portfolio.css";
+
+const path = "/academic-portfolio";
+const description = "Abodid Sahoo’s academic portfolio. Guest teaching in visual research, ethnographic filmmaking and exhibition design, with conference abstracts, student feedback and qualifications.";
+const programme = "https://www.cdh.cam.ac.uk/events/42211/";
+const email = "hello@abodid.com";
+const invitation = `mailto:${email}?subject=Academic%20speaking%20or%20teaching%20invitation`;
+const photoRoot = "https://assets.abodid.com/photos/variants/my-life";
+const photoFile = "abodid-bsa-2026-conference-01-a67a42ea76.webp";
+const sections = [
+  { id: "teaching", label: "Teaching" },
+  { id: "research", label: "Talks & research" },
+  { id: "education", label: "Education" },
+  { id: "invitations", label: "Host FAQs" },
+];
+const structuredData = [
+  personJsonLd(),
+  profilePageJsonLd(path, description),
+  breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Academic portfolio", path }]),
+];
+---
+
+<BaseLayout title="Academic Portfolio — Abodid Sahoo" description={description}
+  canonicalUrl={path} structuredData={structuredData}
+  image={`${photoRoot}/1600/${photoFile}`} imageAlt="Abodid Sahoo at the British Sociological Association conference in Manchester"
+  fullWidth={true} showNewsletterPopup={false} showCursorFollower={false}
+  showFooterNavigation={false} bodyClass="academic-portfolio">
+  <article class="academic-cv" data-pop-surface="cream">
+    <header class="academic-cover">
+      <div class="academic-cover__intro">
+        <p class="academic-label academic-cover__label">Academic portfolio</p>
+        <h1>Abodid Sahoo</h1>
+        <p class="academic-cover__statement">I teach with photographs, films and personal archives. My workshops connect visual research to the decisions we make behind a camera, in an edit or on the exhibition floor.</p>
+        <div class="academic-actions">
+          <a class="academic-action" data-pop-surface="yellow" href={invitation}>Invite me to speak <span aria-hidden="true">↗</span></a>
+          <a class="academic-link" href={CV_DOWNLOAD_URL}>Full CV (PDF)</a>
+        </div>
+      </div>
+      <figure class="academic-cover__photo">
+        <img src={`${photoRoot}/800/${photoFile}`}
+          srcset={`${photoRoot}/800/${photoFile} 800w, ${photoRoot}/1600/${photoFile} 1600w`}
+          sizes="(min-width: 1250px) 470px, (min-width: 720px) 39vw, 96vw"
+          width="800" height="533" alt="Abodid Sahoo speaking to delegates at a conference session" fetchpriority="high" />
+        <figcaption>BSA Annual Conference · <span class="academic-nowrap">Manchester, 2026</span></figcaption>
+      </figure>
+    </header>
+
+    <nav class="academic-index" aria-label="Academic portfolio sections">
+      {sections.map(({ id, label }) => <a href={`#${id}`}>{label}<span aria-hidden="true">↓</span></a>)}
+    </nav>
+
+    <section class="academic-section" id="teaching">
+      <h2>Invited teaching</h2>
+      <article class="academic-feature" data-pop-surface="blue">
+        <div class="academic-feature__heading">
+          <p class="academic-label">4 March 2027 · Online</p>
+          <h3>Cambridge Digital Humanities</h3>
+          <p>Digital and New Media Arts Data School<br />University of Cambridge</p>
+        </div>
+        <div class="academic-feature__module">
+          <p class="academic-label">Scheduled guest workshop · <span class="academic-nowrap">14:00–16:00 GMT</span></p>
+          <h4>Creative Non-Fiction Storytelling with an Autoethnographic Approach</h4>
+          <p>Participants will use a photograph or household object to tell a story from lived experience, consider whose story it is to share, and try a second form such as a photo-story or audio drama.</p>
+          <a class="academic-link" href={`${programme}#teaching-and-modules`}>Cambridge module &amp; teaching team</a>
+        </div>
+      </article>
+      <div class="academic-grid">
+        <article class="academic-card">
+          <p class="academic-label">3 November 2026 · Invited expert lecturer</p>
+          <h3>NIFT Bhubaneswar</h3>
+          <p>Two expert sessions, two hours each, for third-semester Fashion Communication students at the National Institute of Fashion Technology.</p>
+          <ul>
+            <li><strong>Material Manipulation with a Focus on Prop Design.</strong> How materials and regional craft shape a retail display.</li>
+            <li><strong>Window Design &amp; Budgeting.</strong> A case study of Tanishq’s Bhubaneswar flagship, from the brief and approvals to on-site costs.</li>
+          </ul>
+          <a class="academic-link" href="/nift-workshop-responses">NIFT student feedback</a>
+        </article>
+        <article class="academic-card">
+          <p class="academic-label">April 2026 · Guest lecturer</p>
+          <h3>University of Delhi</h3>
+          <p>Invited by Dr Pratyasha Sahoo to lead a guest lecture and practical workshop on ethnographic filmmaking for more than 50 BA students.</p>
+          <ul>
+            <li>Examined who holds the camera and how framing changes a documentary account.</li>
+            <li>Students practised titling images. We also covered building rapport with participants, lighting and subtitling.</li>
+          </ul>
+          <a class="academic-link" href="/du-workshop-responses">Delhi student feedback</a>
+        </article>
+      </div>
+      <details class="academic-disclosure academic-feedback">
+        <summary>What students took from the workshops</summary>
+        <div class="academic-feedback__quotes">
+          <figure>
+            <blockquote>“The best part for me was understanding the filmmaking techniques and also lighting as I often struggle with that.”</blockquote>
+            <figcaption><a href="/du-workshop-responses">University of Delhi workshop feedback</a></figcaption>
+          </figure>
+          <figure>
+            <blockquote>“His insights on store fronts and how the industry functions was much needed and highly appreciated.”</blockquote>
+            <figcaption><a href="/nift-workshop-responses">NIFT Bhubaneswar workshop feedback</a></figcaption>
+          </figure>
+        </div>
+      </details>
+    </section>
+
+    <section class="academic-section" id="research">
+      <h2>Talks &amp; research</h2>
+      <div class="academic-record">
+        <div class="academic-record__heading">
+          <p class="academic-label">8–10 April 2026 · Manchester</p>
+          <h3>British Sociological Association</h3>
+          <p>Annual Conference<br />University of Manchester</p>
+        </div>
+        <div>
+          <p>I chaired a conference session and presented two contributions co-authored with Yashaswinee Sahoo. The BSA covered my conference registration.</p>
+          <ul class="academic-papers">
+            <li><strong>Poster</strong><a href="https://www.britsoc.co.uk/media/27151/ac2026_poster_presentations.pdf#page=20">Cloud Memories and Algorithmic Recall: iCloud, AI Sorting, and Ownership</a></li>
+            <li><strong>Roundtable</strong><a href="https://www.britsoc.co.uk/media/27155/ac2026_day3_abstract_book_fri_10_april.pdf#page=12">Rejection Re-activates Unresolved Grief: Findings from an Archive-led Autoethnography</a></li>
+          </ul>
+          <a class="academic-link" href="/blog/how-i-got-into-a-major-research-conference-without-a-phd">My BSA conference account</a>
+        </div>
+      </div>
+      <div class="academic-grid">
+        <article class="academic-card">
+          <p class="academic-label">13–17 April 2026 · Bursary participant</p>
+          <h3>Cultural Heritage Data School</h3>
+          <p>At Cambridge I worked with photogrammetry and critical data visualisation. Our group designed and presented an activity for preserving cultural memory. CDH awarded a full course-fee bursary. The Ila Panda Centre for Arts supported my travel.</p>
+          <div class="academic-links">
+            <a href="https://www.cdh.cam.ac.uk/wp-content/uploads/2026/05/Abodid-Sahoo-Cambridge-Cultural-Heritage-Data-School-2026-1.pdf">My photo memoir at CDH (PDF)</a>
+            <a href="/blog/i-had-zero-savings-how-i-funded-a-uk-research-trip">Funding account</a>
+          </div>
+        </article>
+        <article class="academic-card">
+          <p class="academic-label">29 June 2026 · Panel moderator</p>
+          <h3>Utkal University</h3>
+          <p>Moderated <em>Gajapati Narratives: Books, Cinema &amp; Public Imagination</em> in Bhubaneswar, a discussion of Odisha’s cultural heritage through research, literature and film.</p>
+          <a class="academic-link" href="https://ommcomnews.com/odisha-news/gajapati-divas-celebrated-at-utkal-university/">Gajapati Divas event report</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="academic-section" id="education">
+      <h2>Education &amp; exhibition work</h2>
+      <div class="academic-record">
+        <div class="academic-record__heading">
+          <p class="academic-label">MA, 2022–23 · London</p>
+          <h3>Royal College of Art</h3>
+          <p>MA Digital Direction<br />Apple Scholarship · £28,000 full tuition</p>
+        </div>
+        <div>
+          <ul>
+            <li>For my graduate project, <em>Do ghosts feel jealous if you miss the living ones more than them?</em>, I brought family photographs, writing and moving image together to study grief.</li>
+            <li>Subsequently led media delivery for RCA graduate exhibitions across more than ten spaces, supporting students with lighting, sound, digital installations and spatial layout.</li>
+          </ul>
+          <div class="academic-links">
+            <a href={externalProfiles.rca2023}>RCA graduate show</a>
+            <a href="/blog/how-apple-funded-my-dream-at-rca">Apple Scholarship account</a>
+          </div>
+        </div>
+      </div>
+      <dl class="academic-qualifications">
+        <div><dt><span>2021–22</span>National Institute of Design, Ahmedabad</dt><dd>First year of the MDes in Film &amp; Video Communication before moving to RCA. All India Rank 1 in the NID Design Aptitude Test.</dd></div>
+        <div><dt><span>2018–19</span>Prahlad Kakar School of Branding &amp; Entrepreneurship</dt><dd>One-year diploma in Filmmaking, Branding and Entrepreneurship.</dd></div>
+        <div><dt><span>2012–17</span>National Institute of Technology, Rourkela</dt><dd>BTech in Mechanical Engineering (first class) and MTech in Mechatronics and Automation. <a href="https://convocation.nitrkl.ac.in/docs/XVIConvocation/Convocation.pdf#page=49">Convocation record (PDF)</a></dd></div>
+      </dl>
+    </section>
+
+    <section class="academic-section academic-host" id="invitations">
+      <div class="academic-host__contact">
+        <h2>Academic invitations</h2>
+        <p>Guest lectures, practical workshops, panel moderation and visiting faculty enquiries.</p>
+        <a class="academic-link" href={invitation}>{email}</a>
+      </div>
+      <div class="academic-faq">
+        <h3>For university hosts</h3>
+        <details class="academic-disclosure">
+          <summary>Which courses are a good fit?</summary>
+          <p>Visual methods and sociology for ethnographic filmmaking. Film and digital humanities for archive-based storytelling. Fashion communication and exhibition design for props, materials and budgeting.</p>
+        </details>
+        <details class="academic-disclosure">
+          <summary>What can students make in one session?</summary>
+          <p>In the Cambridge workshop, each participant starts with a photograph or object and develops a short personal narrative. The <a href="/autoethnography-workshop">autoethnography workshop</a> extends that exercise into a research question and a plan for a first project.</p>
+        </details>
+        <details class="academic-disclosure">
+          <summary>Can we host online or on campus?</summary>
+          <p>Yes. The <a href={`${programme}#timetable`}>Cambridge workshop</a> is scheduled for two hours online. At NIFT I taught four hours on campus across two sessions.</p>
+        </details>
+        <details class="academic-disclosure">
+          <summary>What should an invitation include?</summary>
+          <p>Email the course or event title, audience and cohort size, learning objective, proposed date and time zone, session length, and venue or online format. Include any access requirements and the available honorarium or travel support.</p>
+        </details>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
