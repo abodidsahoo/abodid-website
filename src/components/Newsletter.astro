@@ -4,6 +4,8 @@ interface Props {
     nameRequired?: boolean;
     buttonLabel?: string;
     source?: string;
+    variant?: "compact" | "editorial";
+    labelledBy?: string;
 }
 
 const {
@@ -11,11 +13,22 @@ const {
     nameRequired = false,
     buttonLabel = "",
     source = "footer-newsletter",
+    variant = "compact",
+    labelledBy,
 } = Astro.props;
+const editorial = variant === "editorial";
 ---
 
-<div class="newsletter-form-wrapper" data-newsletter-inline-form>
-    <form class="newsletter-form" id="newsletter-form" data-source={source}>
+<div
+    class:list={["newsletter-form-wrapper", `newsletter-form-wrapper--${variant}`]}
+    data-newsletter-inline-form
+>
+    <form
+        class="newsletter-form"
+        id="newsletter-form"
+        data-source={source}
+        aria-labelledby={labelledBy}
+    >
         <div class="newsletter-honeypot" aria-hidden="true">
             <label for="newsletter-company">Company</label>
             <input
@@ -28,26 +41,34 @@ const {
         </div>
         {
             showName && (
-                <input
-                    class="t-body newsletter-name-input"
-                    type="text"
-                    name="name"
-                    placeholder="Your name"
-                    aria-label="Name"
-                    autocomplete="name"
-                    required={nameRequired}
-                />
+                <div class="newsletter-field">
+                    {editorial && <label for="newsletter-name">Your name</label>}
+                    <input
+                        class="t-body"
+                        id="newsletter-name"
+                        type="text"
+                        name="name"
+                        placeholder={editorial ? undefined : "Your name"}
+                        aria-label={editorial ? undefined : "Name"}
+                        autocomplete="name"
+                        required={nameRequired}
+                    />
+                </div>
             )
         }
-        <input
-            class="t-body"
-            type="email"
-            name="email"
-            placeholder="Your email address"
-            aria-label="Email address"
-            autocomplete="email"
-            required
-        />
+        <div class:list={["newsletter-field", { "newsletter-field--full": !showName }]}>
+            {editorial && <label for="newsletter-email">Your email address</label>}
+            <input
+                class="t-body"
+                id="newsletter-email"
+                type="email"
+                name="email"
+                placeholder={editorial ? undefined : "Your email address"}
+                aria-label={editorial ? undefined : "Email address"}
+                autocomplete="email"
+                required
+            />
+        </div>
         <button type="submit" aria-label="Subscribe">
             {
                 buttonLabel ? (
@@ -72,7 +93,7 @@ const {
             }
         </button>
     </form>
-    <p class="message t-label" id="newsletter-message"></p>
+    <p class="message t-label" id="newsletter-message" role="status"></p>
 </div>
 
 <script>
@@ -200,7 +221,11 @@ const {
         background: color-mix(in srgb, var(--color-surface) 5%, transparent); /* Bit of glue/fill */
     }
 
-    input {
+    .newsletter-form-wrapper--compact .newsletter-field {
+        display: contents;
+    }
+
+    :where(.newsletter-form-wrapper--compact) input {
         flex: 1;
         background: transparent;
         border: none;
@@ -215,10 +240,10 @@ const {
         color: color-mix(in srgb, currentColor 78%, transparent);
     }
 
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    input:-webkit-autofill:active {
+    :where(.newsletter-form-wrapper--compact) input:-webkit-autofill,
+    :where(.newsletter-form-wrapper--compact) input:-webkit-autofill:hover,
+    :where(.newsletter-form-wrapper--compact) input:-webkit-autofill:focus,
+    :where(.newsletter-form-wrapper--compact) input:-webkit-autofill:active {
         -webkit-box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 8%, transparent) inset;
         box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 8%, transparent) inset;
         -webkit-text-fill-color: inherit;
@@ -280,8 +305,7 @@ const {
     }
 
     .message:empty {
-        display: none;
-        margin-top: 0;
+        margin: 0;
         min-height: 0;
     }
 
@@ -293,34 +317,115 @@ const {
     }
 
     /* LIGHT MODE OVERRIDES */
-    :global([data-theme="light"]) .newsletter-form {
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) .newsletter-form {
         border-color: color-mix(in srgb, var(--ui-shadow-color) 20%, transparent);
         background: color-mix(in srgb, currentColor 78%, transparent);
     }
-    :global([data-theme="light"]) .newsletter-form:focus-within {
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) .newsletter-form:focus-within {
         border-color: var(--color-text);
         background: color-mix(in srgb, var(--ui-shadow-color) 5%, transparent);
     }
-    :global([data-theme="light"]) input {
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) input {
         color: var(--color-text);
         font-weight: 500;
     }
-    :global([data-theme="light"]) input::placeholder {
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) input::placeholder {
         color: color-mix(in srgb, currentColor 78%, transparent);
     }
-    :global([data-theme="light"]) input:-webkit-autofill,
-    :global([data-theme="light"]) input:-webkit-autofill:hover,
-    :global([data-theme="light"]) input:-webkit-autofill:focus,
-    :global([data-theme="light"]) input:-webkit-autofill:active {
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) input:-webkit-autofill,
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) input:-webkit-autofill:hover,
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) input:-webkit-autofill:focus,
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) input:-webkit-autofill:active {
         -webkit-box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 90%, transparent) inset !important;
         box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 90%, transparent) inset !important;
         -webkit-text-fill-color: currentColor !important;
         caret-color: currentColor !important;
     }
-    :global([data-theme="light"]) button {
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) button {
         color: var(--color-text);
     }
-    :global([data-theme="light"]) .message {
+    :global([data-theme="light"]) :where(.newsletter-form-wrapper--compact) .message {
         color: var(--color-text);
+    }
+
+    .newsletter-form-wrapper--editorial {
+        container: newsletter / inline-size;
+        max-width: none;
+        margin: 0;
+    }
+
+    .newsletter-form-wrapper--editorial .newsletter-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px 8px;
+        overflow: visible;
+        border: 0;
+        background: transparent;
+    }
+
+    @container newsletter (min-width: 26rem) {
+        .newsletter-form-wrapper--editorial .newsletter-form {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .newsletter-form-wrapper--editorial .newsletter-field {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .newsletter-form-wrapper--editorial :is(.newsletter-field--full, button) {
+        grid-column: 1 / -1;
+    }
+
+    .newsletter-form-wrapper--editorial .newsletter-field label {
+        font: 750 0.75rem/1.35 var(--font-mono, monospace);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .newsletter-form-wrapper--editorial :is(.newsletter-field input, button) {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 52px;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--ui-border-strong);
+        border-radius: var(--design-radius-control, 14px);
+    }
+
+    .newsletter-form-wrapper--editorial .newsletter-field input {
+        min-width: 0;
+        background: var(--color-surface);
+        color: var(--ui-field-text);
+        font: inherit;
+        font-size: max(1rem, 1em);
+    }
+
+    .newsletter-form-wrapper--editorial .newsletter-field input:is(:autofill, :-webkit-autofill) {
+        box-shadow: inset 0 0 0 2px var(--ui-border-strong);
+    }
+
+    .newsletter-form-wrapper--editorial button {
+        background: var(--ui-button-bg);
+        color: var(--ui-button-text);
+        font: 750 0.75rem/1.2 var(--font-mono, monospace);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transition: background-color 160ms ease;
+    }
+
+    .newsletter-form-wrapper--editorial button:hover {
+        background: var(--ui-button-hover-bg);
+        opacity: 1;
+    }
+
+    .newsletter-form-wrapper--editorial button:active {
+        background: var(--ui-button-active-bg);
+    }
+
+    .newsletter-form-wrapper--editorial :is(.newsletter-field input, button):focus-visible {
+        outline: 2px solid var(--ui-field-text);
+        outline-offset: 2px;
     }
 </style>
