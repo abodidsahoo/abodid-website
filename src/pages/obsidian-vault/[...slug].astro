@@ -1,9 +1,9 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getFileContent } from "../../lib/github";
 import {
     extractVaultNoteMetadata,
+    detectSensitiveVaultContent,
     normalizeWikiLinkTarget,
     stripLegacyVaultMetadata,
 } from "../../lib/vault-rag.js";
@@ -21,9 +21,10 @@ import {
     vaultNoteJsonLd,
 } from "../../lib/seoData";
 import "../../styles/vault-note.css";
+import { dateValue, isDistributable } from '../../lib/subscriptions/entries.js';
+import { vaultNoteHref } from '../../lib/vault-paths.js';
 
 const { slug } = Astro.params;
-const fromVaultSearchId = Astro.url.searchParams.get("fromVaultSearch") || "";
 
 if (!slug) {
     return Astro.redirect("/404");
@@ -133,30 +134,25 @@ let noteUpdatedAt: string | undefined = undefined;
 let noteTypes: string[] = [];
 let topicTags: string[] = [];
 let noteDate = "";
+let notePublishedAt: string | undefined;
 
 try {
     const cleanSlug = slug.endsWith(".md") ? slug : `${slug}.md`;
-    const filePathNotes = `06-main-notes/${cleanSlug}`;
     const noteSlug = cleanSlug.replace(/\.md$/i, "");
     let indexedNote = null;
 
     try {
-        indexedNote = await getIndexedNoteBySlug(noteSlug);
+        indexedNote = await getIndexedNoteBySlug(noteSlug, { fresh: true });
         if (indexedNote?.updated_at) {
             noteUpdatedAt = indexedNote.updated_at;
         }
     } catch (indexError) {
-        console.warn(
-            "[vault-note] Supabase content lookup failed; using GitHub fallback:",
-            indexError,
-        );
+        throw indexError;
     }
 
-    let rawContent =
-        indexedNote?.markdown_content || (await getFileContent(filePathNotes));
-    if (rawContent === null && !cleanSlug.includes("?")) {
-        rawContent = await getFileContent(`06-main-notes/${noteSlug}?.md`);
-    }
+    // The public index is the publishing boundary. Raw GitHub files may be
+    // private or removed from publication and must not bypass that boundary.
+    let rawContent = indexedNote?.markdown_content ?? null;
 
     if (rawContent === null) {
         try {
@@ -170,12 +166,21 @@ try {
                 tagLookupError,
             );
         }
-        return Astro.redirect("/404");
+        Astro.response.status = 404;
+        return Astro.rewrite('/404');
     }
 
     metaDescription = extractFirstUsefulParagraph(rawContent);
 
     const metadata = extractVaultNoteMetadata(rawContent);
+    const published = dateValue(metadata.frontmatter.published_at) || dateValue(metadata.date) || dateValue(indexedNote?.created_at);
+    if (!isDistributable(metadata.frontmatter) || detectSensitiveVaultContent(rawContent).length || (published && published > new Date())) {
+        Astro.response.status = 404;
+        return Astro.rewrite('/404');
+    }
+    notePublishedAt = published?.toISOString();
+    const canonicalSlug = String(indexedNote?.slug || noteSlug).replace(/\?+$/, '');
+    if (slug !== canonicalSlug) return Astro.redirect(vaultNoteHref(canonicalSlug), 308);
     noteTypes = metadata.noteTypes;
     topicTags = metadata.tags;
     noteDate = formatMetadataDate(metadata.date);
@@ -263,23 +268,17 @@ try {
         cleanSlug.replace(/\.md$/i, "");
 } catch (error) {
     console.error(error);
-    htmlContent = "<p>Error loading note.</p>";
+    Astro.response.status = 503;
+    Astro.response.headers.set('Cache-Control', 'no-store');
+    return new Response('This note is temporarily unavailable.', { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '300' } });
 }
 
 Astro.response.headers.set(
     "Cache-Control",
     import.meta.env.DEV
         ? "no-cache, no-store, must-revalidate"
-        : fromVaultSearchId
-          ? "private, no-store"
-          : "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000",
+        : "no-store",
 );
-if (!import.meta.env.DEV && !fromVaultSearchId) {
-    Astro.response.headers.set(
-        "Vercel-CDN-Cache-Control",
-        "s-maxage=31536000, stale-while-revalidate=31536000",
-    );
-}
 
 const routeSlug = slug.replace(/\.md$/i, "");
 const displayTitle = title === routeSlug ? title.replace(/-/g, " ") : title;
@@ -332,6 +331,7 @@ const structuredData = [
         description: finalMetaDescription,
         url: noteCanonicalUrl,
         dateModified: noteUpdatedAt,
+        datePublished: notePublishedAt,
     }),
 ];
 ---
@@ -343,6 +343,7 @@ const structuredData = [
     showGlobalGrid={false}
     bodyClass="vault-note-pop-page"
     structuredData={structuredData}
+    canonicalUrl={noteCanonicalUrl}
 >
     <main class="vault-note-page">
         <article class="vault-note-document" aria-labelledby="note-title">

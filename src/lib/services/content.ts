@@ -198,6 +198,7 @@ export async function getPhotographyBySlug(slug: string): Promise<PhotographyPro
         .from('photography')
         .select('*')
         .eq('slug', slug)
+        .eq('published', true)
         .single();
 
     if (projectError || !project) return null;
@@ -293,6 +294,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
         .from('blog')
         .select('*')
         .eq('slug', slug)
+        .eq('published', true)
         .single();
 
     if (error) {

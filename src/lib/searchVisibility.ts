@@ -1,8 +1,23 @@
+import { directoryPaths } from '../data/siteDirectory.js';
+
 /**
  * Single source of truth for crawlability, sitemap exclusion, and default noindex rules.
  */
 
 export const EXCLUDED_PATH_PATTERNS: RegExp[] = [
+  /^\/paper-renamer(?:\/|$)/,
+  /^\/archive(?:\/|$)/,
+  /^\/outreach(?:\/|$)/,
+  /^\/one-photo\/responses(?:\/|$)/,
+  /^\/club\/welcome(?:\/|$)/,
+  /^\/opportunity-card-modal-qa(?:\/|$)/,
+  /^\/media-delivery-test(?:\/|$)/,
+  /^\/moodboard(?:-old| backup)(?:\/|$)/,
+  /^\/research-old(?:\/|$)/,
+  /^\/opportunities\/(?:auth|extension)(?:\/|$)/,
+  /^\/resources\/(?:login|submit)(?:\/|$)/,
+  /^\/(?:header|footer)-preview(?:\/|$)/,
+  /^\/work\/layout-preview\/?$/,
   /^\/land(?:\/|$)/,
   /^\/admin(?:\/|$)/,
   /^\/api(?:\/|$)/,
@@ -35,33 +50,18 @@ export const EXCLUDED_PATH_PATTERNS: RegExp[] = [
   /^\/500\/?$/,
 ];
 
-/**
- * Keep XML discovery intentionally small. Detail pages remain reachable from
- * their section hubs, but are not individually promoted to crawlers.
- */
-export const SITEMAP_HUB_PATHS = new Set([
-  "/",
-  "/work",
-  "/services",
-  "/research",
-  "/research-papers",
-  "/lab",
-  "/photography",
-  "/photography-portfolio",
-  "/films",
-  "/blog",
-  "/reading",
-  "/workshops",
-  "/resources",
-  "/obsidian-vault",
-  "/about",
-  "/studio",
-  "/awards",
-  "/press",
-  "/cv",
-  "/academic-portfolio",
-  "/contact",
-]);
+/** Permanent destinations are shared with the visitor-facing directory. */
+export const SITEMAP_HUB_PATHS = new Set(directoryPaths);
+
+// These families contain published detail pages. Request-time collections are
+// supplied by the content/work/vault sitemaps, which enforce publication flags.
+const SITEMAP_CONTENT_PATH_PATTERNS = [
+  /^\/(?:work|photography|films|research-papers)\/[^/]+$/,
+  /^\/blog\/.+/,
+  /^\/obsidian-vault\/(?!assets(?:\/|$)|tag(?:\/|$)).+/,
+  /^\/system-manual\/.+/,
+  /^\/resources\/(?!u(?:\/|$))[^/]+$/,
+];
 
 /**
  * Extracts a normalized pathname from a full URL or relative path.
@@ -89,7 +89,10 @@ export function isPathExcluded(pathname: string): boolean {
 export function shouldIncludeInSitemap(pageOrPath: string): boolean {
   const rawPathname = extractPathname(pageOrPath);
   const pathname = rawPathname === "/" ? "/" : rawPathname.replace(/\/+$/, "");
-  return !isPathExcluded(pathname) && SITEMAP_HUB_PATHS.has(pathname);
+  return !isPathExcluded(pathname) && (
+    SITEMAP_HUB_PATHS.has(pathname)
+    || SITEMAP_CONTENT_PATH_PATTERNS.some((pattern) => pattern.test(pathname))
+  );
 }
 
 /**

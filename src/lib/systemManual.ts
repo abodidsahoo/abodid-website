@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
+import { dateValue, isDistributable } from './subscriptions/entries.js';
 
 export interface ManualDoc {
   slug: string;
@@ -169,6 +170,8 @@ export async function getAllManualDocs(forceRefresh = false): Promise<ManualNavi
       const { data: frontmatter, content: rawMarkdown } = matter(content);
       const slug = entry.name === "README.md" ? "overview" : entry.name.replace(/\.md$/, "").toLowerCase();
       const { title, displayTitle, fullTitle, status, lastUpdated, cleanedMarkdown, keyTopics } = extractAndCleanMarkdown(rawMarkdown, entry.name, "root");
+      const publicationDate = dateValue(frontmatter.published_at || frontmatter.date || frontmatter.created);
+      if (!isDistributable({ ...frontmatter, status: frontmatter.status || status }) || (publicationDate && publicationDate > new Date())) continue;
 
       const doc: ManualDoc = {
         slug,
@@ -218,6 +221,8 @@ export async function getAllManualDocs(forceRefresh = false): Promise<ManualNavi
       const sectionMatch = file.name.match(/^(\d{2}\.\d{2})/);
       const sectionNumber = sectionMatch ? sectionMatch[1] : chapterNumber;
       const { title, displayTitle, fullTitle, status, lastUpdated, cleanedMarkdown, keyTopics } = extractAndCleanMarkdown(rawMarkdown, file.name, sectionNumber);
+      const publicationDate = dateValue(frontmatter.published_at || frontmatter.date || frontmatter.created);
+      if (!isDistributable({ ...frontmatter, status: frontmatter.status || status }) || (publicationDate && publicationDate > new Date())) continue;
       const fileSlug = file.name.replace(/\.md$/, "");
       const fullPath = `${folder.name}/${fileSlug}`;
 

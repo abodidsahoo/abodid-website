@@ -20,11 +20,15 @@ export type LabExperiment = {
   thumbnailAlt: string;
   surface: "pink" | "blue" | "yellow" | "cream" | "lime";
   cardVariant: "media" | "vault-tags";
+  publishedAt?: string;
+  updatedAt?: string;
   previewHeading?: string;
   previewCta?: string;
 };
 
 type LabCatalogueRow = {
+  created_at?: string;
+  updated_at?: string;
   entry_key: string;
   title: string;
   description: string;
@@ -254,6 +258,8 @@ const mapCatalogueRow = (
   row: LabCatalogueRow,
 ): Omit<LabExperiment, "index"> => ({
   id: row.entry_key,
+  publishedAt: row.created_at,
+  updatedAt: row.updated_at,
   title: row.title,
   description: row.description,
   discipline: row.discipline,
@@ -270,12 +276,12 @@ const mapCatalogueRow = (
   previewCta: row.preview_cta || undefined,
 });
 
-export async function getLabExperiments(): Promise<LabExperiment[]> {
+export async function getLabExperiments({ strict = false } = {}): Promise<LabExperiment[]> {
   try {
     const { data, error } = await supabase
       .from("lab_catalogue_entries")
       .select(
-        "entry_key,title,description,discipline,status_label,year_label,destination_path,destination_label,thumbnail_url,video_url,thumbnail_alt,surface,card_variant,preview_heading,preview_cta,sort_order",
+        "entry_key,title,description,discipline,status_label,year_label,destination_path,destination_label,thumbnail_url,video_url,thumbnail_alt,surface,card_variant,preview_heading,preview_cta,sort_order,created_at,updated_at",
       )
       .eq("visible", true)
       .order("sort_order", { ascending: true });
@@ -289,6 +295,7 @@ export async function getLabExperiments(): Promise<LabExperiment[]> {
       ),
     );
   } catch (error) {
+    if (strict) throw error;
     console.warn(
       "Lab catalogue could not be loaded; using the local fallback:",
       error,

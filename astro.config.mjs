@@ -5,12 +5,12 @@ import react from '@astrojs/react';
 
 import vercel from '@astrojs/vercel';
 
-import sitemap from '@astrojs/sitemap';
+import indexableSitemap from './scripts/indexable-sitemap.mjs';
+import { directoryPaths } from './src/data/siteDirectory.js';
 
 import { loadEnv } from 'vite';
 import { readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { shouldIncludeInSitemap } from './src/lib/searchVisibility.ts';
 
 const isDevelopmentServer = process.argv.includes('dev');
 const env = loadEnv(isDevelopmentServer ? 'development' : 'production', process.cwd(), '');
@@ -46,7 +46,7 @@ export default defineConfig({
   },
   integrations: [
     react(),
-    sitemap({ filter: shouldIncludeInSitemap }),
+    indexableSitemap(siteUrl, directoryPaths),
   ],
   site: siteUrl,
   vite: {

@@ -69,15 +69,15 @@ export async function findIndexedNotesByWikiLink(tagName) {
   }
 }
 
-export async function getIndexedNoteBySlug(slug) {
+export async function getIndexedNoteBySlug(slug, { fresh = false } = {}) {
   const normalizedSlug = String(slug || "")
     .replace(/\.md$/i, "")
     .trim();
   if (!normalizedSlug) return null;
 
   const cached = noteContentCache.get(normalizedSlug);
-  if (cached && cached.expiresAt > Date.now()) return cached.note;
-  if (pendingNoteLookups.has(normalizedSlug)) {
+  if (!fresh && cached && cached.expiresAt > Date.now()) return cached.note;
+  if (!fresh && pendingNoteLookups.has(normalizedSlug)) {
     return pendingNoteLookups.get(normalizedSlug);
   }
 

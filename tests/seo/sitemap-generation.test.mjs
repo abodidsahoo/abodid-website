@@ -107,11 +107,28 @@ test("searchVisibility: shouldIncludeInSitemap and shouldNoindex consistency", (
   assert.equal(shouldIncludeInSitemap("https://abodid.com/admin"), false);
   assert.equal(shouldIncludeInSitemap("https://abodid.com/api/test"), false);
   assert.equal(shouldIncludeInSitemap("https://abodid.com/work"), true);
-  assert.equal(shouldIncludeInSitemap("https://abodid.com/work/spatial-memory"), false);
-  assert.equal(shouldIncludeInSitemap("https://abodid.com/photography/a-series"), false);
-  assert.equal(shouldIncludeInSitemap("https://abodid.com/obsidian-vault/a-note"), false);
+  assert.equal(shouldIncludeInSitemap("https://abodid.com/work/spatial-memory"), true);
+  assert.equal(shouldIncludeInSitemap("https://abodid.com/photography/a-series"), true);
+  assert.equal(shouldIncludeInSitemap("https://abodid.com/obsidian-vault/a-note"), true);
   assert.equal(shouldIncludeInSitemap("https://abodid.com/research/"), true);
 
   assert.equal(shouldNoindex("/admin"), true);
   assert.equal(shouldNoindex("/work"), false);
+});
+
+test("searchVisibility: new public destinations and content are discoverable without promoting tools or aliases", () => {
+  for (const path of [
+    "/sitemap", "/newsletter", "/creative-tech-toolkit", "/moodboard",
+    "/consulting", "/workshops/obsidian", "/lab/moodboard-capture-pipeline",
+    "/lab/art-in-every-corner", "/films/a-published-film", "/blog/a-new-essay",
+    "/research-papers/a-paper", "/system-manual/01-overview/introduction",
+  ]) assert.equal(shouldIncludeInSitemap(`https://abodid.com${path}`), true, path);
+
+  for (const path of [
+    "/land", "/header-preview", "/footer-preview", "/media-delivery-test",
+    "/opportunities/auth/callback", "/resources/login", "/resources/submit",
+    "/resources/saved", "/resources/an-id/edit", "/work/layout-preview",
+    "/obsidian-vault/assets/image.png", "/obsidian-vault/tag/old-alias",
+    "/feeds/blog.xml", "/photography-portfolio/series.json", "/archive/homepages/2025",
+  ]) assert.equal(shouldIncludeInSitemap(`https://abodid.com${path}`), false, path);
 });

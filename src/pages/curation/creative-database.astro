@@ -14,7 +14,7 @@ type CreativeDatabase = Record<string, Record<string, Company[]>>;
 
 const title = "Creative Companies Database | Abodid Sahoo";
 const description = "A curated directory of advertising agencies, production companies, studios, creative platforms, and design organisations.";
-const canonicalUrl = "https://www.abodid.com/curation/creative-database";
+const canonicalUrl = "https://abodid.com/curation/creative-database";
 
 const database = creativeCompanies as CreativeDatabase;
 const companies = Object.entries(database).flatMap(([country, categories]) =>

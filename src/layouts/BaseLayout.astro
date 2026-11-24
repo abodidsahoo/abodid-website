@@ -4,6 +4,8 @@ import "../styles/brands.css";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SEO from "../components/SEO.astro";
+import RssSubscription from "../components/RssSubscription.astro";
+import { SUBSCRIPTION_FEEDS, feedUrl } from "../lib/subscriptions/catalog.js";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
@@ -129,12 +131,7 @@ const googleFontsUrl =
     <meta name="generator" content={Astro.generator} />
     <DesignTokenRuntime />
     <ClientRouter fallback="swap" />
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title="Abodid Blog"
-      href="/rss.xml"
-    />
+    {SUBSCRIPTION_FEEDS.map((feed) => <link rel="alternate" type="application/rss+xml" title={`Abodid | ${feed.title}`} href={feedUrl(feed, String(Astro.site || "https://abodid.com"))} />)}
     <link
       rel="alternate"
       type="text/markdown"
@@ -245,6 +242,7 @@ const googleFontsUrl =
       }
     </script>
     {!hideFooter && <SiteFooter showNavigation={showFooterNavigation} />}
+    {!hideFooter && <RssSubscription />}
   </body>
 </html>
 

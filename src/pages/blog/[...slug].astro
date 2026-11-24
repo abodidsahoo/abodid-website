@@ -25,7 +25,7 @@ const primaryCategory = post?.category
   : null;
 const relatedPost = await getRelatedPost(slug, primaryCategory);
 
-if (!post) {
+if (!post || (post.published_at && new Date(post.published_at) > new Date())) {
   Astro.response.status = 404;
   return Astro.rewrite("/404");
 }
