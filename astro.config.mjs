@@ -5,12 +5,14 @@ import react from '@astrojs/react';
 
 import vercel from '@astrojs/vercel';
 
-import sitemap from '@astrojs/sitemap';
+import indexableSitemap from './scripts/indexable-sitemap.mjs';
 
 import { loadEnv } from 'vite';
 import { readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { shouldIncludeInSitemap } from './src/lib/searchVisibility.ts';
+import { directoryPaths } from './src/data/siteDirectory.js';
+import siteThemePaint from './scripts/postcss-site-theme.mjs';
+import destinationHeadings from './scripts/destination-headings.mjs';
 
 const isDevelopmentServer = process.argv.includes('dev');
 const env = loadEnv(isDevelopmentServer ? 'development' : 'production', process.cwd(), '');
@@ -45,17 +47,37 @@ export default defineConfig({
     defaultStrategy: 'hover',
   },
   integrations: [
+    destinationHeadings(),
     react(),
-    sitemap({ filter: shouldIncludeInSitemap }),
+    indexableSitemap(siteUrl, directoryPaths),
   ],
   site: siteUrl,
   vite: {
+    css: { postcss: { plugins: [siteThemePaint] } },
     // Keep production builds from replacing dependency chunks used by the
     // long-running local workspace server.
     cacheDir: isDevelopmentServer
       ? 'node_modules/.vite/development'
       : 'node_modules/.vite/production',
     server: {
+      proxy: {
+        // Keep the public R2 CORS allowlist scoped to the live site.
+        '^/__landing-smudge-media/(photos|videos)/': {
+          target: 'https://assets.abodid.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/__landing-smudge-media/, ''),
+          bypass: (request) => request.method !== 'GET' && request.method !== 'HEAD' ? false : undefined,
+          configure(proxy) {
+            proxy.on('proxyReq', (request) => {
+              request.removeHeader('cookie');
+              request.removeHeader('authorization');
+            });
+            proxy.on('proxyRes', (response) => {
+              delete response.headers['set-cookie'];
+            });
+          },
+        },
+      },
       // Vercel's adapter writes thousands of files here during a build. If a
       // build runs beside `astro dev`, those add events make Astro rebuild its
       // route manifest once per output file and can exhaust file descriptors.

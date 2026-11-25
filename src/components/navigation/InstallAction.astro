@@ -1,0 +1,51 @@
+<site-install-option hidden>
+  <button type="button" class="nh-install" hidden>Install app</button>
+  <details class="nh-install" hidden>
+    <summary>Install app</summary>
+    <p>In Safari, open Share and choose Add to Home Screen.</p>
+  </details>
+</site-install-option>
+
+<script>
+  interface InstallOffer extends Event { prompt(): Promise<void> }
+  let offer: InstallOffer | undefined;
+  let installed = false;
+
+  function refresh() {
+    document.querySelectorAll<InstallOption>("site-install-option").forEach(option => option.sync());
+  }
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    offer = event as InstallOffer;
+    refresh();
+  });
+  window.addEventListener("appinstalled", () => { installed = true; offer = undefined; refresh(); });
+
+  class InstallOption extends HTMLElement {
+    connectedCallback() {
+      this.sync();
+      this.querySelector("button")!.onclick = async () => {
+        const available = offer;
+        offer = undefined;
+        refresh();
+        try { await available?.prompt(); } catch { /* The browser can withdraw the offer. */ }
+      };
+    }
+    sync() {
+      const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const safari = /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+      const standalone = installed || matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone;
+      const button = this.querySelector("button");
+      const help = this.querySelector("details");
+      if (!button || !help) return;
+      button.hidden = !offer || !!standalone;
+      help.hidden = !!offer || !!standalone || !(ios && safari);
+      this.hidden = button.hidden && help.hidden;
+    }
+  }
+  if (!customElements.get("site-install-option")) customElements.define("site-install-option", InstallOption);
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+</style>

@@ -1,11 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import TestimonialContext from "../components/TestimonialContext.astro";
 import InlineInquiryForm from "../components/InlineInquiryForm.astro";
-import Newsletter from "../components/Newsletter.astro";
+import LandingGreeting from "../components/LandingGreeting.astro";
+import LandingTestimonials from "../components/LandingTestimonials.astro";
 import LandingInteractiveHero from "../components/LandingInteractiveHero.jsx";
 import LazyAutoplayVideo from "../components/LazyAutoplayVideo.astro";
-import { getRecentPosts } from "../lib/api";
+import { getAllPosts } from "../lib/api";
 import {
   cloudflareExhibitionFallbacks,
   getHomeStorytellingContent,
@@ -17,12 +17,36 @@ import {
   serviceJsonLd,
 } from "../lib/seoData";
 
+const { previewHeader, previewFooter } = Astro.props;
+const designPreview = Boolean(previewHeader || previewFooter);
+// Switch to "wide" to restore the uncapped Selected work layout.
+const selectedWorkWidth: "medium" | "wide" = "medium";
 const content = await getHomeStorytellingContent();
-const journalArticles = (await getRecentPosts()).slice(0, 3);
+const allBlogPosts = designPreview ? [] : await getAllPosts();
+const postsWithCovers = allBlogPosts.filter((post: any) =>
+  Boolean(post.image && post.title && post.href),
+);
+
+const initialRandomIndex =
+  postsWithCovers.length > 0
+    ? Math.floor(Math.random() * postsWithCovers.length)
+    : 0;
+const featuredArticle = postsWithCovers[initialRandomIndex] || null;
+
+const journalArticles = allBlogPosts
+  .filter((post: any) => post.slug !== featuredArticle?.slug)
+  .slice(0, 3);
+
+const candidateFeaturedArticles = postsWithCovers.map((p: any) => ({
+  title: p.title,
+  href: p.href,
+  image: p.image,
+  slug: p.slug,
+}));
 // Desktop rows always have two cards; omit a trailing project without a partner.
 const selectedWorkProjects = content.projects.slice(
   0,
-  content.projects.length - (content.projects.length % 2),
+  designPreview ? 2 : content.projects.length - (content.projects.length % 2),
 );
 const curatedBrandOrder = [
   { match: "apple", name: "Apple", role: "Creative Technology" },
@@ -86,6 +110,22 @@ const featuredBrands = curatedBrandOrder.map((item, index) => {
   };
 });
 
+// Keep the previous brand pills available while the logo wall is active.
+const showBrandPills = false;
+const availableLogoBrands = content.brands.filter((brand: any) =>
+  Boolean(brand.logo_url),
+);
+const logoCount =
+  [40, 36, 32, 30, 24, 20, 16, 12, 8, 4, 2, 1].find(
+    (count) => count <= availableLogoBrands.length,
+  ) || 0;
+const logoBrands = availableLogoBrands.slice(0, logoCount);
+// Choose divisors of the actual logo count so every responsive row is complete.
+const logoColumns = (options: number[]) =>
+  options.find((columns) => logoBrands.length % columns === 0) || 1;
+const desktopLogoColumns = logoColumns([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+const tabletLogoColumns = logoColumns([8, 6, 5, 4, 3, 2, 1]);
+
 const testimonialPriority = ["saunak", "pranjal", "alonzo", "michael", "mitch"];
 const featuredTestimonials = testimonialPriority
   .map((token) =>
@@ -101,52 +141,45 @@ const description = content.hero.lede;
 
 const workWithMeCards = [
   {
-    title: "Exhibitions & Interactive Experiences",
+    title: "Exhibition Design Consultation",
     description:
-      "I build exhibitions and immersive storytelling spaces using photographs, film, performance, AI, AR, VR and XR. I’ve built more than 30 exhibition experiences (both digital and physical) in London in the last three years.",
+      "I work with artists, curators and institutions to turn an exhibition idea into a plan for the space. We work through the visitor journey, layout, lighting, media and installation so the story is clear and the plan works for the venue and budget.",
     examples: [
       { label: "Into the Flux", href: "/work/into-the-flux" },
+      {
+        label: "Royal College of Art graduate show",
+        href: "/photography/digital-direction-rca-gradshow-in-white-city",
+      },
+    ],
+  },
+  {
+    title: "Photography and Film Production",
+    description:
+      "I make photographs and films for cultural institutions, artists and brands. I document exhibitions and live programmes with attention to how people experience the work, and take brand films and music videos from treatment and shoot through to the final edit.",
+    examples: [
+      { label: "British Film Institute", href: "/work/bfi" },
+      { label: "Show Me the Way", href: "/work/show-me-the-way" },
+    ],
+  },
+  {
+    title: "Creative Technology & XR",
+    description:
+      "I help teams explore how an audience might move through, touch or change a digital experience. We develop and test prototypes for interactive installations, browser-based experiences and spatial stories, using tools like gesture tracking, AI and XR where they serve the idea.",
+    examples: [
       { label: "Punctum", href: "/work/punctum" },
+      { label: "Image Flick", href: "/work/image-flick" },
       { label: "Sequence Room", href: "/work/sequence-room" },
     ],
   },
   {
-    title: "Photography & Visual Documentation",
+    title: "Workshops & Guest Talks",
     description:
-      "With over 8 years of experience in documenting art exhibitions, galleries, and immersive spaces, I absolutely love capturing the details that bring the true essence of the experience to life through the photographs.",
+      "I run hands-on sessions in visual storytelling, filmmaking, autoethnography and research workflows, adapting each to the group’s experience and the material they bring. I give guest talks on how art and technology can shape the stories we tell about culture and everyday life.",
     examples: [
-      {
-        label: "Outernet London 2025",
-        href: "/photography/outernet-london-2025",
-      },
-      {
-        label: "British Film Institute",
-        href: "/photography/british-film-institute-london",
-      },
+      { label: "Autoethnography workshop", href: "/autoethnography-workshop" },
+      { label: "Video editing workshop", href: "/video-editing-workshop" },
+      { label: "Browse all workshops", href: "/workshops" },
     ],
-  },
-  {
-    title: "Creative Direction & Production",
-    description:
-      "For over eight years, I’ve led the production of commercials, brand films, music videos, dance videos, short films and photo stories that are experimental, tasteful and made to have an impact.",
-    examples: [
-      {
-        label: "Hermosa Design Studio film",
-        href: "https://www.youtube.com/watch?v=EMsZT9PCFms",
-        external: true,
-      },
-      {
-        label: "Budweiser film",
-        href: "https://www.weareanimal.co/budweiser-streetwear",
-        external: true,
-      },
-    ],
-  },
-  {
-    title: "Research & Knowledge Systems",
-    description:
-      "I love being a second brain for ambitious ideas, helping you think them through and articulate them clearly. I also teach Obsidian workshops that help you take better notes and put your knowledge to work.",
-    examples: [{ label: "Obsidian Vault", href: "/obsidian-vault" }],
   },
 ];
 
@@ -156,33 +189,73 @@ const structuredData = [
   breadcrumbJsonLd([{ name: "Home", path: "/" }]),
   serviceJsonLd({
     path: "/",
-    name: "Creative Direction, Spatial & Interactive Experiences",
+    name: "Creative Services and Workshops",
     description,
-    serviceType:
-      "Creative Direction, Exhibition & Experience Design, Autoethnography, Cultural Storytelling",
+    serviceType: workWithMeCards.map((card) => card.title).join(", "),
   }),
 ];
 ---
 
 <BaseLayout
-  title={title}
-  description={description}
-  useDynamicOgImage={true}
-  structuredData={structuredData}
+  title={designPreview ? "Header and footer preview — Abodid Sahoo" : title}
+  description={
+    designPreview
+      ? "Compare header, menu and footer designs on Abodid Sahoo’s homepage."
+      : description
+  }
+  useDynamicOgImage={!designPreview}
+  structuredData={designPreview ? undefined : structuredData}
+  noindex={designPreview}
+  enableAnalytics={!designPreview}
+  headerComponent={previewHeader}
+  footerComponent={previewFooter}
   fullWidth={true}
   showNewsletterPopup={false}
   showGlobalGrid={false}
   showCursorFollower={false}
   bodyClass="story-home-page"
 >
-  <main class="story-home">
+  <div class="story-home" data-landing-smudge={designPreview ? undefined : ""}>
+    {!designPreview && (
+      <section
+        class="story-intro"
+        id="portrait-introduction"
+        aria-label="Portrait introduction"
+      >
+        <div class="story-services__intro" data-auto-contrast>
+          <figure class="story-services__portrait" data-smudge="portrait">
+            <img
+              src="https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp"
+              alt="Abodid Sahoo"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </figure>
+          <div class="story-services__intro-copy">
+            <LandingGreeting />
+            <p class="story-services__intro-lead">
+              I'm Abodid. I help people turn their ambitious ideas into
+              <strong>immersive storytelling experiences.</strong>
+            </p>
+            <p>
+              As a creative director, photographer and artist, I enjoy extending
+              the boundaries of storytelling to build participatory spaces that
+              spark conversations and makes someone feel deeply.
+            </p>
+          </div>
+        </div>
+      </section>
+    )}
+
     <LandingInteractiveHero
       client:load
-      name="Abodid Sahoo"
-      keyline="Creative Technologist, Immersive Experience Designer and Visual Artist working between London and India"
-      ctaText="Explore selected work"
+      name="my life is all about..."
+      headingTag={designPreview ? "h1" : "h2"}
+      keyline="keep hovering your mouse to see more tags"
+      ctaText={null}
       ctaHref="#selected-work"
-      secondaryCtaText="Work with me"
+      secondaryCtaText={null}
       secondaryCtaHref="#enquiry"
       vaultLabel="my obsidian vault"
     />
@@ -190,187 +263,126 @@ const structuredData = [
     <section
       class="story-work"
       id="selected-work"
+      data-content-width={selectedWorkWidth}
       aria-labelledby="selected-work-heading"
     >
       <h2 class="story-work__heading" id="selected-work-heading">
         Selected work
       </h2>
       <div class="story-work__grid">
-        {
-          selectedWorkProjects.map((project) => (
-            <a
-              class={`story-project story-project--${project.id}`}
-              href={project.href}
-              data-accent={project.accent || "pink"}
-            >
-              <figure>
-                {project.heroImage ? (
-                  <img
-                    src={project.heroImage}
-                    alt={project.alt}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : project.video &&
-                  /\.(mp4|webm)(?:[?#]|$)/i.test(project.video) ? (
-                  <LazyAutoplayVideo
-                    src={project.video}
-                    label={project.alt}
-                  />
-                ) : (
-                  <img
-                    src={project.image || project.video}
-                    alt={project.alt}
-                    loading="lazy"
-                    decoding="async"
-                    data-cloudflare-fallback
-                  />
-                )}
-              </figure>
-              <div class="story-project__copy" data-auto-contrast>
-                <p class="story-project__category">{project.category}</p>
-                <h3>{project.title}</h3>
-                <p class="story-project__summary">{project.summary}</p>
-                {project.themes?.length ? (
-                  <ul
-                    class="story-project__themes"
-                    aria-label={`${project.title} themes`}
-                  >
-                    {project.themes.map((theme) => (
-                      <li>{theme}</li>
-                    ))}
-                  </ul>
-                ) : null}
-                <dl>
-                  <div>
-                    <>
-                      <dt>Role</dt>
-                      <dd>{project.role}</dd>
-                    </>
-                  </div>
-                  <div>
-                    <>
-                      <dt>Outcome</dt>
-                      <dd>{project.outcome}</dd>
-                    </>
-                  </div>
-                </dl>
-                <span class="story-project__link">
-                  <span>View project</span>{" "}
-                  <b class="link-destination-arrow" aria-hidden="true">
-                    ↗
-                  </b>
-                </span>
-              </div>
-            </a>
-          ))
-        }
+        {selectedWorkProjects.map((project) => (
+          <a
+            class={`story-project story-project--${project.id}`}
+            href={project.href}
+            data-accent={project.accent || "pink"}
+          >
+            <figure data-smudge="project">
+              {project.heroImage ? (
+                <img
+                  src={project.heroImage}
+                  alt={project.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : project.video &&
+                /\.(mp4|webm)(?:[?#]|$)/i.test(project.video) ? (
+                <LazyAutoplayVideo
+                  src={project.video}
+                  label={project.alt}
+                  allowSmudge={!designPreview}
+                />
+              ) : (
+                <img
+                  src={project.image || project.video}
+                  alt={project.alt}
+                  loading="lazy"
+                  decoding="async"
+                  data-cloudflare-fallback
+                />
+              )}
+            </figure>
+            <div class="story-project__copy" data-auto-contrast>
+              <p class="story-project__category">{project.category}</p>
+              <h3>{project.title}</h3>
+              <p class="story-project__summary">{project.summary}</p>
+              {project.themes?.length ? (
+                <ul
+                  class="story-project__themes"
+                  aria-label={`${project.title} themes`}
+                >
+                  {project.themes.map((theme) => (
+                    <li>{theme}</li>
+                  ))}
+                </ul>
+              ) : null}
+              <dl>
+                <div>
+                  <>
+                    <dt>Role</dt>
+                    <dd>{project.role}</dd>
+                  </>
+                </div>
+                <div>
+                  <>
+                    <dt>Outcome</dt>
+                    <dd>{project.outcome}</dd>
+                  </>
+                </div>
+              </dl>
+              <span class="story-project__link">
+                <span>View project</span>{" "}
+                <b class="link-destination-arrow" aria-hidden="true">
+                  ↗
+                </b>
+              </span>
+            </div>
+          </a>
+        ))}
       </div>
     </section>
 
-    <section
-      class="story-evidence"
-      aria-labelledby="story-evidence-heading"
-      data-auto-contrast
-    >
-      <header>
-        <p class="story-eyebrow">Selected organisations</p>
-        <h2 id="story-evidence-heading">Trusted by</h2>
-        <a href="/experience"
-          ><span class="link-label">View professional experience</span>
-          <span class="link-destination-arrow" aria-hidden="true">↗</span></a
-        >
-      </header>
-      <div class="story-evidence__columns">
-        {
-          featuredTestimonials.length > 0 && (
-            <div class="story-testimonials" data-testimonial-carousel>
-              <div
-                class="story-quotes"
-                aria-label="Testimonials"
-                data-testimonial-track
-              >
-                {featuredTestimonials.map((testimonial, index) => {
-                  const shortQuote =
-                    testimonial.highlightQuote || testimonial.content;
-                  const hasMore =
-                    String(shortQuote).trim() !==
-                    String(testimonial.content).trim();
-                  return (
-                    <blockquote
-                      class={`story-quote story-quote--${index + 1}`}
-                      data-testimonial-card
-                      data-auto-contrast
-                    >
-                    <div class="story-quote__content">
-                      <div class="story-quote__short">
-                        <p>“{shortQuote}”</p>
-                      </div>
-                      <div
-                        class="story-quote__full"
-                        aria-hidden="true"
-                        data-at-top="true"
-                      >
-                        <p>“{testimonial.content}”</p>
-                      </div>
-                    </div>
-                    <footer>
-                      <strong class="story-quote__person">
-                        {testimonial.name}
-                      </strong>
-                      <span class="story-quote__credit">
-                        {testimonial.role && (
-                          <strong class="story-quote__role">
-                            {testimonial.role}
-                          </strong>
-                        )}
-                        {testimonial.role && testimonial.company && (
-                          <span class="story-quote__credit-separator" aria-hidden="true">
-                            ·
-                          </span>
-                        )}
-                        {testimonial.company && (
-                          <span class="story-quote__company">
-                            {testimonial.company}
-                          </span>
-                        )}
-                      </span>
-                      <TestimonialContext context={testimonial.service_context} />
-                    </footer>
-                    <div class="story-quote__actions">
-                      {hasMore ? (
-                        <button
-                          type="button"
-                          class="story-quote__toggle"
-                          data-testimonial-toggle
-                          aria-expanded="false"
-                        >
-                          <span data-toggle-label>Full testimonial</span>
-                          <b aria-hidden="true">→</b>
-                        </button>
-                      ) : (
-                        <span class="story-quote__action-spacer" aria-hidden="true" />
-                      )}
-                      <button
-                        type="button"
-                        class="story-quote__next"
-                        data-testimonial-next
-                        aria-label="Read next testimonial"
-                      >
-                        <span>Read Next</span>
-                        <b aria-hidden="true">→</b>
-                      </button>
-                    </div>
-                    </blockquote>
-                  );
-                })}
-              </div>
-            </div>
-          )
-        }
-        <ul class="story-brands" aria-label="Clients and collaborators">
-          {
-            featuredBrands.map((brand) => (
+    {!designPreview && (
+      <section
+        class="story-evidence"
+        id="trusted-by"
+        aria-labelledby="story-evidence-heading"
+        data-pop-surface="cream"
+      >
+        <header>
+          <p class="story-eyebrow">Selected organisations</p>
+          <h2 class="story-display-heading" id="story-evidence-heading">
+            Trusted by
+          </h2>
+          <a href="/experience">
+            <span class="link-label">View professional experience</span>
+          </a>
+        </header>
+        {logoBrands.length > 0 && (
+          <ul
+            class="story-logo-grid"
+            data-logo-domino
+            aria-label="Clients and collaborators"
+            style={`--logo-columns: ${desktopLogoColumns}; --logo-tablet-columns: ${tabletLogoColumns}`}
+          >
+            {logoBrands.map((brand: any) => (
+              <li>
+                <div class="story-logo-tile" data-logo-tile>
+                  <img
+                    src={brand.logo_url}
+                    alt={brand.name}
+                    width="160"
+                    height="80"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {showBrandPills && (
+          <ul class="story-brands" aria-label="Clients and collaborators">
+            {featuredBrands.map((brand) => (
               <li
                 class="story-brand-pill"
                 data-pill-size={brand.pillSize}
@@ -383,66 +395,160 @@ const structuredData = [
                   </span>
                 </span>
               </li>
-            ))
-          }
-        </ul>
-      </div>
-    </section>
+            ))}
+          </ul>
+        )}
+      </section>
+    )}
 
-    <section
-      class="story-services"
-      id="services"
-      aria-labelledby="story-services-heading"
-      data-auto-contrast
-    >
-      <header class="story-section-heading story-section-heading--dark-text">
-        <p class="story-eyebrow">Ways to work together</p>
-        <h2 id="story-services-heading">Work with me</h2>
-      </header>
-      <div class="story-services__intro" data-auto-contrast>
-        <figure class="story-services__portrait">
-          <img
-            src="https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp"
-            alt="Abodid Sahoo"
-            loading="lazy"
-            decoding="async"
-          />
-        </figure>
-        <div class="story-services__intro-copy">
-          <p class="story-services__intro-lead">
-            I turn ambitious ideas and stories into intuitive, accessible
-            participatory experiences.
-          </p>
-          <p>
-            Over the past eight years, I’ve worked on more than 300 exhibitions,
-            installations, films, photo stories and digital experiences. My
-            research-driven work is designed to spark conversations and help
-            people connect.
-          </p>
+    {!designPreview && featuredTestimonials.length > 0 && (
+      <LandingTestimonials testimonials={featuredTestimonials} />
+    )}
+
+    {!designPreview && (
+      <section
+        class="story-writing"
+        id="writing"
+        aria-label="From the journal"
+        data-pop-surface="pink"
+      >
+        <div class="story-writing__inner">
+          {featuredArticle && (
+            <article
+              class="story-writing__panel story-writing__feature"
+              data-pop-surface="cream"
+            >
+              <p class="story-eyebrow">Featured article</p>
+              <a
+                class="story-writing__feature-link"
+                href={featuredArticle.href}
+              >
+                {featuredArticle.image && (
+                  <img
+                    src={featuredArticle.image}
+                    class="story-writing__feature-image"
+                    alt=""
+                    width="960"
+                    height="600"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                <h2 class="story-writing__feature-title">
+                  <span>{featuredArticle.title}</span>
+                  <span aria-hidden="true">↗</span>
+                </h2>
+              </a>
+            </article>
+          )}
+
+          <article
+            class="story-writing__panel story-writing__blog"
+            data-pop-surface="yellow"
+          >
+            <h2 class="story-writing__title">
+              More from the <strong>journal.</strong>
+            </h2>
+            <ul class="story-writing__articles" aria-label="Recent articles">
+              {journalArticles.map((article, index) => (
+                <li>
+                  <a href={article.href} class="story-writing__article-link">
+                    <span
+                      class="story-writing__article-index"
+                      aria-hidden="true"
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span class="story-writing__article-title">
+                      {article.title}
+                    </span>
+                    <span
+                      class="story-writing__article-arrow"
+                      aria-hidden="true"
+                    >
+                      →
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <a
+              class="story-writing__blog-link"
+              href="/blog"
+              data-pop-surface="cream"
+            >
+              <span>Browse all articles</span>
+              <span class="story-writing__blog-arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </article>
         </div>
-      </div>
+      </section>
+    )}
 
-      <div class="story-services__cards">
-        {
-          workWithMeCards.map((card) => (
-            <article class="story-services__card" data-auto-contrast>
-              <h3>{card.title}</h3>
-              <div class="story-services__card-body">
-                <p>{card.description}</p>
-                <div class="story-services__examples">
-                  <p class="story-services__examples-label">Selected work</p>
-                  <ul>
+    {!designPreview && (
+      <section
+        class="story-services"
+        id="services"
+        aria-labelledby="story-services-heading"
+        data-pop-surface="cream"
+      >
+        <h2 class="story-display-heading" id="story-services-heading">
+          Work with me
+        </h2>
+        <div class="story-services__layout">
+          <div class="story-services__consulting">
+            <p>
+              As a creative consultant I work with agencies, corporate clients
+              and institutions to lead early stage ideations and brand marketing
+              campaigns. Sometimes I work as a "super connector", mapping
+              ambitious ideas with the right people globally to shape them into
+              tangible outcomes like a film, photo series or an exhibition.
+            </p>
+            <p>
+              I also speak about art, technology and culture at conferences,
+              corporate events and institutions, inspiring audiences to see art
+              (and life) differently and explore more human-centred approaches
+              to creativity.
+            </p>
+            <p>
+              Additionally, I lead hands on workshops using basic daily life
+              materials to build participants confidence as a storyteller and
+              effective communicator.
+            </p>
+            <p>
+              My next workshop cum guest talk is scheduled for March 2027 at the
+              University of Cambridge, where I will teach a global cohort how to
+              develop creative non-fiction stories with an autoethnographic
+              approach.
+            </p>
+          </div>
+          <div class="story-services__accordion">
+            {workWithMeCards.map((card) => (
+              <details class="story-service-disclosure">
+                <summary>
+                  <span
+                    class="story-service-disclosure__icon"
+                    aria-hidden="true"
+                  ></span>
+                  <span>{card.title}</span>
+                </summary>
+                <div class="story-service-disclosure__body">
+                  <p>{card.description}</p>
+                  <ul
+                    class="story-services__examples"
+                    aria-label="Related work"
+                  >
                     {card.examples.map((example) => (
                       <li>
                         <a
                           class="story-services__example-link"
                           href={example.href}
-                          target={example.external ? "_blank" : undefined}
-                          rel={example.external ? "noreferrer" : undefined}
                         >
                           <span>{example.label}</span>
                           <span
-                            class="story-services__example-arrow link-destination-arrow"
+                            class="story-services__example-arrow"
                             aria-hidden="true"
                           >
                             ↗
@@ -452,19 +558,12 @@ const structuredData = [
                     ))}
                   </ul>
                 </div>
-              </div>
-            </article>
-          ))
-        }
-      </div>
-
-      <div class="story-services__cta">
-        <a class="story-button story-button--primary" href="#enquiry">
-          <span>Start a conversation</span>
-          <b aria-hidden="true">→</b>
-        </a>
-      </div>
-    </section>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
 
     <section class="story-enquiry" aria-label="Project enquiry">
       <InlineInquiryForm
@@ -485,69 +584,45 @@ const structuredData = [
       />
     </section>
 
-    <section
-      class="story-writing"
-      id="writing"
-      aria-labelledby="morning-digest-heading"
-      data-pop-surface="pink"
-    >
-      <div class="story-writing__inner">
-        <article
-          class="story-writing__panel story-writing__newsletter"
-          data-pop-surface="cream"
-        >
-          <p class="story-eyebrow">Weekly newsletter</p>
-          <h2 class="story-writing__title" id="morning-digest-heading">
-            Subscribe to my Morning Digest.
-          </h2>
-          <p class="story-writing__description">
-            A curated set of 7 unmissable must-read articles and resources on
-            creative technology, digital media and art exhibitions. Delivered in
-            your mailbox every week.
-          </p>
-          <Newsletter
-            showName={true}
-            nameRequired={true}
-            buttonLabel="Subscribe"
-            source="footer-newsletter"
-            variant="editorial"
-            labelledBy="morning-digest-heading"
-          />
-        </article>
+    <script is:inline define:vars={{ candidateFeaturedArticles }}>
+      (() => {
+        if (
+          !Array.isArray(candidateFeaturedArticles) ||
+          candidateFeaturedArticles.length <= 1
+        )
+          return;
 
-        <article
-          class="story-writing__panel story-writing__blog"
-          data-pop-surface="yellow"
-        >
-          <p class="story-eyebrow">From the journal</p>
-          <h2 class="story-writing__title">
-            Want to read articles written by me?
-          </h2>
-          <ul class="story-writing__articles" aria-label="Recent articles">
-            {
-              journalArticles.map((article, index) => (
-                <li>
-                  <a href={article.href} class="story-writing__article-link">
-                    <span class="story-writing__article-index" aria-hidden="true">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span class="story-writing__article-title">{article.title}</span>
-                    <span class="story-writing__article-arrow" aria-hidden="true">
-                      →
-                    </span>
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-          <a class="story-writing__blog-link" href="/blog" data-pop-surface="cream">
-            <span>Go to my blog page</span>
-            <span class="story-writing__blog-arrow" aria-hidden="true">→</span>
-          </a>
-        </article>
-      </div>
-    </section>
-  </main>
+        const pickRandomArticle = () => {
+          const featureLink = document.querySelector(
+            ".story-writing__feature-link",
+          );
+          const featureImage = document.querySelector(
+            ".story-writing__feature-image",
+          );
+          const featureTitle = document.querySelector(
+            ".story-writing__feature-title span:first-child",
+          );
+          if (!featureLink || !featureImage || !featureTitle) return;
+
+          const currentHref = featureLink.getAttribute("href");
+          const pool = candidateFeaturedArticles.filter(
+            (item) => item.href !== currentHref,
+          );
+          const candidates = pool.length > 0 ? pool : candidateFeaturedArticles;
+          const selected =
+            candidates[Math.floor(Math.random() * candidates.length)];
+
+          if (!selected) return;
+          featureLink.setAttribute("href", selected.href);
+          featureImage.setAttribute("src", selected.image);
+          featureTitle.textContent = selected.title;
+        };
+
+        pickRandomArticle();
+        document.addEventListener("astro:page-load", pickRandomArticle);
+      })();
+    </script>
+  </div>
 
   <script is:inline define:vars={{ cloudflareExhibitionFallbacks }}>
     (() => {
@@ -644,7 +719,8 @@ const structuredData = [
         const inkColour =
           rootStyles.getPropertyValue("--color-text").trim() || "#15130f";
         const creamColour =
-          rootStyles.getPropertyValue("--color-primary-text").trim() || "#fff8e8";
+          rootStyles.getPropertyValue("--color-primary-text").trim() ||
+          "#fff8e8";
         return {
           ink: {
             token: "--color-text",
@@ -670,7 +746,10 @@ const structuredData = [
           const inkRatio = contrast(surfaceLuminance, ink.luminance);
           const creamRatio = contrast(surfaceLuminance, cream.luminance);
           const foreground = inkRatio >= creamRatio ? ink : cream;
-          surface.style.setProperty("--surface-foreground", `var(${foreground.token})`);
+          surface.style.setProperty(
+            "--surface-foreground",
+            `var(${foreground.token})`,
+          );
           surface.style.color = `var(${foreground.token})`;
           surface.dataset.contrastRatio = Math.max(
             inkRatio,
@@ -679,204 +758,53 @@ const structuredData = [
         });
       };
 
-      const initialiseTestimonials = () => {
-        document.querySelectorAll(".story-quote__full").forEach((fullQuote) => {
-          if (
-            !(fullQuote instanceof HTMLElement) ||
-            fullQuote.dataset.scrollReady === "true"
-          )
-            return;
-          fullQuote.dataset.scrollReady = "true";
-
-          const updateScrollFade = () => {
-            const hasOverflow =
-              fullQuote.scrollHeight > fullQuote.clientHeight + 4;
-            const isAtTop = fullQuote.scrollTop <= 4;
-            const isAtBottom =
-              fullQuote.scrollHeight -
-                fullQuote.scrollTop -
-                fullQuote.clientHeight <=
-              4;
-            fullQuote.dataset.hasOverflow = String(hasOverflow);
-            fullQuote.dataset.atTop = String(isAtTop);
-            fullQuote.dataset.atBottom = String(isAtBottom);
-          };
-
-          fullQuote.addEventListener("scroll", updateScrollFade, {
-            passive: true,
-          });
-          requestAnimationFrame(updateScrollFade);
-        });
-
-        document
-          .querySelectorAll("[data-testimonial-carousel]")
-          .forEach((carousel) => {
-            if (
-              !(carousel instanceof HTMLElement) ||
-              carousel.dataset.carouselReady === "true"
-            )
-              return;
-
-            const track = carousel.querySelector("[data-testimonial-track]");
-            const cards = Array.from(
-              carousel.querySelectorAll("[data-testimonial-card]"),
-            );
-            if (!(track instanceof HTMLElement) || cards.length === 0)
-              return;
-
-            carousel.dataset.carouselReady = "true";
-
-            const nextButtons = Array.from(
-              carousel.querySelectorAll("[data-testimonial-next]"),
-            );
-
-            const getActiveIndex = () => {
-              const trackLeft = track.getBoundingClientRect().left;
-              let activeIndex = 0;
-              let closestDistance = Number.POSITIVE_INFINITY;
-
-              cards.forEach((card, index) => {
-                if (!(card instanceof HTMLElement)) return;
-                const distance = Math.abs(
-                  card.getBoundingClientRect().left - trackLeft,
-                );
-                if (distance < closestDistance) {
-                  closestDistance = distance;
-                  activeIndex = index;
-                }
-              });
-              return activeIndex;
-            };
-
-            const scrollToCard = (targetIndex) => {
-              const targetCard = cards[targetIndex];
-              if (!(targetCard instanceof HTMLElement)) return;
-
-              // Collapse any currently expanded card so next card is viewed cleanly
-              cards.forEach((card) => {
-                if (card !== targetCard && card.classList.contains("is-expanded")) {
-                  card.classList.remove("is-expanded");
-                  const toggleBtn = card.querySelector("[data-testimonial-toggle]");
-                  const fullQuote = card.querySelector(".story-quote__full");
-                  const label = card.querySelector("[data-toggle-label]");
-                  if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
-                  if (fullQuote) fullQuote.setAttribute("aria-hidden", "true");
-                  if (label) label.textContent = "Full testimonial";
-                }
-              });
-
-              const left =
-                targetCard.getBoundingClientRect().left -
-                track.getBoundingClientRect().left +
-                track.scrollLeft;
-              track.scrollTo({
-                left,
-                behavior: window.matchMedia(
-                  "(prefers-reduced-motion: reduce)",
-                ).matches
-                  ? "auto"
-                  : "smooth",
-              });
-            };
-
-            nextButtons.forEach((btn) => {
-              if (!(btn instanceof HTMLButtonElement)) return;
-              btn.addEventListener("click", () => {
-                const currentIndex = getActiveIndex();
-                const nextIndex = (currentIndex + 1) % cards.length;
-                scrollToCard(nextIndex);
-              });
-            });
-          });
-
-        document
-          .querySelectorAll("[data-testimonial-toggle]")
-          .forEach((button) => {
-            if (
-              !(button instanceof HTMLButtonElement) ||
-              button.dataset.ready === "true"
-            )
-              return;
-            button.dataset.ready = "true";
-
-            button.addEventListener("click", () => {
-              const card = button.closest("[data-testimonial-card]");
-              const fullQuote = card?.querySelector(".story-quote__full");
-              const label = button.querySelector("[data-toggle-label]");
-              if (
-                !(card instanceof HTMLElement) ||
-                !(fullQuote instanceof HTMLElement)
-              )
-                return;
-
-              const willExpand =
-                button.getAttribute("aria-expanded") !== "true";
-              button.setAttribute("aria-expanded", String(willExpand));
-              card.classList.toggle("is-expanded", willExpand);
-              fullQuote.setAttribute("aria-hidden", String(!willExpand));
-              requestAnimationFrame(() => {
-                card
-                  .closest("[data-testimonial-carousel]")
-                  ?.dispatchEvent(new Event("testimonial:layout"));
-              });
-              if (label)
-                label.textContent = willExpand
-                  ? "Close testimonial"
-                  : "Full testimonial";
-
-              if (willExpand) {
-                fullQuote.scrollTop = 0;
-                requestAnimationFrame(() => {
-                  const hasOverflow =
-                    fullQuote.scrollHeight > fullQuote.clientHeight + 4;
-                  fullQuote.dataset.hasOverflow = String(hasOverflow);
-                  fullQuote.dataset.atTop = "true";
-                  fullQuote.dataset.atBottom = String(!hasOverflow);
-                });
-              }
-            });
-          });
-      };
-
       const ensureVideosPlay = () => {
-        document.querySelectorAll("video[autoplay]:not([data-lazy-autoplay-video])").forEach((element) => {
-          if (!(element instanceof HTMLVideoElement)) return;
-          const video = element;
-          const playVideo = () => {
-            if (video.paused) video.play().catch(() => {});
-          };
+        document
+          .querySelectorAll("video[autoplay]:not([data-lazy-autoplay-video])")
+          .forEach((element) => {
+            if (!(element instanceof HTMLVideoElement)) return;
+            const video = element;
+            const playVideo = () => {
+              if (video.paused) video.play().catch(() => {});
+            };
 
-          if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-            playVideo();
-          } else {
-            video.addEventListener("canplay", playVideo, { once: true });
-            // Videos inserted by Astro's client-side page swap can retain their
-            // src attribute without selecting/loading the media resource.
-            if (video.readyState === HTMLMediaElement.HAVE_NOTHING)
-              video.load();
-          }
+            if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+              playVideo();
+            } else {
+              video.addEventListener("canplay", playVideo, { once: true });
+              // Videos inserted by Astro's client-side page swap can retain their
+              // src attribute without selecting/loading the media resource.
+              if (video.readyState === HTMLMediaElement.HAVE_NOTHING)
+                video.load();
+            }
 
-          if (video.dataset.viewportPlaybackReady !== "true") {
-            video.dataset.viewportPlaybackReady = "true";
-            const observer = new IntersectionObserver(
-              (entries) => {
-                if (entries.some((entry) => entry.isIntersecting)) playVideo();
-              },
-              { threshold: 0.1 },
-            );
-            observer.observe(video);
-          }
-        });
+            if (video.dataset.viewportPlaybackReady !== "true") {
+              video.dataset.viewportPlaybackReady = "true";
+              const observer = new IntersectionObserver(
+                (entries) => {
+                  if (entries.some((entry) => entry.isIntersecting))
+                    playVideo();
+                },
+                { threshold: 0.1 },
+              );
+              observer.observe(video);
+            }
+          });
       };
 
       const initialisePage = () => {
         applySurfaceContrast();
-        window.removeEventListener("design-tokens:published", applySurfaceContrast);
-        window.addEventListener("design-tokens:published", applySurfaceContrast);
+        window.removeEventListener(
+          "design-tokens:published",
+          applySurfaceContrast,
+        );
+        window.addEventListener(
+          "design-tokens:published",
+          applySurfaceContrast,
+        );
         window.addEventListener("design-tokens:loaded", applySurfaceContrast, {
           once: true,
         });
-        initialiseTestimonials();
         ensureVideosPlay();
       };
 
@@ -891,6 +819,13 @@ const structuredData = [
   </script>
 </BaseLayout>
 
+<script>
+  import { initialiseLogoDomino } from "../lib/landing-logo-domino";
+  import { initialiseLandingSmudge } from "../lib/landing-smudge";
+  initialiseLogoDomino();
+  initialiseLandingSmudge();
+</script>
+
 <style is:global>
   :root {
     --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
@@ -903,6 +838,9 @@ const structuredData = [
     --story-green: var(--color-accent);
     --story-line: color-mix(in srgb, var(--color-text) 24%, transparent);
     --story-gutter: clamp(1.35rem, 4vw, 4rem);
+    --story-evidence-gutter: var(--story-gutter);
+    --story-panel-gutter: var(--story-gutter);
+    --story-content-max-width: 1480px;
     --home-next-gap: clamp(1rem, 2vw, 1.5rem);
     --home-next-border: 1px solid var(--pop-border);
     --home-next-radius-panel: clamp(18px, 2vw, 28px);
@@ -934,15 +872,6 @@ const structuredData = [
     padding: 0 !important;
     background: var(--color-primary) !important;
     color: var(--story-ink);
-  }
-  body.story-home-page .site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    box-sizing: border-box;
-    z-index: 50;
   }
   body.story-home-page main.page-content-full {
     overflow: visible;
@@ -1088,9 +1017,16 @@ const structuredData = [
     text-decoration: none;
   }
 
+  .story-intro,
   .story-work {
     margin: 8px;
     padding: var(--story-gutter);
+  }
+  .story-intro {
+    /* Retain alignment with Selected work without drawing an outer panel. */
+    border: 1px solid transparent;
+  }
+  .story-work {
     border: 1px solid color-mix(in srgb, var(--color-text) 34%, transparent);
     border-radius: var(--home-next-radius-panel);
     background: var(--color-background);
@@ -1102,35 +1038,12 @@ const structuredData = [
     font: 700 clamp(3rem, 7vw, 7rem)/0.88 var(--font-display, sans-serif);
     letter-spacing: -0.065em;
   }
-  .story-section-heading {
-    margin-bottom: clamp(3rem, 6vw, 6rem);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 1rem 3rem;
-    align-items: end;
+  /* Medium matches the portrait box; wide keeps the original fluid layout. */
+  .story-work[data-content-width="medium"]
+    > :is(.story-work__heading, .story-work__grid) {
+    max-inline-size: var(--story-content-max-width);
+    margin-inline: auto;
   }
-  .story-section-heading .story-eyebrow {
-    grid-column: 1 / -1;
-  }
-  .story-section-heading h2 {
-    max-width: 13ch;
-    margin-bottom: 0;
-    color: inherit;
-    font: 700 clamp(3rem, 7vw, 7rem)/0.88 var(--font-display, sans-serif);
-    letter-spacing: -0.065em;
-  }
-  .story-section-heading > a {
-    padding-bottom: 0.35rem;
-    color: inherit;
-    font: 700 0.72rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
-    text-decoration: none;
-    text-transform: uppercase;
-  }
-  .story-section-heading > a:hover {
-    color: var(--color-primary-text) !important;
-  }
-  .story-section-heading > a > .link-label,
   .story-evidence > header a > .link-label {
     text-decoration: underline;
     text-decoration-thickness: 1px;
@@ -1330,16 +1243,6 @@ const structuredData = [
     transition: transform var(--home-next-motion);
   }
 
-  .story-section-heading--dark-text {
-    color: inherit;
-  }
-  .story-section-heading__intro {
-    max-width: 35rem;
-    margin: 0;
-    color: inherit;
-    font: 450 1.05rem/1.55 var(--font-body, sans-serif);
-  }
-
   .story-approach {
     padding: clamp(5rem, 10vw, 10rem) var(--story-gutter);
     background: var(--color-primary);
@@ -1401,22 +1304,39 @@ const structuredData = [
 
   .story-services {
     padding-block: clamp(4rem, 6.5vw, 7rem);
-    padding-inline: var(--story-gutter);
-    background: var(--color-secondary);
+    padding-inline: var(--story-panel-gutter);
+    background: var(--color-background);
+    color: var(--color-text);
   }
-  .story-services
-    > :is(
-      header,
-      .story-services__intro,
-      .story-services__cards,
-      .story-services__cta
-    ) {
-    max-width: 1480px;
+  .story-services > :is(h2, .story-services__layout) {
+    max-inline-size: var(--story-content-max-width);
     margin-inline: auto;
-    width: 100%;
+  }
+  .story-services > .story-display-heading {
+    margin-block-end: clamp(2rem, 4vw, 4rem);
+  }
+  .story-services__layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: clamp(2rem, 5vw, 5rem);
+  }
+  .story-services__consulting {
+    display: grid;
+    gap: clamp(1rem, 1.6vw, 1.5rem);
+    max-inline-size: 60ch;
+    font: 450 clamp(1rem, 1.25vw, 1.16rem)/1.65 var(--font-body, sans-serif);
+  }
+  .story-services__consulting p {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    text-wrap: pretty;
   }
   .story-services__intro {
-    margin-bottom: var(--home-next-gap);
+    max-width: var(--story-content-max-width);
+    width: 100%;
+    margin-inline: auto;
     padding: clamp(0.65rem, 1vw, 0.9rem);
     display: grid;
     grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
@@ -1428,6 +1348,7 @@ const structuredData = [
     color: var(--color-button-text);
   }
   .story-services__portrait {
+    position: relative;
     margin: 0;
     width: 100%;
     aspect-ratio: 4 / 5;
@@ -1443,6 +1364,14 @@ const structuredData = [
     object-fit: cover;
     object-position: center;
   }
+  .story-home[data-landing-smudge] [data-smudge] > .landing-smudge-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
   .story-services__intro-copy {
     padding: clamp(1rem, 3.5vw, 3.5rem) clamp(0.45rem, 2.5vw, 2rem);
     display: flex;
@@ -1457,74 +1386,118 @@ const structuredData = [
     font: 450 clamp(1rem, 1.35vw, 1.2rem)/1.55 var(--font-body, sans-serif);
     text-wrap: pretty;
   }
+  .story-intro__greeting {
+    margin: 0;
+    font: 750 clamp(2.5rem, 4vw, 4rem)/1 var(--font-display, sans-serif);
+    letter-spacing: -0.055em;
+  }
   .story-services__intro-copy .story-services__intro-lead {
-    max-width: 24ch;
-    font: 650 clamp(1.8rem, 3.4vw, 3.7rem)/1.02 var(--font-display, sans-serif);
+    font-weight: 450;
+    font-size: clamp(1.6rem, 2.5vw, 2.7rem);
+    line-height: 1.15;
+    max-width: 28ch;
     letter-spacing: -0.045em;
     text-wrap: balance;
   }
-  .story-services__cards {
+  .story-services__intro-lead strong {
+    font-weight: 750;
+  }
+  .story-service-disclosure {
+    --service-label-inset: 2.5rem;
+    border-block-start: 1px solid var(--ui-border);
+  }
+  .story-service-disclosure:last-of-type {
+    border-block-end: 1px solid var(--ui-border);
+  }
+  .story-service-disclosure summary {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: 1fr;
-    gap: var(--home-next-gap);
+    grid-template-columns: var(--service-label-inset) minmax(0, 1fr);
+    align-items: center;
+    min-block-size: 3.5rem;
+    padding-block: clamp(1rem, 2vw, 1.75rem);
+    padding-inline: 0 0.5rem;
+    list-style: none;
+    cursor: pointer;
+    font: 590 clamp(1.35rem, 2.35vw, 2.5rem)/1.1 var(--font-display, sans-serif);
+    letter-spacing: -0.035em;
   }
-  .story-services__card {
-    min-height: clamp(290px, 28vw, 410px);
-    padding: clamp(1.4rem, 3vw, 2.75rem);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: clamp(2rem, 5vw, 5rem);
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-card);
-    background: var(--color-background);
-    color: var(--color-text);
-    box-shadow: 0 4px 0 var(--color-text);
+  .story-service-disclosure summary:hover {
+    background-color: color-mix(
+      in srgb,
+      var(--color-background) 95%,
+      currentColor
+    );
   }
-  .story-services__card h3 {
-    max-width: 18ch;
+  .story-service-disclosure summary::-webkit-details-marker {
+    display: none;
+  }
+  .story-service-disclosure__icon {
+    display: grid;
+    place-items: center;
+    inline-size: 1rem;
+    block-size: 1rem;
+  }
+  .story-service-disclosure__icon::before,
+  .story-service-disclosure__icon::after {
+    content: "";
+    grid-area: 1 / 1;
+    inline-size: 1rem;
+    border-block-start: 1px solid currentColor;
+  }
+  .story-service-disclosure__icon::after {
+    transform: rotate(90deg);
+  }
+  .story-service-disclosure[open] .story-service-disclosure__icon::after {
+    transform: rotate(0deg);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .story-service-disclosure__icon::after {
+      transition: transform var(--home-next-motion);
+    }
+  }
+  .story-service-disclosure__body {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.5rem 1rem 2rem var(--service-label-inset);
+  }
+  .story-service-disclosure__body > p {
+    max-inline-size: 62ch;
     margin: 0;
-    color: inherit;
-    font: 680 clamp(1.75rem, 3vw, 3rem)/0.98 var(--font-display, sans-serif);
-    letter-spacing: -0.05em;
-    text-wrap: balance;
-  }
-  .story-services__card p {
-    max-width: 48rem;
-    margin: 0;
-    color: inherit;
-    font: 450 clamp(1rem, 1.3vw, 1.15rem)/1.58 var(--font-body, sans-serif);
+    font: 450 clamp(1rem, 1.25vw, 1.15rem)/1.6 var(--font-body, sans-serif);
     text-wrap: pretty;
   }
-  .story-services__card-body {
-    margin-top: auto;
-    display: grid;
-    gap: clamp(1.35rem, 2vw, 1.8rem);
+  @supports selector(details::details-content) and
+    (interpolate-size: allow-keywords) and (transition-behavior: allow-discrete) {
+    @media (prefers-reduced-motion: no-preference) {
+      .story-service-disclosure::details-content {
+        interpolate-size: allow-keywords;
+        contain: layout;
+        overflow: clip;
+        transition:
+          block-size var(--home-next-motion),
+          content-visibility var(--home-next-motion) allow-discrete,
+          display var(--home-next-motion) allow-discrete;
+      }
+      .story-service-disclosure:not([open])::details-content {
+        block-size: 0;
+      }
+    }
   }
   .story-services__examples {
     display: grid;
-    gap: 0.65rem;
-  }
-  .story-services__card .story-services__examples-label {
-    font: 750 0.68rem/1.2 var(--font-mono, monospace);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .story-services__examples ul {
+    align-content: start;
+    justify-items: start;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem 1.15rem;
     list-style: none;
   }
   body.story-home-page .story-services__example-link,
   body.story-home-page .story-services__example-link:hover,
   body.story-home-page .story-services__example-link:focus-visible {
     display: inline-flex;
-    align-items: baseline;
-    gap: 0.35rem;
+    align-items: center;
+    min-block-size: 2.75rem;
+    gap: 0.55rem;
     color: inherit;
     font: 650 clamp(0.92rem, 1.12vw, 1.05rem)/1.35 var(--font-body, sans-serif);
     text-decoration: none !important;
@@ -1543,71 +1516,83 @@ const structuredData = [
     border-radius: 2px;
   }
   .story-services__example-arrow {
-    display: inline-block;
-    font-family: var(--font-mono, monospace);
-    text-decoration: none;
-    transition: transform var(--home-next-motion);
-  }
-  .story-services__example-link:hover .story-services__example-arrow,
-  .story-services__example-link:focus-visible .story-services__example-arrow {
-    transform: translate(2px, -2px);
-  }
-  .story-services__cta {
-    padding-top: clamp(1.5rem, 3vw, 2.5rem);
-    display: flex;
-    justify-content: flex-end;
-  }
-  .story-services__cta .story-button {
-    background: var(--color-background);
-    color: var(--color-text);
-    transition:
-      transform var(--home-next-motion),
-      background 160ms ease;
-  }
-  .story-services__cta .story-button:hover {
-    background: var(--color-accent);
-    transform: translateY(-2px);
+    flex: none;
   }
 
   .story-evidence {
-    padding-block: clamp(4rem, 6.5vw, 7rem);
-    padding-inline: var(--story-gutter);
-    background: var(--color-primary);
-    color: var(--color-primary-text);
+    padding: clamp(3rem, 6vw, 6rem) var(--story-evidence-gutter) 0;
+    background: var(--color-background);
+    color: var(--color-text);
   }
-  .story-evidence > :is(header, .story-evidence__columns) {
-    max-width: 1480px;
+  .story-evidence > :is(header, .story-logo-grid, .story-brands) {
+    max-width: var(--story-content-max-width);
     margin-inline: auto;
-    width: 100%;
-  }
-  .story-evidence__columns {
-    display: flex;
-    flex-direction: column;
   }
   .story-evidence > header {
-    margin-bottom: clamp(3rem, 7vw, 7rem);
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 1rem 3rem;
     align-items: end;
+    gap: 1rem;
+    margin-bottom: clamp(2rem, 4vw, 4rem);
   }
   .story-evidence > header .story-eyebrow {
     grid-column: 1 / -1;
   }
-  .story-evidence > header h2 {
-    max-width: 13ch;
+  .story-display-heading {
     margin: 0;
-    font: 700 clamp(3rem, 7vw, 7rem)/0.88 var(--font-display, sans-serif);
-    letter-spacing: -0.07em;
+    font: 700 clamp(3rem, 7vw, 7rem)/0.92 var(--font-display, sans-serif);
+    letter-spacing: -0.065em;
   }
   .story-evidence > header a {
-    padding-bottom: 0.35rem;
     color: inherit;
-    font: 750 0.68rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
-    text-decoration: none;
-    text-transform: uppercase;
+    font-size: 0.9rem;
   }
+  .story-logo-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--logo-columns), minmax(0, 1fr));
+    gap: 1px;
+    padding: 1px;
+    margin-block: 0;
+    list-style: none;
+    background: var(--ui-border);
+  }
+  .story-logo-grid li {
+    display: grid;
+    place-items: center;
+    min-inline-size: 0;
+    padding: 0;
+    aspect-ratio: 1;
+    background: var(--color-background);
+  }
+  .story-logo-grid img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: contain;
+  }
+  .story-logo-tile {
+    display: grid;
+    inline-size: 100%;
+    block-size: 100%;
+    min-inline-size: 0;
+    transform-origin: 50% 50%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .story-logo-tile[data-logo-pending] {
+      opacity: 0;
+    }
+  }
+  @media (min-width: 721px) and (max-width: 1100px) {
+    .story-logo-grid {
+      grid-template-columns: repeat(var(--logo-tablet-columns), minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 720px) {
+    .story-logo-grid {
+      display: none;
+    }
+  }
+
   .story-brands {
     margin: 0;
     padding: 0.5rem 0 2rem;
@@ -1635,9 +1620,6 @@ const structuredData = [
     transition:
       transform var(--home-next-motion),
       box-shadow var(--home-next-motion);
-  }
-  .story-quote {
-    box-shadow: 0 4px 0 var(--color-text);
   }
   .story-brand-pill:hover,
   .story-brand-pill:focus-visible {
@@ -1731,351 +1713,20 @@ const structuredData = [
     opacity: 1;
     transform: translateY(0);
   }
-  .story-testimonials {
-    --story-quote-inset: clamp(1.35rem, 2.2vw, 2rem);
-    min-width: 0;
-    position: relative;
-  }
-  .story-quotes {
-    margin-top: clamp(2rem, 5vw, 5rem);
-    padding: 0.25rem 0 5px;
-    display: flex;
-    align-items: flex-start;
-    gap: var(--home-next-gap);
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-  .story-quotes::-webkit-scrollbar {
-    display: none;
-  }
-  .story-quote {
-    height: 100%;
-    min-height: clamp(340px, 30vw, 390px);
-    flex: 0 0 clamp(300px, 31vw, 420px);
-    margin: 0;
-    padding: var(--story-quote-inset);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
-    scroll-snap-align: start;
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--color-secondary);
-    color: var(--color-text);
-  }
-  .story-quote:nth-child(even) {
-    background: var(--color-button);
-  }
-  .story-quote :is(p, strong, span, button, b) {
-    color: inherit;
-  }
-  .story-quote__content {
-    min-width: 0;
-    min-height: 0;
-    margin-bottom: 1rem;
-    position: relative;
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
-  .story-quote__short,
-  .story-quote__full {
-    min-width: 0;
-  }
-  .story-quote__short {
-    position: relative;
-    opacity: 1;
-    transform: translateY(0);
-    transition:
-      opacity 220ms ease,
-      transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .story-quote__short p {
-    margin: 0;
-    font: 540 clamp(1.2rem, 1.65vw, 1.68rem)/1.28 var(--font-display, sans-serif);
-    letter-spacing: -0.035em;
-    text-wrap: pretty;
-  }
-  .story-quote__full {
-    position: absolute;
-    inset: 0;
-    padding: 0 0.55rem 2rem 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateY(10px);
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--color-text) 35%, transparent) transparent;
-    transition:
-      opacity 240ms ease,
-      transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
-      -webkit-mask-image 180ms ease,
-      mask-image 180ms ease;
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      #000 0%,
-      #000 calc(100% - 44px),
-      transparent 100%
-    );
-    mask-image: linear-gradient(
-      to bottom,
-      #000 0%,
-      #000 calc(100% - 44px),
-      transparent 100%
-    );
-  }
-  .story-quote__full p {
-    margin: 0;
-    font: 470 clamp(0.98rem, 1.2vw, 1.08rem)/1.5 var(--font-body, sans-serif);
-    letter-spacing: -0.01em;
-    text-wrap: pretty;
-    white-space: pre-line;
-  }
-  .story-quote__full::-webkit-scrollbar {
-    width: 4px;
-  }
-  .story-quote__full::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--color-text) 35%, transparent);
-    border-radius: 999px;
-  }
-  .story-quote__full[data-at-top="false"] {
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent 0,
-      #000 24px,
-      #000 calc(100% - 44px),
-      transparent 100%
-    );
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0,
-      #000 24px,
-      #000 calc(100% - 44px),
-      transparent 100%
-    );
-  }
-  .story-quote__full[data-at-bottom="true"] {
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent 0,
-      #000 24px,
-      #000 100%
-    );
-    mask-image: linear-gradient(to bottom, transparent 0, #000 24px, #000 100%);
-  }
-  .story-quote__full[data-has-overflow="false"],
-  .story-quote__full[data-at-top="true"][data-at-bottom="true"] {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-  .story-quote.is-expanded .story-quote__short {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateY(-8px);
-  }
-  .story-quote.is-expanded .story-quote__full {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateY(0);
-  }
-  .story-quote.is-expanded {
-    min-height: clamp(380px, 34vw, 450px);
-  }
-  .story-quote.is-expanded .story-quote__content {
-    flex: 1 1 auto;
-  }
-  .story-quote footer {
-    min-width: 0;
-    padding-top: 0.9rem;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 1rem;
-    align-items: baseline;
-    flex: 0 0 auto;
-    border-top: 1px solid currentColor;
-  }
-  .story-quote__person {
-    font: 760 clamp(1.08rem, 1.35vw, 1.4rem)/1 var(--font-display, sans-serif);
-    letter-spacing: -0.025em;
-    white-space: nowrap;
-    text-wrap: balance;
-  }
-  .story-quote__credit {
-    min-width: 0;
-    display: grid;
-    gap: 0.12rem;
-    justify-items: end;
-    text-align: right;
-  }
-  .story-quote__role {
-    font: 850 clamp(0.68rem, 0.75vw, 0.78rem)/1.15 var(--font-mono, monospace);
-    letter-spacing: 0.065em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .story-quote__credit-separator {
-    display: none;
-  }
-  .story-quote__company {
-    font: 650 clamp(0.61rem, 0.66vw, 0.68rem)/1.25 var(--font-mono, monospace);
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    opacity: 0.68;
-    white-space: nowrap;
-  }
-  .story-quote__actions {
-    min-width: 0;
-    margin-top: 0.85rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.65rem;
-    flex: 0 0 auto;
-    width: 100%;
-  }
-  .story-quote__action-spacer {
-    display: block;
-    flex: 1 1 auto;
-  }
-  .story-quote__toggle,
-  .story-quote__next {
-    width: fit-content;
-    min-height: 42px;
-    padding: 0 0.85rem 0 0.95rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.65rem;
-    flex: 0 0 auto;
-    border: 1px solid currentColor;
-    border-radius: var(--home-next-radius-control);
-    background: color-mix(in srgb, var(--color-primary-text) 28%, transparent);
-    color: inherit;
-    cursor: pointer;
-    font: 750 0.64rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    transition:
-      background-color var(--home-next-motion),
-      transform var(--home-next-motion),
-      box-shadow var(--home-next-motion);
-    white-space: nowrap;
-    text-decoration: none;
-  }
-  .story-quote__next {
-    margin-left: auto;
-  }
-  .story-quote__toggle [data-toggle-label],
-  .story-quote__next span {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    line-height: 1.15;
-    text-align: left;
-  }
-  .story-quote__toggle b,
-  .story-quote__next b {
-    width: 1.15rem;
-    height: 1.15rem;
-    display: grid;
-    place-items: center;
-    flex: 0 0 1.15rem;
-    font-size: 0.88rem;
-    line-height: 1;
-    transition: transform var(--home-next-motion);
-  }
-  .story-quote__toggle:hover,
-  .story-quote__next:hover {
-    background: color-mix(in srgb, var(--color-primary-text) 52%, transparent);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text) 8%, transparent);
-  }
-  .story-quote__toggle:hover b,
-  .story-quote__next:hover b {
-    transform: translateX(3px);
-  }
-  .story-quote__toggle[aria-expanded="true"] b {
-    transform: rotate(-90deg);
-  }
-  .story-quote__toggle:focus-visible,
-  .story-quote__next:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
-    background: color-mix(in srgb, var(--color-primary-text) 70%, transparent);
-  }
-
-  @media (min-width: 981px) {
-    .story-evidence__columns {
-      display: grid;
-      grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
-      align-items: start;
-      gap: clamp(1rem, 2.2vw, 2rem);
-    }
-    .story-testimonials,
-    .story-brands {
-      width: 100%;
-      min-width: 0;
-      margin: 0;
-      box-sizing: border-box;
-    }
-    .story-quotes {
-      margin: 0;
-      padding: 0 0 5px;
-    }
-    .story-quote {
-      height: 100%;
-      min-height: clamp(340px, 25vw, 385px);
-      flex-basis: 100%;
-    }
-    .story-brands {
-      padding: 0;
-      align-content: start;
-      order: initial;
-    }
-    .story-brand-pill {
-      height: 50px;
-      min-height: 50px;
-      padding: 0.45rem clamp(0.7rem, 1vw, 1rem);
-    }
-    .story-brand-pill[data-pill-size="small"] {
-      flex-basis: 8.5rem;
-      min-width: 7.5rem;
-      max-width: 15rem;
-    }
-    .story-brand-pill[data-pill-size="medium"] {
-      flex-basis: 11.5rem;
-      min-width: 10rem;
-      max-width: 18rem;
-    }
-    .story-brand-pill[data-pill-size="large"] {
-      flex-basis: 15rem;
-      min-width: 13rem;
-      max-width: 21rem;
-    }
-    .story-brand-pill__track > strong {
-      font-size: clamp(0.8rem, 0.92vw, 0.98rem);
-    }
-    .story-brand-pill__track > span {
-      font-size: clamp(0.66rem, 0.76vw, 0.8rem);
-    }
+  .story-service-disclosure summary:focus-visible {
+    outline: 2px solid var(--ui-focus-ring);
+    outline-offset: 4px;
   }
 
   .story-enquiry {
     --type-h2-color: var(--color-surface);
     padding-block: clamp(4rem, 6.5vw, 7rem);
-    padding-inline: var(--story-gutter);
+    padding-inline: var(--story-panel-gutter);
     background: var(--color-secondary);
     color: var(--color-primary-text);
   }
   .story-enquiry .inline-enquiry--pop {
+    max-inline-size: var(--story-content-max-width);
     padding: clamp(2rem, 3.5vw, 3.5rem);
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-panel);
@@ -2101,11 +1752,11 @@ const structuredData = [
   }
   .story-writing {
     padding-block: clamp(4rem, 6.5vw, 7rem);
-    padding-inline: var(--story-gutter);
+    padding-inline: var(--story-panel-gutter);
     border-top: var(--home-next-border);
   }
   .story-writing__inner {
-    max-width: 1480px;
+    max-inline-size: var(--story-content-max-width);
     margin-inline: auto;
     width: 100%;
     display: grid;
@@ -2125,20 +1776,68 @@ const structuredData = [
   .story-writing__panel .story-eyebrow {
     margin-bottom: clamp(0.75rem, 1.5vw, 1.25rem);
   }
+  .story-writing__panel:only-child {
+    grid-column: 1 / -1;
+  }
+  .story-writing__feature-link {
+    display: grid;
+    width: 100%;
+    gap: clamp(0.9rem, 2vw, 1.6rem);
+    color: inherit;
+    text-decoration: none;
+  }
+  .story-writing__feature-image {
+    width: 100%;
+    aspect-ratio: 2.35 / 1;
+    max-height: clamp(170px, 16vw, 215px);
+    object-fit: cover;
+    object-position: center;
+    height: auto;
+    display: block;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--home-next-radius-control);
+    background: var(--ui-surface-hover-bg);
+  }
+  .story-writing__feature-title {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    justify-content: space-between;
+    font: 720 clamp(1.6rem, 2.6vw, 2.65rem)/1.07 var(--font-display, sans-serif);
+    letter-spacing: -0.045em;
+    color: inherit;
+    text-wrap: pretty;
+  }
+  .story-writing__feature-title span:first-child {
+    text-decoration: underline;
+    text-decoration-thickness: 0.05em;
+    text-underline-offset: 0.12em;
+  }
+  .story-writing__feature-title span[aria-hidden] {
+    flex: none;
+    font-size: 0.75em;
+    font-weight: 440;
+  }
+  .story-writing__feature-link:is(:hover, :focus-visible) {
+    color: inherit;
+    text-decoration: none;
+  }
+  .story-writing__feature-link:is(:hover, :focus-visible)
+    .story-writing__feature-title
+    span:first-child {
+    text-decoration-thickness: 0.085em;
+  }
   .story-writing__title {
     max-width: 16ch;
     margin: 0;
-    font: 700 clamp(2.25rem, 1.5rem + 2.4vw, 4rem)/0.96 var(--font-display, sans-serif);
+    font: 380 clamp(2.25rem, 1.5rem + 2.4vw, 4rem)/0.96
+      var(--font-display, sans-serif);
     letter-spacing: -0.06em;
     color: inherit;
     text-wrap: balance;
   }
-  .story-writing .story-writing__description {
-    max-width: 57ch;
-    margin: clamp(1rem, 1.8vw, 1.5rem) 0 clamp(1.5rem, 2.2vw, 2rem);
-    font: 500 clamp(1rem, 1.25vw, 1.16rem)/1.55 var(--font-body, sans-serif);
-    color: inherit;
-    text-wrap: pretty;
+  .story-writing__title strong {
+    font-weight: 780;
   }
   .story-writing .story-writing__articles {
     width: 100%;
@@ -2170,6 +1869,7 @@ const structuredData = [
     background: var(--ui-button-hover-bg);
     text-decoration: none !important;
   }
+  .story-writing__feature-link:focus-visible,
   .story-writing__article-link:focus-visible,
   .story-writing__blog-link:focus-visible {
     outline: 2px solid currentColor;
@@ -2230,6 +1930,17 @@ const structuredData = [
   .story-writing__blog-link:focus-visible .story-writing__blog-arrow {
     transform: translateX(4px);
   }
+  .story-home-page .postcard-footer .studio-postcard__card {
+    inline-size: min(
+      var(--story-content-max-width),
+      calc(100% - 2 * var(--story-panel-gutter))
+    );
+  }
+  @container (max-width: 580px) {
+    .story-home-page .postcard-footer .studio-postcard__copy-wrap {
+      flex-basis: auto;
+    }
+  }
   @media (max-width: 980px) {
     .story-work__grid .story-project {
       grid-column: span 6;
@@ -2257,13 +1968,29 @@ const structuredData = [
     .story-services__portrait {
       aspect-ratio: 16 / 10;
     }
+    .story-services__layout,
     .story-writing__inner {
       grid-template-columns: 1fr;
+    }
+    .story-home-page .postcard-footer .studio-postcard__card {
+      grid-template-columns: minmax(0, 1fr);
+      gap: clamp(1.5rem, 4vw, 2.2rem);
+    }
+    .story-home-page .postcard-footer .studio-postcard__letter {
+      padding-inline-end: 0;
+    }
+    .story-home-page .postcard-footer .studio-postcard__address {
+      padding-inline-start: 0;
+      border-inline-start: 0;
+      border-block-start: var(--footer-rule);
+      padding-block-start: 1.8rem;
     }
   }
 
   @media (max-width: 720px) {
     :root {
+      --story-evidence-gutter: 1rem;
+      --story-panel-gutter: 1rem;
       --home-next-hero-name-font: 720 clamp(2.5rem, 11vw, 3.6rem)/0.85
         var(--font-display, sans-serif);
       --home-next-hero-title-font: 480 clamp(1.05rem, 4vw, 1.35rem)/1.15
@@ -2299,19 +2026,6 @@ const structuredData = [
     }
     .story-button {
       justify-content: space-between;
-    }
-    .story-section-heading {
-      grid-template-columns: 1fr;
-      align-items: start;
-    }
-    .story-section-heading .story-eyebrow {
-      grid-column: auto;
-    }
-    .story-section-heading h2 {
-      font-size: clamp(3.1rem, 14vw, 5rem);
-    }
-    .story-section-heading > a {
-      width: fit-content;
     }
     .story-work__grid {
       display: grid;
@@ -2349,20 +2063,11 @@ const structuredData = [
     .story-services__intro-copy {
       padding: 1.4rem 0.55rem 1rem;
     }
-    .story-services__cards {
-      grid-template-columns: 1fr;
-      grid-auto-rows: auto;
+    .story-service-disclosure {
+      --service-label-inset: 1.75rem;
     }
-    .story-services__card {
-      min-height: 0;
-      gap: 2rem;
-    }
-    .story-services__cta {
-      justify-content: stretch;
-    }
-    .story-services__cta .story-button {
-      width: 100%;
-      justify-content: space-between;
+    .story-service-disclosure__body {
+      padding-inline-end: 0.25rem;
     }
     .story-evidence > header {
       grid-template-columns: 1fr;
@@ -2371,7 +2076,7 @@ const structuredData = [
     .story-evidence > header .story-eyebrow {
       grid-column: auto;
     }
-    .story-evidence > header h2 {
+    .story-display-heading {
       font-size: clamp(3.1rem, 14vw, 5rem);
     }
     .story-evidence > header a {
@@ -2404,34 +2109,7 @@ const structuredData = [
     .story-brand-pill__track > span {
       font-size: clamp(0.72rem, 2.9vw, 0.84rem);
     }
-    .story-quotes {
-      margin-right: calc(-1 * var(--story-gutter));
-      padding-right: var(--story-gutter);
-    }
-    .story-testimonials {
-      --story-quote-inset: 1.25rem;
-    }
-    .story-quote {
-      min-height: 0;
-      flex-basis: min(calc(100vw - 2rem), 380px);
-      padding: var(--story-quote-inset);
-    }
-    .story-quote footer {
-      gap: 0.5rem;
-    }
-    .story-quote__role,
-    .story-quote__company {
-      letter-spacing: 0.035em;
-    }
-    .story-quote.is-expanded {
-      min-height: 420px;
-    }
-    :is(.story-evidence, .story-services, .story-enquiry, .story-writing) {
-      padding-inline: 1rem;
-    }
   }
-
-
 
   @media (prefers-reduced-motion: reduce) {
     .story-home * {
@@ -2443,7 +2121,12 @@ const structuredData = [
     .story-brand-pill__track > span {
       transition: none !important;
     }
-    .story-writing :is(.story-writing__article-arrow, .story-writing__blog-link, .story-writing__blog-arrow) {
+    .story-writing
+      :is(
+        .story-writing__article-arrow,
+        .story-writing__blog-link,
+        .story-writing__blog-arrow
+      ) {
       transform: none !important;
     }
   }

@@ -86,10 +86,10 @@ const architectureHref = "/architecture";
     </div>
 
     <div class="story-footer__social">
-      <a href="https://www.instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer">Instagram <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-      <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" rel="noopener noreferrer">LinkedIn <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-      <a href="https://vimeo.com/abodidsahoo" target="_blank" rel="noopener noreferrer">Vimeo <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-      <a href="https://github.com/abodid.sahoo" target="_blank" rel="noopener noreferrer">GitHub <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+      <a href="https://www.instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer"><span class="story-footer__link-label">Instagram</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+      <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" rel="noopener noreferrer"><span class="story-footer__link-label">LinkedIn</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+      <a href="https://vimeo.com/abodidsahoo" target="_blank" rel="noopener noreferrer"><span class="story-footer__link-label">Vimeo</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+      <a href="https://github.com/abodid.sahoo" target="_blank" rel="noopener noreferrer"><span class="story-footer__link-label">GitHub</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
     </div>
 
     <div class="story-footer__legal">
@@ -260,7 +260,7 @@ const architectureHref = "/architecture";
     border: 1px solid var(--color-text);
     border-radius: var(--home-next-radius-control);
     background: var(--color-button);
-    color: var(--color-button-text) !important;
+    color: var(--site-footer-brand-text, var(--color-button-text)) !important;
     font: 750 0.74rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -338,6 +338,139 @@ const architectureHref = "/architecture";
     .story-footer__legal {
       gap: 0.6rem 0.8rem;
     }
+  }
+
+  :global(html[data-divider-navigation]) .story-footer {
+    --site-footer-brand-text: var(--color-text);
+    --site-footer-gutter: var(--design-page-gutter);
+    padding-block: clamp(1.9rem, 4vw, 3.75rem) max(0.7rem, env(safe-area-inset-bottom, 0px));
+    padding-inline: max(var(--site-footer-gutter), env(safe-area-inset-left, 0px))
+      max(var(--site-footer-gutter), env(safe-area-inset-right, 0px));
+    border-block-start: 1px solid var(--ui-border-strong);
+    background: var(--color-background);
+    container: site-footer / inline-size;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer--bottom-only { padding-block-start: 0; }
+
+  :global(html[data-divider-navigation]) :is(.story-footer__grid, .story-footer__bottom-card) {
+    max-inline-size: var(--max-width);
+    margin-inline: auto;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.1rem, 3vw, 2.5rem);
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__card {
+    --footer-card-text: var(--color-text);
+    min-inline-size: 0;
+    padding: 0;
+    gap: 0.5rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--footer-card-text);
+    box-shadow: none;
+    transform: none;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__card + .story-footer__card {
+    padding-block-start: 1.05rem;
+    border-block-start: 1px solid var(--ui-border);
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__card-header {
+    padding: 0;
+    border: 0;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__title {
+    font-size: clamp(1.1rem, 0.95rem + 0.65vw, 1.45rem);
+    letter-spacing: -0.025em;
+    text-transform: none;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__index,
+  :global(html[data-divider-navigation]) .story-footer__legal > span[aria-hidden="true"] { display: none; }
+
+  :global(html[data-divider-navigation]) .story-footer__card nav { gap: 0; }
+
+  :global(html[data-divider-navigation]) .story-footer__card nav a {
+    justify-content: flex-start;
+    gap: 0.55rem;
+    min-block-size: 2.1rem;
+    padding-block: 0.28rem;
+    border: 0;
+    color: var(--footer-card-text);
+    letter-spacing: 0.01em;
+    text-transform: none;
+    transform: none;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__bottom-card {
+    margin-block-start: clamp(1.5rem, 3vw, 2.75rem);
+    padding: 0.5rem 0;
+    gap: 0.15rem clamp(1rem, 2.5vw, 2.1rem);
+    border: 0;
+    border-block-start: 1px solid var(--ui-border);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer--bottom-only .story-footer__bottom-card {
+    margin-block-start: 0;
+    border: 0;
+  }
+
+  :global(html[data-divider-navigation]) :is(.story-footer__brand-group, .story-footer__social, .story-footer__legal) {
+    gap: 0 clamp(0.75rem, 2vw, 1.25rem);
+  }
+
+  :global(html[data-divider-navigation]) :is(.story-footer__brand, .story-footer__social a) {
+    min-block-size: 2.75rem;
+    padding-inline: 0;
+    gap: 0.22rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-text);
+    box-shadow: none;
+    transform: none;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__legal a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+  }
+
+  :global(html[data-divider-navigation]) .story-footer__brand:hover,
+  :global(html[data-divider-navigation]) .story-footer__social a:hover .story-footer__link-label {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+
+  @container site-footer (min-width: 35rem) {
+    :global(html[data-divider-navigation]) .story-footer__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    :global(html[data-divider-navigation]) .story-footer__card + .story-footer__card {
+      padding-block-start: 0;
+      border-block-start: 0;
+    }
+  }
+
+  @container site-footer (min-width: 62rem) {
+    :global(html[data-divider-navigation]) .story-footer__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (pointer: coarse) {
+    :global(html[data-divider-navigation]) .story-footer__card nav a { min-block-size: 2.75rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {

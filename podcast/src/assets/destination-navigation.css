@@ -1,0 +1,115 @@
+/* The waiting view inherits the published palette, including the standalone studio. */
+#destination-view {
+  --destination-paper: var(--site-palette-paper, var(--color-background, var(--cream, Canvas)));
+  --destination-ink: var(--site-palette-ink, var(--color-text, var(--ink, CanvasText)));
+  --destination-block: color-mix(in srgb, var(--destination-ink) 10%, var(--destination-paper));
+  --destination-glint: color-mix(in srgb, var(--destination-ink) 3%, var(--destination-paper));
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--destination-paper);
+  color: var(--destination-ink);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  text-align: start;
+}
+#destination-view:not([open]), #destination-view [hidden],
+html[data-destination-pending] .astro-route-announcer { display: none; }
+#destination-view::backdrop { background: transparent; }
+#destination-view .destination-line {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--destination-block);
+}
+#destination-view .destination-line i {
+  display: block;
+  height: 100%;
+  background: var(--destination-ink);
+  transform: scaleX(.07);
+  transform-origin: left;
+}
+.destination-finish {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 3px;
+  z-index: 2147483647;
+  pointer-events: none;
+  transform-origin: left;
+  background: var(--site-palette-ink, var(--color-text, var(--ink, CanvasText)));
+}
+img[data-destination-image] {
+  --image-paper: var(--site-palette-paper, var(--color-background, var(--cream, Canvas)));
+  --image-ink: var(--site-palette-ink, var(--color-text, var(--ink, CanvasText)));
+  background-color: color-mix(in srgb, var(--image-ink) 9%, var(--image-paper));
+}
+#destination-view .destination-content {
+  box-sizing: border-box;
+  max-width: 82rem;
+  margin-inline: auto;
+  padding: clamp(3.5rem, 9vh, 7rem) clamp(1.25rem, 6vw, 6rem) 3rem;
+}
+#destination-view h1 {
+  margin: 0;
+  max-width: 25ch;
+  color: inherit;
+  font: 650 clamp(2.65rem, 7vw, 6rem)/1.04 var(--font-sans, system-ui, sans-serif);
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+#destination-view .destination-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .5rem 1rem;
+  margin-block: 1rem clamp(1.5rem, 4vw, 3rem);
+  color: inherit;
+  font: 500 1rem/1.5 var(--font-sans, system-ui, sans-serif);
+}
+#destination-view .destination-status a { color: inherit; text-decoration: underline; }
+#destination-view .destination-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(.75rem, 2vw, 1.5rem);
+  padding-top: clamp(1rem, 2vw, 2rem);
+  border-top: 1px solid color-mix(in srgb, var(--destination-ink) 28%, transparent);
+}
+#destination-view .destination-grid i {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--destination-block);
+}
+#destination-view[data-layout="article"] .destination-grid { grid-template-columns: 1fr; max-width: 48rem; }
+#destination-view[data-layout="article"] .destination-grid i { aspect-ratio: auto; height: 1rem; }
+#destination-view[data-layout="article"] .destination-grid i:first-child { height: clamp(5rem, 15vw, 11rem); }
+#destination-view[data-layout="article"] .destination-grid i:last-child { width: 65%; }
+@media (max-width: 42rem) {
+  #destination-view .destination-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  #destination-view .destination-grid i::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 12%, var(--destination-glint) 50%, transparent 88%);
+    animation: destination-light 2.2s ease-in-out infinite;
+  }
+  @keyframes destination-light {
+    from { transform: translateX(-105%); }
+    to { transform: translateX(105%); }
+  }
+}
+@media (forced-colors: active) {
+  #destination-view .destination-grid i { border: 1px solid GrayText; }
+}

@@ -967,7 +967,7 @@ function PopEditorialProject({ p, nextProject }) {
   const contributionText = p.specificContribution || p.contribution || p.role || "Contribution details are being documented.";
 
   const outcomeNarrative = p.outcomeText || p.outcome || outcomeBlock?.content?.text || (isResearch
-    ? "Published research and participatory design inquiry exploring cognitive attention and human perception."
+    ? ""
     : "Live interactive system and experimental storytelling canvas.");
 
   // Determine a short distinct status badge — NEVER repeat the whole outcome paragraph!
@@ -985,10 +985,11 @@ function PopEditorialProject({ p, nextProject }) {
     rawStatus.trim().toLowerCase() !== outcomeNarrative.trim().toLowerCase() &&
     !outcomeNarrative.toLowerCase().includes(rawStatus.trim().toLowerCase())
   ) ? rawStatus.trim() : null;
+  const hasResearchOutcome = Boolean(outcomeNarrative || displayStatus || experimentUrl || p.related);
 
   return (
     <main className="pe-shell">
-      <article className="rp-case" data-accent={accent}>
+      <article className="rp-case" data-accent={accent} data-project-kind={isResearch ? "research" : "work"}>
         {/* Hero Section */}
         <header className="rp-case__hero" data-pop-surface={accent}>
           <div className="rp-case__topline">
@@ -1016,7 +1017,7 @@ function PopEditorialProject({ p, nextProject }) {
 
         {/* Case Body: Editorial Blocks (2-Block for Research: Inquiry + Outcome; 3-Block for Work) */}
         <section className="rp-case__body">
-          {isResearch ? (
+          {isResearch ? (hasResearchOutcome ? (
             <div className="rp-case__trio-grid rp-case__trio-grid--duo" aria-label="Research Inquiry and Outcome">
               {/* Block 1: The Inquiry (Blue) */}
               <div className="rp-case__trio-card rp-case__trio-card--blue" data-pop-surface="blue">
@@ -1030,7 +1031,7 @@ function PopEditorialProject({ p, nextProject }) {
               <div className="rp-case__trio-card rp-case__trio-card--blue" data-pop-surface="blue">
                 <div className="rp-case__card-top">
                   <h2 className="rp-case__card-heading">Outcome</h2>
-                  <p className="rp-case__outcome-narrative-text">{outcomeNarrative}</p>
+                  {outcomeNarrative && <p className="rp-case__outcome-narrative-text">{outcomeNarrative}</p>}
                 </div>
                 {(displayStatus || experimentUrl || p.related) && (
                   <div className="rp-case__outcome-bottom">
@@ -1065,7 +1066,7 @@ function PopEditorialProject({ p, nextProject }) {
                 )}
               </div>
             </div>
-          ) : (
+          ) : null) : (
             <div className="rp-case__trio-grid" aria-label="Project Brief, Contribution and Outcome">
               {/* Block 1: The Brief (Blue) */}
               <div className="rp-case__trio-card rp-case__trio-card--blue" data-pop-surface="blue">

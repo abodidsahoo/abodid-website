@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!podcast'",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!podcast' && git diff --quiet HEAD^ HEAD -- 'podcast/src/assets/destination-navigation.*'",
   "trailingSlash": false,
   "redirects": [
     {

@@ -13,7 +13,6 @@
     box-sizing: border-box;
 }
 
-.newsletter-header,
 .newsletter-sender .management-heading,
 .newsletter-sender .management-panel-heading,
 .newsletter-sender .panel-heading,
@@ -24,18 +23,6 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-}
-
-.newsletter-header {
-    display: block;
-    align-items: flex-end;
-    margin-bottom: 1.5rem;
-    padding: var(--admin-page-heading-offset-block) var(--admin-page-heading-offset-inline) 1.5rem;
-    border-bottom: 1px solid var(--border-subtle);
-}
-
-.newsletter-header .section-title {
-    margin: 0.2rem 0 0.35rem;
 }
 
 .newsletter-sender .management-heading p,
@@ -4554,7 +4541,6 @@
         font-size: 0.8rem;
     }
 
-    .newsletter-header,
     .newsletter-sender .management-heading,
     .newsletter-sender .management-panel-heading,
     .newsletter-sender .panel-heading,

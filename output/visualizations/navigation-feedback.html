@@ -1,0 +1,215 @@
+<div id="navigation-feedback-comparison">
+  <div class="viz-carousel viz-dotted-background" aria-label="Navigation feedback with a simulated two-second load">
+    <section data-variant="Top-edge loading bar" data-mode="bar" aria-label="Top-edge loading bar"></section>
+    <section data-variant="Feedback on the link" data-mode="link" aria-label="Feedback on the link" hidden></section>
+    <section data-variant="Destination first" data-mode="destination" aria-label="Destination first" hidden></section>
+  </div>
+  <template>
+    <div class="feedback-stage">
+      <article class="feedback-page">
+        <header class="feedback-header">
+          <span class="feedback-wordmark">abodid.com</span>
+          <button type="button" class="feedback-open cursor-interaction">Open Photography</button>
+        </header>
+        <div class="feedback-rail" hidden>
+          <progress aria-label="Opening Photography"></progress>
+        </div>
+        <div class="feedback-content">
+          <h2>Selected Work</h2>
+          <p class="feedback-intro">Projects across research, creative direction, photography, and film.</p>
+          <ul class="feedback-entries" aria-label="Featured work">
+            <li><span>Creative Direction &amp; Production</span></li>
+            <li><span>Research &amp; Knowledge Systems</span></li>
+          </ul>
+        </div>
+        <div class="feedback-status" role="status" aria-atomic="true"></div>
+      </article>
+    </div>
+  </template>
+</div>
+<style>
+  #navigation-feedback-comparison .feedback-stage {
+    padding: 22px clamp(12px, 4%, 28px);
+  }
+  #navigation-feedback-comparison .feedback-page {
+    --feedback-paper: var(--color-background, light-dark(#fff8e8, #15130f));
+    --feedback-ink: var(--color-text, light-dark(#15130f, #fff8e8));
+    --feedback-active: var(--color-primary, light-dark(#2444ca, #62e6ff));
+    --feedback-rule: color-mix(in srgb, var(--feedback-ink) 27%, var(--feedback-paper));
+    position: relative;
+    margin-inline: auto;
+    max-inline-size: 36rem;
+    border: 1px solid var(--feedback-ink);
+    background: var(--feedback-paper);
+    color: var(--feedback-ink);
+    font-family: Inter, system-ui, sans-serif;
+  }
+  #navigation-feedback-comparison .feedback-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-block-size: 48px;
+    padding-inline: clamp(12px, 4%, 24px);
+    border-block-end: 1px solid var(--feedback-ink);
+  }
+  #navigation-feedback-comparison .feedback-wordmark {
+    font: 600 0.875rem/1.2 "Space Mono", ui-monospace, monospace;
+  }
+  #navigation-feedback-comparison .feedback-open {
+    min-block-size: 44px;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    color: var(--feedback-ink);
+    font: 550 0.875rem/1.2 Inter, system-ui, sans-serif;
+    text-align: end;
+    text-decoration: underline;
+    text-underline-offset: 0.24em;
+  }
+  #navigation-feedback-comparison .feedback-open:active,
+  #navigation-feedback-comparison [data-mode="link"] .feedback-open[aria-disabled="true"] {
+    color: var(--feedback-active);
+  }
+  #navigation-feedback-comparison .feedback-rail {
+    position: absolute;
+    inset: 0 0 auto;
+    pointer-events: none;
+  }
+  #navigation-feedback-comparison progress {
+    appearance: auto;
+    display: block;
+    inline-size: 100%;
+    block-size: 6px;
+    accent-color: var(--feedback-active);
+  }
+  #navigation-feedback-comparison .feedback-content {
+    padding: 20px clamp(12px, 4%, 24px) 22px;
+  }
+  #navigation-feedback-comparison .feedback-content h2 {
+    margin: 0;
+    color: inherit;
+    font: 600 clamp(2rem, 6vw, 2.85rem)/1.05 Inter, system-ui, sans-serif;
+    letter-spacing: -0.055em;
+  }
+  #navigation-feedback-comparison .feedback-intro {
+    margin: 9px 0 20px;
+    min-block-size: 2.8em;
+    color: inherit;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  #navigation-feedback-comparison .feedback-entries {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-block-start: 1px solid var(--feedback-rule);
+  }
+  #navigation-feedback-comparison .feedback-entries li {
+    display: flex;
+    align-items: center;
+    min-block-size: 33px;
+    margin: 0;
+    border-block-end: 1px solid var(--feedback-rule);
+    font-size: 0.875rem;
+  }
+  #navigation-feedback-comparison .feedback-entries li[data-pending]::before {
+    content: "";
+    inline-size: 37%;
+    block-size: 0.75em;
+    background: color-mix(in srgb, var(--feedback-ink) 18%, var(--feedback-paper));
+  }
+  #navigation-feedback-comparison .feedback-entries li[data-pending]:last-child::before {
+    inline-size: 48%;
+  }
+  #navigation-feedback-comparison .feedback-status {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  @media (max-width: 480px) {
+    #navigation-feedback-comparison .feedback-intro { min-block-size: 4.2em; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #navigation-feedback-comparison .feedback-rail {
+      block-size: 4px;
+      background: var(--feedback-active);
+    }
+    #navigation-feedback-comparison progress { display: none; }
+  }
+</style>
+<script>
+  (() => {
+    const root = document.getElementById("navigation-feedback-comparison");
+    const template = root.querySelector("template");
+    const arrivalTitles = ["Art Portfolio", "Commercial Portfolio"];
+
+    for (const variant of root.querySelectorAll("[data-mode]")) {
+      variant.append(template.content.cloneNode(true));
+      const open = variant.querySelector("button");
+      const title = variant.querySelector("h2");
+      const intro = variant.querySelector(".feedback-intro");
+      const rail = variant.querySelector(".feedback-rail");
+      const entries = variant.querySelector("ul");
+      const rows = Array.from(entries.children);
+      const status = variant.querySelector('[role="status"]');
+      const initialTitle = title.textContent;
+      const initialIntro = intro.textContent;
+      const initialEntries = rows.map(row => row.textContent);
+      const mode = variant.dataset.mode;
+
+      function showPage(arriving) {
+        title.textContent = arriving ? "Photography" : initialTitle;
+        intro.textContent = arriving
+          ? "Documentary, exhibition, and experimental photo series shot across London and India."
+          : initialIntro;
+        entries.setAttribute("aria-label", arriving ? "Photography portfolios" : "Featured work");
+      }
+
+      function showEntry(index, label) {
+        const row = rows[index];
+        row.removeAttribute("data-pending");
+        row.removeAttribute("aria-hidden");
+        row.firstElementChild.textContent = label;
+      }
+
+      open.addEventListener("click", () => {
+        if (open.getAttribute("aria-disabled") === "true") return;
+        open.setAttribute("aria-disabled", "true");
+        open.textContent = mode === "link" ? "Opening Photography…" : "Open Photography";
+        status.textContent = mode === "destination" ? "Photography. Loading portfolios." : "Opening Photography.";
+        showPage(mode === "destination");
+
+        if (mode === "destination") {
+          for (const row of rows) {
+            row.setAttribute("data-pending", "");
+            row.setAttribute("aria-hidden", "true");
+            row.firstElementChild.textContent = "";
+          }
+          window.setTimeout(() => showEntry(0, arrivalTitles[0]), 900);
+        } else {
+          initialEntries.forEach((label, index) => showEntry(index, label));
+          if (mode === "bar") {
+            window.setTimeout(() => {
+              rail.hidden = false;
+              if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                open.textContent = "Opening Photography…";
+              }
+            }, 150);
+          }
+        }
+
+        window.setTimeout(() => {
+          showPage(true);
+          arrivalTitles.forEach((label, index) => showEntry(index, label));
+          rail.hidden = true;
+          open.removeAttribute("aria-disabled");
+          open.textContent = "Try again";
+          status.textContent = "Photography is ready.";
+        }, 2000);
+      });
+    }
+  })();
+</script>

@@ -1,9 +1,11 @@
 ---
 import "../styles/global.css";
 import "../styles/brands.css";
-import SiteHeader from "../components/SiteHeader.astro";
-import SiteFooter from "../components/SiteFooter.astro";
+import JournalHeader from "../components/JournalHeader.astro";
+import PostcardFooter from "../components/PostcardFooter.astro";
 import SEO from "../components/SEO.astro";
+import RssSubscription from "../components/RssSubscription.astro";
+import { SUBSCRIPTION_FEEDS, feedUrl } from "../lib/subscriptions/catalog.js";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
@@ -29,6 +31,7 @@ import {
   legacyResourcePathToCurationPath,
 } from "../lib/curationRoutes.js";
 import { isLabHostname, labUrl } from "../lib/labRoutes.js";
+import { usesSiteTheme } from "../lib/siteThemes.js";
 
 const {
   title,
@@ -45,13 +48,15 @@ const {
   robots,
   structuredData,
   hideHeader = false,
+  headerComponent: Header = JournalHeader,
   hideSideMenuRail = false,
   hideFooter = false,
+  footerComponent: Footer = PostcardFooter,
   showFooterNavigation = true,
   fullWidth = false,
   hideThemeToggle = false,
   altTextLogo = null,
-  showNewsletterPopup = true,
+  showNewsletterPopup = false,
   showGlobalGrid = false,
   bodyClass = "",
   showCursor,
@@ -84,6 +89,7 @@ const renderedPointerVariant = cursorFollowerEnabled
 // Resolve one authoritative SEO object. A published admin override wins,
 // followed by the page's own defaults.
 const pagePath = Astro.url.pathname;
+const usesPublishedTheme = usesSiteTheme(pagePath);
 const finalCanonicalUrl = canonicalUrl;
 const dbMetadata = await getPageMetadata(pagePath);
 const resolvedSeo = resolvePageSeo({
@@ -111,7 +117,7 @@ const googleFontsUrl =
   "https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300..700;1,300..700&family=Inconsolata:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+Odia:wght@400;600;700&family=Noto+Sans+SC:wght@400;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=VT323&display=swap";
 ---
 
-<html lang="en">
+<html lang="en" data-site-theme-enabled={usesPublishedTheme ? "" : undefined}>
   <head>
     {enableAnalytics && <GoogleAnalytics />}
     <meta charset="utf-8" />
@@ -129,12 +135,7 @@ const googleFontsUrl =
     <meta name="generator" content={Astro.generator} />
     <DesignTokenRuntime />
     <ClientRouter fallback="swap" />
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title="Abodid Blog"
-      href="/rss.xml"
-    />
+    {SUBSCRIPTION_FEEDS.map((feed) => <link rel="alternate" type="application/rss+xml" title={`Abodid | ${feed.title}`} href={feedUrl(feed, String(Astro.site || "https://abodid.com"))} />)}
     <link
       rel="alternate"
       type="text/markdown"
@@ -165,10 +166,11 @@ const googleFontsUrl =
     />
     <!-- Dynamic SEO & Social Images applied -->
     <slot name="head" />
+    <RouteLoadingOverlay />
 
     {initialBackgroundColor && (
       <style is:inline define:vars={{ initialBackgroundColor }}>
-        html, body { background-color: var(--initialBackgroundColor) !important; }
+        html, body { background-color: var(--site-palette-paper, var(--initialBackgroundColor)) !important; }
       </style>
     )}
 
@@ -208,8 +210,7 @@ const googleFontsUrl =
     class={bodyClass}
   >
     <a href="#main-content" class="skip-link">Skip to main content</a>
-    <RouteLoadingOverlay />
-    {!hideHeader && <SiteHeader />}
+    {!hideHeader && <Header />}
     {showGlobalGrid && <div class="global-grid-bg"></div>}
     {showGlobalGrid && <div class="global-glow-bg"></div>}
     <main
@@ -223,7 +224,7 @@ const googleFontsUrl =
 
     {enableAnalytics && <script src="/scripts/journey-tracker.js" defer></script>}
     <script is:inline>
-      if ('serviceWorker' in navigator) {
+      if (window.top === window && 'serviceWorker' in navigator) {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
           navigator.serviceWorker.getRegistrations().then(function (registrations) {
             for (let registration of registrations) {
@@ -244,11 +245,25 @@ const googleFontsUrl =
         }
       }
     </script>
-    {!hideFooter && <SiteFooter showNavigation={showFooterNavigation} />}
+    {!hideFooter && <Footer showNavigation={showFooterNavigation} />}
+    {!hideFooter && <RssSubscription />}
   </body>
 </html>
 
+<script>
+  import "../scripts/destination-router.js";
+</script>
+
 <style>
+  :global(html[data-divider-navigation]) {
+    scroll-padding-block-start: calc(3.5rem + env(safe-area-inset-top, 0px));
+  }
+
+  :global(html[data-divider-navigation]),
+  :global(html[data-divider-navigation] body) {
+    overflow-x: clip;
+  }
+
   body {
     /* Background handled by global.css theme variables */
   }

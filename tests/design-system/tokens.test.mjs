@@ -10,6 +10,7 @@ import {
   mergeColourTokens,
 } from "../../src/lib/designTokens.js";
 import { DESIGN_TOKEN_USAGE } from "../../src/lib/designTokenUsage.js";
+import { normaliseThemeCorners, ORIGINAL_SITE_THEME, sameSiteTheme } from "../../src/lib/siteThemes.js";
 
 test("the bundled Pop Editorial palette satisfies every surface contract", () => {
   const contracts = evaluateSurfaceContracts(DEFAULT_DESIGN_TOKENS);
@@ -127,4 +128,22 @@ test("publication catches a pressed-state failure even when the base colour pass
   const contracts = evaluateSurfaceContracts({ ...DEFAULT_DESIGN_TOKENS, "--color-primary": "#5555ff" });
   assert.equal(contracts.find((contract) => contract.id === "blue").passes, true);
   assert.equal(contracts.find((contract) => contract.id === "primary-active").passes, false);
+});
+
+test("theme corners preserve saved rounding through sharp mode and legacy Original restores component defaults", () => {
+  const corners = normaliseThemeCorners({ style: "sharp", radii: { "--ds-radius-card": "12", "--ds-radius-media": "", "--ds-radius-control": 999, "--unknown-token": "red" } });
+  assert.deepEqual(corners, { style: "sharp", radii: { "--ds-radius-card": 12, "--ds-radius-control": 28 } });
+  assert.equal(sameSiteTheme(null, ORIGINAL_SITE_THEME), true);
+  assert.equal(sameSiteTheme(null, { ...ORIGINAL_SITE_THEME, corners }), false);
+  assert.equal(sameSiteTheme(
+    { ...ORIGINAL_SITE_THEME, corners },
+    { ...ORIGINAL_SITE_THEME, corners: { style: "sharp", radii: { "--ds-radius-control": 28, "--ds-radius-card": 12 } } },
+  ), true);
+});
+
+test("the header and footer layout is independent of the theme palette and corners", () => {
+  const { header_footer_style, ...legacyOriginal } = ORIGINAL_SITE_THEME;
+  assert.equal(header_footer_style, "boxed");
+  assert.equal(sameSiteTheme(legacyOriginal, ORIGINAL_SITE_THEME), true);
+  assert.equal(sameSiteTheme(legacyOriginal, { ...legacyOriginal, header_footer_style: "lines" }), false);
 });

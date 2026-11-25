@@ -80,6 +80,51 @@ Each responsive role exposes minimum size, fluid viewport value, maximum size, w
 - Bundled CSS values remain as fallbacks when the network or database is unavailable.
 - Every publication is captured in `design_system_versions` and can be loaded back as a draft.
 
+## Site themes
+
+Creator Studio → Site Design → Themes previews and publishes the public site's
+appearance. **Original** uses the existing published design tokens and local
+page styles. **Crimson & Cream** ships as a saved two-colour preset. Saved themes
+can be edited independently and previewed on real pages in the admin panel.
+Publishing takes a snapshot of the selected pair. Saving a preset does not
+update its live snapshot.
+
+Select **Original** and **Publish theme** to switch back. Theme publication
+updates only `published_theme` in the settings row. The Original colours,
+existing history and shared typography and layout values remain in the design
+tokens. The existing Colors tab edits the Original palette.
+
+Two-colour themes use one background and one foreground role for light and
+dark display modes. The Vite PostCSS transform supplies those roles to older
+colour declarations when the theme is active. Embedded component styles can
+use the same optional roles with their original CSS values as fallbacks.
+Independently themed routes are listed in `src/lib/siteThemes.js`.
+
+Each theme also saves a corner style. **Sharp** squares off authored corners,
+including local and inline component styles, across the Astro site. **Rounded**
+uses each component's regular styles and can override the shared panel, card,
+control and media radii. **Use original radii** clears those four overrides.
+Switching to Sharp retains the theme's saved Rounded values.
+
+Original inherits the existing published palette and starts with its regular
+radii. Crimson & Cream is seeded with Sharp. Saving either theme updates its
+draft, and **Publish theme** promotes its saved appearance. Earlier published
+themes without a corner setting render with their regular component radii.
+
+**Header and footer** is saved per theme. The shared header pairs the abodid.com
+wordmark with journal navigation and the Visual Index menu. The shared footer
+uses the Friday Evenings postcard and colophon. Compact-footer pages show the
+colophon alone. **Divider lines** uses full-width separators. **Boxed** frames
+the menu button and applies the theme’s panel corners to the postcard.
+Earlier themes without a layout setting use Boxed.
+
+Use upright type throughout the site. Pair light and bold weights for
+editorial contrast and preserve semantic emphasis in article markup.
+
+Use `NativeSelect` for styled dropdown fields. It keeps the browser's picker
+and sets a shared text inset, chevron inset, and gap. The chevron is centered
+vertically and follows the inline end in either reading direction.
+
 ## Exception policy
 
 Art-directed experiments may keep local tokens when their difference is meaningful. Local tokens should still alias the shared system where possible. A literal colour, size or weight should be reserved for a genuine exception and documented next to the declaration.

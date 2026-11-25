@@ -61,6 +61,7 @@ function createRandomAmbientTags(pool = fallbackVaultTags) {
 
 export default function LandingInteractiveHero({
   name = "Abodid Sahoo",
+  headingTag: HeadingTag = "h1",
   heading,
   keyline = "Creative Technologist, Immersive Experience Designer and Visual Artist working between London and India",
   role,
@@ -406,9 +407,9 @@ export default function LandingInteractiveHero({
                       tag.isDissolved ? 'landing-tag-content--dissolved' : ''
                     }`}
                     style={{
-                      backgroundColor: tag.theme.bg,
-                      color: tag.theme.color,
-                      borderColor: tag.theme.border,
+                      backgroundColor: `var(--site-palette-paper, ${tag.theme.bg})`,
+                      color: `var(--site-palette-ink, ${tag.theme.color})`,
+                      borderColor: `var(--site-palette-ink, ${tag.theme.border})`,
                     }}
                   >
                     #{tag.text}
@@ -433,9 +434,9 @@ export default function LandingInteractiveHero({
             <span
               className="landing-tag-content"
               style={{
-                backgroundColor: tag.theme.bg,
-                color: tag.theme.color,
-                borderColor: tag.theme.border,
+                backgroundColor: `var(--site-palette-paper, ${tag.theme.bg})`,
+                color: `var(--site-palette-ink, ${tag.theme.color})`,
+                borderColor: `var(--site-palette-ink, ${tag.theme.border})`,
               }}
             >
               #{tag.text}
@@ -446,9 +447,9 @@ export default function LandingInteractiveHero({
 
       {/* Main Centered Content — reading order: name -> keyline -> actions */}
       <div className="landing-hero__content" ref={contentRef}>
-        <h1 id="story-hero-heading" className="landing-hero__heading">
+        <HeadingTag id="story-hero-heading" className="landing-hero__heading">
           {heroTitle}
-        </h1>
+        </HeadingTag>
 
         {heroKeyline && (
           <p className="landing-hero__keyline">{heroKeyline}</p>
@@ -458,15 +459,15 @@ export default function LandingInteractiveHero({
           <p className="landing-hero__description">{description}</p>
         )}
 
-        <div className="landing-hero__actions">
-          <a
+        {(ctaText || secondaryCtaText) && <div className="landing-hero__actions">
+          {ctaText && <a
             className="landing-hero__enter-btn"
             href={ctaHref}
             onClick={(e) => handleScrollClick(e, ctaHref)}
           >
             <span>{ctaText}</span>
             <span className="landing-hero__enter-arrow" aria-hidden="true">↓</span>
-          </a>
+          </a>}
 
           {secondaryCtaText && (
             <a
@@ -478,7 +479,7 @@ export default function LandingInteractiveHero({
               <span className="link-destination-arrow" aria-hidden="true">↗</span>
             </a>
           )}
-        </div>
+        </div>}
       </div>
 
       <style>{`
@@ -620,7 +621,7 @@ export default function LandingInteractiveHero({
           animation: trailFadeMove 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Capsule Container: pure hardware-accelerated GPU opacity & scale dissolve transitions */
+        /* The tags dissolve using opacity and scale. */
         .landing-tag-content {
           display: inline-flex;
           align-items: center;
@@ -672,7 +673,7 @@ export default function LandingInteractiveHero({
           margin: 0;
           font: 700 clamp(3.2rem, 6.8vw, 6.2rem)/0.92 var(--font-display, sans-serif);
           letter-spacing: -0.055em;
-          color: var(--color-background, var(--color-primary-text));
+          color: var(--site-palette-ink, var(--color-background, var(--color-primary-text)));
           text-wrap: balance;
           text-align: center;
         }
@@ -682,7 +683,7 @@ export default function LandingInteractiveHero({
           margin: 0;
           font: 520 clamp(1.18rem, 1.85vw, 1.65rem)/1.42 var(--font-display, sans-serif);
           letter-spacing: -0.02em;
-          color: var(--color-background, var(--color-primary-text));
+          color: var(--site-palette-ink, var(--color-background, var(--color-primary-text)));
           text-wrap: balance;
           text-align: center;
         }
@@ -692,7 +693,7 @@ export default function LandingInteractiveHero({
           margin: 0;
           font: 480 clamp(1rem, 1.4vw, 1.25rem)/1.5 var(--font-display, sans-serif);
           letter-spacing: -0.015em;
-          color: color-mix(in srgb, var(--color-primary-text) 90%, transparent);
+          color: var(--site-palette-ink, color-mix(in srgb, var(--color-primary-text) 90%, transparent));
           text-wrap: pretty;
           text-align: center;
         }
@@ -752,7 +753,7 @@ export default function LandingInteractiveHero({
           border-radius: 999px;
           background: color-mix(in srgb, var(--color-primary-text) 12%, transparent);
           backdrop-filter: blur(8px);
-          color: var(--color-background, var(--color-primary-text)) !important;
+          color: var(--site-palette-ink, var(--color-background, var(--color-primary-text))) !important;
           font: 650 0.88rem/1 var(--font-mono, monospace);
           letter-spacing: 0.04em;
           text-transform: uppercase;

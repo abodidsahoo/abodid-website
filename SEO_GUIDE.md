@@ -52,3 +52,11 @@ The logic in `src/layouts/BaseLayout.astro` prioritizes sources in this order:
 3.  **Defaults**: Fallback values.
 
 To update functionality, simply update the `title` and `description` props in your Astro pages.
+
+## Sitemap coverage
+
+The visitor directory at `/sitemap` shares its permanent destinations with XML discovery through `src/data/siteDirectory.js`. Add permanent public pages to that catalogue so visitors and crawlers can find them together. Podcast Studio links retain their separate `podcast.abodid.com` origin and sitemap.
+
+Published projects, photographic series, films, essays, research and papers appear automatically in the server-rendered directory through the existing subscription content index. Longer collections use native expandable lists; their links remain in the HTML and work without JavaScript. Public vault notes have their own complete directory.
+
+`/sitemap-index.xml` combines Astro's permanent-page sitemap with `/content-sitemap.xml`, `/work-sitemap.xml` and `/vault-sitemap.xml`. These request-time indexes pick up newly published content without a rebuild, enforce publication and search-visibility rules, and use real content modification dates. Private routes, previews, assets and legacy aliases remain excluded. `public/robots.txt` advertises the sitemap index.

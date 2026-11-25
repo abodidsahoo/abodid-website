@@ -1,0 +1,17 @@
+---
+import DigestPostcard from "./DigestPostcard.astro";
+import FooterColophon from "./FooterColophon.astro";
+import "../styles/editorial-footer.css";
+
+const { showNavigation = true } = Astro.props;
+---
+<footer class="editorial-footer postcard-footer" id="site-footer" aria-label="Site footer" data-site-footer>
+  {showNavigation && <DigestPostcard />}
+  <FooterColophon />
+</footer>
+
+<style>
+  .postcard-footer { position: relative; z-index: 1; background: var(--color-background); color: var(--color-text); }
+  :global(html[data-divider-navigation]) .postcard-footer { border-block-start: 1px solid var(--ui-border); }
+  :global(html:not([data-divider-navigation])) .postcard-footer :global(.studio-postcard__card) { border-radius: var(--design-radius-panel); }
+</style>

@@ -1,96 +1,174 @@
 ---
-import { DESIGN_TOKEN_NAMES, LEGACY_COLOR_TOKENS, DEFAULT_DESIGN_TOKENS } from "../lib/designTokens.js";
+import {
+  DESIGN_TOKEN_NAMES, LEGACY_COLOR_TOKENS, DEFAULT_DESIGN_TOKENS,
+  SITE_THEME_SURFACES, SITE_THEME_FOREGROUNDS, SITE_CORNER_FIELDS,
+} from "../lib/designTokens.js";
+import { DESIGN_TOKEN_CACHE_KEY, ORIGINAL_SITE_THEME, SITE_THEME_PREVIEW_EVENT, SITE_THEME_PUBLISHED_EVENT } from "../lib/siteThemes.js";
 
 import { EDITORIAL_CURSOR_SVG } from "../lib/editorialCursor.js";
+import "../styles/site-corners.css";
+import "../styles/site-typography.css";
 
+const { cornersOnly = false } = Astro.props;
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
 const tokenNames = DESIGN_TOKEN_NAMES;
 const legacyColorTokens = LEGACY_COLOR_TOKENS;
 const editorialCursorSvg = EDITORIAL_CURSOR_SVG;
 const tokenDefaults = DEFAULT_DESIGN_TOKENS;
+const surfaceNames = SITE_THEME_SURFACES;
+const foregroundNames = SITE_THEME_FOREGROUNDS;
+const cacheKey = DESIGN_TOKEN_CACHE_KEY;
+const previewEvent = SITE_THEME_PREVIEW_EVENT;
+const publishEvent = SITE_THEME_PUBLISHED_EVENT;
+const originalThemeId = ORIGINAL_SITE_THEME.id;
+const cornerFields = SITE_CORNER_FIELDS.map(({ name, min, max }) => ({ name, min, max }));
 ---
 
-<script is:inline define:vars={{ supabaseUrl, supabaseAnonKey, tokenNames, legacyColorTokens, editorialCursorSvg, tokenDefaults }}>
+<script is:inline define:vars={{ supabaseUrl, supabaseAnonKey, tokenNames, legacyColorTokens, editorialCursorSvg, tokenDefaults, surfaceNames, foregroundNames, cacheKey, previewEvent, publishEvent, originalThemeId, cornerFields, cornersOnly }}>
   (() => {
-    const cacheKey = "abodid-published-design-tokens-v1";
+    if (window.__abodidDesignTokenRuntime) return;
+    window.__abodidDesignTokenRuntime = true;
     const allowedNames = new Set(tokenNames);
+    const isColour = (value) => typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+    const hasPalette = (value) => isColour(value?.background) && isColour(value?.foreground);
+    let publication;
+    let previewTheme;
+    let appliedNames = [];
+    let request;
 
     const isSafeValue = (value) => {
       const text = String(value).trim();
-      return /^#[0-9a-f]{6}$/i.test(text) || /^-?\d+(\.\d+)?$/.test(text);
+      return isColour(text) || /^-?\d+(\.\d+)?$/.test(text);
     };
 
-    const applyTokens = (tokens) => {
-      if (!tokens || typeof tokens !== "object") return;
-      for (const [name, value] of [
-        ...Object.entries(legacyColorTokens).map(([legacy, name]) => [name, tokens[legacy]]),
-        ...Object.entries(tokens),
-      ]) {
-        if (!allowedNames.has(name) || !isSafeValue(value)) continue;
-        document.documentElement.style.setProperty(name, String(value));
+    const applyPublication = () => {
+      const root = document.documentElement;
+      const theme = previewTheme === undefined ? publication?.theme : previewTheme;
+      const useTheme = root.hasAttribute("data-site-theme-enabled") && hasPalette(theme);
+      root.toggleAttribute("data-sharp-corners", theme?.corners?.style === "sharp");
+      root.toggleAttribute("data-site-palette", useTheme);
+      root.toggleAttribute("data-divider-navigation", !cornersOnly && theme?.header_footer_style === "lines");
+      for (const name of appliedNames) root.style.removeProperty(name);
+      appliedNames = [];
+
+      const tokens = publication?.tokens;
+      const radii = theme?.corners?.radii;
+      if (!tokens && !useTheme && !radii) return;
+      const properties = {};
+      if (!cornersOnly) {
+        for (const [legacy, name] of Object.entries(legacyColorTokens)) {
+          if (isSafeValue(tokens?.[legacy])) properties[name] = tokens[legacy];
+        }
+        for (const [name, value] of Object.entries(tokens || {})) {
+          if (allowedNames.has(name) && isSafeValue(value)) properties[name] = value;
+        }
+        // Publications saved before foreground roles inherit the original pairing.
+        properties["--color-button-text"] ??= "var(--color-text)";
+        properties["--color-primary-text"] ??= "var(--color-background)";
       }
-      const styles = getComputedStyle(document.documentElement);
+
+      if (useTheme) {
+        for (const name of surfaceNames) properties[name] = theme.background;
+        for (const name of foregroundNames) properties[name] = theme.foreground;
+      }
+      for (const { name, min, max } of cornerFields) {
+        if (cornersOnly && isSafeValue(tokens?.[name])) properties[name] = tokens[name];
+        const radius = radii?.[name];
+        if (typeof radius === "number" && Number.isFinite(radius)) {
+          properties[name] = Math.min(max, Math.max(min, radius));
+        }
+      }
+
+      appliedNames = Object.keys(properties);
+      for (const name of appliedNames) root.style.setProperty(name, String(properties[name]));
+      if (cornersOnly) return;
+      const styles = getComputedStyle(root);
       const cursorSvg = editorialCursorSvg.replace(/\{(background|secondary|text|button)\}/g, (_match, role) => {
         const name = "--color-" + role;
         const value = styles.getPropertyValue(name).trim();
-        return /^#[0-9a-f]{6}$/i.test(value) ? value : tokenDefaults[name];
+        return isColour(value) ? value : tokenDefaults[name];
       });
-      document.documentElement.style.setProperty(
+      appliedNames.push("--ui-editorial-cursor");
+      root.style.setProperty(
         "--ui-editorial-cursor",
         'url("data:image/svg+xml,' + encodeURIComponent(cursorSvg) + '") 5 5, auto',
       );
-
-      // Publications saved before foreground roles inherit the original pairing.
-      if (!isSafeValue(tokens["--color-button-text"])) {
-        document.documentElement.style.setProperty("--color-button-text", "var(--color-text)");
-      }
-      if (!isSafeValue(tokens["--color-primary-text"])) {
-        document.documentElement.style.setProperty("--color-primary-text", "var(--color-background)");
-      }
     };
 
     try {
-      const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-      applyTokens(cached?.tokens);
+      publication = JSON.parse(localStorage.getItem(cacheKey) || "null");
     } catch (_error) {
       // Defaults in design-system.css remain active.
     }
+    applyPublication();
 
     window.addEventListener("design-tokens:published", (event) => {
-      applyTokens(event.detail?.tokens);
+      publication = { ...publication, tokens: event.detail.tokens, version: event.detail.version };
+      applyPublication();
     });
-
-    if (!supabaseUrl || !supabaseAnonKey) return;
-
-    fetch(`${supabaseUrl}/rest/v1/design_system_settings?id=eq.global&select=published_tokens,published_version,updated_at`, {
-      headers: {
-        apikey: supabaseAnonKey,
-        Authorization: `Bearer ${supabaseAnonKey}`,
-        Accept: "application/json",
-      },
-      cache: "no-store",
-    })
-      .then((response) => response.ok ? response.json() : [])
-      .then((rows) => {
-        const settings = rows?.[0];
-        if (!settings?.published_tokens) return;
-        applyTokens(settings.published_tokens);
-        window.dispatchEvent(new CustomEvent("design-tokens:loaded", {
-          detail: { tokens: settings.published_tokens },
-        }));
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify({
-            tokens: settings.published_tokens,
-            version: settings.published_version,
-            updatedAt: settings.updated_at,
-          }));
-        } catch (_error) {
-          // A private browsing quota should not block the live theme.
-        }
-      })
-      .catch(() => {
-        // Keep cached or bundled defaults if Supabase is unavailable.
+    window.addEventListener(publishEvent, (event) => {
+      request?.abort();
+      publication = event.detail;
+      applyPublication();
+    });
+    if (window.parent !== window) {
+      window.addEventListener("message", (event) => {
+        if (event.source !== window.parent || event.origin !== window.location.origin) return;
+        if (event.data?.type !== previewEvent) return;
+        const theme = event.data.theme;
+        if (theme !== null && theme?.id !== originalThemeId && !hasPalette(theme)) return;
+        previewTheme = theme;
+        applyPublication();
       });
+    }
+
+    const refresh = async () => {
+      if (!supabaseUrl || !supabaseAnonKey) return;
+      request?.abort();
+      request = new AbortController();
+      const { signal } = request;
+      const columns = "published_tokens,published_version,updated_at";
+      const getSettings = (select) => fetch(
+        `${supabaseUrl}/rest/v1/design_system_settings?id=eq.global&select=${select}`,
+        {
+          headers: {
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+            Accept: "application/json",
+          },
+          cache: "no-store",
+          signal,
+        },
+      );
+      try {
+        let response = await getSettings(columns + ",published_theme");
+        // Keep serving the original palette while the additive migration rolls out.
+        if (response.status === 400) response = await getSettings(columns);
+        const settings = response.ok ? (await response.json())?.[0] : null;
+        if (signal.aborted || !settings?.published_tokens) return;
+        publication = {
+          tokens: settings.published_tokens,
+          theme: settings.published_theme ?? null,
+          version: settings.published_version,
+          updatedAt: settings.updated_at,
+        };
+        applyPublication();
+        window.dispatchEvent(new CustomEvent("design-tokens:loaded", { detail: { tokens: publication.tokens } }));
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(publication));
+        } catch (_error) {
+          // Private browsing can disallow local storage.
+        }
+      } catch (_error) {
+        // Keep cached or bundled settings if the database is unavailable.
+      }
+    };
+
+    document.addEventListener("astro:after-swap", () => {
+      applyPublication();
+      void refresh();
+    });
+    void refresh();
   })();
 </script>

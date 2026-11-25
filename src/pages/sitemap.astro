@@ -1,50 +1,63 @@
 ---
-export const prerender = true;
+export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
+import { breadcrumbJsonLd, personJsonLd, seoIdentity } from "../lib/seoData";
+import { siteDirectory, knowledgeLinks, utilityLinks } from "../data/siteDirectory.js";
+import { getSubscriptionEntries } from "../lib/subscriptions/sources";
 
-const workProjects = [
-  { title: "Selected work", href: "/work" },
-  { title: "Services", href: "/services" },
-];
-const publishedResearch = [
-  { title: "Research overview", href: "/research" },
-  { title: "Academic portfolio", href: "/academic-portfolio" },
-  { title: "Media Lab", href: "/lab" },
-];
-const publishedPhotos = [
-  { title: "Photography overview", href: "/photography" },
-  { title: "Photography portfolio", href: "/photography-portfolio" },
-];
-const publishedFilms = [{ title: "Films overview", href: "/films" }];
-const publishedPosts = [
-  { title: "Writing", href: "/blog" },
-  { title: "Reading and curation", href: "/reading" },
-];
-const publishedPapers = [
-  { title: "Research papers", href: "/research-papers" },
-];
-const vaultLinks = [
-  { title: "Obsidian Vault overview", href: "/obsidian-vault" },
-  { title: "Vault directory", href: "/obsidian-vault/directory" },
-];
-
-const title = "Sitemap & Main Directory — Abodid Sahoo";
-const description =
-  "A concise directory of the main sections of Abodid Sahoo’s work, research, films, photography, writing, and knowledge systems.";
-
+// Reuse the published-content index, including its publication and noindex rules.
+// A temporarily unavailable collection must not take down the permanent directory.
+const collections = await Promise.allSettled(
+  ['work', 'research', 'blog', 'lab'].map((section) => getSubscriptionEntries(section)),
+);
+const content = collections.flatMap((result, index) => {
+  if (result.status === 'fulfilled') return result.value;
+  console.error(`[sitemap-directory:${index}]`, result.reason?.message || 'Collection unavailable');
+  return [];
+});
+const origin = new URL(seoIdentity.siteUrl).origin;
+const directory = siteDirectory.map((group) => {
+  const links = [...group.links];
+  const seen = new Set(links.map((item) => new URL(item.href, origin).href));
+  const belongsToGroup = (path: string) => {
+    if (group.id === 'writing') return path.startsWith('/blog/');
+    if (group.id === 'papers') return path.startsWith('/research-papers/');
+    return ['work', 'research', 'photography', 'films', 'lab'].includes(group.id)
+      && path.startsWith(`/${group.id}/`);
+  };
+  for (const entry of content) {
+    const url = new URL(entry.url);
+    if (url.origin !== origin || url.hash || !belongsToGroup(url.pathname) || seen.has(url.href)) continue;
+    seen.add(url.href);
+    links.push({ title: entry.title, href: url.pathname });
+  }
+  return { ...group, links };
+});
+const allLinks = [...directory.flatMap((group) => group.links), ...knowledgeLinks, ...utilityLinks];
+const uniqueLinks = [...new Map(allLinks.map((item) => [new URL(item.href, origin).href, item])).values()];
+const title = "Sitemap & Complete Site Directory — Abodid Sahoo";
+const description = "Explore Abodid Sahoo’s projects, photography, films, artistic research, Media Lab experiments, writing, workshops, creative resources and public Obsidian notes.";
 const structuredData = [
   personJsonLd(),
-  breadcrumbJsonLd([
-    { name: "Home", path: "/" },
-    { name: "Sitemap", path: "/sitemap" },
-  ]),
+  breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Sitemap", path: "/sitemap" }]),
+  {
+    "@context": "https://schema.org", "@type": "CollectionPage",
+    "@id": `${origin}/sitemap#webpage`, url: `${origin}/sitemap`, name: title, description,
+    mainEntity: {
+      "@type": "ItemList", numberOfItems: uniqueLinks.length,
+      itemListElement: uniqueLinks.map((item, index) => ({
+        "@type": "ListItem", position: index + 1, name: item.title, url: new URL(item.href, origin).href,
+      })),
+    },
+  },
 ];
+Astro.response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
 ---
 
 <BaseLayout
   title={title}
   description={description}
+  canonicalUrl={`${origin}/sitemap`}
   structuredData={structuredData}
   fullWidth={true}
   showNewsletterPopup={false}
@@ -53,282 +66,75 @@ const structuredData = [
   bodyClass="pop-sitemap-page"
 >
   <main class="sitemap-shell">
-    <!-- 1. Hero Header -->
     <section class="sitemap-hero" aria-labelledby="sitemap-heading">
       <div class="sitemap-hero__inner">
         <h1 id="sitemap-heading" class="sitemap-hero__title">Sitemap</h1>
-
         <p class="sitemap-hero__lede">
-          A focused map of the site’s main sections. Individual projects, photographs, essays, and notes live inside their respective hubs.
+          Explore my work, research, photographs, films and writing, alongside
+          experiments, workshops, creative resources and a growing public knowledge system.
         </p>
+        <nav class="sitemap-quick-links" aria-label="Jump to a directory section">
+          {directory.map((group) => <a href={`#group-${group.id}`}>{group.title}</a>)}
+          <a href="#group-vault">Knowledge & documentation</a>
+        </nav>
       </div>
     </section>
 
-    <!-- 2. Complete Directory Modular Grid -->
-    <section class="sitemap-directory" aria-label="Directory sections">
+    <section class="sitemap-directory" aria-label="Complete site directory">
       <div class="sitemap-directory__grid">
-        <!-- Work -->
-        <article class="sitemap-group sitemap-group--yellow" aria-labelledby="group-work-title">
-          <header class="sitemap-group__header">
-            <h2 id="group-work-title">
-              <a href="/work">Work</a>
-            </h2>
-          </header>
-          <ul class="sitemap-links">
-            {workProjects.map((item, index) => (
-              <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={item.href}>
-                  <span class="sitemap-link-text">{item.title}</span>
-                  <span class="link-destination-arrow" aria-hidden="true">↗</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {workProjects.length > 7 && (
-            <button
-              type="button"
-              class="sitemap-toggle-btn"
-              aria-expanded="false"
-              data-more-text={`+ View ${workProjects.length - 7} more ↓`}
-              data-less-text="Show less ↑"
-            >
-              + View {workProjects.length - 7} more ↓
-            </button>
-          )}
-          <div class="sitemap-group__footer">
-            <a href="/work" class="sitemap-hub-link">
-              <span>Explore Work Hub</span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </article>
-
-        <!-- Research -->
-        <article class="sitemap-group sitemap-group--cream" aria-labelledby="group-research-title">
-          <header class="sitemap-group__header">
-            <h2 id="group-research-title">
-              <a href="/research">Research</a>
-            </h2>
-          </header>
-          <ul class="sitemap-links">
-            {publishedResearch.map((item, index) => (
-              <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={item.href}>
-                  <span class="sitemap-link-text">{item.title}</span>
-                  <span class="link-destination-arrow" aria-hidden="true">↗</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {publishedResearch.length > 7 && (
-            <button
-              type="button"
-              class="sitemap-toggle-btn"
-              aria-expanded="false"
-              data-more-text={`+ View ${publishedResearch.length - 7} more ↓`}
-              data-less-text="Show less ↑"
-            >
-              + View {publishedResearch.length - 7} more ↓
-            </button>
-          )}
-          <div class="sitemap-group__footer">
-            <a href="/research" class="sitemap-hub-link">
-              <span>Explore Research Hub</span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </article>
-
-        <!-- Photography -->
-        <article class="sitemap-group sitemap-group--lime" aria-labelledby="group-photography-title">
-          <header class="sitemap-group__header">
-            <h2 id="group-photography-title">
-              <a href="/photography">Photography</a>
-            </h2>
-          </header>
-          <ul class="sitemap-links">
-            {publishedPhotos.map((item, index) => (
-              <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={item.href}>
-                  <span class="sitemap-link-text">{item.title}</span>
-                  <span class="link-destination-arrow" aria-hidden="true">↗</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {publishedPhotos.length > 7 && (
-            <button
-              type="button"
-              class="sitemap-toggle-btn"
-              aria-expanded="false"
-              data-more-text={`+ View ${publishedPhotos.length - 7} more ↓`}
-              data-less-text="Show less ↑"
-            >
-              + View {publishedPhotos.length - 7} more ↓
-            </button>
-          )}
-          <div class="sitemap-group__footer">
-            <a href="/photography" class="sitemap-hub-link">
-              <span>Explore Photography Hub</span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </article>
-
-        <!-- Films -->
-        <article class="sitemap-group sitemap-group--pink" aria-labelledby="group-films-title">
-          <header class="sitemap-group__header">
-            <h2 id="group-films-title">
-              <a href="/films">Films</a>
-            </h2>
-          </header>
-          <ul class="sitemap-links">
-            {publishedFilms.map((item, index) => (
-              <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={item.href}>
-                  <span class="sitemap-link-text">{item.title}</span>
-                  <span class="link-destination-arrow" aria-hidden="true">↗</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {publishedFilms.length > 7 && (
-            <button
-              type="button"
-              class="sitemap-toggle-btn"
-              aria-expanded="false"
-              data-more-text={`+ View ${publishedFilms.length - 7} more ↓`}
-              data-less-text="Show less ↑"
-            >
-              + View {publishedFilms.length - 7} more ↓
-            </button>
-          )}
-          <div class="sitemap-group__footer">
-            <a href="/films" class="sitemap-hub-link">
-              <span>Explore Films Hub</span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </article>
-
-        <!-- Writing / Blog -->
-        <article class="sitemap-group sitemap-group--cream" aria-labelledby="group-writing-title">
-          <header class="sitemap-group__header">
-            <h2 id="group-writing-title">
-              <a href="/blog">Writing</a>
-            </h2>
-          </header>
-          <ul class="sitemap-links">
-            {publishedPosts.map((item, index) => (
-              <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={item.href}>
-                  <span class="sitemap-link-text">{item.title}</span>
-                  <span class="link-destination-arrow" aria-hidden="true">↗</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {publishedPosts.length > 7 && (
-            <button
-              type="button"
-              class="sitemap-toggle-btn"
-              aria-expanded="false"
-              data-more-text={`+ View ${publishedPosts.length - 7} more ↓`}
-              data-less-text="Show less ↑"
-            >
-              + View {publishedPosts.length - 7} more ↓
-            </button>
-          )}
-          <div class="sitemap-group__footer">
-            <a href="/blog" class="sitemap-hub-link">
-              <span>Explore Writing Hub</span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </article>
-
-        <!-- Curated Papers -->
-        <article class="sitemap-group sitemap-group--cyan" aria-labelledby="group-papers-title">
-          <header class="sitemap-group__header">
-            <h2 id="group-papers-title">
-              <a href="/research-papers">Curated Papers</a>
-            </h2>
-          </header>
-          <ul class="sitemap-links">
-            {publishedPapers.map((item, index) => (
-              <li class={index >= 7 ? "sitemap-link-item--collapsible" : ""}>
-                <a href={item.href}>
-                  <span class="sitemap-link-text">{item.title}</span>
-                  <span class="link-destination-arrow" aria-hidden="true">↗</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {publishedPapers.length > 7 && (
-            <button
-              type="button"
-              class="sitemap-toggle-btn"
-              aria-expanded="false"
-              data-more-text={`+ View ${publishedPapers.length - 7} more ↓`}
-              data-less-text="Show less ↑"
-            >
-              + View {publishedPapers.length - 7} more ↓
-            </button>
-          )}
-          <div class="sitemap-group__footer">
-            <a href="/research-papers" class="sitemap-hub-link">
-              <span>Explore Papers Hub</span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </article>
+        {directory.map((group) => (
+          <article id={`group-${group.id}`} class="sitemap-group" aria-labelledby={`group-${group.id}-title`}>
+            <header class="sitemap-group__header">
+              <h2 id={`group-${group.id}-title`}><a href={group.href}>{group.title}</a></h2>
+              <p class="sitemap-group__description">{group.description}</p>
+            </header>
+            <ul class="sitemap-links">
+              {group.links.slice(0, 6).map((item) => (
+                <li><a href={item.href}><span class="sitemap-link-text">{item.title}</span><span class="link-destination-arrow" aria-hidden="true">↗</span></a></li>
+              ))}
+            </ul>
+            {group.links.length > 6 && (
+              <details class="sitemap-more">
+                <summary>Browse {group.links.length - 6} more pages</summary>
+                <ul class="sitemap-links">
+                  {group.links.slice(6).map((item) => (
+                    <li><a href={item.href}><span class="sitemap-link-text">{item.title}</span><span class="link-destination-arrow" aria-hidden="true">↗</span></a></li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            <div class="sitemap-group__footer">
+              <a href={group.href} class="sitemap-hub-link">Explore {group.title} <span aria-hidden="true">→</span></a>
+            </div>
+          </article>
+        ))}
       </div>
-
-      <!-- Obsidian Vault Notes Full-Width Band -->
-      <article id="section-vault" class="sitemap-vault-band" aria-labelledby="group-vault-title">
+      <article id="group-vault" class="sitemap-vault-band" aria-labelledby="group-vault-title">
         <div class="sitemap-vault-band__header">
           <div class="sitemap-vault-band__title-block">
-            <h2 id="group-vault-title">
-              <a href="/obsidian-vault">Obsidian Vault Notes</a>
-            </h2>
-            <p class="sitemap-vault-band__sub">
-              Enter the public knowledge system through its overview or directory rather than indexing every note here.
-            </p>
+            <h2 id="group-vault-title">Knowledge & documentation</h2>
+            <p class="sitemap-vault-band__sub">Explore public Obsidian notes, connected ideas and the documentation behind this creative ecosystem. The vault directory provides a dedicated index of individual notes.</p>
           </div>
-          <a href="/obsidian-vault/directory" class="sitemap-vault-all-btn">
-            <span>Browse Complete Vault Directory</span>
-            <span class="link-destination-arrow" aria-hidden="true">↗</span>
-          </a>
+          <a href="/obsidian-vault/directory" class="sitemap-vault-all-btn">Browse complete vault directory <span aria-hidden="true">↗</span></a>
         </div>
-
         <div class="sitemap-vault-pills-grid">
-          {vaultLinks.map((note) => (
-            <a href={note.href} class="sitemap-vault-pill">
-              {note.title}
-            </a>
-          ))}
+          {knowledgeLinks.map((item) => <a href={item.href} class="sitemap-vault-pill">{item.title}</a>)}
         </div>
       </article>
+      <nav class="sitemap-utilities" aria-label="Site information and feeds">
+        {utilityLinks.map((item) => <a href={item.href}>{item.title}</a>)}
+        <a href="/sitemap-index.xml">XML sitemap index</a>
+        <a href="/rss.xml">All updates RSS feed</a>
+        <a href="/subscribe">Email & topic feeds</a>
+      </nav>
     </section>
   </main>
-
-  <script is:inline>
-    document.querySelectorAll('.sitemap-toggle-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const group = btn.closest('.sitemap-group');
-        if (!group) return;
-        const isExpanded = group.classList.toggle('is-expanded');
-        btn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-        btn.textContent = isExpanded ? btn.getAttribute('data-less-text') : btn.getAttribute('data-more-text');
-      });
-    });
-  </script>
 </BaseLayout>
 
 <style is:global>
   body.pop-sitemap-page {
-    --pop-border: color-mix(in srgb, var(--color-text) 78%, transparent);
-    --pop-line: color-mix(in srgb, var(--color-text) 24%, transparent);
+    --pop-border: var(--ui-border-strong);
+    --pop-line: var(--ui-border);
     --pop-gap: 8px;
     --pop-radius-panel: clamp(18px, 2vw, 28px);
     --pop-radius-card: clamp(14px, 1.5vw, 22px);
@@ -430,12 +236,6 @@ const structuredData = [
     transition: transform var(--pop-motion), box-shadow var(--pop-motion);
   }
 
-  .sitemap-group--yellow { border-top: 5px solid var(--color-button); }
-  .sitemap-group--cream { border-top: 5px solid var(--color-secondary); }
-  .sitemap-group--lime { border-top: 5px solid var(--color-accent); }
-  .sitemap-group--pink { border-top: 5px solid var(--color-primary); }
-  .sitemap-group--cyan { border-top: 5px solid var(--color-additional-3); }
-
   .sitemap-group__header {
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--pop-line);
@@ -467,8 +267,8 @@ const structuredData = [
     flex: 1 1 auto;
   }
 
-  .sitemap-group:not(.is-expanded) .sitemap-link-item--collapsible {
-    display: none;
+  .sitemap-links li:not(:last-child) {
+    border-bottom: 1px solid var(--pop-line);
   }
 
   .sitemap-links li a {
@@ -477,7 +277,6 @@ const structuredData = [
     justify-content: space-between;
     gap: 0.5rem;
     padding: 0.45rem 0.25rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
     color: var(--color-text) !important;
     font: 500 0.92rem/1.4 var(--font-body, sans-serif);
     text-decoration: none;
@@ -486,7 +285,7 @@ const structuredData = [
 
   .sitemap-links li a:hover {
     transform: translateX(4px);
-    color: var(--color-primary) !important;
+    color: var(--color-text) !important;
   }
 
   .sitemap-links li a:hover .sitemap-link-text {
@@ -494,38 +293,9 @@ const structuredData = [
     text-underline-offset: 3px;
   }
 
-  .sitemap-links li:last-child a {
-    border-bottom: none;
-  }
-
   .sitemap-link-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .sitemap-toggle-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    padding: 0.55rem 0.85rem;
-    margin-top: 0.25rem;
-    border: 1.5px dashed var(--pop-border);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--color-text) 4%, transparent);
-    color: var(--color-text) !important;
-    font: 750 0.78rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    width: 100%;
-    transition: background var(--pop-motion), border-color var(--pop-motion), transform var(--pop-motion);
-  }
-
-  .sitemap-toggle-btn:hover {
-    background: color-mix(in srgb, var(--color-text) 9%, transparent);
-    border-color: var(--color-text);
-    transform: translateY(-1px);
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .sitemap-group__footer {
@@ -544,7 +314,7 @@ const structuredData = [
     font: 750 0.8rem/1 var(--font-mono, monospace);
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--color-primary) !important;
+    color: var(--color-text) !important;
     text-decoration: none;
     transition: transform var(--pop-motion);
   }
@@ -554,12 +324,45 @@ const structuredData = [
     transform: translateX(3px);
   }
 
+  .sitemap-group__description {
+    margin: 0.6rem 0 0;
+    font: 450 1rem/1.5 var(--font-body, sans-serif);
+  }
+
+  .sitemap-quick-links, .sitemap-utilities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1.25rem;
+    margin-top: 1rem;
+  }
+
+  .sitemap-more {
+    border-top: 1px solid var(--pop-line);
+    padding-top: 0.75rem;
+  }
+
+  .sitemap-more summary {
+    cursor: pointer;
+    font: 650 1rem/1.4 var(--font-body, sans-serif);
+    padding-block: 0.5rem;
+  }
+
+  .sitemap-group a:focus-visible,
+  .sitemap-more summary:focus-visible,
+  .sitemap-shell nav a:focus-visible {
+    outline: 2px solid var(--ui-focus-ring);
+    outline-offset: 4px;
+  }
+
+  .sitemap-group { scroll-margin-top: 7rem; min-width: 0; }
+  .sitemap-links li a:hover { background: var(--ui-surface-hover-bg); }
+
   /* Vault Full-Width Band */
   .sitemap-vault-band {
     padding: 2rem;
     border: 1px solid var(--pop-border);
     border-radius: var(--pop-radius-panel);
-    background: var(--color-button);
+    background: var(--color-surface);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -655,7 +458,7 @@ const structuredData = [
   .sitemap-vault-pill:hover {
     transform: translateY(-2px);
     background: var(--color-surface);
-    color: var(--color-primary) !important;
+    color: var(--color-text) !important;
   }
 
   .sitemap-vault-more-pill {

@@ -146,6 +146,31 @@ const languages = [
     font-weight: 750;
   }
 
+  :global(html[data-divider-navigation] .site-header) .multilingual-palette--menu {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+
+  :global(html[data-divider-navigation] .site-header) :is(.multilingual-palette__active-badge, .multilingual-palette__pill) {
+    padding-inline: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+  }
+
+  :global(html[data-divider-navigation] .site-header) .multilingual-palette__pill { min-block-size: 2.75rem; }
+
+  :global(html[data-divider-navigation] .site-header) .multilingual-palette__pill:hover .multilingual-palette__pill-native {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
   .multilingual-palette__pill-code {
     font: 750 0.6rem/1 var(--font-mono, monospace);
     letter-spacing: 0.05em;

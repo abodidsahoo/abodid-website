@@ -1,0 +1,360 @@
+---
+const greetings = [
+  { text: "ନମସ୍କାର!", lang: "or", dir: "ltr", clusters: ["ନ", "ମ", "ସ୍କା", "ର"] },
+  { text: "你好", lang: "zh-Hans", dir: "ltr", alternates: ["安", "早", "您"] },
+  { text: "こんにちは", lang: "ja", dir: "ltr" },
+  { text: "Bonjour", lang: "fr", dir: "ltr" },
+  { text: "سلام", lang: "fa", dir: "rtl" },
+  { text: "नमस्ते", lang: "hi", dir: "ltr", clusters: ["न", "म", "स्ते"] },
+  { text: "నమస్కారం", lang: "te", dir: "ltr", clusters: ["న", "మ", "స్కా", "రం"] },
+  { text: "வணக்கம்", lang: "ta", dir: "ltr", clusters: ["வ", "ண", "க்", "க", "ம்"] },
+  { text: "नमस्कार", lang: "mr", dir: "ltr", clusters: ["न", "म", "स्का", "र"] },
+  { text: "નમસ્તે", lang: "gu", dir: "ltr", clusters: ["ન", "મ", "સ્તે"] },
+  { text: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ", lang: "pa", dir: "ltr", clusters: ["ਸ", "ਤਿ", " ", "ਸ੍ਰੀ", " ", "ਅ", "ਕਾ", "ਲ"] },
+  { text: "नमो नमः", lang: "sa", dir: "ltr", clusters: ["न", "मो", " ", "न", "मः"] },
+  { text: "নমস্কার", lang: "bn", dir: "ltr", clusters: ["ন", "ম", "স্কা", "র"] },
+  { text: "ನಮಸ್ಕಾರ", lang: "kn", dir: "ltr", clusters: ["ನ", "ಮ", "ಸ್ಕಾ", "ರ"] },
+  { text: "നമസ്കാരം", lang: "ml", dir: "ltr", clusters: ["ന", "മ", "സ്കാ", "രം"] },
+  { text: "Hello", lang: "en", dir: "ltr" },
+] as const;
+const first = greetings[0];
+---
+
+<landing-greeting data-greetings={JSON.stringify(greetings)}>
+  <h1 class="story-intro__greeting">
+    <span class="sr-only" lang={first.lang}>{first.text}</span>
+    <span class="greeting-stage" aria-hidden="true">
+      <bdi class="greeting-word" data-greeting-current lang={first.lang} dir={first.dir}>{first.text}</bdi>
+      <span class="greeting-incoming" data-greeting-incoming hidden>
+        <bdi class="greeting-word" data-greeting-scramble></bdi>
+      </span>
+    </span>
+  </h1>
+  <button type="button" class="greeting-control" data-greeting-control aria-label="Pause greeting rotation" hidden>
+    <span class="greeting-control-icon" aria-hidden="true"></span>
+  </button>
+</landing-greeting>
+
+<script>
+  type Greeting = {
+    text: string;
+    lang: string;
+    dir: "ltr" | "rtl";
+    clusters?: string[];
+    alternates?: string[];
+  };
+  const holdMs = 2700;
+  const transitionMs = 345;
+
+  function setGreeting(word: HTMLElement, greeting: Greeting) {
+    word.lang = greeting.lang;
+    word.dir = greeting.dir;
+    word.textContent = greeting.text;
+  }
+
+  function shuffle<T>(items: T[]) {
+    const result = items.slice();
+    for (let index = result.length - 1; index > 0; index--) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+    }
+    return result;
+  }
+
+  function scramble(letters: string[], settled: number, alternates?: string[]) {
+    const unlocked = letters.slice(settled).filter(letter => letter !== " ");
+    const pending = shuffle(unlocked);
+    if (alternates?.length && pending.length) {
+      pending[0] = alternates[Math.floor(Math.random() * alternates.length)];
+    } else if (pending.length > 1 && pending.every((letter, index) => letter === unlocked[index])) {
+      pending.push(pending.shift()!);
+    }
+    let index = 0;
+    return letters.map((letter, position) =>
+      position < settled || letter === " " ? letter : pending[index++]
+    ).join("");
+  }
+
+  class LandingGreeting extends HTMLElement {
+    private cleanup?: () => void;
+
+    connectedCallback() {
+      const current = this.querySelector<HTMLElement>("[data-greeting-current]");
+      const incoming = this.querySelector<HTMLElement>("[data-greeting-incoming]");
+      const word = this.querySelector<HTMLElement>("[data-greeting-scramble]");
+      const control = this.querySelector<HTMLButtonElement>("[data-greeting-control]");
+      const greetings = JSON.parse(this.dataset.greetings ?? "[]") as Greeting[];
+      if (!current || !incoming || !word || !control || greetings.length < 2 ||
+          typeof current.animate !== "function") return;
+
+      const motion = matchMedia("(prefers-reduced-motion: no-preference)");
+      const events = new AbortController();
+      const options = { signal: events.signal };
+      let visible = false;
+      let paused = control.hasAttribute("data-paused");
+      let active = greetings.find(greeting => greeting.lang === current.lang) ?? greetings[0];
+      let queue = shuffle(greetings.filter(greeting => greeting !== active));
+      let timer = 0;
+      let frame = 0;
+      let fadeOut: Animation | undefined;
+      let fadeIn: Animation | undefined;
+
+      const clear = () => {
+        window.clearTimeout(timer);
+        cancelAnimationFrame(frame);
+        fadeOut?.cancel();
+        fadeIn?.cancel();
+        incoming.hidden = true;
+      };
+
+      const schedule = () => {
+        clear();
+        if (motion.matches && visible && !paused && !document.hidden) {
+          timer = window.setTimeout(advance, holdMs);
+        }
+      };
+
+      const advance = () => {
+        if (!queue.length) {
+          queue = shuffle(greetings);
+          if (queue[0] === active) queue.push(queue.shift()!);
+        }
+        const greeting = queue[0];
+        const punctuation = greeting.text.endsWith("!") ? "!" : "";
+        const unpunctuated = punctuation ? greeting.text.slice(0, -1) : greeting.text;
+        const letters = greeting.clusters ?? (typeof Intl.Segmenter === "function"
+          ? Array.from(new Intl.Segmenter(greeting.lang, { granularity: "grapheme" })
+            .segment(unpunctuated), ({ segment }) => segment)
+          : [unpunctuated]);
+
+        setGreeting(word, greeting);
+        incoming.hidden = false;
+        fadeOut = current.animate(
+          [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(-.04em)" }],
+          { duration: 120, easing: "ease-out", fill: "forwards" },
+        );
+        fadeIn = incoming.animate(
+          [{ opacity: 0, transform: "translateY(.04em)" }, { opacity: 1, transform: "translateY(0)" }],
+          { duration: 165, easing: "ease-out", fill: "both" },
+        );
+
+        const start = performance.now();
+        let lastBeat = -1;
+        const tick = (now: number) => {
+          const elapsed = now - start;
+          if (elapsed >= transitionMs) {
+            active = greeting;
+            queue.shift();
+            setGreeting(current, greeting);
+            schedule();
+            return;
+          }
+
+          const beat = Math.floor(elapsed / 35);
+          if (beat !== lastBeat) {
+            lastBeat = beat;
+            const progress = (elapsed / transitionMs) ** 2.6;
+            const settled = Math.floor(progress * (letters.length - 1));
+            word.textContent = scramble(letters, settled, greeting.alternates) + punctuation;
+          }
+          frame = requestAnimationFrame(tick);
+        };
+        tick(start);
+      };
+
+      const syncMotion = () => {
+        control.hidden = !motion.matches;
+        if (!motion.matches) {
+          active = greetings[0];
+          queue = shuffle(greetings.slice(1));
+          setGreeting(current, active);
+        }
+        schedule();
+      };
+
+      control.addEventListener("click", () => {
+        paused = !paused;
+        control.toggleAttribute("data-paused", paused);
+        control.setAttribute("aria-label", paused ? "Resume greeting rotation" : "Pause greeting rotation");
+        schedule();
+      }, options);
+      motion.addEventListener("change", syncMotion, options);
+      document.addEventListener("visibilitychange", schedule, options);
+
+      const observer = typeof IntersectionObserver === "function"
+        ? new IntersectionObserver(([entry]) => {
+          visible = entry.isIntersecting;
+          schedule();
+        })
+        : undefined;
+      if (observer) observer.observe(current.closest("h1") ?? this);
+      else visible = true;
+      syncMotion();
+
+      this.cleanup = () => {
+        events.abort();
+        observer?.disconnect();
+        clear();
+      };
+    }
+
+    disconnectedCallback() {
+      this.cleanup?.();
+    }
+  }
+
+  if (!customElements.get("landing-greeting")) {
+    customElements.define("landing-greeting", LandingGreeting);
+  }
+</script>
+
+<style>
+  /* Greeting-only Noto subsets. Font licenses are alongside the files. */
+  @font-face {
+    font-family: "Greeting Odia";
+    src: url("/fonts/landing-greetings/odia.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Chinese";
+    src: url("/fonts/landing-greetings/chinese.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Japanese";
+    src: url("/fonts/landing-greetings/japanese.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Persian";
+    src: url("/fonts/landing-greetings/persian.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Devanagari";
+    src: url("/fonts/landing-greetings/devanagari.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Telugu";
+    src: url("/fonts/landing-greetings/telugu.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Tamil";
+    src: url("/fonts/landing-greetings/tamil.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Gujarati";
+    src: url("/fonts/landing-greetings/gujarati.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Gurmukhi";
+    src: url("/fonts/landing-greetings/gurmukhi.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Bengali";
+    src: url("/fonts/landing-greetings/bengali.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Kannada";
+    src: url("/fonts/landing-greetings/kannada.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Greeting Malayalam";
+    src: url("/fonts/landing-greetings/malayalam.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+
+  landing-greeting {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: .35rem;
+  }
+  .greeting-stage {
+    display: block;
+    position: relative;
+    min-block-size: 1.26em;
+    padding-block: .05em;
+  }
+  .greeting-word {
+    display: inline-block;
+    vertical-align: top;
+    white-space: nowrap;
+    line-height: 1.16;
+    letter-spacing: normal;
+  }
+  .greeting-word[lang="or"] { font-family: "Greeting Odia", "Kohinoor Odia", sans-serif; font-weight: 700; }
+  .greeting-word[lang="zh-Hans"] { font-family: "Greeting Chinese", "PingFang SC", sans-serif; font-weight: 700; }
+  .greeting-word[lang="ja"] { font-family: "Greeting Japanese", "Hiragino Sans", sans-serif; font-weight: 700; }
+  .greeting-word[lang="fa"] { font-family: "Greeting Persian", "Geeza Pro", sans-serif; font-weight: 700; }
+  .greeting-word:is(:lang(hi), :lang(mr), :lang(sa)) { font-family: "Greeting Devanagari", "Kohinoor Devanagari", sans-serif; font-weight: 700; }
+  .greeting-word[lang="te"] { font-family: "Greeting Telugu", sans-serif; font-weight: 700; }
+  .greeting-word[lang="ta"] { font-family: "Greeting Tamil", sans-serif; font-weight: 700; }
+  .greeting-word[lang="gu"] { font-family: "Greeting Gujarati", sans-serif; font-weight: 700; }
+  .greeting-word[lang="pa"] { font-family: "Greeting Gurmukhi", sans-serif; font-weight: 700; }
+  .greeting-word[lang="bn"] { font-family: "Greeting Bengali", sans-serif; font-weight: 700; }
+  .greeting-word[lang="kn"] { font-family: "Greeting Kannada", sans-serif; font-weight: 700; }
+  .greeting-word[lang="ml"] { font-family: "Greeting Malayalam", sans-serif; font-weight: 700; }
+  .greeting-word:is(:lang(fr), :lang(en)) { letter-spacing: -.025em; }
+  .greeting-incoming {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: .05em;
+  }
+  .greeting-control {
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: .64;
+  }
+  .greeting-control[hidden], .greeting-incoming[hidden] { display: none; }
+  .greeting-control:is(:hover, :focus-visible) { opacity: 1; }
+  .greeting-control:focus-visible { outline-color: currentColor; }
+  .greeting-control-icon {
+    display: block;
+    inline-size: .55rem;
+    block-size: .75rem;
+    border-inline: 2px solid currentColor;
+  }
+  .greeting-control[data-paused] .greeting-control-icon {
+    border: 0;
+    inline-size: .65rem;
+    background: currentColor;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+  @media (max-width: 26rem) {
+    landing-greeting .greeting-stage { font-size: clamp(1.9rem, 10vw, 2.5rem); }
+    .greeting-word:is(:lang(pa), :lang(ml)) { font-size: .8em; }
+    .greeting-word[lang="ta"] { font-size: .88em; }
+  }
+  @supports (font-size: 1cqi) {
+    .greeting-stage { container-type: inline-size; }
+    .greeting-word:is(:lang(pa), :lang(ta)) { font-size: min(1em, 16.7cqi); }
+    .greeting-word[lang="ml"] { font-size: min(1em, 15.4cqi); }
+  }
+</style>

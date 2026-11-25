@@ -1,0 +1,10 @@
+/* Sharp mode takes precedence over legacy rules and inline component styles. */
+@layer site-corners {
+  :where(html[data-sharp-corners]),
+  :where(html[data-sharp-corners]) *,
+  :where(html[data-sharp-corners]) *::before,
+  :where(html[data-sharp-corners]) *::after,
+  :where(html[data-sharp-corners]) input::file-selector-button {
+    border-radius: 0 !important;
+  }
+}

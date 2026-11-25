@@ -1,0 +1,59 @@
+---
+import SubscriptionFeeds from './SubscriptionFeeds.astro';
+---
+<dialog class="rss-subscription" id="rss-subscription" aria-labelledby="rss-subscription-title" aria-describedby="rss-subscription-description" closedby="any">
+  <div class="rss-subscription-heading">
+    <p class="rss-subscription-kicker">A quieter way to follow along</p>
+    <form method="dialog"><button class="rss-subscription-close" autofocus>Close</button></form>
+    <h1 id="rss-subscription-title">Follow what<br />interests you.</h1>
+    <p id="rss-subscription-description">Subscribe to my writings, research, notes and discoveries using your favourite RSS reader. No algorithms. No inbox clutter.</p>
+    <p class="rss-subscription-explanation">RSS brings new posts from websites you follow into one reading app. Copy a feed URL into your reader, or choose Feedly or Inoreader below.</p>
+  </div>
+  <SubscriptionFeeds prefix="rss-modal" />
+  <a class="rss-subscription-directory" href="/subscribe">View the subscription directory</a>
+</dialog>
+
+<script>
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('[data-rss-subscribe]') : null;
+    if (!target || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const dialog = document.querySelector<HTMLDialogElement>('#rss-subscription');
+    if (!dialog || typeof dialog.showModal !== 'function') return;
+    dialog.showModal();
+    event.preventDefault();
+  });
+  function initRssDialog() {
+    const dialog = document.querySelector<HTMLDialogElement>('#rss-subscription');
+    if (!dialog || dialog.dataset.ready) return;
+    dialog.dataset.ready = 'true';
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      const outside = (event: PointerEvent) => {
+        const box = dialog.getBoundingClientRect();
+        return event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom;
+      };
+      let pressedOutside = false;
+      dialog.addEventListener('pointerdown', (event) => { pressedOutside = outside(event); });
+      dialog.addEventListener('pointerup', (event) => { if (pressedOutside && outside(event)) dialog.close(); });
+    }
+  }
+  initRssDialog();
+  document.addEventListener('astro:page-load', initRssDialog);
+  document.addEventListener('astro:before-swap', () => document.querySelector<HTMLDialogElement>('#rss-subscription[open]')?.close());
+</script>
+
+<style>
+  .rss-subscription { width: min(52rem, calc(100% - 2rem)); max-width: none; max-height: calc(100dvh - 2rem); padding: 1.5rem; margin: auto; overflow-y: auto; border: 1px solid var(--ui-border-strong); border-radius: var(--design-radius-panel, 0); background: var(--color-background); color: var(--color-text); box-shadow: 0 1rem 4rem color-mix(in srgb, var(--ui-shadow-color) 20%, transparent); }
+  .rss-subscription:modal { overscroll-behavior: contain; }
+  .rss-subscription::backdrop { background: var(--ui-overlay); overflow: hidden; overscroll-behavior: contain; }
+  .rss-subscription-heading { position: relative; padding: 1rem 0 2rem; }
+  .rss-subscription-heading form { position: absolute; right: 0; top: 0; }
+  .rss-subscription-close { padding: .65rem 1rem; min-height: 2.75rem; border: 1px solid var(--ui-border-strong); background: var(--color-surface); color: var(--color-text); border-radius: var(--design-radius-control, 0); font: inherit; cursor: pointer; }
+  .rss-subscription-close:hover { background: var(--ui-surface-hover-bg); }
+  .rss-subscription-close:focus-visible, .rss-subscription-directory:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+  .rss-subscription-kicker { max-width: calc(100% - 6rem); font: .875rem var(--font-mono); margin: 0 0 2rem; }
+  .rss-subscription h1 { font-family: var(--font-display); font-size: clamp(2.5rem, 7vw, 4.5rem); font-weight: 700; line-height: .98; letter-spacing: -.05em; margin: 0 0 1.5rem; color: inherit; }
+  .rss-subscription-heading > p:not(.rss-subscription-kicker) { max-width: 42rem; font-size: 1rem; line-height: 1.6; margin-block-end: .75rem; }
+  .rss-subscription-explanation { color: var(--ui-text-muted); }
+  .rss-subscription-directory { display: inline-flex; align-items: center; min-height: 2.75rem; color: inherit; text-decoration: underline; }
+  @media (max-width: 40rem) { .rss-subscription { padding: 1rem; } }
+</style>

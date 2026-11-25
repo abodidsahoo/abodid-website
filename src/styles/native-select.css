@@ -1,0 +1,52 @@
+.native-select {
+  --select-text-inset: 0.875em;
+  --select-chevron-size: 1em;
+  --select-chevron-gap: 0.625em;
+  /* The SVG has side bearings. Inset the visible stroke to match the text. */
+  --select-chevron-inset: calc(var(--select-text-inset) - 0.125em);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-inline-size: 0;
+}
+
+.native-select > select {
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+  inline-size: 100%;
+  font: inherit;
+}
+
+.native-select__chevron { display: none; }
+
+@supports (appearance: none) {
+  .native-select > select {
+    appearance: none;
+    padding-inline: var(--select-text-inset)
+      calc(var(--select-chevron-inset) + var(--select-chevron-size) + var(--select-chevron-gap));
+    text-overflow: ellipsis;
+  }
+
+  .native-select__chevron {
+    display: block;
+    grid-area: 1 / 1;
+    align-self: center;
+    justify-self: end;
+    inline-size: var(--select-chevron-size);
+    block-size: var(--select-chevron-size);
+    margin-inline-end: var(--select-chevron-inset);
+    color: var(--ui-field-text, currentColor);
+    pointer-events: none;
+  }
+
+  .native-select > select:disabled + .native-select__chevron {
+    opacity: var(--ui-disabled-opacity, 0.55);
+  }
+}
+
+@media (forced-colors: active) {
+  .native-select__chevron { color: ButtonText; }
+  .native-select > select:disabled + .native-select__chevron {
+    color: GrayText;
+    opacity: 1;
+  }
+}

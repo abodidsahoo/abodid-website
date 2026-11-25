@@ -1,0 +1,68 @@
+/* Only the published or privately previewed two-colour theme sets these roles. */
+html[data-site-palette] {
+  --site-palette-ink: var(--color-text);
+  --site-palette-paper: var(--color-background);
+  --site-palette-selection-fill: var(--color-text);
+  --site-palette-selection-text: var(--color-background);
+  --accent-primary: var(--color-text);
+  --bg-overlay: color-mix(in srgb, var(--color-background) 96%, transparent);
+  --link-color: var(--color-text);
+  --link-hover-color: var(--color-text);
+  --palette-sand: var(--color-background);
+  --palette-grey: var(--color-text);
+  --pop-ink-secondary: var(--color-text);
+  --pop-ink-tertiary: var(--color-text);
+  --pop-secondary-on-light: var(--color-text);
+  --pop-tertiary-on-light: var(--color-text);
+  --pop-secondary-on-deep: var(--color-text);
+  --pop-tertiary-on-deep: var(--color-text);
+  --text-secondary: var(--color-text);
+  --text-tertiary: var(--color-text);
+}
+
+/* Author styles keep their transparency and image/video layers. */
+html[data-site-palette] body {
+  --page-bg: var(--color-background);
+  --ui-overlay: color-mix(in srgb, var(--color-background) 94%, transparent);
+  accent-color: var(--site-palette-ink);
+  color: var(--site-palette-ink);
+}
+
+html[data-site-palette] :where(:focus-visible) {
+  outline: 2px solid var(--site-palette-ink);
+  outline-offset: 3px;
+}
+
+html[data-site-palette] :where(button, .btn, [role="button"], input, select, textarea) {
+  border-color: var(--site-palette-ink);
+}
+
+html[data-site-palette] :where(button, .btn, [role="button"]):where(:hover, :active):not(:disabled) {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+html[data-site-palette] :where(input, textarea)::placeholder {
+  color: var(--site-palette-ink);
+  opacity: 1;
+}
+
+html[data-site-palette] :where(optgroup, option) {
+  background-color: var(--site-palette-paper);
+  color: var(--site-palette-ink);
+}
+
+html[data-site-palette] ::selection {
+  background-color: var(--site-palette-selection-fill);
+  color: var(--site-palette-selection-text);
+  -webkit-text-fill-color: var(--site-palette-selection-text);
+}
+
+@media (forced-colors: active) {
+  html[data-site-palette] {
+    --site-palette-ink: CanvasText;
+    --site-palette-paper: Canvas;
+    --site-palette-selection-fill: Highlight;
+    --site-palette-selection-text: HighlightText;
+  }
+}

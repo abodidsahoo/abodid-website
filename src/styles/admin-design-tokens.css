@@ -73,6 +73,12 @@
     var(--admin-page-heading-offset-inline) 0.15rem;
 }
 
+.admin-page-intro--separated {
+  margin-block-end: 1.5rem;
+  padding-block-end: 1.5rem;
+  border-block-end: var(--admin-panel-border);
+}
+
 .admin-page-spacer {
   width: 100%;
   height: var(--admin-page-spacer);

@@ -1,0 +1,47 @@
+---
+import { CV_DOWNLOAD_URL } from "../../lib/cv";
+
+const groups = [
+  { title: "Creative work", links: [
+    ["Writing", "/blog"], ["Photography", "/photography"], ["Films", "/films"],
+    ["Research", "/research"], ["Obsidian Vault", "/obsidian-vault"],
+  ] },
+  { title: "Curation", links: [
+    ["Resources", "/resources"], ["Tools", "/tools"], ["Moodboard", "/moodboard"],
+    ["Morning Digest", "/reading"], ["XR Showcase", "/xr-showcase"], ["Must Watch Videos", "/curated-videos"],
+  ] },
+  { title: "Workshops", links: [
+    ["Obsidian tutoring", "/obsidian-tutoring"], ["Video editing", "/video-editing-workshop"],
+    ["Photography", "/photography-workshop"], ["Filmmaking", "/filmmaking-workshop"],
+    ["Autoethnography", "/autoethnography-workshop"],
+  ] },
+  { title: "About Abodid", links: [
+    ["Biography", "/about"], ["Awards", "/awards"], ["Press mentions", "/press"],
+    ["Manifesto", "/manifesto"], ["CV (PDF)", CV_DOWNLOAD_URL],
+  ] },
+];
+const destinationCount = groups.reduce((total, group) => total + group.links.length, 0);
+---
+
+<section class="subject-index" aria-labelledby="subject-index-title" data-pop-surface="blue">
+  <div class="footer-measure subject-index__layout">
+    <div class="subject-index__masthead">
+      <h2 id="subject-index-title">Site <span>index.</span></h2>
+      <p class="footer-kicker">{destinationCount} destinations</p>
+    </div>
+    <nav class="subject-index__shelves" aria-label="Browse by subject">
+      {groups.map(({ title, links }, index) => (
+        <details open={index === 0}>
+          <summary>
+            <span>{title}</span>
+            <span class="subject-index__count">{links.length} links</span>
+            <span class="subject-index__sign" aria-hidden="true"></span>
+          </summary>
+          <ul>
+            {links.map(([label, href]) => <li><a href={href}>{label}</a></li>)}
+          </ul>
+        </details>
+      ))}
+    </nav>
+  </div>
+</section>

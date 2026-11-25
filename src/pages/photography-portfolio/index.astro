@@ -1,5 +1,7 @@
 ---
 import ContactProtection from "../../components/ContactProtection.astro";
+import DesignTokenRuntime from "../../components/DesignTokenRuntime.astro";
+import RouteLoadingOverlay from "../../components/RouteLoadingOverlay.astro";
 import { getPortfolioPhotos, groupPortfolio } from '../../lib/photography/server';
 import { getSavedPalette } from '../../lib/photography/serverPalette';
 import '../../styles/photography/portfolio.css';
@@ -17,6 +19,7 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
 <!doctype html>
 <html lang="en">
   <head>
+    <DesignTokenRuntime cornersOnly />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Abodid Sahoo — Photographer · Worldwide Commissions</title>
@@ -35,6 +38,7 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
     <meta property="og:image:alt" content={shuffledGroups[0]?.cover.alt} />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json" set:html={JSON.stringify(structuredData).replaceAll('<', '\u003c')} />
+    <RouteLoadingOverlay />
   </head>
   <body>
     <a class="skip-link" href="#gallery">Skip to photographs</a>

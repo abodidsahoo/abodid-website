@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PortfolioProjectRenderer from "../../components/portfolio/PortfolioProjectRenderer.jsx";
+import { researchPresentation } from "../../lib/researchPresentation.js";
 import { getProjectBySlug, getResearchProjects } from "../../lib/api";
 import {
   breadcrumbJsonLd,
@@ -46,17 +47,7 @@ const nextResearchProject = currentIndex >= 0
     }
   : null;
 
-const sourceBlocks = Array.isArray(dbProject.blocks) ? dbProject.blocks : [];
-const outcomeHeadingIndex = sourceBlocks.findIndex((block: any) =>
-  block?.blockType === "heading" && /^(outcome|status)$/i.test(String(block?.content?.text || "").trim())
-);
-const outcomeBlock = outcomeHeadingIndex >= 0 ? sourceBlocks[outcomeHeadingIndex + 1] : null;
-const rawOutcome = String(outcomeBlock?.content?.text || "").trim();
-const outcomeStatus = rawOutcome.match(/^\*\*([^*]+)\*\*/)?.[1] || null;
-const outcomeText = rawOutcome.replace(/^\*\*[^*]+\*\*\s*/, "").trim();
-const displayBlocks = outcomeHeadingIndex >= 0 && outcomeBlock
-  ? sourceBlocks.filter((_: any, index: number) => index !== outcomeHeadingIndex && index !== outcomeHeadingIndex + 1)
-  : sourceBlocks;
+const { blocks: displayBlocks, outcomeStatus, outcomeText } = researchPresentation(dbProject.blocks);
 
 const project = {
   id: dbProject.slug || String(dbProject.id),
@@ -67,7 +58,7 @@ const project = {
   role: dbProject.role || "Lead Researcher",
   outcomeHeading: "Research Outcome",
   outcomeStatus,
-  outcomeText: outcomeText || "Published research project.",
+  outcomeText,
   coverUrl: dbProject.cover_image || dbProject.image,
   coverAlt: dbProject.gallery_images?.[0]?.alt || `${dbProject.title} project cover`,
   experimentUrl: dbProject.experiment_url,

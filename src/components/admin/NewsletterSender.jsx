@@ -1005,13 +1005,13 @@ export default function NewsletterSender({
 
     return (
         <div className="newsletter-sender">
-            <header className="newsletter-header">
+            <div className="admin-page-intro admin-page-intro--separated">
                 <AdminPageHeader
                     headingId="newsletter-studio-title"
                     title="Newsletters Studio"
                     description="Your 1,000 true fans are waiting."
                 />
-            </header>
+            </div>
 
             <div
                 className="campaign-workspace-tabs"

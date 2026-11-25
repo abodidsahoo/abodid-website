@@ -5,10 +5,11 @@ import '../styles/land-register.css';
 
 const { title = 'ପରିବାର ଜମି ରେକର୍ଡ / Family Land Register', lang = 'or' } = Astro.props;
 import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
+import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
 ---
 
 <!doctype html>
-<html lang={lang} data-theme="light">
+<html lang={lang} data-theme="light" data-site-theme-enabled>
   <head>
     <DesignTokenRuntime />
     <meta charset="utf-8" />
@@ -18,6 +19,7 @@ import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
     <meta name="theme-color" content="#fff8e8" />
     <meta name="color-scheme" content="light" />
     <title>{title}</title>
+    <RouteLoadingOverlay />
   </head>
   <body class="land-body" data-pop-surface="cream">
     <a class="land-skip-link" href="#land-main">ମୁଖ୍ୟ ଅଂଶକୁ ଯାଆନ୍ତୁ / Skip to content</a>

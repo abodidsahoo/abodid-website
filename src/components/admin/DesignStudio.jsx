@@ -11,10 +11,10 @@ import {
   mergeColourTokens,
 } from "../../lib/designTokens.js";
 import { getDesignTokenUsage } from "../../lib/designTokenUsage.js";
+import { DESIGN_TOKEN_CACHE_KEY, ORIGINAL_SITE_THEME } from "../../lib/siteThemes.js";
 import "../../styles/design-studio.css";
 import AdminPageHeader from "./AdminPageHeader";
-
-const CACHE_KEY = "abodid-published-design-tokens-v1";
+import SiteThemeStudio from "./SiteThemeStudio";
 
 function isAdvancedToken(groupId, name) {
   if (groupId === "typography") return /-(min|fluid|line|track)$/.test(name);
@@ -296,6 +296,7 @@ export default function DesignStudio() {
   const group = DESIGN_TOKEN_GROUPS.find((item) => item.id === activeGroup) || DESIGN_TOKEN_GROUPS[0];
   const selectedToken = DESIGN_TOKEN_FIELDS.find((token) => token.name === selectedTokenName) || group.sections[0].tokens[0];
   const colourOnly = activeGroup === "colour";
+  const themesSelected = activeGroup === "themes";
   const dirty = colourOnly
     ? DESIGN_TOKEN_FIELDS.filter((field) => field.type === "color").some((field) => normalisedTokens[field.name] !== publishedTokens[field.name])
     : JSON.stringify(normalisedTokens) !== JSON.stringify(publishedTokens);
@@ -377,12 +378,20 @@ export default function DesignStudio() {
         setPublishedTokens(nextPublished);
         setVersion(data.published_version);
         try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ tokens: nextPublished, version: data.published_version, updatedAt: data.updated_at }));
+          localStorage.setItem(DESIGN_TOKEN_CACHE_KEY, JSON.stringify({
+            tokens: nextPublished,
+            theme: data.published_theme ?? null,
+            version: data.published_version,
+            updatedAt: data.updated_at,
+          }));
         } catch (_error) {
           // A storage quota cannot undo a successful publication.
         }
-        window.dispatchEvent(new CustomEvent("design-tokens:published", { detail: { tokens: nextPublished } }));
-        setNotice({ type: "success", text: colourOnly ? `Colour version ${data.published_version} is live. Other design settings keep their published values.` : `Version ${data.published_version} is live. No deployment is required.` });
+        window.dispatchEvent(new CustomEvent("design-tokens:published", { detail: { tokens: nextPublished, version: data.published_version } }));
+        const message = colourOnly && data.published_theme && data.published_theme.id !== ORIGINAL_SITE_THEME.id
+          ? `Original palette saved as version ${data.published_version}. ${data.published_theme.name} is still live.`
+          : `Version ${data.published_version} is live.`;
+        setNotice({ type: "success", text: message });
         const historyResult = await supabase.from("design_system_versions").select("version,tokens,published_at").order("version", { ascending: false }).limit(8);
         setHistory(historyResult.data || []);
       } else {
@@ -399,88 +408,96 @@ export default function DesignStudio() {
   if (loading) return <div className="design-studio-loading">Loading the design system…</div>;
 
   return (
-    <div className="design-studio" data-pop-page="true">
-      <section className="design-studio__hero admin-page-intro" data-pop-surface="pink">
-        <div className="design-studio__hero-copy">
-          <span className="design-kicker">Creator Studio · Visual system</span>
-          <AdminPageHeader
-            title="Design Studio"
-            description="Change the shared style once, inspect it on real interface patterns, then publish it across the ecosystem."
-          />
-        </div>
-        <div className="design-studio__status" aria-live="polite">
-          <span>Version {version}</span><strong>{dirty ? "Unpublished changes" : "Published"}</strong>
-        </div>
-      </section>
+    <div className="design-studio">
+      <div className="admin-page-intro admin-page-intro--separated">
+        <AdminPageHeader
+          title="Design Studio"
+          description="Sometimes it's all about the looks."
+        />
+      </div>
 
-      <div className="design-studio__toolbar" data-pop-surface="cream">
+      <div className="design-studio__toolbar">
         <div className="design-studio__tabs" role="tablist" aria-label="Design token groups">
           {DESIGN_TOKEN_GROUPS.map((item) => (
             <button
               key={item.id}
+              id={`design-tab-${item.id}`}
               type="button"
               role="tab"
               aria-selected={activeGroup === item.id}
               aria-controls="design-token-panel"
-              className={activeGroup === item.id ? "is-active" : ""}
-              data-pop-surface={activeGroup === item.id ? "yellow" : undefined}
               onClick={() => changeGroup(item)}
             >
               {item.label}
             </button>
           ))}
-        </div>
-        <div className="design-studio__actions" aria-label="Design Studio actions">
-          {history.length > 0 && (
-            <details className="design-history-menu">
-              <summary><Undo2 size={15} /> History</summary>
-              <div className="design-history-menu__popover" data-pop-surface="cream">
-                <span className="design-kicker">Load as draft</span>
-                {history.map((entry) => (
-                  <button key={entry.version} type="button" data-pop-surface="yellow" onClick={() => {
-                    setTokens(colourOnly ? mergeColourTokens(tokens, entry.tokens) : normaliseDesignTokens(entry.tokens));
-                    setNotice({ type: "success", text: `Version ${entry.version} loaded as an unpublished ${colourOnly ? "colour " : ""}draft.` });
-                  }}>
-                    Version {entry.version}
-                  </button>
-                ))}
-              </div>
-            </details>
-          )}
-          <button type="button" className="design-action design-action--default" data-pop-surface="cream" onClick={() => setTokens(colourOnly ? mergeColourTokens(tokens, DEFAULT_DESIGN_TOKENS) : DEFAULT_DESIGN_TOKENS)}>
-            <RotateCcw size={16} /> Defaults
-          </button>
-          <button type="button" className="design-action design-action--save" data-pop-surface="pink" disabled={saving || !databaseReady} onClick={() => persist(false)}>
-            <Save size={16} /> Save draft
-          </button>
           <button
+            id="design-tab-themes"
             type="button"
-            className="design-action design-action--publish"
-            data-pop-surface="blue"
-            disabled={saving || !databaseReady || !dirty || failingContracts.length > 0}
-            title={failingContracts.length > 0 ? "Resolve contrast failures before publishing" : undefined}
-            onClick={() => persist(true)}
+            role="tab"
+            aria-selected={themesSelected}
+            aria-controls="design-theme-panel"
+            onClick={() => setActiveGroup("themes")}
           >
-            <Send size={16} /> {colourOnly ? "Publish colours across site" : "Publish across site"}
+            Themes
           </button>
         </div>
+        {!themesSelected && <div className="design-studio__publication">
+          <div className="design-studio__status" aria-live="polite">
+            <span>Version {version}</span>
+            <strong>{dirty ? "Unpublished changes" : "Published"}</strong>
+          </div>
+          <div className="design-studio__actions" role="group" aria-label="Design Studio actions">
+            {history.length > 0 && (
+              <details className="design-history-menu">
+                <summary><Undo2 size={15} /> History</summary>
+                <div className="design-history-menu__popover" data-pop-surface="cream">
+                  <span className="design-kicker">Load as draft</span>
+                  {history.map((entry) => (
+                    <button key={entry.version} type="button" data-pop-surface="yellow" onClick={() => {
+                      setTokens(colourOnly ? mergeColourTokens(tokens, entry.tokens) : normaliseDesignTokens(entry.tokens));
+                      setNotice({ type: "success", text: `Version ${entry.version} loaded as an unpublished ${colourOnly ? "colour " : ""}draft.` });
+                    }}>
+                      Version {entry.version}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            )}
+            <button type="button" onClick={() => setTokens(colourOnly ? mergeColourTokens(tokens, DEFAULT_DESIGN_TOKENS) : DEFAULT_DESIGN_TOKENS)}>
+              <RotateCcw size={16} /> Defaults
+            </button>
+            <button type="button" disabled={saving || !databaseReady} onClick={() => persist(false)}>
+              <Save size={16} /> Save draft
+            </button>
+            <button
+              type="button"
+              className="design-action--publish"
+              disabled={saving || !databaseReady || !dirty || failingContracts.length > 0}
+              title={failingContracts.length > 0 ? "Resolve contrast failures before publishing" : undefined}
+              onClick={() => persist(true)}
+            >
+              <Send size={16} /> {colourOnly ? "Publish colours across site" : "Publish across site"}
+            </button>
+          </div>
+        </div>}
       </div>
 
-      {notice && (
+      {!themesSelected && notice && (
         <div className={`design-studio__notice is-${notice.type}`} data-pop-surface={notice.type === "error" ? "orange" : "lime"} role="status">
           {notice.type === "error" ? <AlertTriangle size={18} aria-hidden="true" /> : <Check size={18} aria-hidden="true" />}
           <span>{notice.text}</span>
         </div>
       )}
 
-      <div className="design-studio__workspace">
+      {themesSelected ? <SiteThemeStudio originalTokens={publishedTokens} /> : <div className="design-studio__workspace">
         <section className="design-controls" data-pop-surface="cream" aria-labelledby="design-group-title">
           <div className="design-controls__intro">
             <span className="design-kicker">Choose what to change</span>
             <h2 id="design-group-title">{group.label}</h2>
-            <p>{group.description}</p>
+            <p>{colourOnly ? "Edit the colours used by the Original theme." : group.description}</p>
           </div>
-          <div id="design-token-panel" role="tabpanel">
+          <div id="design-token-panel" role="tabpanel" aria-labelledby={`design-tab-${activeGroup}`}>
             {group.sections.map((section, sectionIndex) => {
               const everydayTokens = section.tokens.filter((token) => !isAdvancedToken(group.id, token.name));
               const advancedTokens = section.tokens.filter((token) => isAdvancedToken(group.id, token.name));
@@ -514,7 +531,7 @@ export default function DesignStudio() {
         <div className="design-studio__preview-rail">
           <Inspector token={selectedToken} tokens={normalisedTokens} contracts={contracts} />
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

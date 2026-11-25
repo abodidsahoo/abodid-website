@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SubscriptionFeeds from '../components/SubscriptionFeeds.astro';
+---
+<BaseLayout title="Follow what interests you — RSS subscriptions" description="Subscribe to Abodid Sahoo’s writings, research, public notes and discoveries with RSS." showNewsletterPopup={false}>
+  <div class="subscription-directory">
+    <h1>Follow what interests you.</h1>
+    <p>Subscribe to my writings, research, notes and discoveries using your favourite RSS reader. No algorithms. No inbox clutter.</p>
+    <p>RSS brings updates from websites you follow into one reading app. Copy a feed URL into your reader, or choose a reader below. Every feed is available without an account.</p>
+    <SubscriptionFeeds prefix="rss-directory" />
+  </div>
+</BaseLayout>
+<style>
+  .subscription-directory { max-width: 52rem; margin: 3rem auto; color: var(--color-text); }
+  h1 { font: 700 clamp(2.5rem, 7vw, 4.5rem)/1 var(--font-display); letter-spacing: -.04em; margin-block-end: 1.5rem; }
+  p { font-size: 1rem; line-height: 1.6; margin-block-end: 1.5rem; }
+</style>

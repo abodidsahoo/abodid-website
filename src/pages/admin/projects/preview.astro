@@ -1,12 +1,15 @@
 ---
 export const prerender = false;
 import "../../../styles/global.css";
+import DesignTokenRuntime from "../../../components/DesignTokenRuntime.astro";
+import RouteLoadingOverlay from "../../../components/RouteLoadingOverlay.astro";
 import PortfolioDraftPreview from "../../../components/portfolio/admin/PortfolioDraftPreview.jsx";
 const projectId = Astro.url.searchParams.get("project") || "";
 ---
 
 <html lang="en">
   <head>
+    <DesignTokenRuntime cornersOnly />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
@@ -19,6 +22,7 @@ const projectId = Astro.url.searchParams.get("project") || "";
         document.documentElement.style.colorScheme = theme;
       })();
     </script>
+    <RouteLoadingOverlay />
   </head>
   <body class="portfolio-draft-preview-page">
     <main>

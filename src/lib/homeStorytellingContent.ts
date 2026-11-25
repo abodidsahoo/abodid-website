@@ -255,11 +255,11 @@ const fallbackBrands = [
 ];
 
 const curatedTestimonialHighlights: Record<string, string> = {
-  "saunak shah": "Abodid has not only created stellar videos but has always elevated the brand voice, visual storytelling and overall look and feel!",
+  "saunak shah": "If there is a hunch about direction, great aesthetic, and delivery time crunch, Abodid gets it.",
   "pranjal agrawal": "Abodid made sure the visual storytelling of the film was aptly aligned to the brand's voice.",
   "alonzo": "Abodid and his team have literally been a breath of fresh air to work with.",
-  "michael": "Each session is carefully prepared and adapted to suit my learning needs, making the lessons both focused and effective.",
-  "mitch longe": "He helped me think differently about how to actually build a story — how shots work together, where to make cuts, and how to use pacing.",
+  "michael": "His patience, kindness, and attention to detail have made a real difference to my progress.",
+  "mitch longe": "He helped me think differently about how to actually build a story.",
 };
 
 function attachTestimonialHighlight(testimonial: any) {
@@ -329,9 +329,8 @@ export async function getHomeStorytellingContent() {
     ? (testimonialResult.value.data || []).filter((testimonial: any) => !placeholderNames.has(String(testimonial?.name || "").trim().toLowerCase()))
     : [];
 
-  const testimonials = fetchedTestimonials.length
-    ? fetchedTestimonials.map(attachTestimonialHighlight)
-    : fallbackTestimonials;
+  const testimonials = (fetchedTestimonials.length ? fetchedTestimonials : fallbackTestimonials)
+    .map(attachTestimonialHighlight);
 
   // Hydrate storytelling cards from Supabase; fall back to static array if the
   // table is empty or unreachable (e.g. during local dev without a DB connection).

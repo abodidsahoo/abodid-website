@@ -1,0 +1,260 @@
+@import "./visual-index.css";
+
+.nh-bar { border-bottom: 1px solid currentColor; }
+.nh-bar__inner, .nh-chooser--header .nh-chooser__inner {
+  width: min(calc(100% - 2 * var(--nh-gutter)), var(--nh-width));
+  margin-inline: auto;
+}
+.nh-bar__inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(.85rem, 2.7vw, 3.5rem);
+  padding-block: .85rem;
+}
+.nh-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  width: fit-content;
+  min-height: 44px;
+  font-size: clamp(1.75rem, 2.65vw, 2.85rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.065em;
+  white-space: nowrap;
+}
+.nh-brand .nh-surname { font-weight: 380; }
+.nav-study .nh-brand:hover { text-decoration: none; }
+.nh-mainlinks, .nh-actions { display: flex; align-items: center; }
+.nh-mainlinks { justify-content: center; column-gap: clamp(.65rem, 1.7vw, 2rem); }
+.nh-mainlinks a, .nh-action, .nh-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5em;
+  min-height: 44px;
+  font-size: .99rem;
+  font-weight: 650;
+  line-height: 1.22;
+}
+.nh-mainlinks a, .nh-action { text-align: center; }
+.nh-actions { gap: clamp(.65rem, 1.6vw, 1.65rem); }
+.nh-action span { font-weight: 400; }
+.nav-study .nh-toggle {
+  min-width: 5.35rem;
+  border: 1px solid currentColor;
+  padding: .56rem .78rem;
+  font-weight: 720;
+}
+.nh-menu-icon { display: inline-block; position: relative; width: .95rem; height: .8rem; flex: none; }
+.nh-menu-icon::before, .nh-menu-icon::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 22%; height: 2px; background: currentColor;
+}
+.nh-menu-icon::after { top: auto; bottom: 21%; }
+.nh-menu-icon.is-close::before, .nh-menu-icon.is-close::after { top: calc(50% - 1px); bottom: auto; transform: rotate(45deg); }
+.nh-menu-icon.is-close::after { transform: rotate(-45deg); }
+
+/* A commission-led bar, with a single contrasting action. */
+.nh-bar[data-header="studio"] { background: var(--site-palette-ink, var(--color-primary)); color: var(--site-palette-paper, var(--color-primary-text)); }
+.nh-bar[data-header="studio"] .nh-bar__inner { padding-block: 1.05rem; }
+.nh-bar[data-header="studio"] .nh-brand { font-size: clamp(1.15rem, 1.9vw, 1.8rem); letter-spacing: -.045em; }
+.nh-bar[data-header="studio"] .nh-brand .nh-surname { font: inherit; letter-spacing: inherit; }
+.nh-studio-mark {
+  flex: none; width: 2.3em; height: 1.65em; background: currentColor;
+  -webkit-mask: url("/images/signature-black.png") center / contain no-repeat;
+  mask: url("/images/signature-black.png") center / contain no-repeat;
+}
+.nh-bar[data-header="studio"] .nh-mainlinks { justify-content: flex-start; border-left: var(--nh-rule); padding-left: clamp(.85rem, 2.25vw, 2.5rem); }
+.nh-bar[data-header="studio"] .nh-action {
+  padding: .65rem 1.1rem;
+  color: var(--site-palette-ink, var(--color-text));
+  background: var(--site-palette-paper, var(--color-background));
+}
+.nh-bar[data-header="studio"] .nh-toggle { min-width: auto; border-color: transparent; padding-inline: .15rem; }
+.nh-bar[data-header="studio"] .nh-action:focus-visible { outline-color: var(--site-palette-paper, var(--color-background)); }
+
+/* A publication masthead and a separate reading rail. */
+.nh-bar[data-header="journal"] .nh-bar__inner { display: block; padding-block: 0; }
+.nh-journal__top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding-block: .7rem;
+  border-bottom: var(--nh-rule);
+}
+.nh-journal__top .nh-toggle { border: 0; min-width: auto; padding-inline: 0; }
+.nh-journal__top .nh-brand { font: 770 clamp(2.55rem, 5.35vw, 5.35rem)/.94 var(--font-display, sans-serif); letter-spacing: -.065em; }
+.nh-journal__top .nh-action { justify-self: end; text-decoration: underline; text-underline-offset: .24em; }
+.nh-bar[data-header="journal"] .nh-mainlinks { gap: clamp(1rem, 4vw, 4rem); }
+.nh-bar[data-header="journal"] .nh-mainlinks a { font-size: .94rem; }
+
+/* Three visual disciplines share the strip with the portfolio wordmark. */
+.nh-bar[data-header="gallery"] .nh-bar__inner { padding-block: .75rem; }
+.nh-bar[data-header="gallery"] .nh-brand { font-size: clamp(1.7rem, 3.1vw, 3.25rem); letter-spacing: -.085em; }
+.nh-bar[data-header="gallery"] .nh-mainlinks { gap: clamp(.7rem, 1.8vw, 2rem); }
+.nh-bar[data-header="gallery"] .nh-mainlinks a { justify-content: flex-start; gap: .6rem; font-weight: 720; }
+.nh-bar[data-header="gallery"] .nh-mainlinks img { width: clamp(2.3rem, 4.5vw, 4.45rem); height: 2.8rem; object-fit: cover; background: var(--ui-surface-hover-bg); }
+.nh-bar[data-header="gallery"] .nh-toggle { border: 0; border-left: var(--nh-rule); }
+.nh-bar[data-header="gallery"] .nh-menu-icon:not(.is-close) {
+  width: .83rem; height: .83rem;
+  background: conic-gradient(currentColor 0 0) 0 0 / 40% 40% space;
+}
+.nh-bar[data-header="gallery"] .nh-menu-icon:not(.is-close)::before,
+.nh-bar[data-header="gallery"] .nh-menu-icon:not(.is-close)::after { content: none; }
+
+/* Both selectors use the same controls and retain their place during a change. */
+.nh-chooser { flex: none; }
+.nh-chooser--header { border-bottom: var(--nh-rule); }
+.nh-chooser__inner { display: flex; align-items: center; justify-content: flex-end; gap: .85rem; }
+.nav-study .nh-chooser p { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; color: inherit; font-size: .83rem; line-height: 1.2; }
+.nh-chooser p span { font-size: .72rem; letter-spacing: .035em; }
+.nh-chooser p strong { font-size: .91rem; font-weight: 750; }
+.nh-chooser form { display: flex; gap: 2px; }
+.nav-study .nh-chooser button {
+  width: 44px; height: 44px; display: inline-grid; place-items: center;
+  font: 500 1.22rem/1 var(--font-body, sans-serif);
+}
+.nav-study .nh-chooser button:hover, .nav-study .nh-chooser button:active { background: var(--ui-surface-hover-bg); text-decoration: none; }
+.nav-study .nh-chooser button:focus-visible { outline-offset: -4px; }
+
+/* The browser owns modality. The transparent space is the dismiss target. */
+html:has(.nh-overlay:modal), body:has(.nh-overlay:modal) { overflow: hidden; }
+.nh-overlay {
+  position: fixed; inset: 0; z-index: 20; margin: 0; padding: 0; border: 0;
+  width: 100%; height: 100%; height: 100dvh; max-width: none; max-height: none;
+  background: transparent; color: var(--color-text); overflow: hidden;
+}
+.nh-overlay[open] { display: flex; flex-direction: column; }
+.nh-overlay:not([open]) { display: none; }
+.nh-overlay::backdrop { background: color-mix(in srgb, var(--color-text) 44%, transparent); }
+.nh-overlay[open]:not(:modal) { background: color-mix(in srgb, var(--color-text) 44%, transparent); }
+.nh-overlay > .nh-bar { flex: none; }
+.nh-overlay__space {
+  display: flex; align-items: flex-start; justify-content: center; min-height: 0; flex: 1 1 auto;
+  padding: clamp(.55rem, 2.2vh, 1.5rem) var(--nh-gutter) max(.65rem, env(safe-area-inset-bottom));
+}
+.nh-chooser--menu { border-top: var(--nh-rule); padding-inline: clamp(1.15rem, 2.6vw, 2.6rem); }
+.nh-chooser--menu .nh-chooser__inner { justify-content: space-between; }
+.nh-directory { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(.85rem, 2.15vw, 2.6rem); padding-block: 1.4rem .9rem; }
+.nh-directory__group h3 { margin-bottom: .45rem; }
+.nav-study .nh-disclosure { display: none; }
+
+/* The drawer keeps only the current level on screen. */
+.nh-overlay__space[data-menu="drawer"] { justify-content: flex-end; padding: 0 0 0 var(--nh-gutter); }
+.nh-panel[data-menu="drawer"] {
+  width: min(100%, 29rem); border-width: 0 0 1px 1px; min-height: min(35rem, 100%);
+}
+.nh-panel[data-menu="drawer"] .nh-panel__scroll { flex: 1; }
+.nh-panel[data-menu="drawer"] .nh-panel__top h2 { font-size: clamp(1.7rem, 2.8vw, 2.55rem); }
+.nh-drawer__row {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .9rem; border-bottom: var(--nh-rule);
+}
+.nh-drawer__row strong, .nh-drawer__row small { display: block; }
+.nh-drawer__row strong { font-size: 1.16rem; font-weight: 700; letter-spacing: -.03em; }
+.nh-drawer__row small { margin-top: .16rem; font-size: .84rem; }
+.nh-drawer__row > span:last-child { font-size: 1.25rem; }
+.nh-drawer li:last-child .nh-drawer__row { border-bottom: 0; }
+.nh-up { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; font-size: .89rem; }
+.nh-drawer h3 { margin: .3rem 0 .55rem; font-size: 1.55rem; }
+.nh-drawer .nh-links { margin-bottom: .8rem; }
+.nh-drawer .nh-links a { min-height: 44px; }
+
+/* A compact search dialog for people who already know a page name. */
+.nh-panel[data-menu="finder"] { width: min(100%, 40rem); }
+.nh-panel[data-menu="finder"] .nh-panel__top { border: 0; }
+.nh-finder label { display: block; margin: .2rem 0 .4rem; font-size: .9rem; font-weight: 650; }
+.nh-finder__field { display: flex; align-items: center; gap: .7rem; padding-inline: .8rem; border: 1px solid currentColor; }
+.nh-finder__field:focus-within { outline: 2px solid currentColor; outline-offset: 1px; }
+.nh-lens {
+  display: block; width: 1rem; height: 1rem; position: relative; flex: none;
+  background: radial-gradient(closest-side, transparent calc(100% - 2px), currentColor calc(100% - 1.5px) 98%, transparent);
+}
+.nh-lens::after { content: ""; position: absolute; width: .45rem; height: 2px; bottom: -.06rem; right: -.25rem; transform: rotate(45deg); background: currentColor; }
+.nav-study .nh-finder input {
+  width: 100%; min-width: 0; height: 3.15rem; margin: 0; padding: 0 .2rem; border: 0; background: transparent;
+  border-radius: 0; outline: none; font-size: 1.02rem; box-shadow: none;
+}
+.nh-finder__field input::placeholder { color: var(--ui-text-muted); }
+.nav-study .nh-eyebrow { margin: 1rem 0 .35rem; font-size: .75rem; font-weight: 700; letter-spacing: .065em; text-transform: uppercase; }
+.nh-finder nav a { display: flex; align-items: center; justify-content: space-between; gap: .65rem; min-height: 44px; border-top: var(--nh-rule); }
+.nh-finder nav a strong { font-size: 1.02rem; }
+.nh-finder nav a span { text-align: right; font-size: .8rem; }
+.nh-finder__empty { padding: .65rem 0 1rem; }
+.nh-finder__empty button { min-height: 44px; text-decoration: underline; }
+.nh-finder nav { padding-bottom: .6rem; }
+
+@media (max-width: 62rem) {
+  .nh-bar__inner { gap: 1rem; }
+  .nh-mainlinks { gap: .85rem; }
+  .nh-bar[data-header="gallery"] .nh-mainlinks img { width: 2.6rem; height: 2.4rem; }
+  .nh-directory { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 1rem; }
+}
+
+@media (max-width: 48rem) {
+  .nav-study { --nh-gutter: clamp(.9rem, 3.8vw, 1.7rem); }
+  .nh-bar:not([data-header="journal"]) .nh-bar__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand actions" "links links";
+    gap: 0 .65rem; padding: .45rem 0 0;
+  }
+  .nh-brand { grid-area: brand; font-size: clamp(1.6rem, 6.9vw, 2rem); }
+  .nh-actions { grid-area: actions; gap: .7rem; }
+  .nh-actions .nh-action { font-size: .89rem; }
+  .nh-bar:not([data-header="journal"]) .nh-mainlinks {
+    grid-area: links; justify-content: flex-start; flex-wrap: wrap; margin-top: .35rem; gap: 0 clamp(.7rem, 3.3vw, 1.4rem);
+    padding: .05rem 0; border: 0; border-top: var(--nh-rule);
+  }
+  .nh-mainlinks a { min-height: 44px; font-size: .91rem; }
+  .nav-study .nh-toggle { min-width: auto; padding: .45rem .58rem; font-size: .94rem; }
+  .nh-bar[data-header="studio"] .nh-brand { font-size: clamp(1rem, 4vw, 1.35rem); gap: .4rem; }
+  .nh-bar[data-header="studio"] .nh-action { padding: .45rem .6rem; }
+  .nh-bar[data-header="studio"] .nh-toggle { padding-inline: .1rem; }
+  .nh-bar[data-header="gallery"] .nh-mainlinks { justify-content: space-between; gap: .4rem; padding-block: .25rem; }
+  .nh-bar[data-header="gallery"] .nh-mainlinks a { gap: .35rem; font-size: .9rem; }
+  .nh-bar[data-header="gallery"] .nh-mainlinks img { width: clamp(1.8rem, 6vw, 3rem); height: 1.92rem; }
+  .nh-bar[data-header="journal"] .nh-brand { grid-area: auto; }
+  .nh-journal__top { padding-block: .5rem; gap: .35rem; }
+  .nh-journal__top .nh-toggle { padding-inline: 0; }
+  .nh-journal__top .nh-action { font-size: .88rem; gap: .2rem; }
+  .nh-journal__top .nh-brand { font-size: clamp(2.05rem, 7.65vw, 3.1rem); }
+}
+
+@media (max-width: 40rem) {
+  .nh-directory { display: block; padding: 0; }
+  .nh-directory__group + .nh-directory__group { border-top: var(--nh-rule); }
+  .nh-directory__group h3 { margin: 0; }
+  .nh-directory:not([data-enhanced]) .nh-directory__group h3 { padding-block: .85rem .45rem; }
+  .nh-directory[data-enhanced] .nh-directory__title { display: none; }
+  .nav-study .nh-directory[data-enhanced] .nh-disclosure {
+    display: flex; justify-content: space-between; align-items: center; gap: .5rem; min-height: 47px; width: 100%;
+    font: inherit; text-align: left;
+  }
+  .nh-directory[data-enhanced] .nh-directory__group[data-expanded="false"] > div { display: none; }
+  .nh-directory .nh-links { padding: 0 0 .55rem .75rem; }
+  .nh-overlay__space { padding: .45rem .5rem max(.5rem, env(safe-area-inset-bottom)); }
+  .nh-chooser--menu { padding-inline: .95rem; }
+  .nh-drawer__row { padding-block: .7rem; }
+  .nh-chooser__inner { gap: .4rem; }
+}
+
+@media (max-width: 23.5rem) {
+  .nh-actions { gap: .4rem; }
+  .nh-actions .nh-action > span { display: none; }
+  .nh-bar[data-header="masthead"] .nh-brand { font-size: 1.45rem; }
+  .nh-bar[data-header="studio"] .nh-brand .nh-surname { display: block; }
+  .nh-bar[data-header="masthead"] .nh-mainlinks { justify-content: space-between; gap: .3rem; }
+  .nh-bar[data-header="masthead"] .nh-mainlinks a { font-size: .85rem; }
+  .nh-bar[data-header="gallery"] .nh-mainlinks a { gap: .25rem; font-size: .83rem; }
+  .nh-bar[data-header="gallery"] .nh-mainlinks img { width: 1.6rem; }
+  .nh-journal__top .nh-action span { display: none; }
+  .nh-bar[data-header="journal"] .nh-mainlinks { justify-content: space-between; gap: .4rem; }
+  .nh-bar[data-header="journal"] .nh-mainlinks a { font-size: .84rem; }
+}
+
+@media (max-height: 19rem) {
+  .nh-overlay[open] { overflow-y: auto; }
+  .nh-overlay__space { flex: 1 0 auto; }
+  .nh-panel[data-menu] { max-height: none; min-height: 0; }
+}

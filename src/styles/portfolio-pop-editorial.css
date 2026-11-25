@@ -976,6 +976,13 @@ body.work-project-page .page-content-full { padding: 0; }
   color: var(--pe-ink, var(--color-text)) !important;
 }
 
+/* Research notes use an even keyline, without the coloured rail and raised
+   shadow used by the work portfolio. All edges follow the shared UI role. */
+.rp-case[data-project-kind="research"] .rp-case__blocks .portfolio-highlight {
+  border: 1px solid var(--ui-border) !important;
+  box-shadow: none !important;
+}
+
 /* Quotes / Blockquotes */
 .rp-case__blocks .portfolio-editorial-quote,
 .rp-case__blocks blockquote {
@@ -1046,8 +1053,9 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 /* Responsive adjustments */
 @media (max-width: 960px) {
-  .rp-case__trio-grid {
-    grid-template-columns: 1fr;
+  .rp-case__trio-grid,
+  .rp-case__trio-grid--duo {
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 1.5rem;
   }
 

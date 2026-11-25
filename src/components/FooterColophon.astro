@@ -1,0 +1,24 @@
+---
+const social = [
+  ["Instagram", "https://www.instagram.com/abodid.sahoo"],
+  ["LinkedIn", "https://uk.linkedin.com/in/abodidsahoo"],
+  ["Vimeo", "https://vimeo.com/abodidsahoo"],
+  ["GitHub", "https://github.com/abodidsahoo"],
+];
+---
+
+<div class="footer-colophon" data-pop-surface="cream">
+  <div class="footer-measure footer-colophon__inner">
+    <a class="footer-colophon__credit" href="/">© {new Date().getFullYear()} Abodid Sahoo</a>
+    <nav aria-label="Social profiles">
+      {social.map(([label, href]) => <a href={href}>{label}</a>)}
+    </nav>
+    <nav aria-label="Site information">
+      <a href="/contact">Contact</a>
+      <a href="/rss.xml" data-rss-subscribe data-astro-reload data-astro-prefetch="false">RSS</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/sitemap">Sitemap</a>
+      <a href="/architecture">Architecture</a>
+    </nav>
+  </div>
+</div>

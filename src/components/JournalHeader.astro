@@ -1,0 +1,109 @@
+---
+import { pages, sections } from "../lib/siteNavigation.js";
+import VisualSection from "./navigation/VisualSection.jsx";
+import InstallAction from "./navigation/InstallAction.astro";
+import MultilingualPalette from "./MultilingualPalette.astro";
+import "../styles/journal-header.css";
+
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
+const onRoute = (href: string) => pathname === href || pathname.startsWith(href + "/");
+const primary = [
+  { label: "Work", href: pages.work.href },
+  { label: "Research", href: pages.research.href },
+  { label: "Lab", href: pages.lab.href },
+  { label: "About", href: pages.about.href },
+];
+const matchedSection = sections.find(section =>
+  section.links.some(key => onRoute(pages[key as keyof typeof pages].href))
+);
+const currentSection = matchedSection || sections[0];
+const currentPrimary = primary.find(item => onRoute(item.href))?.href
+  ?? primary.find(item => item.href === "/" + matchedSection?.id)?.href;
+const enquiryHref = pathname === "/" ? "#enquiry" : "/#enquiry";
+---
+
+<header class="site-header journal-header nav-study">
+  <journal-navigation>
+    <div class="journal-bar">
+      <a class="journal-brand" href="/" aria-label="abodid.com homepage">abodid.com</a>
+      <nav class="journal-links" aria-label="Primary navigation">
+        {primary.map(({ label, href }, index) => <>
+          {index > 0 && <span class="journal-dot" aria-hidden="true">·</span>}
+          <a href={href} aria-current={pathname === href ? "page" : href === currentPrimary ? "location" : undefined}>{label}</a>
+        </>)}
+      </nav>
+      <div class="journal-actions">
+        <a class="journal-collaborate" href={enquiryHref}>
+          <span class="journal-collaborate-label">Collaborate</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+        <button class="journal-toggle" type="button" popovertarget="site-visual-index" aria-controls="site-visual-index">
+          <span class="journal-bars" aria-hidden="true"></span>
+          <span class="journal-toggle-label"><span>Menu</span><span>Close</span></span>
+        </button>
+        <a class="journal-menu-fallback" href="/sitemap">Menu</a>
+      </div>
+    </div>
+    <div class="journal-menu nh-panel" id="site-visual-index" data-menu="visual" popover="auto" role="region" aria-labelledby="site-index-heading">
+      <div class="nh-panel__content">
+        <div class="nh-panel__top">
+          <h2 id="site-index-heading">Visual <strong>Index</strong></h2>
+          <a href="/sitemap">Sitemap <span aria-hidden="true">→</span></a>
+        </div>
+        <fieldset class="journal-categories">
+          <legend class="sr-only">Browse site sections</legend>
+          <div class="journal-picker">
+            {sections.map(section => <div class="journal-choice">
+              <input type="radio" class="sr-only" name="site-index-section" id={`index-choice-${section.id}`} checked={section.id === currentSection.id} aria-controls={`index-content-${section.id}`} />
+              <label for={`index-choice-${section.id}`}>{section.short}</label>
+              <section class="journal-section" id={`index-content-${section.id}`} aria-label={section.name}>
+                <VisualSection section={section} client:load />
+              </section>
+            </div>)}
+          </div>
+        </fieldset>
+        <details class="nh-settings">
+          <summary>Language &amp; app settings</summary>
+          <div><MultilingualPalette variant="compact" /><InstallAction /></div>
+        </details>
+      </div>
+    </div>
+  </journal-navigation>
+</header>
+
+<script>
+  class JournalNavigation extends HTMLElement {
+    private resize?: ResizeObserver;
+    private events?: AbortController;
+    connectedCallback() {
+      const bar = this.querySelector<HTMLElement>(".journal-bar")!;
+      const panel = this.querySelector<HTMLElement>("[popover]")!;
+      if (!("showPopover" in panel)) return;
+      this.events = new AbortController();
+      const options = { signal: this.events.signal };
+      const placePanel = () => {
+        this.style.setProperty("--index-top", bar.getBoundingClientRect().bottom + "px");
+        document.documentElement.style.setProperty("--journal-header-height", this.parentElement!.offsetHeight + "px");
+      };
+      this.resize = new ResizeObserver(placePanel);
+      this.resize.observe(bar);
+      panel.addEventListener("beforetoggle", placePanel, options);
+      this.querySelectorAll<HTMLLabelElement>(".journal-choice > label").forEach(label => {
+        label.addEventListener("mouseenter", () => {
+          // Keep a keyboard user's focused page visible while the pointer moves.
+          if (this.querySelector(".journal-section :focus")) return;
+          const input = label.control as HTMLInputElement;
+          input.checked = true;
+        }, options);
+      });
+      document.addEventListener("focusin", event => {
+        if (!this.contains(event.target as Node) && panel.matches(":popover-open")) panel.hidePopover();
+      }, options);
+      this.addEventListener("click", event => {
+        if ((event.target as HTMLElement).closest("a") && panel.matches(":popover-open")) panel.hidePopover();
+      }, options);
+    }
+    disconnectedCallback() { this.resize?.disconnect(); this.events?.abort(); }
+  }
+  if (!customElements.get("journal-navigation")) customElements.define("journal-navigation", JournalNavigation);
+</script>

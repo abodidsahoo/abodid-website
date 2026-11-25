@@ -1,0 +1,29 @@
+---
+const essayHref = "/blog/from-an-abandoned-garage-into-the-hottest-exhibition-spot-in-london-in-just-two-days";
+const imageBase = "https://assets.abodid.com/photos/variants/exhibition-photos";
+const frame = "into-the-flux-iba-london32-9358ff9710.webp";
+---
+
+<section class="reading-room" aria-labelledby="reading-room-title" data-pop-surface="cream">
+  <div class="footer-measure reading-room__spread">
+    <div class="reading-room__copy">
+      <p class="footer-kicker">From the journal</p>
+      <h2 id="reading-room-title">Inside <em>Into the Flux</em></h2>
+      <p class="footer-deck">We turned an abandoned London garage into an exhibition in two days. I helped build it, then photographed it.</p>
+      <div class="reading-room__links">
+        <a class="footer-action" href={essayHref}>Read the essay <span aria-hidden="true">→</span></a>
+        <a class="footer-text-link" href="/blog">All writing</a>
+      </div>
+    </div>
+    <figure class="reading-room__plate">
+      <img
+        src={`${imageBase}/800/${frame}`}
+        srcset={`${imageBase}/800/${frame} 800w, ${imageBase}/1600/${frame} 1600w`}
+        sizes="(max-width: 700px) 92vw, (max-width: 1400px) 48vw, 680px"
+        width="800" height="533" loading="lazy" decoding="async"
+        alt="A performer in blue light, their movement traced across the exhibition space."
+      />
+      <figcaption><span>Into the Flux, London</span><span>Photograph by Abodid Sahoo</span></figcaption>
+    </figure>
+  </div>
+</section>

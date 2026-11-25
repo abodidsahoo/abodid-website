@@ -8862,12 +8862,11 @@ body.otl-page { --otl-paper: #f7f6f0;--otl-ink: #171717;--otl-blue: #2949d4;--ot
 .otl-help .otl-help-support { font-size:11px; }
 @media(max-width:760px) { .otl-header nav button { font-size:11px; }.otl-help { padding:20px; }.otl-help h2 { font-size:27px; } }
 
-@font-face { font-family:"OTL Instrument Serif";src:url("/fonts/instrument-serif/InstrumentSerif-Italic.ttf") format("truetype");font-style:italic;font-weight:400;font-display:swap; }
 /* Public hero: bold question, blue editorial answer, then clear actions. */
 .otl-hero { min-block-size:auto;padding-block:144px 64px;gap:0; }
 .otl-hero-kicker { max-inline-size:74ch;color: var(--otl-blue);font-size:.6875rem;font-weight:650;line-height:1.6;letter-spacing:.07em;text-wrap:balance; }
 .otl-hero h1 { max-inline-size:100%;margin-block:22px 24px;font-size:clamp(2.5rem,1rem + 4.1vw,4.75rem);line-height:1.05;letter-spacing:-.055em;text-wrap:balance; }
-.otl-hero h1 > span { display:block;margin-block-start:8px;color: var(--otl-blue);font-family:"OTL Instrument Serif",Georgia,serif;font-size:clamp(2.1rem,.85rem + 3.7vw,4.25rem);font-style:italic;font-weight:400;line-height:1.1;letter-spacing:-.035em; }
+.otl-hero h1 > span { display:block;margin-block-start:8px;color: var(--otl-blue);font-family:var(--font-display, sans-serif);font-size:clamp(2.1rem,.85rem + 3.7vw,4.25rem);font-weight:380;line-height:1.1;letter-spacing:-.035em; }
 .otl-hero-promise { color: var(--otl-ink);font-size:1.0625rem;line-height:1.45; }.otl-hero-promise strong { font-weight:700; }
 .otl-hero .otl-intro { margin-block:20px 0 !important;font-size:.9375rem;line-height:1.65; }
 .otl-hero-actions { margin-block-start:26px;gap:12px; }
@@ -8926,8 +8925,8 @@ body.otl-page { --otl-paper: #f7f6f0;--otl-ink: #171717;--otl-blue: #2949d4;--ot
 .otl-audience .otl-audience-headline { line-height:1.15; }
 .otl-audience-headline > span { white-space:nowrap; }
 
-.otl-hero-tagline { max-inline-size:42ch;color: var(--otl-blue);font:italic 400 clamp(1.65rem,1rem + 2vw,2.75rem)/1.2 "OTL Instrument Serif",Georgia,serif;letter-spacing:-.025em;text-wrap:balance; }
-.otd-demo .otl-section-heading h2 > .otd-walkthrough-tagline { display:block;margin-block-start:12px;color: var(--otl-blue);font:italic 400 clamp(1.5rem,1rem + 1.8vw,2.5rem)/1.2 "OTL Instrument Serif",Georgia,serif;letter-spacing:-.025em; }
+.otl-hero-tagline { max-inline-size:42ch;color: var(--otl-blue);font:380 clamp(1.65rem,1rem + 2vw,2.75rem)/1.2 var(--font-display, sans-serif);letter-spacing:-.025em;text-wrap:balance; }
+.otd-demo .otl-section-heading h2 > .otd-walkthrough-tagline { display:block;margin-block-start:12px;color: var(--otl-blue);font:380 clamp(1.5rem,1rem + 1.8vw,2.5rem)/1.2 var(--font-display, sans-serif);letter-spacing:-.025em; }
 
 .otl-hero-demo { margin-block-start:16px !important;color: var(--otl-muted);font-size:.875rem;line-height:1.5; }
 .otl-hero-demo a { display:inline-block;min-block-size:24px;color: var(--otl-ink);font-weight:650;text-decoration:underline solid #8d8b80 max(1px,.07em);text-underline-offset:.22em; }

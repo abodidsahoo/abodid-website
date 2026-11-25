@@ -160,7 +160,7 @@ export default function NotepadBoard({
                 {boardNotes.length > 0 ? (
                     <div className="notes-grid">
                         {boardNotes.map(({ note, label, sizeClass, style }) => (
-                            <article className={`note-card ${sizeClass}`} style={style} key={note.id}>
+                            <article id={`note-${note.id}`} className={`note-card ${sizeClass}`} style={style} key={note.id}>
                                 <div className="note-card__meta" aria-hidden="true">
                                     <span>{itemLabel} / {label}</span>
                                     <span className="note-card__mark"></span>

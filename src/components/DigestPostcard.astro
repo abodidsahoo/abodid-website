@@ -1,0 +1,94 @@
+---
+import Newsletter from "./Newsletter.astro";
+interface Props { titleTag?: "h1" | "h2" }
+const { titleTag: Title = "h2" } = Astro.props;
+---
+
+<section id="friday-evenings" class="studio-postcard" aria-labelledby="postcard-title" data-pop-surface="cream">
+  <div class="footer-measure studio-postcard__card">
+    <div class="studio-postcard__letter">
+      <p class="studio-postcard__kicker">Read my Weekly Newsletter —</p>
+      <Title id="postcard-title" class="studio-postcard__title">
+        <span class="studio-postcard__heading">
+          <span class="studio-postcard__light">Friday</span> <strong class="studio-postcard__bold">Evenings</strong>
+        </span>
+        <span class="studio-postcard__byline">by Abodid.</span>
+      </Title>
+
+      <div class="studio-postcard__content-row">
+        <div class="studio-postcard__copy-wrap">
+          <div class="studio-postcard__badge">Five days. Five picks.</div>
+          <p class="studio-postcard__copy">
+            Five thought-provoking stories from the worlds of <strong>art</strong>, <strong>technology</strong> and <strong>culture</strong>. Handpicked throughout the week, delivered every Friday evening for your weekend reading.
+          </p>
+          <div class="studio-postcard__signature-wrap" aria-label="Abodid signature">
+            <span class="studio-postcard__signature" role="img" aria-label="Abodid"></span>
+          </div>
+        </div>
+
+        <div class="studio-postcard__illustration-wrap">
+          <picture>
+            <source srcset="/images/friday-evenings-digest.webp" type="image/webp" />
+            <img
+              src="/images/friday-evenings-digest.png"
+              alt="Coffee cup on books under a yellow sun with doodle rays"
+              class="studio-postcard__illustration"
+              width="773"
+              height="884"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+        </div>
+      </div>
+    </div>
+
+    <div class="studio-postcard__address">
+      <div class="studio-postcard__address-header">
+        <div class="studio-postcard__topics" aria-label="Topics covered">
+          <span class="studio-postcard__topic">
+            <svg class="studio-postcard__topic-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span>ART</span>
+          </span>
+          <span class="studio-postcard__topic-sep" aria-hidden="true">/</span>
+          <span class="studio-postcard__topic">
+            <svg class="studio-postcard__topic-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+              <path d="M9 9h6v6H9z"></path>
+              <path d="M9 1v2M15 1v2M9 21v2M15 21v2M1 9h2M1 15h2M21 9h2M21 15h2"></path>
+            </svg>
+            <span>TECHNOLOGY</span>
+          </span>
+          <span class="studio-postcard__topic-sep" aria-hidden="true">/</span>
+          <span class="studio-postcard__topic">
+            <svg class="studio-postcard__topic-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="3" y1="21" x2="21" y2="21"></line>
+              <line x1="6" y1="21" x2="6" y2="7"></line>
+              <line x1="10" y1="21" x2="10" y2="7"></line>
+              <line x1="14" y1="21" x2="14" y2="7"></line>
+              <line x1="18" y1="21" x2="18" y2="7"></line>
+              <path d="M3 7h18l-9-4z"></path>
+            </svg>
+            <span>CULTURE</span>
+          </span>
+        </div>
+
+        <div class="studio-postcard__postage" aria-hidden="true">
+          <div class="studio-postcard__stamp">
+            <img src="https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp" alt="" width="800" height="1200" loading="lazy" decoding="async" />
+          </div>
+          <span class="studio-postcard__postmark"></span>
+        </div>
+      </div>
+
+      <Newsletter idPrefix="friday-evenings" variant="postcard" buttonLabel="Send me the digest" labelledBy="postcard-title" />
+
+      <a class="footer-text-link studio-postcard__archive" href="/reading#reading-archive">
+        <span>Browse past editions</span><span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+</section>

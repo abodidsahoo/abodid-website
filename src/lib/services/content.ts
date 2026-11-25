@@ -198,6 +198,7 @@ export async function getPhotographyBySlug(slug: string): Promise<PhotographyPro
         .from('photography')
         .select('*')
         .eq('slug', slug)
+        .eq('published', true)
         .single();
 
     if (projectError || !project) return null;
@@ -214,18 +215,21 @@ export async function getPhotographyBySlug(slug: string): Promise<PhotographyPro
 }
 
 // --- Blog ---
-export async function getRecentPosts(): Promise<BlogPost[]> {
-    if (!isSupabaseConfigured() || !supabase) return mockPosts as unknown as BlogPost[];
+export async function getRecentPosts(limit = 3): Promise<BlogPost[]> {
+    const fallback = () => [...mockPosts]
+        .sort((first, second) => new Date(second.date).getTime() - new Date(first.date).getTime())
+        .slice(0, limit) as unknown as BlogPost[];
+    if (!isSupabaseConfigured() || !supabase) return fallback();
 
     const { data, error } = await supabase
         .from('blog')
         .select('*')
         .eq('published', true)
-        .order('sort_order', { ascending: true })
-        .order('published_at', { ascending: false })
-        .limit(3);
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('slug')
+        .limit(limit);
 
-    if (error) return mockPosts as unknown as BlogPost[];
+    if (error) return fallback();
 
     return data.map((post: any) => ({
         title: post.title,
@@ -293,6 +297,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
         .from('blog')
         .select('*')
         .eq('slug', slug)
+        .eq('published', true)
         .single();
 
     if (error) {

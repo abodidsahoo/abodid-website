@@ -362,11 +362,13 @@ export const vaultNoteJsonLd = ({
     description,
     url,
     dateModified,
+    datePublished,
 }: {
     title: string;
     description: string;
     url: string;
     dateModified?: string;
+    datePublished?: string;
 }) => ({
     "@context": "https://schema.org",
     "@type": "Article",
@@ -378,6 +380,7 @@ export const vaultNoteJsonLd = ({
         "@id": seoIdentity.personId,
     },
     dateModified: dateModified || undefined,
+    datePublished: datePublished || undefined,
     isPartOf: {
         "@type": "Collection",
         name: "Obsidian Vault",

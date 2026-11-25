@@ -1,32 +1,10 @@
-<div
-  class="route-loading-overlay"
-  data-route-loading-overlay
-  role="status"
-  aria-live="polite"
-  aria-hidden="true"
->
-  <span class="route-loading-status">Opening page</span>
-  <div class="route-loading-fallback-track" aria-hidden="true">
-    <span data-route-loading-fallback-bar></span>
-  </div>
-</div>
+---
+import script from "../../podcast/src/assets/destination-navigation.js?raw";
+import styles from "../../podcast/src/assets/destination-navigation.css?raw";
+import { pages } from "../lib/siteNavigation.js";
 
-<script is:inline>
-  (() => {
-    // Disabled route loading progress bar overlay
-    document.documentElement.removeAttribute("data-route-loading");
-    document.documentElement.removeAttribute("aria-busy");
-  })();
-</script>
-
-<style is:global>
-  .route-loading-overlay,
-  .route-loading-fallback-track,
-  [data-route-loading-fallback-bar] {
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
-</style>
-</style>
+const destinations = Object.fromEntries(Object.values(pages).map(({ href, label }) => [href, label]));
+destinations["/"] = "Abodid Sahoo";
+---
+<style is:inline set:html={styles}></style>
+<script is:inline data-destinations={JSON.stringify(destinations)} data-destination-headings="build" data-catalog={import.meta.env.PROD ? "/destination-headings.json" : undefined} set:html={script}></script>

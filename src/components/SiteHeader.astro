@@ -45,7 +45,7 @@ const contactLabel = "Hire me";
 
     <div class="site-header__actions">
       <a class="site-header__contact" href={contactHref}>
-        {contactLabel} <span class="link-destination-arrow" aria-hidden="true">↗</span>
+        <span class="site-header__contact-label">{contactLabel}</span> <span class="link-destination-arrow" aria-hidden="true">↗</span>
       </a>
 
       <details class="site-header__menu-toggle" id="site-header-menu">
@@ -60,7 +60,7 @@ const contactLabel = "Hire me";
               </a>
             ))}
             <a class="site-header__mobile-contact" href={contactHref}>
-              {contactLabel} <span class="link-destination-arrow" aria-hidden="true">↗</span>
+              <span class="site-header__contact-label">{contactLabel}</span> <span class="link-destination-arrow" aria-hidden="true">↗</span>
             </a>
           </div>
 
@@ -71,6 +71,7 @@ const contactLabel = "Hire me";
                 <a
                   href={item.href}
                   class:list={{ "is-active": item.active }}
+                  aria-current={item.active ? "page" : undefined}
                   target={item.external ? "_blank" : undefined}
                   rel={item.external ? "noopener noreferrer" : undefined}
                 >
@@ -153,7 +154,7 @@ const contactLabel = "Hire me";
     border: 1px solid var(--color-text);
     border-radius: var(--home-next-radius-control);
     background: var(--color-button);
-    color: var(--color-button-text) !important;
+    color: var(--site-header-action-text, var(--color-button-text)) !important;
     font: 750 0.74rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -196,7 +197,7 @@ const contactLabel = "Hire me";
   }
 
   .site-header__links a.is-active {
-    color: var(--ui-button-text) !important;
+    color: var(--site-header-action-text, var(--ui-button-text)) !important;
     background: var(--color-button);
     font-weight: 750;
     box-shadow: 0 2px 0 var(--color-text);
@@ -219,7 +220,7 @@ const contactLabel = "Hire me";
     border: 1px solid var(--color-text);
     border-radius: var(--home-next-radius-control);
     background: var(--ui-button-bg);
-    color: var(--ui-button-text) !important;
+    color: var(--site-header-action-text, var(--ui-button-text)) !important;
     font: 750 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -248,7 +249,7 @@ const contactLabel = "Hire me";
     border: 1px solid var(--color-text);
     border-radius: var(--home-next-radius-control);
     background: var(--color-button);
-    color: var(--color-button-text) !important;
+    color: var(--site-header-action-text, var(--color-button-text)) !important;
     font: 750 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     cursor: pointer;
@@ -258,7 +259,7 @@ const contactLabel = "Hire me";
   }
 
   .site-header__menu-trigger-text {
-    color: var(--ui-button-text) !important;
+    color: var(--site-header-action-text, var(--ui-button-text)) !important;
   }
 
   .site-header__menu-trigger:hover {
@@ -338,7 +339,7 @@ const contactLabel = "Hire me";
   }
 
   .site-header__mobile-sublinks a.is-active {
-    color: var(--ui-button-text) !important;
+    color: var(--site-header-action-text, var(--ui-button-text)) !important;
     background: var(--color-button);
 
     border-color: var(--color-text);
@@ -383,15 +384,167 @@ const contactLabel = "Hire me";
     }
 
     .site-header__mobile-primary a.is-active {
-    color: var(--ui-button-text) !important;
+      color: var(--site-header-action-text, var(--ui-button-text)) !important;
       background: var(--color-button);
     }
 
-    .site-header__mobile-contact {
-      background: var(--ui-button-bg) !important;
-      color: var(--ui-button-text) !important;
-      font-weight: 750 !important;
+    .site-header__mobile-primary a.site-header__mobile-contact {
+      background: var(--ui-button-bg);
+      color: var(--ui-button-text);
+      font-weight: 750;
     }
+  }
+
+  :global(html[data-divider-navigation]) .site-header {
+    --site-header-action-text: var(--color-text);
+    --site-header-gutter: var(--design-page-gutter);
+    padding-block: env(safe-area-inset-top, 0px) 0;
+    padding-inline: max(var(--site-header-gutter), env(safe-area-inset-left, 0px))
+      max(var(--site-header-gutter), env(safe-area-inset-right, 0px));
+    border-block-end: 1px solid var(--ui-border-strong);
+    background: var(--color-background);
+    color: var(--color-text);
+    pointer-events: auto;
+    container: site-header / inline-size;
+  }
+
+  :global(html[data-divider-navigation]) .site-header__card {
+    max-inline-size: var(--max-width);
+    margin-inline: auto;
+    padding: 0.35rem 0;
+    flex-wrap: nowrap;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  :global(html[data-divider-navigation]) .site-header__card :is(
+    .site-header__brand,
+    .site-header__links a,
+    .site-header__contact,
+    .site-header__menu-trigger,
+    .site-header__mobile-primary a,
+    .site-header__mobile-sublinks a
+  ) {
+    min-block-size: 2.75rem;
+    padding-inline: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-text);
+    box-shadow: none;
+    transform: none;
+    text-underline-offset: 0.36em;
+  }
+
+  :global(html[data-divider-navigation]) .site-header__card :is(
+    .site-header__brand,
+    .site-header__links a,
+    .site-header__menu-trigger,
+    .site-header__mobile-primary a,
+    .site-header__mobile-sublinks a
+  ):hover,
+  :global(html[data-divider-navigation]) :is(.site-header__contact, .site-header__mobile-contact):hover .site-header__contact-label,
+  :global(html[data-divider-navigation]) .site-header__card [aria-current="page"],
+  :global(html[data-divider-navigation]) .site-header__menu-toggle[open] > summary {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+
+  :global(html[data-divider-navigation]) .site-header :is(a, summary):focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  :global(html[data-divider-navigation]) .site-header__brand {
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+
+  :global(html[data-divider-navigation]) :is(.site-header__links, .site-header__contact) { display: none; }
+
+  :global(html[data-divider-navigation]) .site-header__actions {
+    gap: clamp(0.75rem, 2vw, 1.8rem);
+  }
+
+  :global(html[data-divider-navigation]) :is(.site-header__contact, .site-header__menu-trigger) {
+    white-space: nowrap;
+  }
+
+  :global(html[data-divider-navigation]) .site-header__menu-toggle { position: static; }
+
+  :global(html[data-divider-navigation]) .site-header__menu-dropdown {
+    inset-block-start: 100%;
+    inset-inline: 0;
+    inline-size: auto;
+    max-block-size: 72vh;
+    max-block-size: 72dvh;
+    overflow: auto;
+    padding: 0.8rem max(var(--site-header-gutter), env(safe-area-inset-right, 0px))
+      1rem max(var(--site-header-gutter), env(safe-area-inset-left, 0px));
+    border: 0;
+    border-block-end: 1px solid var(--ui-border-strong);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  :global(html[data-divider-navigation]) .site-header__mobile-primary {
+    display: flex;
+    gap: 0;
+    border-block-end: 1px solid var(--ui-border);
+  }
+
+  :global(html[data-divider-navigation]) .site-header__mobile-heading {
+    padding-inline-start: 0;
+    color: var(--color-text);
+  }
+
+  :global(html[data-divider-navigation]) .site-header__mobile-sublinks { gap: 0 clamp(0.8rem, 3vw, 1.5rem); }
+
+  :global(html[data-divider-navigation]) .site-header__menu-palette {
+    padding-block-start: 0.75rem;
+    border-block-start: 1px solid var(--ui-border);
+  }
+
+  :global(html[data-divider-navigation]) .site-header__mobile-pwa {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  @container site-header (min-width: 44rem) {
+    :global(html[data-divider-navigation]) .site-header__card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    }
+
+    :global(html[data-divider-navigation]) .site-header__brand { justify-self: start; }
+
+    :global(html[data-divider-navigation]) .site-header__links {
+      display: flex;
+      gap: clamp(0.8rem, 2.1vw, 2rem);
+    }
+
+    :global(html[data-divider-navigation]) .site-header__actions { justify-self: end; }
+    :global(html[data-divider-navigation]) .site-header__contact { display: inline-flex; }
+    :global(html[data-divider-navigation]) .site-header__mobile-primary { display: none; }
+
+    :global(html[data-divider-navigation]) .site-header__menu-dropdown {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+      column-gap: clamp(1rem, 5vw, 5rem);
+      padding-inline: max(var(--site-header-gutter), calc((100% - var(--max-width)) / 2), env(safe-area-inset-left, 0px))
+        max(var(--site-header-gutter), calc((100% - var(--max-width)) / 2), env(safe-area-inset-right, 0px));
+    }
+
+    :global(html[data-divider-navigation]) .site-header__menu-palette {
+      padding-block-start: 0;
+      border-block-start: 0;
+    }
+
+    :global(html[data-divider-navigation]) .site-header__mobile-pwa { grid-column: 1 / -1; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -407,34 +560,21 @@ const contactLabel = "Hire me";
 
 <script is:inline>
   (function initHeaderMenuBehavior() {
-    function setupMenu() {
-      const menu = document.getElementById("site-header-menu");
+    if (window.__siteHeaderMenuBound) return;
+    window.__siteHeaderMenuBound = true;
+
+    document.addEventListener("click", (event) => {
+      const menu = document.querySelector("#site-header-menu[open]");
+      if (menu && !menu.contains(event.target)) menu.removeAttribute("open");
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      const menu = document.querySelector("#site-header-menu[open]");
       if (!menu) return;
-
-      function onDocClick(e) {
-        if (menu.hasAttribute("open") && !menu.contains(e.target)) {
-          menu.removeAttribute("open");
-        }
-      }
-
-      function onKeyDown(e) {
-        if (e.key === "Escape" && menu.hasAttribute("open")) {
-          menu.removeAttribute("open");
-        }
-      }
-
-      document.removeEventListener("click", onDocClick);
-      document.addEventListener("click", onDocClick);
-
-      document.removeEventListener("keydown", onKeyDown);
-      document.addEventListener("keydown", onKeyDown);
-    }
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", setupMenu);
-    } else {
-      setupMenu();
-    }
-    document.addEventListener("astro:page-load", setupMenu);
+      const restoreFocus = menu.contains(document.activeElement);
+      menu.removeAttribute("open");
+      if (restoreFocus) menu.querySelector("summary")?.focus();
+    });
   })();
 </script>

@@ -260,7 +260,7 @@ export default function ReadingFeed({ initialFeed, initialTag = '', initialError
         </ul>}
         {!hasToday && <div className="blog-empty reading-empty"><h3>{activeTag ? 'Nothing in this topic today.' : 'Today’s five are on their way.'}</h3><p>Browse earlier selections below.</p></div>}
 
-        <div className="blog-results-heading reading-section-heading reading-archive-heading"><div><p className="blog-eyebrow">The reading file</p><h2>Earlier readings</h2></div></div>
+        <div className="blog-results-heading reading-section-heading reading-archive-heading" id="reading-archive"><div><p className="blog-eyebrow">The reading file</p><h2>Earlier readings</h2></div></div>
         {feed.archive.map((day) => <section className="reading-archive-day" key={day.date} aria-labelledby={`reading-day-${day.date}`}>
             <div className="reading-day-heading"><h3 id={`reading-day-${day.date}`}><time dateTime={day.date}>{labelDate(day.date)}</time></h3><span>{day.readings.length} readings</span></div>
             <ul className="blog-list-grid">{day.readings.map((reading, index) => <li key={reading.id}><ReadingCard reading={reading} index={index} /></li>)}</ul>

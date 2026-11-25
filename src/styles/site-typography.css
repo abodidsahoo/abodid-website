@@ -1,0 +1,10 @@
+/* Keep stored rich text and separately styled layouts upright as well. */
+@layer site-typography {
+  :where(body, body *, body *::before, body *::after, body *::placeholder) {
+    font-style: normal !important;
+  }
+}
+
+:where(em, i, cite, dfn, var) {
+  font-weight: 650;
+}

@@ -1,0 +1,30 @@
+---
+import NavigationPreview from "./NavigationPreview.jsx";
+import InstallAction from "../navigation/InstallAction.astro";
+import MultilingualPalette from "../MultilingualPalette.astro";
+import { headers, menus } from "./navigation.js";
+import "../../styles/header-preview.css";
+
+const query = Astro.url.searchParams;
+const initial = {
+  header: headers.find((item) => item.id === query.get("header"))?.id || headers[0].id,
+  menu: menus.find((item) => item.id === query.get("menu"))?.id || menus[0].id,
+  open: query.get("open") === "1",
+};
+---
+
+<NavigationPreview client:load initial={initial} path={Astro.url.pathname}
+  footerConcept={query.get("concept")} initialSection={query.get("section")} initialQuery={query.get("q") || ""}>
+  <MultilingualPalette variant="compact" /><InstallAction />
+</NavigationPreview>
+
+<noscript>
+  <style is:inline>
+    /* Without showModal(), present the directory as an ordinary part of the page's tab order. */
+    .nav-study:has(.nh-overlay[open]) > :is(.nh-bar, .nh-chooser) { display: none; }
+    .nav-study .nh-overlay[open] { position: static; height: auto; max-height: none; overflow: visible; background: var(--color-background); }
+    .nav-study .nh-overlay[open] .nh-panel { min-height: 0; max-height: none; }
+    .nav-study .nh-overlay[open] .nh-panel__scroll { overflow: visible; }
+    .nav-study .nh-settings { display: none; }
+  </style>
+</noscript>

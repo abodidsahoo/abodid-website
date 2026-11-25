@@ -1,0 +1,53 @@
+{
+  "action": "rules.insert",
+  "value": {
+    "name": "Public RSS and search discovery",
+    "description": "Allow public read-only RSS, sitemap and robots requests from feed readers and search crawlers.",
+    "active": true,
+    "conditionGroup": [
+      {
+        "conditions": [
+          {
+            "type": "host",
+            "op": "re",
+            "value": "^(?:www\\.)?abodid\\.com$"
+          },
+          {
+            "type": "method",
+            "op": "eq",
+            "value": "GET"
+          },
+          {
+            "type": "path",
+            "op": "re",
+            "value": "^(?:/rss\\.xml|/feeds/blog\\.xml|/feeds/obsidian\\.xml|/feeds/notes\\.xml|/feeds/research\\.xml|/feeds/lab\\.xml|/feeds/opportunities\\.xml|/feeds/resources\\.xml|/feeds/moodboard\\.xml|/feeds/reading\\.xml|/feeds/press\\.xml|/feeds/community\\.xml|/feeds/work\\.xml|/feeds/manual\\.xml|/robots\\.txt|/sitemap-index\\.xml|/content-sitemap\\.xml|/vault-sitemap\\.xml|/work-sitemap\\.xml|/sitemap-[0-9]+\\.xml)$"
+          }
+        ]
+      },
+      {
+        "conditions": [
+          {
+            "type": "host",
+            "op": "re",
+            "value": "^(?:www\\.)?abodid\\.com$"
+          },
+          {
+            "type": "method",
+            "op": "eq",
+            "value": "HEAD"
+          },
+          {
+            "type": "path",
+            "op": "re",
+            "value": "^(?:/rss\\.xml|/feeds/blog\\.xml|/feeds/obsidian\\.xml|/feeds/notes\\.xml|/feeds/research\\.xml|/feeds/lab\\.xml|/feeds/opportunities\\.xml|/feeds/resources\\.xml|/feeds/moodboard\\.xml|/feeds/reading\\.xml|/feeds/press\\.xml|/feeds/community\\.xml|/feeds/work\\.xml|/feeds/manual\\.xml|/robots\\.txt|/sitemap-index\\.xml|/content-sitemap\\.xml|/vault-sitemap\\.xml|/work-sitemap\\.xml|/sitemap-[0-9]+\\.xml)$"
+          }
+        ]
+      }
+    ],
+    "action": {
+      "mitigate": {
+        "action": "bypass"
+      }
+    }
+  }
+}

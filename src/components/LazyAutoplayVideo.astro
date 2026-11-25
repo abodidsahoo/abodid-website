@@ -4,6 +4,7 @@ interface Props {
   label: string;
   width?: number;
   height?: number;
+  allowSmudge?: boolean;
 }
 
 const {
@@ -11,6 +12,7 @@ const {
   label,
   width = 1600,
   height = 900,
+  allowSmudge = false,
 } = Astro.props;
 // Native lazy loading for media is newer than Astro's current HTML typings.
 // The IntersectionObserver below remains the cross-browser bandwidth fallback.
@@ -21,6 +23,7 @@ const lazyMediaAttributes = { loading: "lazy" } as any;
   {...lazyMediaAttributes}
   data-lazy-autoplay-video
   data-src={src}
+  data-smudge-video={allowSmudge ? "" : undefined}
   preload="none"
   muted
   loop
@@ -44,13 +47,37 @@ const lazyMediaAttributes = { loading: "lazy" } as any;
 </noscript>
 
 <script>
+  import { canUseSmudgeMedia, smudgeMediaUrl, smudgeMotionQuery } from "../lib/landing-smudge/media";
+
   let lazyVideoObserver: IntersectionObserver | null = null;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   const loadVideo = (video: HTMLVideoElement) => {
+    const play = () => {
+      if (!reducedMotion.matches) void video.play().catch(() => {});
+    };
+
     if (!video.src && video.dataset.src) {
-      video.src = video.dataset.src;
+      const source = video.dataset.src;
       delete video.dataset.src;
+      if (video.hasAttribute("data-smudge-video") && matchMedia(smudgeMotionQuery).matches &&
+          canUseSmudgeMedia(source)) {
+        const textureUrl = smudgeMediaUrl(source);
+        if (new URL(textureUrl, location.href).origin !== location.origin) {
+          video.crossOrigin = "anonymous";
+        }
+        if (video.crossOrigin || textureUrl !== source) {
+          video.addEventListener("error", () => {
+            video.removeAttribute("crossorigin");
+            video.src = source;
+            video.addEventListener("canplay", play, { once: true });
+            video.load();
+          }, { once: true });
+        }
+        video.src = textureUrl;
+      } else {
+        video.src = source;
+      }
       video.preload = "metadata";
       video.load();
     }
@@ -60,7 +87,6 @@ const lazyMediaAttributes = { loading: "lazy" } as any;
       return;
     }
 
-    const play = () => video.play().catch(() => {});
     if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
       play();
     } else {

@@ -1,0 +1,243 @@
+[
+  {
+    "slug": "photogrammetry-physical-evidence",
+    "blocks": [
+      {
+        "id": "photogrammetry-physical-evidence-01",
+        "content": {
+          "text": "An early experiment in reconstructing physical spaces from captured image and video data."
+        },
+        "settings": {
+          "width": "wide",
+          "spacing": "spacious"
+        },
+        "blockType": "body_text"
+      },
+      {
+        "id": "photogrammetry-physical-evidence-02",
+        "content": {
+          "text": "A technical origin point",
+          "level": 2
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "heading"
+      },
+      {
+        "id": "photogrammetry-physical-evidence-03",
+        "content": {
+          "text": "The study used aerial image acquisition and photogrammetric processing to turn overlapping visual data into measurable spatial outputs. The original workflow mapped image acquisition through preprocessing, image orientation, feature extraction and matching, DSM extraction, multi-image matching, filtering and solid true orthophoto production. A DJI Phantom 4 formed part of the acquisition setup. Years later, the method resurfaced at the Cambridge Cultural Heritage Data School: an earlier Agisoft PhotoScan workflow gave way to Polycam on an iPhone, connecting the technical language of engineering with later cultural-heritage and visual-research practice."
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "body_text"
+      },
+      {
+        "id": "photogrammetry-physical-evidence-04",
+        "content": {
+          "text": "Context",
+          "level": 2
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "heading"
+      },
+      {
+        "id": "photogrammetry-physical-evidence-05",
+        "content": {
+          "text": "A technical research poster and workflow study, presented as an origin point for the spatial and computational strand of the research practice."
+        },
+        "settings": {
+          "width": "wide",
+          "spacing": "spacious"
+        },
+        "blockType": "highlight"
+      },
+      {
+        "id": "photogrammetry-physical-evidence-06",
+        "content": {
+          "media": {
+            "alt": "Photogrammetry research poster showing drone acquisition and orthophoto workflow",
+            "url": "/images/research-portfolio/photogrammetry-poster.jpg",
+            "caption": "Original workflow poster: image acquisition to orthophoto production.",
+            "sourceType": "uploaded",
+            "objectPosition": "50% 50%"
+          }
+        },
+        "settings": {
+          "width": "wide",
+          "spacing": "default"
+        },
+        "blockType": "single_image"
+      },
+      {
+        "id": "photogrammetry-physical-evidence-07",
+        "content": {
+          "text": "[Then / now: Cultural Heritage Data School, Cambridge](/research/cambridge-cultural-heritage-data-school)"
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "body_text"
+      }
+    ],
+    "content": "An early experiment in reconstructing physical spaces from captured image and video data.\n\n## A technical origin point\n\nThe study used aerial image acquisition and photogrammetric processing to turn overlapping visual data into measurable spatial outputs. The original workflow mapped image acquisition through preprocessing, image orientation, feature extraction and matching, DSM extraction, multi-image matching, filtering and solid true orthophoto production. A DJI Phantom 4 formed part of the acquisition setup. Years later, the method resurfaced at the Cambridge Cultural Heritage Data School: an earlier Agisoft PhotoScan workflow gave way to Polycam on an iPhone, connecting the technical language of engineering with later cultural-heritage and visual-research practice.\n\n## Context\n\n> A technical research poster and workflow study, presented as an origin point for the spatial and computational strand of the research practice.\n\n![Photogrammetry research poster showing drone acquisition and orthophoto workflow](/images/research-portfolio/photogrammetry-poster.jpg)\n\n[Then / now: Cultural Heritage Data School, Cambridge](/research/cambridge-cultural-heritage-data-school)",
+    "updated_at": "2026-10-03 18:04:26.338846+00"
+  },
+  {
+    "slug": "cries-of-an-unmarried-widow",
+    "blocks": [
+      {
+        "id": "cries-of-an-unmarried-widow-01",
+        "content": {
+          "text": "What happens when a woman loses a partner without the social legitimacy of marriage - when her grief remains unrecognised, but her desire is still judged?"
+        },
+        "settings": {
+          "width": "wide",
+          "spacing": "spacious"
+        },
+        "blockType": "body_text"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-02",
+        "content": {
+          "text": "Grief outside recognised structures",
+          "level": 2
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "heading"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-03",
+        "content": {
+          "text": "This conceptual photography and writing project is grounded in the experience of loving after loss, where the presence of a past lover continues to intrude upon moments of intimacy. Pleasure and guilt are not opposites here but coexisting states. At its core, the work reflects on the cultural construction of grief in South Asian contexts, where womanhood is often defined through relational identities such as marriage and widowhood. A married widow is socially named and visibly positioned through the loss of a husband; an unmarried woman who loses a partner may have no equivalent public identity for her grief. The work stays with that contradiction: memory can remain bodily and intimate even when society offers no language, ritual or status through which to hold it."
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "body_text"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-04",
+        "content": {
+          "text": "Year",
+          "level": 2
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "heading"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-05",
+        "content": {
+          "text": "A conceptual photographic body of work accompanied by long-form writing, presented here as a text-image research project rather than a conventional photography gallery."
+        },
+        "settings": {
+          "width": "wide",
+          "spacing": "spacious"
+        },
+        "blockType": "highlight"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-06",
+        "content": {
+          "media": {
+            "alt": "Cries of an Unmarried Widow book beside flowers and a cup",
+            "url": "/images/research-portfolio/cries-cover.jpg",
+            "caption": "The project book and primary research cover.",
+            "sourceType": "uploaded",
+            "objectPosition": "50% 50%"
+          }
+        },
+        "settings": {
+          "width": "wide",
+          "spacing": "default"
+        },
+        "blockType": "single_image"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-07",
+        "content": {
+          "media": {
+            "alt": "Conceptual photograph from Cries of an Unmarried Widow",
+            "url": "https://assets.abodid.com/photos/variants/cries-of-an-unmarried-widow/1600/_N5A1669-dd03e060a3.webp",
+            "caption": "Desire, guilt and memory coexist inside the photographic series.",
+            "sourceType": "external",
+            "objectPosition": "50% 50%"
+          }
+        },
+        "settings": {
+          "width": "wide",
+          "spacing": "default"
+        },
+        "blockType": "single_image"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-08",
+        "content": {
+          "media": {
+            "alt": "Photographic study of intimacy and touch",
+            "url": "https://assets.abodid.com/photos/variants/cries-of-an-unmarried-widow/1600/_N5A1635-543d6bc52d.webp",
+            "caption": "Tactile performance and intimate image-making as research method.",
+            "sourceType": "external",
+            "objectPosition": "50% 50%"
+          }
+        },
+        "settings": {
+          "width": "wide",
+          "spacing": "default"
+        },
+        "blockType": "single_image"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-09",
+        "content": {
+          "text": "[View the complete photographic series](/photography/cries-of-an-unmarried-widow)"
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "body_text"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-10",
+        "content": {
+          "text": "Cries of an Unmarried Widow",
+          "level": 2
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "heading"
+      },
+      {
+        "id": "cries-of-an-unmarried-widow-11",
+        "content": {
+          "text": "**Work in Progress**\n\nAn intimate reading excerpt from my upcoming memoir tracing love, rejection, grief, and healing.\n\n[Read the Prelude](/blog/cries-of-an-unmarried-widow-book-excerpt)"
+        },
+        "settings": {
+          "width": "standard",
+          "spacing": "default"
+        },
+        "blockType": "body_text"
+      }
+    ],
+    "content": "What happens when a woman loses a partner without the social legitimacy of marriage - when her grief remains unrecognised, but her desire is still judged?\n\n## Grief outside recognised structures\n\nThis conceptual photography and writing project is grounded in the experience of loving after loss, where the presence of a past lover continues to intrude upon moments of intimacy. Pleasure and guilt are not opposites here but coexisting states. At its core, the work reflects on the cultural construction of grief in South Asian contexts, where womanhood is often defined through relational identities such as marriage and widowhood. A married widow is socially named and visibly positioned through the loss of a husband; an unmarried woman who loses a partner may have no equivalent public identity for her grief. The work stays with that contradiction: memory can remain bodily and intimate even when society offers no language, ritual or status through which to hold it.\n\n## Year\n\n> A conceptual photographic body of work accompanied by long-form writing, presented here as a text-image research project rather than a conventional photography gallery.\n\n![Cries of an Unmarried Widow book beside flowers and a cup](/images/research-portfolio/cries-cover.jpg)\n\n![Conceptual photograph from Cries of an Unmarried Widow](https://assets.abodid.com/photos/variants/cries-of-an-unmarried-widow/1600/_N5A1669-dd03e060a3.webp)\n\n![Photographic study of intimacy and touch](https://assets.abodid.com/photos/variants/cries-of-an-unmarried-widow/1600/_N5A1635-543d6bc52d.webp)\n\n[View the complete photographic series](/photography/cries-of-an-unmarried-widow)\n\n## Cries of an Unmarried Widow\n\n**Work in Progress**\n\nAn intimate reading excerpt from my upcoming memoir tracing love, rejection, grief, and healing.\n\n[Read the Prelude](/blog/cries-of-an-unmarried-widow-book-excerpt)",
+    "updated_at": "2026-10-03 18:04:26.131452+00"
+  }
+]

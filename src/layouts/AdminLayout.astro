@@ -5,6 +5,7 @@ import '../styles/admin-design-tokens.css';
 const { title, fullWidth = false } = Astro.props;
 const pagePath = Astro.url.pathname;
 import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
+import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
 ---
 
 <html lang="en" class="admin-document">
@@ -47,6 +48,7 @@ import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
         document.documentElement.style.colorScheme = nextTheme;
       })();
     </script>
+    <RouteLoadingOverlay />
   </head>
   <body data-page-path={pagePath}>
     <div class="admin-wrapper">

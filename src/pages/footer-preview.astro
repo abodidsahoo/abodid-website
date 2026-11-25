@@ -1,0 +1,10 @@
+---
+import Home from "./index.astro";
+import FooterPreview from "../components/footer-preview/FooterPreview.astro";
+import HeaderPreview from "../components/header-preview/HeaderPreview.astro";
+
+// Render the requested concept on first paint, including when JavaScript is off.
+export const prerender = false;
+---
+
+<Home previewHeader={HeaderPreview} previewFooter={FooterPreview} />

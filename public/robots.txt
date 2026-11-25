@@ -23,7 +23,6 @@ Allow: /
 Allow: /api/og
 Disallow: /admin/
 Disallow: /api/
-Disallow: /obsidian-vault/
 Disallow: /resources/admin/
 Disallow: /research/admin/
 

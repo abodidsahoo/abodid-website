@@ -1,4 +1,7 @@
 ---
+import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
+import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
+
 /**
  * Website Feedback — Clean Airtable-style Design
  * Matte black background with white boxes and proper spacing
@@ -364,6 +367,7 @@ const aswinFeedback = feedback.filter((f) => f.source === "Aswin");
 <!doctype html>
 <html lang="en">
     <head>
+        <DesignTokenRuntime cornersOnly />
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Website Feedback — Abodid</title>
@@ -584,6 +588,7 @@ const aswinFeedback = feedback.filter((f) => f.source === "Aswin");
                 }
             }
         </style>
+        <RouteLoadingOverlay />
     </head>
 
     <body>

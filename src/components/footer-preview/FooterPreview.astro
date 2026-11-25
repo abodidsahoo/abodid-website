@@ -1,0 +1,93 @@
+---
+import ReadingRoom from "./ReadingRoom.astro";
+import SubjectIndex from "./SubjectIndex.astro";
+import Postcard from "../DigestPostcard.astro";
+import FooterColophon from "../FooterColophon.astro";
+import "../../styles/footer-preview.css";
+
+const concepts = [
+  { id: "reading-room", name: "Reading Room", Body: ReadingRoom },
+  { id: "subject-index", name: "Subject Index", Body: SubjectIndex },
+  { id: "postcard", name: "Postcard", Body: Postcard },
+];
+const requested = Astro.url.searchParams.get("concept");
+const current = Math.max(0, concepts.findIndex(({ id }) => id === requested));
+const previous = concepts.at(current - 1)!;
+const next = concepts[(current + 1) % concepts.length];
+---
+
+<footer-preview class="footer-preview editorial-footer">
+  <div class="footer-controls" id="footer-options" data-pop-surface="white">
+    <div class="footer-measure footer-controls__inner">
+      <span class="footer-controls__label">Footer preview</span>
+      <p class="footer-controls__status" role="status" aria-atomic="true">
+        <span data-position>{current + 1} of {concepts.length}</span>
+        <strong data-current-name>{concepts[current].name}</strong>
+      </p>
+      <form method="get" action={`${Astro.url.pathname}#footer-options`} aria-label="Choose footer design" data-astro-reload>
+        {["header", "menu"].map((key) => Astro.url.searchParams.has(key) && (
+          <input type="hidden" name={key} value={Astro.url.searchParams.get(key)} />
+        ))}
+        <button type="submit" name="concept" value={previous.id} aria-label="Previous footer design" aria-controls="preview-site-footer">
+          <span aria-hidden="true">←</span>
+        </button>
+        <button type="submit" name="concept" value={next.id} aria-label="Next footer design" aria-controls="preview-site-footer">
+          <span aria-hidden="true">→</span>
+        </button>
+      </form>
+    </div>
+  </div>
+  <footer id="preview-site-footer" aria-label="Site footer">
+    <div class="footer-samples">
+      {concepts.map(({ id, name, Body }, index) => (
+        <div hidden={index !== current} inert={index !== current} data-concept={id} data-name={name}>
+          <Body />
+        </div>
+      ))}
+    </div>
+    <FooterColophon />
+  </footer>
+</footer-preview>
+
+<script>
+  class FooterPreview extends HTMLElement {
+    connectedCallback() {
+      const form = this.querySelector("form")!;
+      const [previous, next] = form.querySelectorAll("button");
+      const position = this.querySelector("[data-position]")!;
+      const name = this.querySelector("[data-current-name]")!;
+      const panels = Array.from(this.querySelectorAll<HTMLElement>("[data-concept]"));
+
+      form.onsubmit = (event) => {
+        const button = event.submitter;
+        if (!(button instanceof HTMLButtonElement)) return;
+        const index = panels.findIndex((panel) => panel.dataset.concept === button.value);
+        if (index < 0) return;
+
+        event.preventDefault();
+        const url = new URL(window.location.href);
+        url.searchParams.set("concept", button.value);
+        url.hash = "footer-options";
+        history.replaceState(history.state, "", url);
+
+        panels.forEach((panel, i) => {
+          panel.hidden = i !== index;
+          panel.inert = i !== index;
+        });
+        position.textContent = `${index + 1} of ${panels.length}`;
+        name.textContent = panels[index].dataset.name!;
+        previous.value = panels.at(index - 1)!.dataset.concept!;
+        next.value = panels[(index + 1) % panels.length].dataset.concept!;
+      };
+
+      form.onkeydown = (event) => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+        event.preventDefault();
+        form.requestSubmit(event.key === "ArrowRight" ? next : previous);
+      };
+    }
+  }
+
+  if (!customElements.get("footer-preview")) customElements.define("footer-preview", FooterPreview);
+</script>

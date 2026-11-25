@@ -4,8 +4,9 @@ interface Props {
     nameRequired?: boolean;
     buttonLabel?: string;
     source?: string;
-    variant?: "compact" | "editorial";
+    variant?: "compact" | "editorial" | "postcard";
     labelledBy?: string;
+    idPrefix?: string;
 }
 
 const {
@@ -15,24 +16,29 @@ const {
     source = "footer-newsletter",
     variant = "compact",
     labelledBy,
+    idPrefix = "newsletter",
 } = Astro.props;
 const editorial = variant === "editorial";
+const postcard = variant === "postcard";
 ---
 
-<div
+<newsletter-signup
     class:list={["newsletter-form-wrapper", `newsletter-form-wrapper--${variant}`]}
     data-newsletter-inline-form
 >
     <form
         class="newsletter-form"
-        id="newsletter-form"
-        data-source={source}
+        id={`${idPrefix}-form`}
+        method="post"
+        action="/api/subscribe"
+        data-astro-reload
         aria-labelledby={labelledBy}
     >
+        <input type="hidden" name="source" value={source} />
         <div class="newsletter-honeypot" aria-hidden="true">
-            <label for="newsletter-company">Company</label>
+            <label for={`${idPrefix}-company`}>Company</label>
             <input
-                id="newsletter-company"
+                id={`${idPrefix}-company`}
                 type="text"
                 name="company"
                 tabindex="-1"
@@ -42,10 +48,10 @@ const editorial = variant === "editorial";
         {
             showName && (
                 <div class="newsletter-field">
-                    {editorial && <label for="newsletter-name">Your name</label>}
+                    {editorial && <label for={`${idPrefix}-name`}>Your name</label>}
                     <input
                         class="t-body"
-                        id="newsletter-name"
+                        id={`${idPrefix}-name`}
                         type="text"
                         name="name"
                         placeholder={editorial ? undefined : "Your name"}
@@ -57,22 +63,21 @@ const editorial = variant === "editorial";
             )
         }
         <div class:list={["newsletter-field", { "newsletter-field--full": !showName }]}>
-            {editorial && <label for="newsletter-email">Your email address</label>}
+            <label for={`${idPrefix}-email`} class:list={{ "sr-only": !editorial && !postcard }}>Email address</label>
             <input
                 class="t-body"
-                id="newsletter-email"
+                id={`${idPrefix}-email`}
                 type="email"
                 name="email"
-                placeholder={editorial ? undefined : "Your email address"}
-                aria-label={editorial ? undefined : "Email address"}
+                placeholder={editorial ? undefined : postcard ? "you@example.com" : "Your email address"}
                 autocomplete="email"
                 required
             />
         </div>
-        <button type="submit" aria-label="Subscribe">
+        <button type="submit" aria-label={buttonLabel || "Subscribe"} disabled>
             {
                 buttonLabel ? (
-                    <span>{buttonLabel}</span>
+                    <><span>{buttonLabel}</span>{postcard && <span aria-hidden="true">→</span>}</>
                 ) : (
                     <svg
                         class="arrow-icon"
@@ -93,13 +98,11 @@ const editorial = variant === "editorial";
             }
         </button>
     </form>
-    <p class="message t-label" id="newsletter-message" role="status"></p>
-</div>
+    <p class="message t-label" id={`${idPrefix}-message`} role="status"></p>
+    <noscript>Enable JavaScript to subscribe.</noscript>
+</newsletter-signup>
 
 <script>
-    const form = document.getElementById("newsletter-form");
-    const messageEl = document.getElementById("newsletter-message");
-    const formRenderedAt = Date.now();
     const trackGaEvent = (eventName, params = {}) => {
         try {
             if (typeof window.gtag === "function") {
@@ -125,83 +128,134 @@ const editorial = variant === "editorial";
         return { sessionId: "" };
     };
 
-    if (form) {
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form as HTMLFormElement);
-            formData.append(
-                "source",
-                (form as HTMLFormElement).dataset.source || "footer-newsletter",
-            );
-            formData.append("jsEnabled", "1");
-            formData.append("formStartedAt", String(formRenderedAt));
+    class NewsletterSignup extends HTMLElement {
+        connectedCallback() {
+            const form = this.querySelector("form");
+            const button = form?.querySelector("button");
+            const message = this.querySelector<HTMLElement>('[role="status"]');
+            if (!form || !button || !message) return;
 
-            if (
-                window.__abodidAnalytics &&
-                typeof window.__abodidAnalytics.prepareSubmission === "function"
-            ) {
-                await window.__abodidAnalytics.prepareSubmission();
-            }
-            const tracking = getJourneyTracking();
-            if (tracking) {
-                formData.append("tracking", JSON.stringify(tracking));
-            }
+            const formRenderedAt = Date.now();
+            button.disabled = false;
+            form.onsubmit = async event => {
+                event.preventDefault();
+                if (button.disabled) return;
+                button.disabled = true;
+                button.classList.add("loading");
+                message.classList.remove("success", "error");
+                message.textContent = "Subscribing…";
 
-            // Visual feedback
-            const btn = form.querySelector("button");
-            if (!btn) return;
+                const formData = new FormData(form);
+                formData.set("jsEnabled", "1");
+                formData.set("formStartedAt", String(formRenderedAt));
 
-            const originalContent = btn.innerHTML;
+                try {
+                    await window.__abodidAnalytics?.prepareSubmission?.();
+                    formData.set("tracking", JSON.stringify(getJourneyTracking()));
+                    const response = await fetch(form.action, { method: "POST", body: formData });
+                    const data = await response.json();
+                    message.textContent = data.message;
+                    message.classList.add(response.ok ? "success" : "error");
 
-            // Just show a simple dot or something minimal while loading, or keep arrow but stop animation
-            btn.classList.add("loading");
-
-            try {
-                const response = await fetch("/api/subscribe", {
-                    method: "POST",
-                    body: formData,
-                });
-                const data = await response.json();
-
-                if (messageEl) {
-                    messageEl.textContent = data.message;
-                    messageEl.classList.add(response.ok ? "success" : "error");
+                    if (response.ok) {
+                        form.reset();
+                        trackGaEvent("sign_up", {
+                            method: "newsletter",
+                            source_page: window.location.pathname,
+                            destination_page: window.location.pathname,
+                        });
+                    }
+                } catch {
+                    message.textContent = "Something went wrong. Please try again.";
+                    message.classList.add("error");
+                } finally {
+                    button.disabled = false;
+                    button.classList.remove("loading");
                 }
-
-                if (response.ok) {
-                    (form as HTMLFormElement).reset();
-                    trackGaEvent("sign_up", {
-                        method: "newsletter",
-                        source_page: window.location.pathname,
-                        destination_page: window.location.pathname,
-                    });
-                }
-            } catch (error) {
-                if (messageEl) {
-                    messageEl.textContent =
-                        "Something went wrong. Please try again.";
-                    messageEl.classList.add("error");
-                }
-            } finally {
-                btn.classList.remove("loading");
-
-                // Clear message after 5 seconds
-                if (messageEl) {
-                    setTimeout(() => {
-                        messageEl.textContent = "";
-                        messageEl.className = "message";
-                    }, 5000);
-                }
-            }
-        });
+            };
+        }
     }
+    if (!customElements.get("newsletter-signup")) customElements.define("newsletter-signup", NewsletterSignup);
 </script>
 
 <style>
     .newsletter-form-wrapper {
+        display: block;
         margin-top: 0.5rem;
         width: 100%;
         max-width: 350px;
+    }
+
+    .newsletter-form-wrapper--postcard {
+        --postcard-action-bg: var(--site-palette-ink, var(--ui-button-bg));
+        --postcard-action-fg: var(--site-palette-paper, var(--ui-button-text));
+        width: 100%;
+        max-width: 28rem;
+        margin-block: 0;
+    }
+
+    .newsletter-form-wrapper--postcard .newsletter-form {
+        display: grid;
+        justify-items: stretch;
+        width: 100%;
+        gap: .75rem;
+        border: 0;
+        border-radius: 0;
+        overflow: visible;
+        background: transparent;
+    }
+
+    .newsletter-form-wrapper--postcard .newsletter-field {
+        width: 100%;
+    }
+
+    .newsletter-form-wrapper--postcard label {
+        display: block;
+        margin-block-end: .4rem;
+        font: 700 .86rem/1.3 var(--font-ui);
+    }
+
+    .newsletter-form-wrapper--postcard input[type="email"] {
+        width: 100%;
+        min-height: 48px;
+        padding: .75rem 1rem;
+        border: 1px solid var(--ui-border-strong);
+        border-radius: var(--design-radius-control, 4px);
+        background: var(--ui-field-bg);
+        color: var(--ui-field-text);
+        font: 500 1rem/1.25 var(--font-body);
+    }
+
+    .newsletter-form-wrapper--postcard button {
+        width: 100%;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .65rem;
+        padding: .75rem 1.25rem;
+        border: 1px solid transparent;
+        border-radius: var(--design-radius-control, 4px);
+        background: var(--site-palette-ink, var(--ui-button-bg));
+        color: var(--site-palette-paper, var(--ui-button-text));
+        font: 700 .95rem/1.25 var(--font-ui);
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.15s ease;
+    }
+
+    .newsletter-form-wrapper--postcard button:hover:enabled {
+        opacity: 1;
+        background: color-mix(in srgb, var(--postcard-action-bg) 92%, var(--postcard-action-fg));
+    }
+
+    .newsletter-form-wrapper--postcard button:active:enabled {
+        background: color-mix(in srgb, var(--postcard-action-bg) 86%, var(--postcard-action-fg));
+    }
+
+    .newsletter-form-wrapper--postcard :is(input[type="email"], button):focus-visible {
+        outline: 2px solid var(--ui-border-strong);
+        outline-offset: 2px;
     }
 
     .newsletter-form {

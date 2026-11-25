@@ -3,6 +3,7 @@ export const prerender = false;
 
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { supabase } from "../../../lib/supabaseClient";
+import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
 import type { HubResource } from "../../../lib/resources/types";
 import ResourceDetailView from "../../../components/resources/ResourceDetailView";
 import { curationPath, curationUrl } from "../../../lib/curationRoutes.js";
@@ -15,11 +16,11 @@ const { id } = Astro.params;
 let resource: HubResource | null = null;
 
 if (id) {
-    const { data } = await supabase
+    const { data } = await (createSupabaseServiceClient() || supabase)
         .from("hub_resources")
         .select(
             `
-        *,
+        id,title,description,url,status,audience,thumbnail_url,credit_text,created_at,updated_at,upvotes_count,submitted_by,
         submitter_profile:submitted_by (username, full_name, avatar_url),
         tags:hub_resource_tags (
             tag_id,
@@ -28,6 +29,7 @@ if (id) {
         `,
         )
         .eq("id", id)
+        .eq("status", "approved")
         .single();
 
     if (data) {
@@ -36,6 +38,11 @@ if (id) {
             tags: data.tags?.map((t: any) => t.tag) || [],
         };
     }
+}
+
+if (!resource) {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
 }
 
 const title = resource ? `${resource.title} | Curation by Abodid` : "Curation by Abodid";

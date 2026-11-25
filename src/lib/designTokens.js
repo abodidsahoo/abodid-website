@@ -12,6 +12,18 @@ export const LEGACY_COLOR_TOKENS = {
   "--pop-ink": "--color-text"
 };
 
+// A two-colour theme supplies every editable colour role from this pair.
+export const SITE_THEME_SURFACES = [
+  "--color-primary", "--color-secondary", "--color-button", "--color-accent",
+  "--color-additional-1", "--color-additional-2", "--color-additional-3",
+  "--color-background", "--color-surface",
+  "--light-page-bg", "--light-surface-bg", "--dark-page-bg", "--dark-surface-bg",
+];
+export const SITE_THEME_FOREGROUNDS = [
+  "--color-text", "--color-primary-text", "--color-button-text",
+  "--color-success", "--color-error", "--light-text-primary", "--dark-text-primary",
+];
+
 export const DESIGN_TOKEN_GROUPS = [
   {
     id: "colour",
@@ -174,6 +186,7 @@ export const DESIGN_TOKEN_FIELDS = DESIGN_TOKEN_GROUPS.flatMap((group) =>
 );
 
 export const DESIGN_TOKEN_NAMES = DESIGN_TOKEN_FIELDS.map((token) => token.name);
+export const SITE_CORNER_FIELDS = DESIGN_TOKEN_FIELDS.filter((token) => token.name.startsWith("--ds-radius-"));
 
 export const DEFAULT_DESIGN_TOKENS = Object.fromEntries(
   DESIGN_TOKEN_FIELDS.map((token) => [token.name, String(token.defaultValue)]),
