@@ -14,7 +14,7 @@ export const siteDirectory = [
   {
     id: 'research', title: 'Research', href: '/research',
     description: 'Artistic research, visual culture, archives and personal knowledge systems.',
-    links: [page('research'), page('academic'), link('Atlas of People & Pictures', '/atlasofpeopleandpictures'), link('Invisible Punctum', '/research/invisible-punctum'), link('Second Brain research', '/research/second-brain'), link('Glyph Loom research', '/research/glyph-loom'), link('BSA photographic archives', '/research/bsa-photographic-archives')],
+    links: [page('research'), page('academic'), link('Atlas of People & Pictures', '/atlasofpeopleandpictures'), link('Archival bootcamp portfolio', '/archival-bootcamp'), link('Invisible Punctum', '/research/invisible-punctum'), link('Second Brain research', '/research/second-brain'), link('Glyph Loom research', '/research/glyph-loom'), link('BSA photographic archives', '/research/bsa-photographic-archives')],
   },
   {
     id: 'photography', title: 'Photography', href: '/photography',

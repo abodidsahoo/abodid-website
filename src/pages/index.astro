@@ -216,6 +216,17 @@ const structuredData = [
   bodyClass="story-home-page"
 >
   <div class="story-home" data-landing-smudge={designPreview ? undefined : ""}>
+    <LandingInteractiveHero
+      client:load
+      name="I'm obsessed about"
+      headingTag="h1"
+      keyline={null}
+      ctaText={null}
+      ctaHref="#selected-work"
+      secondaryCtaText={null}
+      secondaryCtaHref="#enquiry"
+    />
+
     {!designPreview && (
       <section
         class="story-intro"
@@ -227,8 +238,7 @@ const structuredData = [
             <img
               src="https://assets.abodid.com/photos/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp"
               alt="Abodid Sahoo"
-              loading="eager"
-              fetchpriority="high"
+              loading="lazy"
               decoding="async"
             />
           </figure>
@@ -247,18 +257,6 @@ const structuredData = [
         </div>
       </section>
     )}
-
-    <LandingInteractiveHero
-      client:load
-      name="my life is all about..."
-      headingTag={designPreview ? "h1" : "h2"}
-      keyline="keep hovering your mouse to see more tags"
-      ctaText={null}
-      ctaHref="#selected-work"
-      secondaryCtaText={null}
-      secondaryCtaHref="#enquiry"
-      vaultLabel="my obsidian vault"
-    />
 
     <section
       class="story-work"
@@ -569,6 +567,8 @@ const structuredData = [
       <InlineInquiryForm
         id="enquiry"
         heading="Let’s connect."
+        headingLead="Let’s"
+        headingEmphasis="connect."
         intro="Got an idea you badly want to execute or have a photoshoot in mind and you want to have someone you can trust?"
         sourceName="home-next-storytelling"
         variant="pop"
@@ -915,9 +915,9 @@ const structuredData = [
   }
   .story-eyebrow {
     margin-bottom: 1.25rem;
-    font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 var(--font-mono, monospace);
-    letter-spacing: 0.11em;
     text-transform: uppercase;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-hero__masthead {
     margin-bottom: clamp(1.15rem, 2vw, 1.8rem);
@@ -931,8 +931,8 @@ const structuredData = [
   .story-hero__name {
     margin: 0;
     color: inherit;
-    font: var(--home-next-hero-name-font);
-    letter-spacing: var(--home-next-hero-name-spacing);
+    font: var(--type-role-display-font);
+    letter-spacing: var(--type-role-display-track);
   }
   .story-hero__availability {
     margin: 0;
@@ -945,11 +945,11 @@ const structuredData = [
     border-radius: var(--home-next-radius-control);
     background: var(--color-button);
     color: var(--color-button-text) !important;
-    font: var(--home-next-hero-badge-font);
-    letter-spacing: 0.08em;
     text-align: center;
     text-transform: uppercase;
     white-space: nowrap;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-hero__availability img {
     width: 17px;
@@ -963,23 +963,24 @@ const structuredData = [
     max-width: 36ch;
     margin-bottom: clamp(0.75rem, 1.1vw, 1rem);
     color: inherit;
-    font: var(--home-next-hero-title-font);
-    letter-spacing: var(--home-next-hero-title-spacing);
     text-wrap: balance;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
   .story-hero__statement {
     max-width: 24ch;
     margin: 0 0 clamp(1.2rem, 1.8vw, 1.6rem);
     color: inherit;
-    font: var(--home-next-hero-statement-font);
-    letter-spacing: var(--home-next-hero-statement-spacing);
     text-wrap: balance;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
   .story-hero__lede {
     max-width: 820px;
     margin-bottom: clamp(1.25rem, 2vw, 1.6rem);
     color: color-mix(in srgb, var(--color-text) 78%, transparent);
-    font: var(--home-next-hero-lede-font);
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
   .story-actions {
     display: flex;
@@ -995,10 +996,10 @@ const structuredData = [
     border: 1px solid var(--color-text);
     border-radius: var(--home-next-radius-control);
     color: var(--color-text);
-    font: 750 0.72rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
     text-decoration: none;
     text-transform: uppercase;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .story-button--primary {
     background: var(--color-background);
@@ -1035,8 +1036,8 @@ const structuredData = [
   .story-home h2.story-work__heading {
     margin: 1.25rem 0 clamp(3.5rem, 8vw, 6.5rem);
     color: inherit;
-    font: 700 clamp(3rem, 7vw, 7rem)/0.88 var(--font-display, sans-serif);
-    letter-spacing: -0.065em;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
   /* Medium matches the portrait box; wide keeps the original fluid layout. */
   .story-work[data-content-width="medium"]
@@ -1168,24 +1169,25 @@ const structuredData = [
   }
   .story-project__category {
     margin: 0;
-    font: 750 0.68rem/1.3 var(--font-mono, monospace);
-    letter-spacing: 0.05em;
     text-transform: uppercase;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-project .story-project__copy h3 {
     max-width: 16ch;
     margin: 0.8rem 0 1rem;
     color: inherit;
-    font: 700 clamp(2rem, 3.6vw, 3.8rem)/0.94 var(--font-display, sans-serif);
-    letter-spacing: -0.05em;
     text-wrap: balance;
     overflow-wrap: break-word;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
   .story-project__summary {
     max-width: 58ch;
     margin: 0;
     color: inherit;
-    font: 450 clamp(0.95rem, 1.2vw, 1.15rem)/1.5 var(--font-body, sans-serif);
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
   .story-project__copy ul.story-project__themes {
     margin: 1.1rem 0 0;
@@ -1199,7 +1201,8 @@ const structuredData = [
     padding: 0.38rem 0.6rem;
     border: 1px solid currentColor;
     border-radius: 999px;
-    font: 650 0.66rem/1 var(--font-mono, monospace);
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-project .story-project__copy dl {
     margin: 1.5rem 0 0;
@@ -1218,16 +1221,17 @@ const structuredData = [
   .story-project dt {
     margin: 0;
     color: inherit;
-    font: 750 0.64rem/1.2 var(--font-mono, monospace);
-    letter-spacing: 0.09em;
     text-transform: uppercase;
     opacity: 0.85;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-project dd {
     margin: 0;
     color: inherit;
-    font: 500 0.86rem/1.45 var(--font-body, sans-serif);
-    letter-spacing: -0.01em;
+    font: var(--type-role-label-font);
+    font-weight: var(--type-weight-regular);
+    letter-spacing: var(--type-role-label-track);
     text-wrap: pretty;
   }
   .story-project__link {
@@ -1236,7 +1240,8 @@ const structuredData = [
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font: 780 1rem/1.4 var(--font-body, sans-serif);
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .story-project__link b {
     display: inline-block;
@@ -1287,19 +1292,21 @@ const structuredData = [
   }
   .story-process span {
     margin-bottom: auto;
-    font: 750 0.7rem/1 var(--font-mono, monospace);
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-process h3 {
     margin-bottom: 0.8rem;
-    font: 650 clamp(1.8rem, 3vw, 3rem)/0.95 var(--font-display, sans-serif);
-    letter-spacing: -0.045em;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
   .story-process :is(h3, p, span) {
     color: inherit;
   }
   .story-process p {
     margin-bottom: 0;
-    font: 450 0.98rem/1.5 var(--font-body, sans-serif);
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
 
   .story-services {
@@ -1324,8 +1331,9 @@ const structuredData = [
   .story-services__consulting {
     display: grid;
     gap: clamp(1rem, 1.6vw, 1.5rem);
-    max-inline-size: 60ch;
-    font: 450 clamp(1rem, 1.25vw, 1.16rem)/1.65 var(--font-body, sans-serif);
+    max-inline-size: var(--type-measure-body);
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
   .story-services__consulting p {
     margin: 0;
@@ -1380,27 +1388,26 @@ const structuredData = [
     gap: clamp(1rem, 2vw, 1.75rem);
   }
   .story-services__intro-copy p {
-    max-width: 50rem;
+    max-width: var(--type-measure-body);
     margin: 0;
     color: inherit;
-    font: 450 clamp(1rem, 1.35vw, 1.2rem)/1.55 var(--font-body, sans-serif);
     text-wrap: pretty;
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
   .story-intro__greeting {
     margin: 0;
-    font: 750 clamp(2.5rem, 4vw, 4rem)/1 var(--font-display, sans-serif);
-    letter-spacing: -0.055em;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
   .story-services__intro-copy .story-services__intro-lead {
-    font-weight: 450;
-    font-size: clamp(1.6rem, 2.5vw, 2.7rem);
-    line-height: 1.15;
-    max-width: 28ch;
-    letter-spacing: -0.045em;
+    max-width: var(--type-measure-lead);
     text-wrap: balance;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
   .story-services__intro-lead strong {
-    font-weight: 750;
+    font-weight: var(--type-weight-bold);
   }
   .story-service-disclosure {
     --service-label-inset: 2.5rem;
@@ -1418,8 +1425,8 @@ const structuredData = [
     padding-inline: 0 0.5rem;
     list-style: none;
     cursor: pointer;
-    font: 590 clamp(1.35rem, 2.35vw, 2.5rem)/1.1 var(--font-display, sans-serif);
-    letter-spacing: -0.035em;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
   .story-service-disclosure summary:hover {
     background-color: color-mix(
@@ -1463,8 +1470,9 @@ const structuredData = [
   .story-service-disclosure__body > p {
     max-inline-size: 62ch;
     margin: 0;
-    font: 450 clamp(1rem, 1.25vw, 1.15rem)/1.6 var(--font-body, sans-serif);
     text-wrap: pretty;
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
   @supports selector(details::details-content) and
     (interpolate-size: allow-keywords) and (transition-behavior: allow-discrete) {
@@ -1499,8 +1507,9 @@ const structuredData = [
     min-block-size: 2.75rem;
     gap: 0.55rem;
     color: inherit;
-    font: 650 clamp(0.92rem, 1.12vw, 1.05rem)/1.35 var(--font-body, sans-serif);
     text-decoration: none !important;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   body.story-home-page .story-services__example-link > span:first-child {
     text-decoration: underline;
@@ -1540,12 +1549,13 @@ const structuredData = [
   }
   .story-display-heading {
     margin: 0;
-    font: 700 clamp(3rem, 7vw, 7rem)/0.92 var(--font-display, sans-serif);
-    letter-spacing: -0.065em;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
   .story-evidence > header a {
     color: inherit;
-    font-size: 0.9rem;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .story-logo-grid {
     display: grid;
@@ -1694,14 +1704,14 @@ const structuredData = [
   .story-brand-pill__track > strong {
     opacity: 1;
     transform: translateY(0);
-    font: 700 clamp(0.9rem, 1.45vw, 1.2rem)/1.2 var(--font-body, sans-serif);
-    letter-spacing: -0.01em;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .story-brand-pill__track > span {
     opacity: 0;
     transform: translateY(5px);
-    font: 600 clamp(0.75rem, 1.15vw, 0.95rem)/1.2 var(--font-body, sans-serif);
-    letter-spacing: 0.01em;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-brand-pill:hover .story-brand-pill__track > strong,
   .story-brand-pill:focus-visible .story-brand-pill__track > strong {
@@ -1734,14 +1744,15 @@ const structuredData = [
     box-shadow: 0 4px 0 var(--color-text);
   }
   body.story-home-page .story-enquiry .inline-enquiry__intro h2 {
-    font: 700 clamp(3rem, 6vw, 6rem)/0.9 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.065em !important;
     color: var(--color-primary-text) !important;
+    font: var(--type-role-section-title-font) !important;
+    letter-spacing: var(--type-role-section-title-track) !important;
   }
   .story-enquiry .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow) {
     margin-top: clamp(1.5rem, 2.5vw, 2.25rem);
-    font: 500 clamp(1rem, 1.25vw, 1.16rem)/1.55 var(--font-body, sans-serif);
     text-wrap: pretty;
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
   .story-enquiry .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow),
   .story-enquiry .inline-enquiry__intro > a,
@@ -1803,10 +1814,10 @@ const structuredData = [
     gap: 0.75rem;
     align-items: baseline;
     justify-content: space-between;
-    font: 720 clamp(1.6rem, 2.6vw, 2.65rem)/1.07 var(--font-display, sans-serif);
-    letter-spacing: -0.045em;
     color: inherit;
     text-wrap: pretty;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
   .story-writing__feature-title span:first-child {
     text-decoration: underline;
@@ -1816,7 +1827,7 @@ const structuredData = [
   .story-writing__feature-title span[aria-hidden] {
     flex: none;
     font-size: 0.75em;
-    font-weight: 440;
+    font-weight: var(--type-weight-regular);
   }
   .story-writing__feature-link:is(:hover, :focus-visible) {
     color: inherit;
@@ -1830,14 +1841,14 @@ const structuredData = [
   .story-writing__title {
     max-width: 16ch;
     margin: 0;
-    font: 380 clamp(2.25rem, 1.5rem + 2.4vw, 4rem)/0.96
-      var(--font-display, sans-serif);
-    letter-spacing: -0.06em;
     color: inherit;
     text-wrap: balance;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
+    font-weight: var(--type-weight-light);
   }
   .story-writing__title strong {
-    font-weight: 780;
+    font-weight: var(--type-weight-bold);
   }
   .story-writing .story-writing__articles {
     width: 100%;
@@ -1876,14 +1887,14 @@ const structuredData = [
     outline-offset: 2px;
   }
   .story-writing__article-index {
-    font: 700 0.72rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-writing__article-title {
     margin: 0;
-    font: 600 clamp(1rem, 1.18vw, 1.14rem)/1.3 var(--font-body, sans-serif);
-    letter-spacing: -0.015em;
     text-decoration: none !important;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .story-writing__article-arrow {
     font-size: 1.15rem;
@@ -1905,14 +1916,14 @@ const structuredData = [
     gap: 1rem;
     border: 1px solid var(--ui-border-strong);
     border-radius: var(--home-next-radius-control);
-    font: 750 0.74rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
     text-transform: uppercase;
     text-decoration: none !important;
     cursor: pointer;
     transition:
       background 160ms ease,
       transform 160ms ease;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .story-writing__blog-link:hover,
   .story-writing__blog-link:focus-visible {
@@ -2077,7 +2088,8 @@ const structuredData = [
       grid-column: auto;
     }
     .story-display-heading {
-      font-size: clamp(3.1rem, 14vw, 5rem);
+        font: var(--type-role-section-title-font);
+        letter-spacing: var(--type-role-section-title-track);
     }
     .story-evidence > header a {
       width: fit-content;
@@ -2104,10 +2116,12 @@ const structuredData = [
       min-width: 0;
     }
     .story-brand-pill__track > strong {
-      font-size: clamp(0.84rem, 3.4vw, 0.98rem);
+        font: var(--type-role-ui-font);
+        letter-spacing: var(--type-role-ui-track);
     }
     .story-brand-pill__track > span {
-      font-size: clamp(0.72rem, 2.9vw, 0.84rem);
+        font: var(--type-role-label-font);
+        letter-spacing: var(--type-role-label-track);
     }
   }
 

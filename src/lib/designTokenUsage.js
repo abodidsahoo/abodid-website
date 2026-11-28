@@ -99,6 +99,22 @@ const typeRoles = {
     sample: "A clear supporting paragraph should remain relaxed, readable and subordinate to its heading.",
     tag: "p",
   },
+  lead: {
+    title: "Lead / featured quote",
+    summary: "Introductions and featured quotations, separated from reading copy by size rather than heavy weight.",
+    routes: [ROUTES.work, ROUTES.research],
+    selector: ".story-services__intro-lead, .testimonial-highlight p",
+    sample: "Ideas become experiences when people become part of the story.",
+    tag: "p",
+  },
+  ui: {
+    title: "Interface / controls",
+    summary: "A consistent readable size for navigation, form fields, buttons and useful links.",
+    routes: [ROUTES.work, ROUTES.writing],
+    selector: ".journal-links a, .newsletter-form button",
+    sample: "Explore selected work",
+    tag: "span",
+  },
   reading: {
     title: "Long-form reading",
     summary: "A more generous text setting for essays, research papers and Obsidian notes.",
@@ -118,8 +134,8 @@ const typeRoles = {
 };
 
 for (const [role, definition] of Object.entries(typeRoles)) {
-  const names = role === "label"
-    ? ["--ds-label-size", "--ds-label-weight", "--ds-label-line", "--ds-label-track"]
+  const names = ["label", "ui"].includes(role)
+    ? ["size", "weight", "line", "track"].map((part) => `--ds-${role}-${part}`)
     : ["min", "fluid", "max", "weight", "line", "track"].map((part) => `--ds-${role}-${part}`);
   for (const name of names) {
     usage[name] = {

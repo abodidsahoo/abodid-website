@@ -4,6 +4,8 @@ import ContactProtection from "./ContactProtection.astro";
 const {
   id = "enquiry",
   heading = "Tell me what you have in mind.",
+  headingLead = "",
+  headingEmphasis = "",
   intro = "",
   sourceName = "home-next",
   defaultInterest = "",
@@ -40,7 +42,9 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   <div class="inline-enquiry__intro">
     <p class="inline-enquiry__eyebrow t-label">{eyebrow}</p>
     <h2 class="t-display">
-      {typeof heading === "string" && heading === "Book your free discovery call today." ? (
+      {headingLead && headingEmphasis ? (
+        <><span class="inline-enquiry__heading-light">{headingLead}</span>{" "}<strong>{headingEmphasis}</strong></>
+      ) : typeof heading === "string" && heading === "Book your free discovery call today." ? (
         <>
           <span class="inline-enquiry__heading-line">Book your free</span>{" "}
           <span class="inline-enquiry__heading-line">discovery call today.</span>
@@ -317,6 +321,13 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 </script>
 
 <style>
+  .inline-enquiry__form :is(input, select, textarea),
+  .inline-enquiry__submit-row button,
+  .inline-enquiry__intro > a {
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
+  }
+
   .inline-enquiry {
     scroll-margin-top: calc(var(--next-nav-height, 72px) + 1rem);
     display: grid;
@@ -438,11 +449,11 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     text-align: left;
     cursor: pointer;
     font-family: inherit;
-    font-size: 1rem;
-    font-weight: 500;
     transition: border-color 160ms ease, box-shadow 160ms ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .custom-select__trigger:focus-visible {
@@ -529,8 +540,6 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     border-radius: 10px;
     color: var(--ui-form-text);
     font-family: inherit;
-    font-size: 0.96rem;
-    font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -538,6 +547,8 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     gap: 0.75rem;
     transition: background 140ms ease, color 140ms ease, transform 140ms ease;
     user-select: none;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .custom-select__option:hover,
@@ -550,14 +561,14 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   .custom-select__option.is-selected {
     background: var(--color-button);
     color: var(--color-primary-text);
-    font-weight: 600;
+    font-weight: var(--type-weight-bold);
     transform: none;
   }
 
   .custom-select__option-icon {
     display: none;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .custom-select__option.is-selected .custom-select__option-icon {
@@ -667,9 +678,9 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     border-radius: 15px;
     background: var(--color-background);
     color: var(--color-text);
-    font-size: 1.05rem;
-    font-weight: 520;
     box-shadow: 0 2px 0 color-mix(in srgb, var(--color-text) 12%, transparent);
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .inline-enquiry--pop .custom-select__trigger:focus-visible,
@@ -702,9 +713,9 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--pop .custom-select__option {
     color: var(--color-text);
-    font-size: 1rem;
-    font-weight: 520;
     border-radius: 12px;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .inline-enquiry--pop .custom-select__option:hover,
@@ -717,7 +728,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   .inline-enquiry--pop .custom-select__option.is-selected {
     background: var(--color-text);
     color: var(--color-primary-text);
-    font-weight: 650;
+    font-weight: var(--type-weight-bold);
     transform: none;
   }
 
@@ -752,8 +763,8 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--obsidian h2 {
     max-width: 18ch;
-    font-size: clamp(2.4rem, 4.5vw, 4.8rem);
-    line-height: 0.94;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
 
   .inline-enquiry--obsidian .inline-enquiry__form {
@@ -840,11 +851,9 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     max-width: none;
     color: var(--color-text);
     font-family: var(--font-display);
-    font-size: clamp(1.85rem, 3.2vw, 3.8rem);
-    font-weight: 640;
-    line-height: 0.94;
-    letter-spacing: -0.055em;
     margin-top: 0;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
 
   .inline-enquiry__heading-line {
@@ -855,8 +864,8 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   .inline-enquiry--obsidian .inline-enquiry__intro .t-body {
     margin: 0.85rem 0 0;
     color: color-mix(in srgb, var(--color-text) 80%, transparent);
-    font-size: clamp(0.98rem, 1.25vw, 1.12rem);
-    line-height: 1.45;
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
 
   .inline-enquiry--obsidian .inline-enquiry__form {
@@ -884,7 +893,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     display: block;
     margin-bottom: 0.1rem;
     color: var(--color-text);
-    font-weight: 700;
+    font-weight: var(--type-weight-bold);
   }
 
   .inline-enquiry--obsidian .inline-enquiry__submit-row p {
@@ -949,7 +958,8 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
     .inline-enquiry--obsidian h2 {
       max-width: 100%;
-      font-size: clamp(1.7rem, 6vw, 3.4rem);
+      font: var(--type-role-section-title-font);
+      letter-spacing: var(--type-role-section-title-track);
     }
 
     .inline-enquiry--obsidian .inline-enquiry__form {

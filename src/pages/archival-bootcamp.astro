@@ -1,0 +1,190 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { breadcrumbJsonLd } from "../lib/seoData";
+import "../styles/archival-bootcamp.css";
+
+const path = "/archival-bootcamp";
+const description = "Abodid Sahoo’s archive-based artistic practice: an iCloud photo installation, research presented at BSA 2026, and questions about memory, consent and care.";
+const folderUrl = "https://drive.google.com/drive/folders/11_ckb95f2W8v6RVEhy9gIt6UN13LxHo2?usp=sharing";
+const photoRoot = "https://assets.abodid.com/photos/variants/my-life";
+const prints = "abodid-rca-project-icloud-images-01-bd5533f069.webp";
+const cluster = "abodid-rca-project-icloud-image-cluster-05153ef77c.webp";
+const conference = "abodid-bsa-2026-conference-01-a67a42ea76.webp";
+const abstractUrl = "https://www.britsoc.co.uk/media/27151/ac2026_poster_presentations.pdf#page=20";
+const questions = [
+  {
+    title: "Keeping & forgetting",
+    question: "When we can save almost everything, how do we decide what matters?",
+    detail: "I’m curious about the few photographs we return to, the thousands we never revisit, and what choosing to delete can mean.",
+  },
+  {
+    title: "Who chooses a memory?",
+    question: "What changes when a platform decides which photograph returns to us?",
+    detail: "A face cluster, a search result or an unexpected ‘Memory’ can shape how we encounter our own past. I want to understand that influence.",
+  },
+  {
+    title: "Ownership & consent",
+    question: "Whose story is a photograph when other people are inside it?",
+    detail: "A personal archive also holds shared lives. What responsibilities follow when an image is backed up, shared, indexed or exhibited?",
+  },
+  {
+    title: "Care & emotional agency",
+    question: "Can an archive let us choose when we are ready to remember?",
+    detail: "I’m interested in ways of returning to photographs that make room for grief, changing relationships and the right to leave something unseen.",
+  },
+];
+---
+
+<BaseLayout
+  title="Archival Bootcamp — Abodid Sahoo"
+  description={description}
+  canonicalUrl={path}
+  image={`${photoRoot}/1600/${prints}`}
+  imageAlt="A hand holding a printed mosaic of photographs from Abodid Sahoo’s iCloud archive"
+  structuredData={breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Archival bootcamp", path }])}
+  fullWidth={true}
+  showNewsletterPopup={false}
+  showFooterNavigation={false}
+  bodyClass="archival-bootcamp-page"
+>
+  <article class="archive-page" data-pop-surface="cream">
+    <header class="archive-hero">
+      <div class="archive-hero__copy">
+        <p class="archive-label">Archival bootcamp · Selected work &amp; open questions</p>
+        <h1>What do we keep when we keep everything?</h1>
+        <p class="archive-lead">A personal iCloud archive became a way to ask questions about memory, forgetting and who gets to choose what returns.</p>
+        <p>I’m Abodid Sahoo, an artist and researcher working with photography, writing and installation. This is a short introduction to my archive-based practice and the questions I’d like to explore further.</p>
+        <a class="archive-text-link" href="#curiosities">Start with my questions <span aria-hidden="true">↓</span></a>
+      </div>
+      <figure class="archive-hero__image">
+        <img
+          src={`${photoRoot}/1600/${prints}`}
+          srcset={`${photoRoot}/800/${prints} 800w, ${photoRoot}/1600/${prints} 1600w`}
+          sizes="(max-width: 56rem) calc(100vw - 2rem), 46vw"
+          width="800" height="533" fetchpriority="high"
+          alt="A hand holds the edge of a large printed mosaic filled with tiny photographs from my iCloud archive."
+        />
+        <figcaption><span>01 / The archive, made physical</span><span>Installation detail</span></figcaption>
+      </figure>
+    </header>
+
+    <div class="archive-facts" aria-label="Project overview">
+      <p><span class="archive-label">Material</span>Personal photographs &amp; iCloud archives</p>
+      <p><span class="archive-label">Practice</span>Installation, writing &amp; visual research</p>
+      <p><span class="archive-label">Ongoing inquiry</span>Memory, consent &amp; care</p>
+    </div>
+
+    <a class="archive-folder" href={folderUrl} target="_blank" rel="noopener noreferrer">
+      <svg class="archive-folder__icon" viewBox="0 0 160 128" width="160" height="128" aria-hidden="true" focusable="false">
+        <path class="archive-folder__back" d="M12 104V29a8 8 0 0 1 8-8h39l13 13h68a8 8 0 0 1 8 8v62Z" />
+        <g class="archive-folder__paper" transform="rotate(8 92 55)">
+          <rect x="44" y="9" width="83" height="89" rx="3" />
+          <path d="M55 23h33M55 31h54M55 39h54" />
+        </g>
+        <g class="archive-folder__photo" transform="rotate(-7 66 65)">
+          <rect x="28" y="30" width="75" height="67" rx="3" />
+          <path d="M37 40h57v34H37Z" />
+          <path d="m38 73 19-20 12 12 10-9 14 17M38 84h34" />
+          <circle cx="81" cy="49" r="4" />
+        </g>
+        <path class="archive-folder__front" d="M12 52h48l12-11h70a7 7 0 0 1 7 8l-9 57a9 9 0 0 1-9 8H23a9 9 0 0 1-9-8L5 60a7 7 0 0 1 7-8Z" />
+        <path class="archive-folder__mark" d="M65 82h28m-9-9 9 9-9 9" />
+      </svg>
+      <div class="archive-folder__copy">
+        <span class="archive-label">Project files · Google Drive</span>
+        <h2>Open the archive folder</h2>
+        <p>Browse the files I’ve shared alongside this portfolio.</p>
+      </div>
+      <span class="archive-folder__action">Explore files <span aria-hidden="true">↗</span><span class="archive-folder__new-tab">Opens in a new tab</span></span>
+    </a>
+
+    <section class="archive-section" id="selected-work" aria-labelledby="work-heading">
+      <div class="archive-section__intro">
+        <div>
+          <p class="archive-label">01 / Selected artistic work · 2025</p>
+          <h2 id="work-heading">From camera roll to physical archive.</h2>
+        </div>
+        <div class="archive-reading">
+          <h3>I thought I will forget you that night</h3>
+          <p>In this installation, I brought more than 80,000 iCloud photographs into a one-metre-square archive. A collection usually encountered through a screen became something with a physical scale and presence.</p>
+          <p>Seen together, the images become a dense field. Up close, individual moments begin to emerge. That shift between the overwhelming whole and the particular photograph sits at the centre of my curiosity.</p>
+        </div>
+      </div>
+      <figure class="archive-wide-image">
+        <img
+          src={`${photoRoot}/1600/${cluster}`}
+          srcset={`${photoRoot}/800/${cluster} 800w, ${photoRoot}/1600/${cluster} 1600w`}
+          sizes="(max-width: 82rem) calc(100vw - 2rem), 1248px"
+          width="800" height="554" loading="lazy" decoding="async"
+          alt="Thousands of tiny photographs form a dense printed field, with the iCloud photo-library interface still visible along the bottom."
+        />
+        <figcaption><span>02 / I thought I will forget you that night</span><span>A closer view of the iCloud image cluster</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="archive-section" id="curiosities" aria-labelledby="questions-heading">
+      <div class="archive-section__intro">
+        <div>
+          <p class="archive-label">02 / Curiosities &amp; questions</p>
+          <h2 id="questions-heading">The questions I keep returning to.</h2>
+        </div>
+        <p class="archive-lead">I’m interested in what happens between saving an image and living with it. These are questions I’m still working through.</p>
+      </div>
+      <ol class="archive-questions">
+        {questions.map((item, index) => (
+          <li>
+            <p class="archive-label"><span aria-hidden="true">0{index + 1} / </span>{item.title}</p>
+            <h3>{item.question}</h3>
+            <p>{item.detail}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="archive-section archive-conference" aria-labelledby="conference-heading">
+      <div class="archive-section__intro">
+        <div>
+          <p class="archive-label">03 / From artistic practice to research</p>
+          <h2 id="conference-heading">Taking the questions into a conference.</h2>
+        </div>
+        <div class="archive-reading">
+          <p>The inquiry also became <cite>Cloud Memories and Algorithmic Recall: iCloud, AI Sorting, and Ownership</cite>, co-authored with Yashaswinee Sahoo. I presented it as a poster at the British Sociological Association Annual Conference 2026 at the University of Manchester.</p>
+          <p>The research draws on my personal archive of more than 180,000 images and conversations while viewing other people’s phone and iCloud archives. It asks how photographic excess and automated sorting affect remembering, attachment and ownership.</p>
+          <p class="archive-note">The 80,000+ images in the installation are a selection from the larger personal archive.</p>
+          <a class="archive-text-link" href={abstractUrl} target="_blank" rel="noopener noreferrer">Read the official BSA abstract <span>(PDF, p. 20)</span> <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <div class="archive-conference__record" data-pop-surface="blue">
+        <figure>
+          <img
+            src={`${photoRoot}/800/${conference}`}
+            width="800" height="533" loading="lazy" decoding="async"
+            alt="Abodid Sahoo speaking with delegates at the British Sociological Association conference in Manchester."
+          />
+          <figcaption>British Sociological Association · Manchester, 2026</figcaption>
+        </figure>
+        <div class="archive-conference__copy">
+          <p class="archive-label">Science, Technology &amp; Digital Studies</p>
+          <h3>Cloud Memories and Algorithmic Recall</h3>
+          <p>Looking at what people keep, delete, hide or share helps me connect the intimate experience of a photograph with the systems that organise it.</p>
+          <a class="archive-text-link" href="/uk2026#the-conference-in-manchester">Read my conference account <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="archive-section archive-next" aria-labelledby="learning-heading">
+      <div>
+        <p class="archive-label">04 / What I hope to explore at the bootcamp</p>
+        <h2 id="learning-heading">Learning to care for what we keep.</h2>
+      </div>
+      <div class="archive-reading">
+        <p>I’d like to develop a more careful archival method: how to select and describe images without losing their context, how to work with other people’s memories with consent, and how to make an archive accessible without making everything public.</p>
+        <p>I bring an artistic practice that moves between images, text and physical space. I hope to put that practice in conversation with people who approach archives differently, and to test how these questions can become a thoughtful way of working.</p>
+        <div class="archive-closing-links">
+          <a class="archive-text-link" href={folderUrl} target="_blank" rel="noopener noreferrer">Browse the project folder <span aria-hidden="true">↗</span></a>
+          <a class="archive-text-link" href="/academic-portfolio">More about my practice <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

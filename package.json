@@ -19,6 +19,7 @@
     "ingest:vault": "node scripts/ingest-obsidian-vault.mjs",
     "build": "astro build",
     "feedback:create": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/create-feedback-form.mjs",
+    "check:typography": "node scripts/check-site-typography.mjs",
     "test:feedback": "vitest run tests/feedback",
     "test:e2e:feedback": "playwright test --config tests/feedback/playwright.config.ts",
     "test:analytics": "node --test tests/analytics/*.test.mjs",

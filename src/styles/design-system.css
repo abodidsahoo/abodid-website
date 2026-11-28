@@ -1,51 +1,62 @@
 :root {
   /* Editable source values. Design Studio publishes only these primitives. */
   --ds-display-min: 3;
-  --ds-display-fluid: 6.7;
-  --ds-display-max: 7;
-  --ds-display-weight: 620;
-  --ds-display-line: 0.9;
-  --ds-display-track: -0.065;
+  --ds-display-fluid: 5;
+  --ds-display-max: 6;
+  --ds-display-weight: 750;
+  --ds-display-line: 1.05;
+  --ds-display-track: -0.045;
 
-  --ds-page-title-min: 2.5;
-  --ds-page-title-fluid: 4.8;
+  --ds-page-title-min: 3;
+  --ds-page-title-fluid: 4;
   --ds-page-title-max: 5;
-  --ds-page-title-weight: 620;
-  --ds-page-title-line: 0.98;
-  --ds-page-title-track: -0.05;
+  --ds-page-title-weight: 750;
+  --ds-page-title-line: 1.05;
+  --ds-page-title-track: -0.045;
 
-  --ds-section-title-min: 2.4;
+  --ds-section-title-min: 3;
   --ds-section-title-fluid: 4;
-  --ds-section-title-max: 4;
-  --ds-section-title-weight: 620;
-  --ds-section-title-line: 0.98;
-  --ds-section-title-track: -0.05;
+  --ds-section-title-max: 5;
+  --ds-section-title-weight: 750;
+  --ds-section-title-line: 1.05;
+  --ds-section-title-track: -0.045;
 
-  --ds-card-title-min: 1.4;
-  --ds-card-title-fluid: 2.2;
-  --ds-card-title-max: 1.9;
-  --ds-card-title-weight: 720;
-  --ds-card-title-line: 1.15;
-  --ds-card-title-track: -0.04;
+  --ds-card-title-min: 1.5;
+  --ds-card-title-fluid: 1.15;
+  --ds-card-title-max: 2;
+  --ds-card-title-weight: 750;
+  --ds-card-title-line: 1.2;
+  --ds-card-title-track: -0.025;
 
-  --ds-body-min: 0.94;
+  --ds-body-min: 1.125;
   --ds-body-fluid: 1.12;
-  --ds-body-max: 1.1;
+  --ds-body-max: 1.125;
   --ds-body-weight: 450;
-  --ds-body-line: 1.5;
+  --ds-body-line: 1.6;
   --ds-body-track: 0;
 
-  --ds-reading-min: 1.05;
-  --ds-reading-fluid: 1.45;
-  --ds-reading-max: 1.35;
+  --ds-reading-min: 1.125;
+  --ds-reading-fluid: 1.12;
+  --ds-reading-max: 1.125;
   --ds-reading-weight: 450;
   --ds-reading-line: 1.6;
   --ds-reading-track: 0;
 
-  --ds-label-size: 0.72;
-  --ds-label-weight: 750;
-  --ds-label-line: 1.35;
-  --ds-label-track: 0.08;
+  --ds-label-size: 0.875;
+  --ds-label-weight: 600;
+  --ds-label-line: 1.4;
+  --ds-label-track: 0.02;
+
+  --ds-lead-min: 1.5;
+  --ds-lead-fluid: 1.15;
+  --ds-lead-max: 2;
+  --ds-lead-weight: 450;
+  --ds-lead-line: 1.4;
+  --ds-lead-track: -0.015;
+  --ds-ui-size: 1;
+  --ds-ui-weight: 600;
+  --ds-ui-line: 1.4;
+  --ds-ui-track: 0;
 
   --ds-grid-gap: 8;
   --ds-gutter-min: 16;
@@ -86,32 +97,32 @@
   --surface-selection-fg: var(--pop-selection-on-light-fg);
 
   /* Semantic values consumed by pages and components. */
-  --type-role-display-size: clamp(calc(var(--ds-display-min) * 1rem), calc(var(--ds-display-fluid) * 1vw), calc(var(--ds-display-max) * 1rem));
+  --type-role-display-size: clamp(calc(var(--ds-display-min) * 1rem), calc(1.5rem + var(--ds-display-fluid) * 1vw), calc(var(--ds-display-max) * 1rem));
   --type-role-display-weight: var(--ds-display-weight);
   --type-role-display-line: var(--ds-display-line);
   --type-role-display-track: calc(var(--ds-display-track) * 1em);
 
-  --type-role-page-title-size: clamp(calc(var(--ds-page-title-min) * 1rem), calc(var(--ds-page-title-fluid) * 1vw), calc(var(--ds-page-title-max) * 1rem));
+  --type-role-page-title-size: clamp(calc(var(--ds-page-title-min) * 1rem), calc(1.5rem + var(--ds-page-title-fluid) * 1vw), calc(var(--ds-page-title-max) * 1rem));
   --type-role-page-title-weight: var(--ds-page-title-weight);
   --type-role-page-title-line: var(--ds-page-title-line);
   --type-role-page-title-track: calc(var(--ds-page-title-track) * 1em);
 
-  --type-role-section-title-size: clamp(calc(var(--ds-section-title-min) * 1rem), calc(var(--ds-section-title-fluid) * 1vw), calc(var(--ds-section-title-max) * 1rem));
+  --type-role-section-title-size: clamp(calc(var(--ds-section-title-min) * 1rem), calc(1.5rem + var(--ds-section-title-fluid) * 1vw), calc(var(--ds-section-title-max) * 1rem));
   --type-role-section-title-weight: var(--ds-section-title-weight);
   --type-role-section-title-line: var(--ds-section-title-line);
   --type-role-section-title-track: calc(var(--ds-section-title-track) * 1em);
 
-  --type-role-card-title-size: clamp(calc(var(--ds-card-title-min) * 1rem), calc(var(--ds-card-title-fluid) * 1vw), calc(var(--ds-card-title-max) * 1rem));
+  --type-role-card-title-size: clamp(calc(var(--ds-card-title-min) * 1rem), calc(1rem + var(--ds-card-title-fluid) * 1vw), calc(var(--ds-card-title-max) * 1rem));
   --type-role-card-title-weight: var(--ds-card-title-weight);
   --type-role-card-title-line: var(--ds-card-title-line);
   --type-role-card-title-track: calc(var(--ds-card-title-track) * 1em);
 
-  --type-role-body-size: clamp(calc(var(--ds-body-min) * 1rem), calc(var(--ds-body-fluid) * 1vw), calc(var(--ds-body-max) * 1rem));
+  --type-role-body-size: clamp(calc(var(--ds-body-min) * 1rem), calc(0rem + var(--ds-body-fluid) * 1vw), calc(var(--ds-body-max) * 1rem));
   --type-role-body-weight: var(--ds-body-weight);
   --type-role-body-line: var(--ds-body-line);
   --type-role-body-track: calc(var(--ds-body-track) * 1em);
 
-  --type-role-reading-size: clamp(calc(var(--ds-reading-min) * 1rem), calc(var(--ds-reading-fluid) * 1vw), calc(var(--ds-reading-max) * 1rem));
+  --type-role-reading-size: clamp(calc(var(--ds-reading-min) * 1rem), calc(0rem + var(--ds-reading-fluid) * 1vw), calc(var(--ds-reading-max) * 1rem));
   --type-role-reading-weight: var(--ds-reading-weight);
   --type-role-reading-line: var(--ds-reading-line);
   --type-role-reading-track: calc(var(--ds-reading-track) * 1em);
@@ -120,6 +131,38 @@
   --type-role-label-weight: var(--ds-label-weight);
   --type-role-label-line: var(--ds-label-line);
   --type-role-label-track: calc(var(--ds-label-track) * 1em);
+
+  /* The four approved weights and shared reading measures. */
+  --type-weight-light: 350;
+  --type-weight-regular: 450;
+  --type-weight-medium: 600;
+  --type-weight-bold: 750;
+  --type-measure-body: 62ch;
+  --type-measure-lead: 32ch;
+  --type-measure-heading: 20ch;
+  /* The wordmark is a brand lockup rather than a content heading. */
+  --type-brand-size: clamp(1.55rem, 1rem + 2vw, 3.25rem);
+
+  --type-role-lead-size: clamp(calc(var(--ds-lead-min) * 1rem), calc(1rem + var(--ds-lead-fluid) * 1vw), calc(var(--ds-lead-max) * 1rem));
+  --type-role-lead-weight: var(--ds-lead-weight);
+  --type-role-lead-line: var(--ds-lead-line);
+  --type-role-lead-track: calc(var(--ds-lead-track) * 1em);
+  --type-role-lead-compact-size: calc(var(--ds-lead-min) * 1rem);
+
+  --type-role-ui-size: calc(var(--ds-ui-size) * 1rem);
+  --type-role-ui-weight: var(--ds-ui-weight);
+  --type-role-ui-line: var(--ds-ui-line);
+  --type-role-ui-track: calc(var(--ds-ui-track) * 1em);
+  --type-role-display-font: var(--type-role-display-weight) var(--type-role-display-size)/var(--type-role-display-line) var(--font-display);
+  --type-role-page-title-font: var(--type-role-page-title-weight) var(--type-role-page-title-size)/var(--type-role-page-title-line) var(--font-display);
+  --type-role-section-title-font: var(--type-role-section-title-weight) var(--type-role-section-title-size)/var(--type-role-section-title-line) var(--font-display);
+  --type-role-card-title-font: var(--type-role-card-title-weight) var(--type-role-card-title-size)/var(--type-role-card-title-line) var(--font-display);
+  --type-role-subheading-font: var(--type-weight-medium) calc(var(--ds-card-title-min) * 1rem)/1.3 var(--font-display);
+  --type-role-lead-font: var(--type-role-lead-weight) var(--type-role-lead-size)/var(--type-role-lead-line) var(--font-display);
+  --type-role-body-font: var(--type-role-body-weight) var(--type-role-body-size)/var(--type-role-body-line) var(--font-body);
+  --type-role-reading-font: var(--type-role-reading-weight) var(--type-role-reading-size)/var(--type-role-reading-line) var(--font-body);
+  --type-role-ui-font: var(--type-role-ui-weight) var(--type-role-ui-size)/var(--type-role-ui-line) var(--font-ui);
+  --type-role-label-font: var(--type-role-label-weight) var(--type-role-label-size)/var(--type-role-label-line) var(--font-ui);
 
   --design-grid-gap: calc(var(--ds-grid-gap) * 1px);
   --design-page-gutter: clamp(calc(var(--ds-gutter-min) * 1px), calc(var(--ds-gutter-fluid) * 1vw), calc(var(--ds-gutter-max) * 1px));

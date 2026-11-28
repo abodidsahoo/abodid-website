@@ -2,6 +2,7 @@
 import {
   DESIGN_TOKEN_NAMES, LEGACY_COLOR_TOKENS, DEFAULT_DESIGN_TOKENS,
   SITE_THEME_SURFACES, SITE_THEME_FOREGROUNDS, SITE_CORNER_FIELDS,
+  TYPOGRAPHY_VERSION, TYPOGRAPHY_TOKEN_NAMES,
 } from "../lib/designTokens.js";
 import { DESIGN_TOKEN_CACHE_KEY, ORIGINAL_SITE_THEME, SITE_THEME_PREVIEW_EVENT, SITE_THEME_PUBLISHED_EVENT } from "../lib/siteThemes.js";
 
@@ -16,6 +17,8 @@ const tokenNames = DESIGN_TOKEN_NAMES;
 const legacyColorTokens = LEGACY_COLOR_TOKENS;
 const editorialCursorSvg = EDITORIAL_CURSOR_SVG;
 const tokenDefaults = DEFAULT_DESIGN_TOKENS;
+const typographyVersion = TYPOGRAPHY_VERSION;
+const typographyTokenNames = TYPOGRAPHY_TOKEN_NAMES;
 const surfaceNames = SITE_THEME_SURFACES;
 const foregroundNames = SITE_THEME_FOREGROUNDS;
 const cacheKey = DESIGN_TOKEN_CACHE_KEY;
@@ -25,11 +28,12 @@ const originalThemeId = ORIGINAL_SITE_THEME.id;
 const cornerFields = SITE_CORNER_FIELDS.map(({ name, min, max }) => ({ name, min, max }));
 ---
 
-<script is:inline define:vars={{ supabaseUrl, supabaseAnonKey, tokenNames, legacyColorTokens, editorialCursorSvg, tokenDefaults, surfaceNames, foregroundNames, cacheKey, previewEvent, publishEvent, originalThemeId, cornerFields, cornersOnly }}>
+<script is:inline define:vars={{ supabaseUrl, supabaseAnonKey, tokenNames, legacyColorTokens, editorialCursorSvg, tokenDefaults, typographyVersion, typographyTokenNames, surfaceNames, foregroundNames, cacheKey, previewEvent, publishEvent, originalThemeId, cornerFields, cornersOnly }}>
   (() => {
     if (window.__abodidDesignTokenRuntime) return;
     window.__abodidDesignTokenRuntime = true;
     const allowedNames = new Set(tokenNames);
+    const typeNames = new Set(typographyTokenNames);
     const isColour = (value) => typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
     const hasPalette = (value) => isColour(value?.background) && isColour(value?.foreground);
     let publication;
@@ -61,6 +65,7 @@ const cornerFields = SITE_CORNER_FIELDS.map(({ name, min, max }) => ({ name, min
           if (isSafeValue(tokens?.[legacy])) properties[name] = tokens[legacy];
         }
         for (const [name, value] of Object.entries(tokens || {})) {
+          if (typeNames.has(name) && Number(tokens.__typographyVersion || 0) < typographyVersion) continue;
           if (allowedNames.has(name) && isSafeValue(value)) properties[name] = value;
         }
         // Publications saved before foreground roles inherit the original pairing.
@@ -92,7 +97,7 @@ const cornerFields = SITE_CORNER_FIELDS.map(({ name, min, max }) => ({ name, min
       appliedNames.push("--ui-editorial-cursor");
       root.style.setProperty(
         "--ui-editorial-cursor",
-        'url("data:image/svg+xml,' + encodeURIComponent(cursorSvg) + '") 5 5, auto',
+        'url("data:image/svg+xml,' + encodeURIComponent(cursorSvg) + '") 15 15, auto',
       );
     };
 

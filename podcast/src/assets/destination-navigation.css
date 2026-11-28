@@ -67,6 +67,8 @@ img[data-destination-image] {
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
+/* Keep the static heading focused for announcements without a browser focus ring. */
+#destination-view #destination-view-title:focus { outline: none; }
 #destination-view .destination-status {
   display: flex;
   flex-wrap: wrap;

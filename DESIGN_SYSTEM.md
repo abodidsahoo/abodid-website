@@ -59,15 +59,67 @@ The light/dark canvas, surface and text controls remain distinct. Their secondar
 
 ## Typography roles
 
-- Display / masthead: the largest identity or index statement.
-- Page title: the primary `h1` for a page or article.
-- Section title: major divisions inside a page.
-- Card title: project, resource, research, note and editorial-card titles.
-- Body copy: navigation descriptions, summaries and interface copy.
-- Long-form reading: article, note and research prose.
-- Metadata / eyebrow: dates, categories, labels and compact technical context.
+Typography contract **v2** uses Satoshi upright throughout ordinary site UI. The
+seven treatments share eight size anchors. Page title and section title retain
+their separate compatibility keys but use the same heading scale; reading uses
+the body size and rhythm.
 
-Each responsive role exposes minimum size, fluid viewport value, maximum size, weight, line height and letter spacing.
+| Treatment | Mobile → desktop at the default root size | Default weight | Line height |
+| --- | --- | --- | --- |
+| Display / masthead | 48 → 96px | 750 | 1.05 |
+| Page / section heading | 48 → 80px | 750 | 1.05 |
+| Card title | 24 → 32px | 750 | 1.2 |
+| Lead / featured quote | 24 → 32px | 450 | 1.4 |
+| Body / long-form reading | 18px | 450 | 1.6 |
+| Interface / controls | 16px | 600 | 1.4 |
+| Small / metadata | 14px | 600 | 1.4 |
+
+The table describes rendered CSS pixels for a 16px root. Implement sizes in
+`rem`, using the semantic roles in `src/styles/design-system.css`. Responsive
+headings combine a rem contribution with a viewport contribution and clamp to
+the shared endpoints. Body, controls and metadata keep a fixed rem size.
+
+Use **350 light**, **450 regular**, **600 medium**, and **750 bold**. Reserve
+light weight for large editorial text, paired with bold text at the same size.
+Do not use light weight for small labels or reading copy. The shared wordmark
+has a documented brand size; decorative arrows can use contextual `em` sizing.
+
+Prefer the full role shorthand and its matching tracking value:
+
+```css
+.project-title {
+  font: var(--type-role-card-title-font);
+  letter-spacing: var(--type-role-card-title-track);
+}
+.project-summary {
+  font: var(--type-role-body-font);
+  max-inline-size: var(--type-measure-body);
+}
+```
+
+Utility classes include `t-display`, `t-title`, `t-heading`, `t-card-title`,
+`t-lead`, `t-body`, `t-ui`, and `t-label`. Use `--type-role-subheading-font`
+for compact article subsections: 24px / 600, subordinate to card-sized section
+headings and above body copy. The newsletter byline uses the compact 24px lead
+size, rather than inventing another fluid scale.
+
+Cap reading columns with `--type-measure-body` (62ch), introductory text with
+`--type-measure-lead` (32ch), and headings where appropriate with
+`--type-measure-heading` (20ch). Narrow containers can shrink below these caps.
+Use natural wrapping and content-driven heights. Adjust layout or stack adjacent
+actions when text needs room; do not shrink text to fit a card. Keep semantic
+heading order independent of visual size. Test at 320px and with enlarged text.
+
+`npm run check:typography` checks migrated page families and shared components
+for new local font-size/weight scales. New standard components should join its
+file list. Intentional art direction requires a documented exception, rather
+than a broad override of ordinary UI.
+
+Old saved token publications are upgraded **in memory** to v2 typography while
+retaining their colours, layout values, corner settings and stored history.
+New saves include `__typographyVersion: 2`; later edits made in Design Studio
+remain effective on reload. Colour-only publication preserves the effective
+typography. No database rewrite or additional table is required.
 
 ## Publishing model
 

@@ -57,18 +57,15 @@
 .research-papers-hero h1 {
   margin: 16px 0 0;
   color: var(--color-text);
-  font: var(--type-role-display-weight) var(--type-role-display-size)/var(--type-role-display-line) var(--papers-font);
-  letter-spacing: var(--type-role-display-track);
-  letter-spacing: -0.065em;
   text-wrap: balance;
+  font: var(--type-role-page-title-font);
+  letter-spacing: var(--type-role-page-title-track);
 }
 .research-papers-hero h1 span {
   display: block;
   margin-top: 12px;
-  font-size: 0.48em;
-  font-weight: 450;
-  line-height: 1.12;
-  letter-spacing: -0.035em;
+  font: var(--type-role-lead-font);
+  letter-spacing: var(--type-role-lead-track);
 }
 .research-papers-hero__intro {
   max-width: 40ch;
@@ -236,14 +233,14 @@
 }
 .paper-entry__attribution {
   margin: 10px 0 0;
-  font-size: 0.8rem;
-  line-height: 1.5;
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 .paper-entry__abstract-copy {
   margin: 16px 0 8px 40px;
-  font-size: 0.84rem;
-  line-height: 1.6;
   overflow-wrap: anywhere;
+  font: var(--type-role-body-font);
+  letter-spacing: var(--type-role-body-track);
 }
 .paper-entry__abstract-copy:not([hidden]) {
   animation: paper-abstract-in 160ms ease;
@@ -264,12 +261,12 @@
   min-height: 44px;
   padding: 0;
   color: var(--color-text);
-  font-size: 0.8rem;
-  font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 4px;
   white-space: nowrap;
   flex-shrink: 0;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 .paper-entry__pdf:hover {
   color: var(--color-additional-2);
@@ -285,8 +282,8 @@
 }
 .paper-browser__scroll-footer p {
   margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font: var(--type-role-body-font);
+  letter-spacing: var(--type-role-body-track);
 }
 .paper-browser__scroll-footer button {
   width: 44px;
@@ -295,8 +292,9 @@
   border-radius: 14px;
   background: var(--color-button);
   color: var(--color-button-text);
-  font-size: 1.4rem;
   flex-shrink: 0;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 .paper-browser__scroll-footer button:disabled {
   opacity: 0.35;
@@ -314,9 +312,9 @@
   border-radius: 14px;
   background: transparent;
   color: var(--color-text);
-  font-size: 0.86rem;
-  font-weight: 650;
   text-align: left;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 .paper-browser__all span:first-child {
   flex: 1;
@@ -363,7 +361,8 @@
   border: 0;
   background: transparent;
   color: var(--color-text);
-  font-size: 0.75rem;
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 .paper-browser__tag-scroll-hint:hover:not(:disabled) {
   text-decoration: underline;
@@ -383,13 +382,13 @@
   border-radius: 14px;
   background: var(--color-background);
   color: var(--color-text);
-  font-size: 0.85rem;
-  line-height: 1.35;
   text-align: left;
   transition:
     background 180ms ease,
     transform 180ms ease;
   overflow-wrap: anywhere;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 .paper-browser__tag-cloud button:hover,
 .paper-browser__all:hover {
@@ -403,29 +402,28 @@
   color: var(--color-primary-text);
 }
 .paper-browser__tag-count {
-  font-size: 0.68rem;
-  font-weight: 750;
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 .paper-browser__topics-note {
   margin: auto 0 0;
   padding-top: 24px;
   border-top: 1px solid var(--pop-line);
   max-width: 32ch;
-  font-size: 0.86rem;
-  line-height: 1.5;
+  font: var(--type-role-body-font);
+  letter-spacing: var(--type-role-body-track);
 }
 .paper-browser__empty {
   padding: 40px 0;
 }
 .paper-browser__empty h3 {
   color: inherit;
-  font-size: 1.7rem;
-  line-height: 1.1;
-  letter-spacing: -0.035em;
+  font: var(--type-role-card-title-font);
+  letter-spacing: var(--type-role-card-title-track);
 }
 .paper-browser__empty p {
-  font-size: 0.94rem;
-  line-height: 1.5;
+  font: var(--type-role-body-font);
+  letter-spacing: var(--type-role-body-track);
 }
 .paper-browser__empty button {
   min-height: 44px;
@@ -476,12 +474,12 @@
     border-radius: 18px;
   }
   .research-papers-hero h1 {
-    font-size: clamp(2.5rem, 10vw, 4rem);
-    line-height: 0.98;
-    letter-spacing: -0.055em;
+    font: var(--type-role-page-title-font);
+    letter-spacing: var(--type-role-page-title-track);
   }
   .research-papers-hero h1 span {
-    font-size: 0.5em;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
   .paper-browser {
     grid-template-columns: minmax(0, 1fr);

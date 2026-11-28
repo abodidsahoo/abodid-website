@@ -74,35 +74,48 @@ export const DESIGN_TOKEN_GROUPS = [
     sections: [
       {
         label: "Display / masthead",
-        tokens: typographyRole("display", { min: 3, fluid: 6.7, max: 7, weight: 620, line: 0.9, track: -0.065 }),
+        tokens: typographyRole("display", { min: 3, fluid: 5, max: 6, weight: 750, line: 1.05, track: -0.045 }),
       },
       {
         label: "Page title",
-        tokens: typographyRole("page-title", { min: 2.5, fluid: 4.8, max: 5, weight: 620, line: 0.98, track: -0.05 }),
+        tokens: typographyRole("page-title", { min: 3, fluid: 4, max: 5, weight: 750, line: 1.05, track: -0.045 }),
       },
       {
         label: "Section title",
-        tokens: typographyRole("section-title", { min: 2.4, fluid: 4, max: 4, weight: 620, line: 0.98, track: -0.05 }),
+        tokens: typographyRole("section-title", { min: 3, fluid: 4, max: 5, weight: 750, line: 1.05, track: -0.045 }),
       },
       {
         label: "Card title",
-        tokens: typographyRole("card-title", { min: 1.4, fluid: 2.2, max: 1.9, weight: 720, line: 1.15, track: -0.04 }),
+        tokens: typographyRole("card-title", { min: 1.5, fluid: 1.15, max: 2, weight: 750, line: 1.2, track: -0.025 }),
+      },
+      {
+        label: "Lead / featured quote",
+        tokens: typographyRole("lead", { min: 1.5, fluid: 1.15, max: 2, weight: 450, line: 1.4, track: -0.015 }),
       },
       {
         label: "Body copy",
-        tokens: typographyRole("body", { min: 0.94, fluid: 1.12, max: 1.1, weight: 450, line: 1.5, track: 0 }),
+        tokens: typographyRole("body", { min: 1.125, fluid: 1.12, max: 1.125, weight: 450, line: 1.6, track: 0 }),
       },
       {
         label: "Long-form reading",
-        tokens: typographyRole("reading", { min: 1.05, fluid: 1.45, max: 1.35, weight: 450, line: 1.6, track: 0 }),
+        tokens: typographyRole("reading", { min: 1.125, fluid: 1.12, max: 1.125, weight: 450, line: 1.6, track: 0 }),
+      },
+      {
+        label: "Interface / controls",
+        tokens: [
+          numberToken("--ds-ui-size", "Size", 1, 1, 1.25, 0.025, "rem"),
+          numberToken("--ds-ui-weight", "Weight", 600, 300, 900, 10),
+          numberToken("--ds-ui-line", "Line height", 1.4, 1.2, 2, 0.01),
+          numberToken("--ds-ui-track", "Letter spacing", 0, -0.025, 0.05, 0.005, "em"),
+        ],
       },
       {
         label: "Metadata / eyebrow",
         tokens: [
-          numberToken("--ds-label-size", "Size", 0.72, 0.6, 1, 0.01, "rem"),
-          numberToken("--ds-label-weight", "Weight", 750, 300, 900, 10),
-          numberToken("--ds-label-line", "Line height", 1.35, 0.9, 2, 0.01),
-          numberToken("--ds-label-track", "Letter spacing", 0.08, -0.1, 0.2, 0.005, "em"),
+          numberToken("--ds-label-size", "Size", 0.875, 0.875, 1.125, 0.025, "rem"),
+          numberToken("--ds-label-weight", "Weight", 600, 300, 900, 10),
+          numberToken("--ds-label-line", "Line height", 1.4, 1.2, 2, 0.01),
+          numberToken("--ds-label-track", "Letter spacing", 0.02, 0, 0.08, 0.005, "em"),
         ],
       },
     ],
@@ -172,9 +185,9 @@ function numberToken(name, label, defaultValue, min, max, step, unit = "") {
 
 function typographyRole(role, values) {
   return [
-    numberToken(`--ds-${role}-min`, "Minimum size", values.min, 0.6, 8, 0.05, "rem"),
-    numberToken(`--ds-${role}-fluid`, "Fluid size", values.fluid, 0.5, 14, 0.1, "vw"),
-    numberToken(`--ds-${role}-max`, "Maximum size", values.max, 0.8, 10, 0.05, "rem"),
+    numberToken(`--ds-${role}-min`, "Minimum size", values.min, 0.6, 8, 0.025, "rem"),
+    numberToken(`--ds-${role}-fluid`, "Fluid size", values.fluid, 0.5, 14, 0.05, "vw"),
+    numberToken(`--ds-${role}-max`, "Maximum size", values.max, 0.8, 10, 0.025, "rem"),
     numberToken(`--ds-${role}-weight`, "Weight", values.weight, 300, 900, 10),
     numberToken(`--ds-${role}-line`, "Line height", values.line, 0.75, 2, 0.01),
     numberToken(`--ds-${role}-track`, "Letter spacing", values.track, -0.12, 0.2, 0.005, "em"),
@@ -191,6 +204,20 @@ export const SITE_CORNER_FIELDS = DESIGN_TOKEN_FIELDS.filter((token) => token.na
 export const DEFAULT_DESIGN_TOKENS = Object.fromEntries(
   DESIGN_TOKEN_FIELDS.map((token) => [token.name, String(token.defaultValue)]),
 );
+
+export const TYPOGRAPHY_VERSION = 2;
+export const TYPOGRAPHY_TOKEN_NAMES = DESIGN_TOKEN_GROUPS.find((group) => group.id === "typography")
+  .sections.flatMap((section) => section.tokens.map(({ name }) => name));
+
+// Upgrade old publications in memory. Stored history, palettes and layout values
+// remain intact; new publications carry a marker so later type edits survive.
+export function upgradeTypographyTokens(candidate = {}) {
+  if (Number(candidate?.__typographyVersion) >= TYPOGRAPHY_VERSION) return normaliseDesignTokens(candidate);
+  return normaliseDesignTokens({
+    ...candidate,
+    ...Object.fromEntries(TYPOGRAPHY_TOKEN_NAMES.map((name) => [name, DEFAULT_DESIGN_TOKENS[name]])),
+  });
+}
 
 export function normaliseDesignTokens(candidate = {}) {
   const fields = new Map(DESIGN_TOKEN_FIELDS.map((field) => [field.name, field]));
@@ -239,6 +266,7 @@ export function serialiseDesignTokens(candidate) {
   const tokens = normaliseDesignTokens(candidate);
   return {
     ...tokens,
+    __typographyVersion: TYPOGRAPHY_VERSION,
     ...Object.fromEntries(Object.entries(LEGACY_COLOR_TOKENS).map(([legacy, name]) => [legacy, tokens[name]])),
   };
 }

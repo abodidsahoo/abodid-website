@@ -315,17 +315,17 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
   .story-work__header h1 {
     margin: 0;
     color: inherit;
-    font: 620 clamp(3.2rem, 6.5vw, 6.5rem)/0.9 var(--font-display, sans-serif);
-    letter-spacing: -0.055em;
     text-wrap: balance;
+    font: var(--type-role-page-title-font);
+    letter-spacing: var(--type-role-page-title-track);
   }
   .story-work__header p {
     max-width: 40rem;
     margin: 0;
     color: color-mix(in srgb, var(--color-primary-text) 90%, transparent);
-    font: 450 clamp(1.15rem, 1.5vw, 1.5rem)/1.42 var(--font-display, sans-serif);
-    letter-spacing: -0.015em;
     text-wrap: pretty;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
   .story-work__grid {
     width: min(100%, 1480px);
@@ -409,9 +409,9 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
     align-items: center;
     gap: .7rem;
     margin: 0 0 .4rem;
-    font: 700 .68rem/1.3 var(--font-mono, monospace);
-    letter-spacing: .08em;
     text-transform: uppercase;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-project__copy > p:first-child span {
     color: inherit;
@@ -420,16 +420,17 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
   .story-project h3 {
     margin: 0 0 .5rem;
     color: inherit;
-    font: 620 clamp(1.65rem, 2.6vw, 3.2rem)/.96 var(--font-display, sans-serif);
-    letter-spacing: -.045em;
     text-wrap: balance;
     overflow-wrap: break-word;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
   .story-project__summary {
     max-width: 48rem;
     margin: 0 0 1rem;
     color: inherit;
-    font: 450 .94rem/1.48 var(--font-body, sans-serif);
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
   .story-project dl {
     margin: 0;
@@ -448,26 +449,26 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
   .story-project dt {
     margin: 0;
     color: inherit;
-    font: 750 .64rem/1.2 var(--font-mono, monospace);
-    letter-spacing: .09em;
     text-transform: uppercase;
     opacity: .85;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-project dd {
     margin: 0;
     color: inherit;
-    font: 500 .86rem/1.38 var(--font-body, sans-serif);
-    letter-spacing: -.01em;
     text-wrap: pretty;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .story-project__link {
     margin-top: 1.1rem;
     display: inline-flex;
     align-items: center;
     gap: .5rem;
-    font: 750 .67rem/1 var(--font-mono, monospace);
-    letter-spacing: .08em;
     text-transform: uppercase;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .story-project__link b {
     display: inline-block;

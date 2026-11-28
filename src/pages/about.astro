@@ -471,9 +471,9 @@ const additionalClients = [
       align-items: center;
       gap: 0.55rem;
       color: inherit;
-      font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 var(--font-mono, monospace);
-      letter-spacing: 0.11em;
       text-transform: uppercase;
+      font: var(--type-role-label-font);
+      letter-spacing: var(--type-role-label-track);
     }
 
     /* 1. Hero Grid */
@@ -517,9 +517,9 @@ const additionalClients = [
       border-radius: var(--home-next-radius-control);
       background: var(--color-button);
       color: var(--color-button-text);
-      font: 750 0.62rem/1.2 var(--font-mono, monospace);
-      letter-spacing: 0.08em;
       text-transform: uppercase;
+      font: var(--type-role-label-font);
+      letter-spacing: var(--type-role-label-track);
     }
 
     .about-pill-tag img {
@@ -531,8 +531,8 @@ const additionalClients = [
     .about-hero-title {
       margin: 0;
       color: var(--color-text) !important;
-      font: 720 clamp(2.8rem, 5vw, 5.4rem)/0.86 var(--font-display, sans-serif) !important;
-      letter-spacing: -0.07em !important;
+      font: var(--type-role-page-title-font) !important;
+      letter-spacing: var(--type-role-page-title-track) !important;
     }
 
     .about-hero-divider {
@@ -547,25 +547,24 @@ const additionalClients = [
     .about-hero-subtitle {
       margin: 0 0 clamp(1rem, 1.6vw, 1.5rem);
       color: var(--color-text) !important;
-      font: 500 clamp(1.15rem, 1.8vw, 1.65rem)/1.15
-        var(--font-display, sans-serif) !important;
-      letter-spacing: -0.025em !important;
+      font: var(--type-role-lead-font) !important;
+      letter-spacing: var(--type-role-lead-track) !important;
     }
 
     .about-hero-statement {
       margin: 0 0 clamp(1rem, 1.6vw, 1.4rem);
       color: var(--color-text) !important;
-      font: 320 clamp(1.75rem, 2.7vw, 2.85rem)/1.05
-        var(--font-display, sans-serif) !important;
-      letter-spacing: -0.035em !important;
       text-wrap: balance;
+      font: var(--type-role-lead-font) !important;
+      letter-spacing: var(--type-role-lead-track) !important;
     }
 
     .about-hero-lede {
       max-width: 720px;
       margin: 0 0 clamp(1.5rem, 2.5vw, 2.2rem);
       color: color-mix(in srgb, var(--color-text) 85%, transparent) !important;
-      font: 450 clamp(0.95rem, 1.2vw, 1.08rem)/1.55 var(--font-body, sans-serif) !important;
+      font: var(--type-role-body-font) !important;
+      letter-spacing: var(--type-role-body-track) !important;
     }
 
     .about-actions-row {
@@ -583,13 +582,13 @@ const additionalClients = [
       border: 1px solid var(--color-text);
       border-radius: var(--home-next-radius-control);
       color: var(--color-text) !important;
-      font: 750 0.72rem/1 var(--font-mono, monospace) !important;
-      letter-spacing: 0.08em;
       text-decoration: none !important;
       text-transform: uppercase;
       transition:
         transform var(--home-next-motion),
         box-shadow var(--home-next-motion);
+      font: var(--type-role-ui-font) !important;
+      letter-spacing: var(--type-role-ui-track) !important;
     }
 
     .about-btn:hover {
@@ -652,17 +651,17 @@ const additionalClients = [
     }
 
     .about-portrait-card figcaption strong {
-      font: 700 1.05rem/1 var(--font-display, sans-serif);
-      letter-spacing: -0.02em;
       color: inherit;
+      font: var(--type-role-ui-font);
+      letter-spacing: var(--type-role-ui-track);
     }
 
     .about-portrait-card figcaption small {
-      font: 700 0.65rem/1.2 var(--font-mono, monospace);
-      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: inherit;
       opacity: 0.85;
+      font: var(--type-role-label-font);
+      letter-spacing: var(--type-role-label-track);
     }
 
     /* 2. Manifesto Banner */
@@ -681,16 +680,17 @@ const additionalClients = [
     .about-manifesto-quote {
       margin: 0 0 clamp(1rem, 2vw, 1.5rem);
       color: var(--color-text) !important;
-      font: 640 clamp(2rem, 4.5vw, 3.8rem)/0.96 var(--font-display, sans-serif) !important;
-      letter-spacing: -0.045em !important;
       text-wrap: balance;
+      font: var(--type-role-lead-font) !important;
+      letter-spacing: var(--type-role-lead-track) !important;
     }
 
     .about-manifesto-text {
       margin: 0;
       color: color-mix(in srgb, var(--color-text) 90%, transparent) !important;
-      font: 450 clamp(1rem, 1.4vw, 1.22rem)/1.6 var(--font-body, sans-serif) !important;
       max-width: 960px;
+      font: var(--type-role-body-font) !important;
+      letter-spacing: var(--type-role-body-track) !important;
     }
 
     .about-manifesto-actions {
@@ -719,19 +719,19 @@ const additionalClients = [
 
     .about-panel__title {
       margin: 0;
+      overflow-wrap: break-word;
       color: var(--color-text) !important;
-      font: 620 clamp(2.2rem, 4.8vw, 4.5rem)/0.92
-        var(--font-display, sans-serif) !important;
-      letter-spacing: -0.055em !important;
+      font: var(--type-role-section-title-font) !important;
+      letter-spacing: var(--type-role-section-title-track) !important;
     }
 
     .about-panel__link {
       padding-bottom: 0.3rem;
       color: var(--color-text) !important;
-      font: 750 0.72rem/1 var(--font-mono, monospace) !important;
-      letter-spacing: 0.08em;
       text-decoration: none !important;
       text-transform: uppercase;
+      font: var(--type-role-ui-font) !important;
+      letter-spacing: var(--type-role-ui-track) !important;
     }
 
     .about-panel__link > .link-label {
@@ -794,23 +794,24 @@ const additionalClients = [
     .about-offering-card__num {
       display: block;
       margin-bottom: 0.35rem;
-      font: 750 0.75rem/1 var(--font-mono, monospace);
-      letter-spacing: 0.1em;
       opacity: 0.85;
       color: inherit;
+      font: var(--type-role-label-font);
+      letter-spacing: var(--type-role-label-track);
     }
 
     .about-offering-card h3 {
       margin: 0;
       color: inherit !important;
-      font: 640 clamp(1.4rem, 2vw, 1.85rem)/1.05 var(--font-display, sans-serif) !important;
-      letter-spacing: -0.035em !important;
+      font: var(--type-role-card-title-font) !important;
+      letter-spacing: var(--type-role-card-title-track) !important;
     }
 
     .about-offering-card__desc {
       margin: 0 0 1.5rem;
       color: inherit !important;
-      font: 450 0.95rem/1.5 var(--font-body, sans-serif) !important;
+      font: var(--type-role-body-font) !important;
+      letter-spacing: var(--type-role-body-track) !important;
     }
 
     .about-offering-card__footer {
@@ -821,18 +822,18 @@ const additionalClients = [
     .about-offering-card__tag {
       display: block;
       margin-bottom: 0.25rem;
-      font: 750 0.62rem/1.2 var(--font-mono, monospace);
-      letter-spacing: 0.09em;
       text-transform: uppercase;
       opacity: 0.8;
       color: inherit;
+      font: var(--type-role-label-font);
+      letter-spacing: var(--type-role-label-track);
     }
 
     .about-offering-card__footer p {
       margin: 0;
       color: inherit !important;
-      font: 600 0.85rem/1.4 var(--font-body, sans-serif) !important;
-      letter-spacing: -0.01em;
+      font: var(--type-role-body-font) !important;
+      letter-spacing: var(--type-role-body-track) !important;
     }
 
     /* 4. Credentials / Pop Editorial Cards Grid */
@@ -851,8 +852,8 @@ const additionalClients = [
     .about-credentials__title {
       margin: 0;
       color: var(--color-primary-text) !important;
-      font: 620 clamp(2.4rem, 5vw, 4.8rem)/0.94 var(--font-display, sans-serif) !important;
-      letter-spacing: -0.04em !important;
+      font: var(--type-role-section-title-font) !important;
+      letter-spacing: var(--type-role-section-title-track) !important;
     }
 
     .about-credentials-grid {
@@ -925,25 +926,25 @@ const additionalClients = [
       border-radius: 8px;
       background: color-mix(in srgb, var(--color-text) 8%, transparent);
       color: var(--color-text);
-      font: 750 0.65rem/1.2 var(--font-mono, monospace);
-      letter-spacing: 0.08em;
       text-transform: uppercase;
+      font: var(--type-role-label-font);
+      letter-spacing: var(--type-role-label-track);
     }
 
     .about-credential-card__title {
       margin: 0;
       color: var(--color-text) !important;
-      font: 640 clamp(1.22rem, 1.55vw, 1.55rem)/1.15
-        var(--font-display, sans-serif) !important;
-      letter-spacing: -0.03em !important;
       text-wrap: balance;
       word-break: normal;
+      font: var(--type-role-card-title-font) !important;
+      letter-spacing: var(--type-role-card-title-track) !important;
     }
 
     .about-credential-card__detail {
       margin: 0;
       color: color-mix(in srgb, var(--color-text) 88%, transparent) !important;
-      font: 450 clamp(0.88rem, 1.05vw, 0.98rem)/1.5 var(--font-body, sans-serif) !important;
+      font: var(--type-role-body-font) !important;
+      letter-spacing: var(--type-role-body-track) !important;
     }
 
     /* Client Pills Bar */
@@ -960,11 +961,11 @@ const additionalClients = [
     }
 
     .about-client-pills-label {
-      font: 750 0.68rem/1.2 var(--font-mono, monospace);
-      letter-spacing: 0.09em;
       text-transform: uppercase;
       color: var(--color-text);
       opacity: 0.85;
+      font: var(--type-role-label-font);
+      letter-spacing: var(--type-role-label-track);
     }
 
     .about-client-pills-list {
@@ -979,11 +980,11 @@ const additionalClients = [
       border-radius: var(--home-next-radius-control);
       background: var(--color-button);
       color: var(--color-button-text);
-      font: 700 0.76rem/1.2 var(--font-mono, monospace);
-      letter-spacing: 0.04em;
       transition:
         transform var(--home-next-motion),
         box-shadow var(--home-next-motion);
+      font: var(--type-role-ui-font);
+      letter-spacing: var(--type-role-ui-track);
     }
 
     .about-client-pill:hover {
@@ -1007,16 +1008,16 @@ const additionalClients = [
     .about-cta-panel__title {
       margin: 0 0 0.85rem;
       color: var(--color-text) !important;
-      font: 620 clamp(2.2rem, 4.5vw, 4.2rem)/0.95
-        var(--font-display, sans-serif) !important;
-      letter-spacing: -0.05em !important;
+      font: var(--type-role-section-title-font) !important;
+      letter-spacing: var(--type-role-section-title-track) !important;
     }
 
     .about-cta-panel__text {
       max-width: 520px;
       margin: 0 0 2rem;
       color: color-mix(in srgb, var(--color-text) 88%, transparent) !important;
-      font: 450 clamp(0.98rem, 1.3vw, 1.15rem)/1.55 var(--font-body, sans-serif) !important;
+      font: var(--type-role-body-font) !important;
+      letter-spacing: var(--type-role-body-track) !important;
     }
 
     /* Responsive Rules */
@@ -1037,6 +1038,10 @@ const additionalClients = [
     }
 
     @media (max-width: 720px) {
+      .about-panel__header {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+      }
       .about-credentials {
         padding: 1.25rem 1rem;
       }

@@ -21,24 +21,24 @@
 
 .reading-room, .subject-index, .studio-postcard { display: grid; align-content: center; }
 .footer-controls__label, .footer-kicker {
-  font: var(--type-role-label-weight, 700) .74rem/1.35 var(--font-ui);
-  letter-spacing: .11em;
   text-transform: uppercase;
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 
 .editorial-footer .footer-deck {
   max-width: 39ch;
-  font: var(--type-role-reading-weight, 450) clamp(1rem, 1.4vw, 1.17rem)/1.5 var(--font-body);
-  letter-spacing: -.015em;
   text-wrap: pretty;
+  font: var(--type-role-body-font);
+  letter-spacing: var(--type-role-body-track);
 }
 .editorial-footer .footer-action, .editorial-footer .footer-text-link {
   width: fit-content;
   min-height: 2.8rem;
   display: inline-flex;
   align-items: center;
-  font: 680 .96rem/1.25 var(--font-ui);
-  letter-spacing: -.015em;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 .editorial-footer .footer-action {
   justify-content: space-between;
@@ -49,7 +49,9 @@
   background: var(--site-palette-ink, var(--ui-button-bg));
   color: var(--site-palette-paper, var(--ui-button-text));
 }
-.footer-action span { font-size: 1.25em; line-height: 1; }
+.footer-action span {
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track); }
 .editorial-footer .footer-action:hover {
   background: var(--site-palette-ink, var(--ui-button-hover-bg));
 }
@@ -67,7 +69,7 @@
 .editorial-footer .footer-text-link:hover { text-decoration-thickness: 2px; }
 
 .reading-room h2 em {
-  font-weight: 360;
+  font-weight: var(--type-weight-light);
   letter-spacing: -.025em;
 }
 .reading-room__links {
@@ -107,45 +109,43 @@
 
 .studio-postcard__kicker {
   margin: 0 0 .4rem;
-  font: 700 .74rem/1.35 var(--font-ui);
-  letter-spacing: .12em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--color-text) 72%, transparent);
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 
 .editorial-footer .studio-postcard__title {
   margin: 0 0 1.35rem;
-  font-size: clamp(2.2rem, 4vw, 3.6rem);
-  line-height: 1.02;
-  letter-spacing: -.035em;
   text-wrap: balance;
   font-family: var(--font-display);
+  font: var(--type-role-section-title-font);
+  letter-spacing: var(--type-role-section-title-track);
 }
 
 .studio-postcard__heading {
   display: block;
-  letter-spacing: -.035em;
+  letter-spacing: var(--type-role-section-title-track);
 }
 
 .studio-postcard__light {
-  font-weight: 340;
+  font-weight: var(--type-weight-light);
 }
 
 .studio-postcard__bold,
 .studio-postcard__heading strong {
-  font-weight: 850;
+  font-weight: var(--type-weight-bold);
 }
 
 .studio-postcard__byline {
   display: block;
   margin-block-start: .3rem;
   font-family: var(--font-serif, "Playfair Display", Georgia, serif);
-  font-size: clamp(1.35rem, 2.2vw, 2rem);
   font-style: italic;
-  font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -.02em;
   color: var(--color-text);
+  font: var(--type-role-lead-font);
+  font-size: var(--type-role-lead-compact-size);
+  letter-spacing: var(--type-role-lead-track);
 }
 
 .studio-postcard__content-row {
@@ -160,7 +160,7 @@
 .studio-postcard__copy-wrap {
   flex: 1 1 16rem;
   min-width: 0;
-  max-width: 32ch;
+  max-width: var(--type-measure-body);
 }
 
 .studio-postcard__badge {
@@ -169,24 +169,24 @@
   padding-inline: .35rem .55rem;
   margin-inline-start: -.35rem;
   margin-block-end: .9rem;
-  font: 800 .94rem/1.2 var(--font-ui);
-  letter-spacing: -.01em;
   color: #111;
   background: #ffe81a;
   border-radius: 3px;
   box-shadow: none;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 
 .studio-postcard__copy {
   margin: 0 0 1.25rem;
-  font: 450 clamp(.9rem, 1.12vw, 1.02rem)/1.55 var(--font-body);
-  letter-spacing: -.015em;
   text-wrap: pretty;
   color: var(--color-text);
+  font: var(--type-role-body-font);
+  letter-spacing: var(--type-role-body-track);
 }
 
 .studio-postcard__copy strong {
-  font-weight: 750;
+  font-weight: var(--type-weight-bold);
   color: var(--color-text);
 }
 
@@ -253,10 +253,10 @@
   align-items: center;
   gap: .4rem .55rem;
   padding-block-start: .2rem;
-  font: 700 .74rem/1.3 var(--font-ui);
-  letter-spacing: .08em;
   color: var(--color-text);
   text-transform: uppercase;
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 
 .studio-postcard__topic {
@@ -273,7 +273,7 @@
 
 .studio-postcard__topic-sep {
   opacity: .35;
-  font-weight: 400;
+  font-weight: var(--type-weight-regular);
 }
 
 .studio-postcard__postage {
@@ -331,8 +331,9 @@
   align-items: center;
   gap: .35rem;
   margin-block-start: 1.25rem;
-  font: 700 .9rem/1.2 var(--font-ui);
   text-decoration: none;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 
 .editorial-footer .studio-postcard__archive:hover {
@@ -354,9 +355,10 @@
 .footer-colophon a {
   display: inline-block;
   padding-block: .5rem;
-  font: 550 .85rem/1.35 var(--font-ui);
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
-.footer-colophon .footer-colophon__credit { font-weight: 700; }
+.footer-colophon .footer-colophon__credit { font-weight: var(--type-weight-bold); }
 
 @container (max-width: 880px) {
   .studio-postcard__card {

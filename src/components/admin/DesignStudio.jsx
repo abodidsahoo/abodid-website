@@ -7,6 +7,7 @@ import {
   DESIGN_TOKEN_GROUPS,
   evaluateSurfaceContracts,
   normaliseDesignTokens,
+  upgradeTypographyTokens,
   serialiseDesignTokens,
   mergeColourTokens,
 } from "../../lib/designTokens.js";
@@ -56,6 +57,16 @@ function TokenField({ token, value, selected, onSelect, onChange, onNormalise })
             onBlur={onNormalise}
           />
         </div>
+      ) : token.name.endsWith("-weight") ? (
+        <select
+          id={`design-token-${token.name}`}
+          value={value}
+          onChange={(event) => onChange(token.name, event.target.value)}
+        >
+          {[350, 450, 600, 750].map((weight, index) => (
+            <option key={weight} value={weight}>{["Light", "Regular", "Medium", "Bold"][index]} · {weight}</option>
+          ))}
+        </select>
       ) : (
         <div className="design-token-field__number-control">
           <input
@@ -86,25 +97,26 @@ function TokenField({ token, value, selected, onSelect, onChange, onNormalise })
   );
 }
 
-function typePreviewStyle(token, value) {
-  if (token.name.endsWith("-weight")) return { fontWeight: value };
-  if (token.name.endsWith("-line")) return { lineHeight: value };
-  if (token.name.endsWith("-track")) return { letterSpacing: `${value}em` };
-  if (token.name.endsWith("-fluid")) return { fontSize: `${value}vw` };
-  if (token.name.endsWith("-min") || token.name.endsWith("-max") || token.name.endsWith("-size")) {
-    return { fontSize: `${value}rem` };
-  }
-  return undefined;
+function typePreviewStyle(role, tokens) {
+  const value = (part) => tokens[`--ds-${role}-${part}`] ?? DEFAULT_DESIGN_TOKENS[`--ds-${role}-${part}`];
+  const fixed = role === "ui" || role === "label";
+  const offset = ["display", "page-title", "section-title"].includes(role) ? 1.5 : ["lead", "card-title"].includes(role) ? 1 : 0;
+  return {
+    fontSize: fixed ? `${value("size")}rem` : `clamp(${value("min")}rem, calc(${offset}rem + ${value("fluid")}vw), ${value("max")}rem)`,
+    fontWeight: value("weight"),
+    lineHeight: value("line"),
+    letterSpacing: `${value("track")}em`,
+  };
 }
 
-function TypeSpecimen({ usage, token, value }) {
+function TypeSpecimen({ usage, tokens }) {
   const Tag = usage.tag || "p";
   return (
     <div className="design-specimen__type" data-pop-surface="cream">
       <span className="design-kicker">Real text hierarchy</span>
       <Tag
         className={`design-specimen__type-role design-specimen__type-role--${usage.role}`}
-        style={typePreviewStyle(token, value)}
+        style={typePreviewStyle(usage.role, tokens)}
       >
         {usage.sample}
       </Tag>
@@ -182,9 +194,9 @@ function ComponentSpecimen({ kind, value }) {
   );
 }
 
-function PreviewSpecimen({ token, tokenValue, usage }) {
+function PreviewSpecimen({ token, tokenValue, usage, tokens }) {
   const rawValue = tokenValue.replace(token.unit || "", "");
-  if (usage.previewKind === "type") return <TypeSpecimen usage={usage} token={token} value={rawValue} />;
+  if (usage.previewKind === "type") return <TypeSpecimen usage={usage} tokens={tokens} />;
   if (["grid-gap", "gutter", "section-space"].includes(usage.previewKind)) {
     return <LayoutSpecimen kind={usage.previewKind} token={token} value={rawValue} />;
   }
@@ -240,7 +252,7 @@ function Inspector({ token, tokens, contracts }) {
 
         <p className="design-inspector__summary" data-pop-surface="cream">{usage.summary}</p>
         <section className="design-inspector__stage" aria-label={`${usage.title} specimen`} aria-live="polite">
-          <PreviewSpecimen token={token} tokenValue={displayValue} usage={usage} />
+          <PreviewSpecimen token={token} tokenValue={displayValue} usage={usage} tokens={tokens} />
         </section>
 
         <section className="design-inspector__usage" data-pop-surface="cream">
@@ -314,9 +326,9 @@ export default function DesignStudio() {
         setDatabaseReady(false);
         setNotice({ type: "error", text: "Design Studio needs its Supabase migration before drafts can be saved or published." });
       } else if (settingsResult.data) {
-        const published = normaliseDesignTokens(settingsResult.data.published_tokens);
+        const published = upgradeTypographyTokens(settingsResult.data.published_tokens);
         setPublishedTokens(published);
-        setTokens(normaliseDesignTokens(settingsResult.data.draft_tokens || published));
+        setTokens(settingsResult.data.draft_tokens ? upgradeTypographyTokens(settingsResult.data.draft_tokens) : published);
         setVersion(settingsResult.data.published_version || 1);
       }
       setHistory(historyResult.data || []);
@@ -358,7 +370,7 @@ export default function DesignStudio() {
         if (latest.data.published_version !== version) {
           throw new Error("The published design changed in another session. Reload Design Studio before publishing.");
         }
-        if (colourOnly) nextPublished = mergeColourTokens(latest.data.published_tokens, normalisedTokens);
+        if (colourOnly) nextPublished = mergeColourTokens(upgradeTypographyTokens(latest.data.published_tokens), normalisedTokens);
       }
       const { data: { user } } = await supabase.auth.getUser();
       const payload = {
@@ -379,7 +391,7 @@ export default function DesignStudio() {
         setVersion(data.published_version);
         try {
           localStorage.setItem(DESIGN_TOKEN_CACHE_KEY, JSON.stringify({
-            tokens: nextPublished,
+            tokens: serialiseDesignTokens(nextPublished),
             theme: data.published_theme ?? null,
             version: data.published_version,
             updatedAt: data.updated_at,
@@ -387,7 +399,7 @@ export default function DesignStudio() {
         } catch (_error) {
           // A storage quota cannot undo a successful publication.
         }
-        window.dispatchEvent(new CustomEvent("design-tokens:published", { detail: { tokens: nextPublished, version: data.published_version } }));
+        window.dispatchEvent(new CustomEvent("design-tokens:published", { detail: { tokens: serialiseDesignTokens(nextPublished), version: data.published_version } }));
         const message = colourOnly && data.published_theme && data.published_theme.id !== ORIGINAL_SITE_THEME.id
           ? `Original palette saved as version ${data.published_version}. ${data.published_theme.name} is still live.`
           : `Version ${data.published_version} is live.`;
@@ -455,7 +467,7 @@ export default function DesignStudio() {
                   <span className="design-kicker">Load as draft</span>
                   {history.map((entry) => (
                     <button key={entry.version} type="button" data-pop-surface="yellow" onClick={() => {
-                      setTokens(colourOnly ? mergeColourTokens(tokens, entry.tokens) : normaliseDesignTokens(entry.tokens));
+                      setTokens(colourOnly ? mergeColourTokens(tokens, entry.tokens) : upgradeTypographyTokens(entry.tokens));
                       setNotice({ type: "success", text: `Version ${entry.version} loaded as an unpublished ${colourOnly ? "colour " : ""}draft.` });
                     }}>
                       Version {entry.version}

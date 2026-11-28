@@ -8,6 +8,10 @@ import {
   evaluateSurfaceContracts,
   normaliseDesignTokens,
   mergeColourTokens,
+  upgradeTypographyTokens,
+  serialiseDesignTokens,
+  TYPOGRAPHY_TOKEN_NAMES,
+  TYPOGRAPHY_VERSION,
 } from "../../src/lib/designTokens.js";
 import { DESIGN_TOKEN_USAGE } from "../../src/lib/designTokenUsage.js";
 import { normaliseThemeCorners, ORIGINAL_SITE_THEME, sameSiteTheme } from "../../src/lib/siteThemes.js";
@@ -146,4 +150,34 @@ test("the header and footer layout is independent of the theme palette and corne
   assert.equal(header_footer_style, "boxed");
   assert.equal(sameSiteTheme(legacyOriginal, ORIGINAL_SITE_THEME), true);
   assert.equal(sameSiteTheme(legacyOriginal, { ...legacyOriginal, header_footer_style: "lines" }), false);
+});
+
+test("legacy typography adopts the shared scale without rewriting saved colours or layout", () => {
+  const saved = { "--pop-blue": "#123456", "--ds-body-min": "0.94", "--ds-body-weight": "570", "--ds-radius-card": "29" };
+  const upgraded = upgradeTypographyTokens(saved);
+  assert.equal(upgraded["--color-primary"], "#123456");
+  assert.equal(upgraded["--ds-radius-card"], "29");
+  for (const name of TYPOGRAPHY_TOKEN_NAMES) assert.equal(upgraded[name], DEFAULT_DESIGN_TOKENS[name]);
+  assert.equal(saved["--ds-body-weight"], "570");
+});
+
+test("versioned typography edits survive publication and reload", () => {
+  const saved = serialiseDesignTokens({ ...DEFAULT_DESIGN_TOKENS, "--ds-body-min": "1.25", "--ds-body-max": "1.25" });
+  assert.equal(saved.__typographyVersion, TYPOGRAPHY_VERSION);
+  assert.equal(upgradeTypographyTokens(saved)["--ds-body-max"], "1.25");
+  assert.deepEqual(upgradeTypographyTokens(saved), normaliseDesignTokens(saved));
+});
+
+test("typography fallbacks match the editable schema and remain within readable ratios", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const css = await readFile(new URL("../../src/styles/design-system.css", import.meta.url), "utf8");
+  for (const name of TYPOGRAPHY_TOKEN_NAMES) {
+    assert.equal(css.match(new RegExp(`${name}: ([^;]+);`))?.[1], DEFAULT_DESIGN_TOKENS[name], name);
+    if (name.endsWith("-weight")) assert.ok([350, 450, 600, 750].includes(Number(DEFAULT_DESIGN_TOKENS[name])));
+  }
+  for (const role of ["display", "page-title", "section-title", "card-title", "lead", "body", "reading"]) {
+    const min = Number(DEFAULT_DESIGN_TOKENS[`--ds-${role}-min`]);
+    const max = Number(DEFAULT_DESIGN_TOKENS[`--ds-${role}-max`]);
+    assert.ok(max >= min && max / min <= 2.5, role);
+  }
 });

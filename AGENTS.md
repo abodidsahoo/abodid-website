@@ -12,3 +12,12 @@ When the user supplies new tagging logic or corrections, update `public/docs/ABO
 ## Shared UI colours
 
 Use the role variables in `src/lib/designTokens.js` and derived states in `src/styles/ui-colors.css` for ordinary site UI. Shared buttons, forms, navigation, hover/pressed states and overlays must follow these roles. Keep new literal palette values at the central defaults. The Creative Companies Database, separately art-directed lab experiments, archived editions and Podcast Studio can own independent palettes. Treat image-derived palettes, user-selected artwork/board colours and official third-party marks as content or intentional exceptions. See `DESIGN_SYSTEM.md` for the publishing and compatibility contract.
+
+## Shared typography
+
+Use the semantic `--type-role-*-font` shorthands and matching tracking values in
+`src/styles/design-system.css` for ordinary pages and shared UI. Follow the v2
+size and weight hierarchy in `DESIGN_SYSTEM.md`; do not introduce local type
+scales to make text fit. Adjust wrapping and layout instead. Run
+`npm run check:typography` after typography changes, and add new standard
+components to its coverage. Keep intentional art-directed exceptions documented.

@@ -594,10 +594,10 @@ const structuredData = [
   .services-nav a,
   .services-nav summary {
     color: inherit;
-    font: 700 .72rem/1 var(--font-mono, monospace);
-    letter-spacing: .08em;
     text-decoration: none;
     text-transform: uppercase;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .services-nav__brand {
@@ -679,9 +679,9 @@ const structuredData = [
 
   .services-eyebrow {
     margin-bottom: .8rem;
-    font: 750 clamp(.68rem, .9vw, .78rem)/1.35 var(--font-mono, monospace);
-    letter-spacing: .11em;
     text-transform: uppercase;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .services-hero__topline .services-eyebrow { margin: 0; }
@@ -692,27 +692,28 @@ const structuredData = [
     border: 1px solid var(--services-ink);
     border-radius: var(--services-radius-control);
     background: var(--services-yellow);
-    font: 750 .62rem/1.2 var(--font-mono, monospace);
-    letter-spacing: .08em;
     text-transform: uppercase;
     white-space: nowrap;
     color: var(--services-ink);
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .services-hero h1 {
     max-width: 17ch;
     margin: 0 0 clamp(1.3rem, 2vw, 1.8rem);
     color: inherit;
-    font: 560 clamp(2.75rem, 5vw, 5.4rem)/.9 var(--font-display, sans-serif);
-    letter-spacing: -.065em;
     text-wrap: balance;
+    font: var(--type-role-page-title-font);
+    letter-spacing: var(--type-role-page-title-track);
   }
 
   .services-hero__lede,
   .services-hero__fit {
     max-width: 710px;
     color: color-mix(in srgb, var(--color-text) 82%, transparent);
-    font: 450 clamp(1rem, 1.3vw, 1.18rem)/1.5 var(--font-body, sans-serif);
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
 
   .services-hero__lede {
@@ -734,11 +735,11 @@ const structuredData = [
     border-radius: var(--services-radius-control);
     background: var(--services-yellow);
     color: var(--services-ink) !important;
-    font: 750 .72rem/1 var(--font-mono, monospace);
-    letter-spacing: .08em;
     text-decoration: none;
     text-transform: uppercase;
     transition: transform 180ms ease, box-shadow 180ms ease;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .services-button:hover { transform: translateY(-2px); box-shadow: 0 4px 0 var(--services-ink); }
@@ -839,16 +840,17 @@ const structuredData = [
   .services-hero__slide:nth-child(6n + 6) > span { background: var(--services-pink); color: var(--services-ink); }
 
   .services-hero__slide b {
-    font: 700 1.05rem/1.1 var(--font-display, sans-serif);
     color: inherit;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .services-hero__slide small {
-    font: 700 .64rem/1.3 var(--font-mono, monospace);
-    letter-spacing: .04em;
     text-align: right;
     text-transform: uppercase;
     color: inherit;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .services-hero__slide:hover b,
@@ -925,12 +927,12 @@ const structuredData = [
     max-width: none;
     margin: 0 0 clamp(0.85rem, 1.6vw, 1.4rem);
     color: inherit;
-    font: 550 clamp(1.25rem, 1.95vw, 2.15rem)/1.14 var(--font-display, sans-serif);
-    letter-spacing: -.04em;
     text-wrap: pretty;
     flex: 1;
     display: flex;
     align-items: flex-start;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
 
   .services-testimonial__slides footer {
@@ -939,9 +941,9 @@ const structuredData = [
     display: grid;
     gap: .3rem;
     border-top: 1px solid currentColor;
-    font: 700 clamp(0.68rem, 0.88vw, 0.82rem)/1.35 var(--font-mono, monospace);
-    letter-spacing: .05em;
     text-transform: uppercase;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .services-testimonial__slides :is(p, strong, span) { color: inherit; }
@@ -952,8 +954,8 @@ const structuredData = [
     justify-content: space-between;
     gap: 1rem;
     color: inherit;
-    font: 700 clamp(0.62rem, 0.75vw, 0.68rem)/1 var(--font-mono, monospace);
-    letter-spacing: .06em;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .services-testimonial__controls > div { display: flex; gap: .35rem; }
@@ -967,8 +969,9 @@ const structuredData = [
     background: var(--services-cream);
     color: inherit;
     cursor: pointer;
-    font: 700 1rem/1 var(--font-mono, monospace);
     transition: transform 160ms ease, background-color 160ms ease;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .services-testimonial__controls button:hover {
@@ -988,9 +991,9 @@ const structuredData = [
   .services-cta h2 {
     margin: 0 0 1.25rem;
     color: inherit;
-    font: 600 clamp(2.5rem, 5.5vw, 5.8rem)/.92 var(--font-display, sans-serif);
-    letter-spacing: -.06em;
     text-wrap: balance;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
 
   .services-section-heading > p:last-child,
@@ -999,7 +1002,8 @@ const structuredData = [
     max-width: 700px;
     margin-bottom: 0;
     color: inherit;
-    font: 450 clamp(1rem, 1.25vw, 1.15rem)/1.55 var(--font-body, sans-serif);
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
 
   .services-engagements__grid {
@@ -1035,31 +1039,32 @@ const structuredData = [
 
   .services-engagement__title span {
     padding-top: .4rem;
-    font: 750 .7rem/1 var(--font-mono, monospace);
-    letter-spacing: .08em;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .services-engagement h3 {
     margin: 0;
     color: inherit;
-    font: 620 clamp(2rem, 4vw, 4.2rem)/.92 var(--font-display, sans-serif);
-    letter-spacing: -.055em;
     text-wrap: balance;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
 
   .services-engagement__summary {
     max-width: 31rem;
     margin-bottom: 1.75rem;
-    font: 480 clamp(1.02rem, 1.35vw, 1.22rem)/1.45 var(--font-body, sans-serif);
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
 
   .services-engagement ul { margin: 0 0 2rem; padding: 0; display: grid; list-style: none; }
   .services-engagement li {
     padding: .72rem 0;
     border-bottom: 1px solid color-mix(in srgb, var(--color-text) 28%, transparent);
-    font: 700 .68rem/1.25 var(--font-mono, monospace);
-    letter-spacing: .06em;
     text-transform: uppercase;
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
 
   .services-engagement > a {
@@ -1070,10 +1075,10 @@ const structuredData = [
     gap: 1rem;
     border-top: 1px solid currentColor;
     color: inherit;
-    font: 750 .7rem/1.35 var(--font-mono, monospace);
-    letter-spacing: .04em;
     text-decoration: none;
     text-transform: uppercase;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .services-engagement > a:hover span { text-decoration: underline; text-underline-offset: 4px; }
@@ -1118,14 +1123,14 @@ const structuredData = [
   .services-evidence__stats div:nth-child(4) { background: var(--services-orange); }
   .services-evidence__stats :is(dt, dd) { color: var(--services-ink); }
   .services-evidence__stats dt {
-    font: 650 clamp(2.1rem, 4vw, 4rem)/.9 var(--font-display, sans-serif);
-    letter-spacing: -.05em;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
   .services-evidence__stats dd {
     margin: 0;
-    font: 700 .68rem/1.35 var(--font-mono, monospace);
-    letter-spacing: .04em;
     text-transform: uppercase;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .services-cta {
@@ -1351,7 +1356,7 @@ const structuredData = [
     .services-hero { min-height: 0; }
     .services-hero__copy { padding: 1.5rem; }
     .services-hero__topline { align-items: flex-start; }
-    .services-hero h1 { max-width: none; font-size: clamp(2.8rem, 13vw, 4.3rem); }
+    .services-hero h1 { max-width: none; font: var(--type-role-page-title-font); letter-spacing: var(--type-role-page-title-track); }
     .services-hero__showcase { grid-template-rows: 420px minmax(320px, auto); }
     .services-hero__project > span { align-items: flex-start; flex-direction: column; }
     .services-hero__project small { text-align: left; }

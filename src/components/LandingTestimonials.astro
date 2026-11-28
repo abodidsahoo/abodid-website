@@ -233,10 +233,10 @@ const { testimonials } = Astro.props;
     margin: 0;
     color: inherit;
     max-inline-size: 22ch;
-    font: 400 clamp(1.55rem, 2.05vw, 2.45rem)/1.18 var(--font-display, sans-serif);
-    letter-spacing: -.03em;
     text-wrap: balance;
     overflow-wrap: anywhere;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
   @media (pointer: fine) {
     .testimonial-rail[data-enhanced]:not([data-dragging]) .testimonial-card { cursor: grab; }
@@ -259,7 +259,8 @@ const { testimonials } = Astro.props;
     list-style: none;
     cursor: pointer;
     pointer-events: auto;
-    font: 500 .8125rem/1.2 var(--font-body, sans-serif);
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .testimonial-details summary:is(:hover, :active) { border-color: var(--ui-border-strong); }
   .testimonial-details summary::-webkit-details-marker { display: none; }
@@ -294,9 +295,10 @@ const { testimonials } = Astro.props;
   .testimonial-reader p {
     margin-block: 0 .85em;
     color: inherit;
-    font: 400 clamp(.9375rem, 1.05vw, 1.0625rem)/1.58 var(--font-body, sans-serif);
     white-space: pre-line;
     overflow-wrap: anywhere;
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
   .testimonial-reader p:last-child { margin-block-end: 0; }
   .testimonial-card figcaption {
@@ -304,8 +306,10 @@ const { testimonials } = Astro.props;
     gap: .23rem;
     overflow-wrap: anywhere;
   }
-  .testimonial-card figcaption strong { font: 560 clamp(1.0625rem, 1.35vw, 1.375rem)/1.15 var(--font-display, sans-serif); }
-  .testimonial-card figcaption span { font-size: .875rem; line-height: 1.35; color: inherit; }
+  .testimonial-card figcaption strong {
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track); }
+  .testimonial-card figcaption span { color: inherit; font: var(--type-role-label-font); letter-spacing: var(--type-role-label-track); }
   .testimonial-controls {
     order: 1;
     display: flex;

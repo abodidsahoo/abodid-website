@@ -110,10 +110,10 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__back {
   color: inherit;
-  font: 750 0.72rem/1.2 var(--font-mono, monospace);
-  letter-spacing: 0.08em;
   text-decoration: none;
   text-transform: uppercase;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 
 .rp-case__back:hover {
@@ -124,16 +124,16 @@ body.work-project-page .page-content-full { padding: 0; }
   max-width: 14ch;
   margin: clamp(3.5rem, 10vw, 8.5rem) 0 1.5rem;
   color: inherit;
-  font: 700 clamp(3.2rem, 8.5vw, 8.5rem)/0.86 var(--font-display, sans-serif);
-  letter-spacing: -0.07em;
+  font: var(--type-role-page-title-font);
+  letter-spacing: var(--type-role-page-title-track);
 }
 
 .rp-case__intro {
   max-width: 880px;
   margin: 0;
-  font: 450 clamp(1.15rem, 2.1vw, 1.85rem)/1.3 var(--font-display, sans-serif);
-  letter-spacing: -0.02em;
   color: inherit;
+  font: var(--type-role-lead-font);
+  letter-spacing: var(--type-role-lead-track);
 }
 
 /* In-Hero Metadata Pills (Role and Themes) */
@@ -159,16 +159,17 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 
 .rp-case__meta-label {
-  font: 750 0.78rem/1 var(--font-mono, monospace);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: inherit;
   opacity: 0.85;
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 
 .rp-case__meta-value {
-  font: 650 clamp(1rem, 1.45vw, 1.2rem)/1.2 var(--font-display, sans-serif);
   color: inherit;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 
 /* Case Body */
@@ -216,9 +217,9 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__card-heading {
   margin: 0;
-  font: 800 clamp(2.2rem, 3.8vw, 3.6rem)/0.96 var(--font-display, sans-serif);
-  letter-spacing: -0.05em;
   color: inherit;
+  font: var(--type-role-card-title-font);
+  letter-spacing: var(--type-role-card-title-track);
 }
 
 .rp-case__card-heading--dark {
@@ -227,8 +228,8 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__card-text {
   margin: 0;
-  font: 600 clamp(1.2rem, 1.8vw, 1.55rem)/1.4 var(--font-display, sans-serif);
-  letter-spacing: -0.02em;
+  font: var(--type-role-lead-font);
+  letter-spacing: var(--type-role-lead-track);
 }
 
 .rp-case__card-question {
@@ -241,19 +242,19 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 
 .rp-case__question-label {
-  font: 750 0.68rem/1.2 var(--font-mono, monospace);
-  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: inherit;
   opacity: 0.85;
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 
 .rp-case__question-text {
   margin: 0;
-  font-size: clamp(1.02rem, 1.35vw, 1.2rem);
-  line-height: 1.5;
   color: var(--surface-fg-secondary, currentColor);
   font-style: italic;
+  font: var(--type-role-body-font);
+  letter-spacing: var(--type-role-body-track);
 }
 
 /* Trio Card 1 & 3: Blue Variant */
@@ -286,16 +287,16 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__outcome-title {
   margin: 0;
-  font: 700 clamp(1.5rem, 2.2vw, 2.2rem)/1.1 var(--font-display, sans-serif);
-  letter-spacing: -0.035em;
   color: inherit;
+  font: var(--type-role-card-title-font);
+  letter-spacing: var(--type-role-card-title-track);
 }
 
 .rp-case__outcome-narrative-text {
   margin: 0;
-  font: 600 clamp(1.2rem, 1.8vw, 1.55rem)/1.4 var(--font-display, sans-serif);
-  letter-spacing: -0.02em;
   color: inherit;
+  font: var(--type-role-lead-font);
+  letter-spacing: var(--type-role-lead-track);
 }
 
 .rp-case__outcome-bottom {
@@ -309,8 +310,9 @@ body.work-project-page .page-content-full { padding: 0; }
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  font: 700 0.92rem/1.2 var(--font-mono, monospace);
   color: inherit;
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 
 .rp-case__outcome-status span {
@@ -463,18 +465,16 @@ body.work-project-page .page-content-full { padding: 0; }
   align-items: center !important;
   gap: clamp(0.5rem, 1vw, 0.85rem) !important;
   box-sizing: border-box !important;
-  font: 600 clamp(0.72rem, 0.88vw, 0.82rem)/1.35 var(--font-display, "Space Grotesk", sans-serif) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.03em !important;
   color: var(--pe-ink, var(--color-text));
   opacity: 1 !important;
   width: 100% !important;
+  font: var(--type-role-label-font) !important;
+  letter-spacing: var(--type-role-label-track) !important;
 }
 
 .rp-case__caption-badge {
-  font: 750 0.62rem/1 var(--font-mono, monospace) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.08em !important;
   padding: 0.28rem 0.55rem !important;
   background: var(--surface-bg, var(--pe-yellow));
   color: var(--surface-fg, var(--pe-ink));
@@ -482,6 +482,8 @@ body.work-project-page .page-content-full { padding: 0; }
   border-radius: 999px !important;
   box-shadow: 0 2px 0 var(--pe-ink) !important;
   flex-shrink: 0 !important;
+  font: var(--type-role-label-font) !important;
+  letter-spacing: var(--type-role-label-track) !important;
 }
 
 .rp-case__caption-badge :is(span, strong, b) {
@@ -496,10 +498,10 @@ body.work-project-page .page-content-full { padding: 0; }
 .pf-video-figure figcaption :is(p, span:not(.rp-case__caption-badge), strong, em, b),
 .portfolio-lightbox-cover figcaption :is(p, span:not(.rp-case__caption-badge), strong, em, b) {
   margin: 0 !important;
-  font: 600 clamp(0.72rem, 0.88vw, 0.82rem)/1.35 var(--font-display, "Space Grotesk", sans-serif) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.03em !important;
   color: var(--pe-ink, var(--color-text));
+  font: var(--type-role-label-font) !important;
+  letter-spacing: var(--type-role-label-track) !important;
 }
 
 :is(
@@ -627,14 +629,14 @@ body.work-project-page .page-content-full { padding: 0; }
   color: var(--pop-foreground-on-light, var(--pe-ink)) !important;
   border: 1.5px solid var(--pe-ink);
   border-radius: 999px;
-  font: 750 0.86rem/1 var(--font-mono, monospace);
-  letter-spacing: 0.04em;
   text-transform: uppercase;
   text-decoration: none;
   box-shadow: 0 4px 0 var(--pe-ink);
   transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
   cursor: pointer;
   box-sizing: border-box;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 
 .rp-case__experiment-btn :is(span, strong, b, a, svg) {
@@ -658,10 +660,10 @@ body.work-project-page .page-content-full { padding: 0; }
   align-items: center;
   gap: 0.5rem;
   color: var(--pe-yellow) !important;
-  font: 700 clamp(1.1rem, 1.8vw, 1.45rem)/1.2 var(--font-display, sans-serif);
-  letter-spacing: -0.02em;
   text-decoration-thickness: 1.5px;
   text-underline-offset: 5px;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 
 /* Dedicated Next Project Button Block - Standalone demarcated block outside the project article */
@@ -698,23 +700,24 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 
 .rp-case__next-eyebrow {
-  font: 800 0.72rem/1.2 var(--font-mono, monospace);
-  letter-spacing: 0.09em;
   text-transform: uppercase;
   opacity: 0.75;
   color: var(--pe-ink);
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 
 .rp-case__next-title {
-  font: 700 clamp(1.75rem, 3.4vw, 2.75rem)/1.1 var(--font-display, sans-serif);
-  letter-spacing: -0.04em;
   color: var(--pe-ink);
+  font: var(--type-role-card-title-font);
+  letter-spacing: var(--type-role-card-title-track);
 }
 
 .rp-case__next-cat {
-  font: 550 0.95rem/1.3 var(--font-mono, monospace);
   opacity: 0.8;
   color: var(--pe-ink);
+  font: var(--type-role-label-font);
+  letter-spacing: var(--type-role-label-track);
 }
 
 .rp-case__next-action {
@@ -730,14 +733,14 @@ body.work-project-page .page-content-full { padding: 0; }
   padding: 0.85rem 1.6rem;
   background: var(--surface-bg, var(--pe-yellow));
   color: var(--surface-fg, var(--color-text)) !important;
-  font-weight: 800;
-  font-size: 0.95rem;
   font-family: var(--font-display, sans-serif);
   border: 2px solid var(--pe-ink);
   border-radius: 999px;
   box-shadow: 0 3px 0 var(--pe-ink);
   transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
   white-space: nowrap;
+  font: var(--type-role-ui-font);
+  letter-spacing: var(--type-role-ui-track);
 }
 
 .rp-case__next-button :is(span, strong, b, a, svg) {
@@ -847,10 +850,10 @@ body.work-project-page .page-content-full { padding: 0; }
 .portfolio-section-kicker {
   display: inline-flex !important;
   margin: 0 0 0.75rem !important;
-  font: 750 0.72rem/1.35 var(--font-mono, "Space Mono", monospace) !important;
-  letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
   color: color-mix(in srgb, var(--color-text) 60%, transparent) !important;
+  font: var(--type-role-label-font) !important;
+  letter-spacing: var(--type-role-label-track) !important;
 }
 
 /* Headings — tight 1.25rem spacing directly above content */
@@ -871,11 +874,9 @@ body.work-project-page .page-content-full { padding: 0; }
   max-width: 17ch !important;
   margin: 0 0 1.25rem !important;
   color: var(--pe-ink, var(--color-text)) !important;
-  font-size: clamp(2rem, 4.1vw, 3.4rem) !important;
-  font-weight: 630 !important;
-  line-height: 0.98 !important;
-  letter-spacing: -0.055em !important;
   text-wrap: balance !important;
+  font: var(--type-role-card-title-font) !important;
+  letter-spacing: var(--type-role-card-title-track) !important;
 }
 
 .rp-case__blocks .portfolio-block h3,
@@ -883,26 +884,23 @@ body.work-project-page .page-content-full { padding: 0; }
 .rp-case__blocks .portfolio-list-block h3 {
   margin: 1.75rem 0 0.65rem !important;
   color: var(--pe-ink, var(--color-text)) !important;
-  font-size: clamp(1.2rem, 2vw, 1.5rem) !important;
-  font-weight: 690 !important;
-  line-height: 1.18 !important;
-  letter-spacing: -0.03em !important;
+  font: var(--type-role-subheading-font) !important;
+  letter-spacing: var(--type-role-card-title-track) !important;
 }
 
 /* Body Prose */
 .rp-case__blocks .portfolio-rich-text {
   color: var(--pe-ink, var(--color-text)) !important;
-  font-size: clamp(1.02rem, 1.22vw, 1.15rem) !important;
-  font-weight: 450 !important;
-  line-height: 1.68 !important;
-  letter-spacing: -0.008em !important;
   text-wrap: pretty !important;
+  font: var(--type-role-body-font) !important;
+  letter-spacing: var(--type-role-body-track) !important;
 }
 
 .rp-case__blocks .portfolio-rich-text p {
+  max-inline-size: var(--type-measure-body);
   margin: 0 0 1.25rem !important;
   color: var(--pe-ink, var(--color-text)) !important;
-  line-height: 1.68 !important;
+  line-height: var(--type-role-body-line) !important;
 }
 
 .rp-case__blocks .portfolio-rich-text p:last-child {
@@ -917,7 +915,7 @@ body.work-project-page .page-content-full { padding: 0; }
   text-decoration-color: var(--pe-purple, #5524c7) !important;
   text-decoration-thickness: 2px !important;
   text-underline-offset: 4px !important;
-  font-weight: 600 !important;
+  font-weight: var(--type-weight-medium) !important;
   transition: color 150ms ease, background-color 150ms ease !important;
 }
 
@@ -934,8 +932,8 @@ body.work-project-page .page-content-full { padding: 0; }
   margin: 0 0 1.25rem !important;
   padding-left: 1.35rem !important;
   color: var(--pe-ink, var(--color-text)) !important;
-  font-size: clamp(1.02rem, 1.22vw, 1.15rem) !important;
-  line-height: 1.68 !important;
+  font: var(--type-role-body-font) !important;
+  letter-spacing: var(--type-role-body-track) !important;
 }
 
 .rp-case__blocks .portfolio-rich-text li,
@@ -948,7 +946,7 @@ body.work-project-page .page-content-full { padding: 0; }
 .rp-case__blocks .portfolio-rich-text li::marker,
 .rp-case__blocks .portfolio-editorial-list li::marker {
   color: var(--pe-purple, var(--color-additional-2)) !important;
-  font-weight: 700 !important;
+  font-weight: var(--type-weight-bold) !important;
 }
 
 /* Highlights / Callouts */
@@ -964,16 +962,17 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 
 .rp-case__blocks .portfolio-highlight__title {
-  font: 700 1.15rem/1.3 var(--font-display, sans-serif) !important;
   margin: 0 0 0.5rem !important;
   color: var(--pe-ink, var(--color-text)) !important;
+  font: var(--type-role-card-title-font) !important;
+  letter-spacing: var(--type-role-card-title-track) !important;
 }
 
 .rp-case__blocks .portfolio-highlight__text {
   margin: 0 !important;
-  font-size: clamp(0.98rem, 1.15vw, 1.08rem) !important;
-  line-height: 1.6 !important;
   color: var(--pe-ink, var(--color-text)) !important;
+  font: var(--type-role-body-font) !important;
+  letter-spacing: var(--type-role-body-track) !important;
 }
 
 /* Research notes use an even keyline, without the coloured rail and raised
@@ -995,22 +994,20 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__blocks .portfolio-editorial-quote p,
 .rp-case__blocks blockquote p {
-  font-size: clamp(1.25rem, 2.2vw, 1.6rem) !important;
-  font-weight: 550 !important;
-  line-height: 1.35 !important;
-  letter-spacing: -0.02em !important;
   color: var(--pe-ink, var(--color-text)) !important;
   margin: 0 0 0.5rem !important;
+  font: var(--type-role-lead-font) !important;
+  letter-spacing: var(--type-role-lead-track) !important;
 }
 
 .rp-case__blocks .portfolio-editorial-quote cite,
 .rp-case__blocks blockquote cite {
   display: block !important;
-  font: 650 0.82rem/1.4 var(--font-mono, monospace) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.08em !important;
   color: color-mix(in srgb, var(--color-text) 65%, transparent) !important;
   font-style: normal !important;
+  font: var(--type-role-label-font) !important;
+  letter-spacing: var(--type-role-label-track) !important;
 }
 
 /* Buttons and Links */
@@ -1024,7 +1021,7 @@ body.work-project-page .page-content-full { padding: 0; }
   border-radius: 12px !important;
   background: var(--pe-yellow, var(--color-button)) !important;
   color: var(--pe-ink, var(--color-text)) !important;
-  font-weight: 700 !important;
+  font-weight: var(--type-weight-medium) !important;
   text-decoration: none !important;
   box-shadow: 0 3px 0 var(--pe-ink, var(--color-text)) !important;
   transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease !important;
@@ -1067,7 +1064,8 @@ body.work-project-page .page-content-full { padding: 0; }
 @media (max-width: 640px) {
   .rp-case h1 {
     margin-top: 2.5rem;
-    font-size: clamp(2.8rem, 12vw, 4.5rem);
+    font: var(--type-role-page-title-font);
+    letter-spacing: var(--type-role-page-title-track);
   }
 
   .rp-case__topline {

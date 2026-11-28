@@ -747,3 +747,7 @@
 @media (max-width: 780px) {
   .site-theme-studio { grid-template-columns: minmax(0, 1fr); }
 }
+
+.design-specimen__type-role--lead { font: var(--type-role-lead-font); letter-spacing: var(--type-role-lead-track); }
+.design-specimen__type-role--ui { font: var(--type-role-ui-font); letter-spacing: var(--type-role-ui-track); }
+.design-token-field select { inline-size: 100%; min-block-size: 44px; font: var(--type-role-ui-font); color: var(--ui-field-text); background: var(--ui-field-bg); border: 1px solid var(--ui-field-border); border-radius: var(--design-radius-control); padding: .5rem; }

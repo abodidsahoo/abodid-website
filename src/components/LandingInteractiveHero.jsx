@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import AnimatedWandCursor from './AnimatedWandCursor.jsx';
 import { vaultTags as fallbackVaultTags } from '../utils/tags';
 
 const TAG_COLOR_THEMES = [
@@ -74,7 +75,6 @@ export default function LandingInteractiveHero({
   ctaHref = "#selected-work",
   secondaryCtaText = "Work with me",
   secondaryCtaHref = "#enquiry",
-  vaultLabel = "my obsidian vault",
 }) {
   const [activeTags, setActiveTags] = useState([]);
   const [ambientTags, setAmbientTags] = useState(() =>
@@ -107,7 +107,7 @@ export default function LandingInteractiveHero({
 
   // Resolve dominant title and keyline
   const heroTitle = name || heading || "Abodid Sahoo";
-  const heroKeyline = keyline || role || subtitle || "Creative Technologist, Immersive Experience Designer and Visual Artist working between London and India";
+  const heroKeyline = keyline === null ? null : keyline || role || subtitle || "Creative Technologist, Immersive Experience Designer and Visual Artist working between London and India";
 
   // On client mount: pick randomized tags once and activate smooth staggered entrance
   useEffect(() => {
@@ -360,15 +360,7 @@ export default function LandingInteractiveHero({
 
   return (
     <section ref={containerRef} className="landing-interactive-hero" aria-labelledby="story-hero-heading">
-      {/* Pop-editorial vault CTA in the bottom-right corner */}
-      <a
-        href="/obsidian-vault"
-        className="landing-hero__vault-pill"
-        title="Explore my Obsidian vault"
-      >
-        <span className="landing-hero__vault-label">{vaultLabel}</span>
-        <span className="landing-hero__vault-arrow" aria-hidden="true">↗</span>
-      </a>
+      <AnimatedWandCursor surfaceRef={containerRef} />
 
       {/* Floating pill backdrop: ambient drifting pills + mouse trail pills clear of text */}
       <div
@@ -485,13 +477,14 @@ export default function LandingInteractiveHero({
       <style>{`
         .landing-interactive-hero {
           position: relative;
-          min-height: 100svh;
-          min-height: 100vh;
+          /* The sticky header already occupies part of the viewport. */
+          min-height: calc(100vh - var(--journal-header-height, 4.8rem));
+          min-height: calc(100dvh - var(--journal-header-height, 4.8rem));
           width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: clamp(5.5rem, 11vh, 8rem) clamp(1.5rem, 4vw, 4rem) clamp(3rem, 6vh, 4.5rem);
+          padding: clamp(3rem, 6vh, 4.5rem) clamp(1.5rem, 4vw, 4rem);
           background: var(--color-primary);
           border: none;
           border-radius: 0;
@@ -499,81 +492,6 @@ export default function LandingInteractiveHero({
           isolation: isolate;
           user-select: none;
           cursor: var(--ui-editorial-cursor, auto);
-        }
-
-        @media (min-width: 769px) {
-          .landing-interactive-hero {
-            min-height: 100svh;
-            min-height: 100vh;
-          }
-        }
-
-        .landing-hero__vault-pill {
-          position: absolute;
-          bottom: clamp(1.2rem, 2.5vh, 2rem);
-          right: clamp(1.2rem, 2.8vw, 2.5rem);
-          z-index: 15;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.65rem;
-          min-height: 48px;
-          padding: 0.42rem 0.48rem 0.42rem 0.85rem;
-          border: 1px solid var(--color-text);
-          border-radius: var(--design-radius-control, 14px);
-          background: var(--color-button);
-          color: var(--color-button-text);
-          font: var(--type-role-label-weight, 750) var(--type-role-label-size, 0.72rem)/var(--type-role-label-line, 1.35) var(--font-mono, monospace);
-          letter-spacing: var(--type-role-label-track, 0.08em);
-          text-transform: uppercase;
-          text-decoration: none;
-          transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-          cursor: pointer;
-        }
-
-        .landing-hero__vault-pill:hover,
-        .landing-hero__vault-pill:focus-visible {
-          background: var(--color-accent);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 0 color-mix(in srgb, var(--color-text) 28%, transparent);
-        }
-
-        .landing-hero__vault-pill:focus-visible {
-          outline: 3px solid var(--color-background);
-          outline-offset: 3px;
-        }
-
-        .landing-hero__vault-label {
-          text-decoration: none;
-          text-underline-offset: 4px;
-          text-decoration-thickness: 1.5px;
-        }
-
-        .landing-hero__vault-pill:hover .landing-hero__vault-label,
-        .landing-hero__vault-pill:focus-visible .landing-hero__vault-label {
-          text-decoration: underline;
-        }
-
-        .landing-hero__vault-arrow {
-          width: 32px;
-          height: 32px;
-          flex: 0 0 auto;
-          display: inline-grid;
-          place-items: center;
-          border: 1px solid var(--color-text);
-          border-radius: 9px;
-          background: var(--color-secondary);
-          color: var(--color-text);
-          font-size: 1rem;
-          font-weight: 750;
-          line-height: 1;
-          text-decoration: none;
-          transition: transform 180ms ease, background-color 180ms ease;
-        }
-
-        .landing-hero__vault-pill:hover .landing-hero__vault-arrow,
-        .landing-hero__vault-pill:focus-visible .landing-hero__vault-arrow {
-          background: var(--color-background);
-          transform: translate(2px, -2px);
         }
 
         .landing-hero__backdrop {
@@ -631,9 +549,6 @@ export default function LandingInteractiveHero({
           border-radius: 999px;
           color: var(--color-text) !important;
           font-family: var(--font-display, sans-serif);
-          font-size: clamp(0.85rem, 0.95vw, 1.02rem);
-          font-weight: 500;
-          letter-spacing: -0.01em;
           white-space: nowrap;
           box-shadow: 0 4px 16px color-mix(in srgb, var(--ui-shadow-color) 16%, transparent), 0 1px 4px color-mix(in srgb, var(--ui-shadow-color) 10%, transparent);
           opacity: 1;
@@ -644,6 +559,8 @@ export default function LandingInteractiveHero({
                       border-color 0.35s ease;
           will-change: transform, opacity;
           backface-visibility: hidden;
+          font: var(--type-role-label-font);
+          letter-spacing: var(--type-role-label-track);
         }
 
         /* Dissolved into invisible space - pure GPU transition, zero glitch */
@@ -666,36 +583,36 @@ export default function LandingInteractiveHero({
           align-items: center;
           justify-content: center;
           gap: clamp(1.1rem, 2vw, 1.75rem);
-          transform: translateY(-3vh);
         }
 
         .landing-hero__heading {
           margin: 0;
-          font: 700 clamp(3.2rem, 6.8vw, 6.2rem)/0.92 var(--font-display, sans-serif);
-          letter-spacing: -0.055em;
           color: var(--site-palette-ink, var(--color-background, var(--color-primary-text)));
           text-wrap: balance;
           text-align: center;
+          text-box: trim-both cap alphabetic;
+          font: var(--type-role-display-font);
+          letter-spacing: var(--type-role-display-track);
         }
 
         .landing-hero__keyline {
           max-width: 46rem;
           margin: 0;
-          font: 520 clamp(1.18rem, 1.85vw, 1.65rem)/1.42 var(--font-display, sans-serif);
-          letter-spacing: -0.02em;
           color: var(--site-palette-ink, var(--color-background, var(--color-primary-text)));
           text-wrap: balance;
           text-align: center;
+          font: var(--type-role-lead-font);
+          letter-spacing: var(--type-role-lead-track);
         }
 
         .landing-hero__description {
           max-width: 44rem;
           margin: 0;
-          font: 480 clamp(1rem, 1.4vw, 1.25rem)/1.5 var(--font-display, sans-serif);
-          letter-spacing: -0.015em;
           color: var(--site-palette-ink, color-mix(in srgb, var(--color-primary-text) 90%, transparent));
           text-wrap: pretty;
           text-align: center;
+          font: var(--type-role-body-font);
+          letter-spacing: var(--type-role-body-track);
         }
 
         .landing-hero__actions {
@@ -717,12 +634,12 @@ export default function LandingInteractiveHero({
           border-radius: 999px;
           background: var(--color-button);
           color: var(--color-button-text) !important;
-          font: 720 0.95rem/1 var(--font-display, sans-serif);
-          letter-spacing: -0.01em;
           text-decoration: none;
           box-shadow: 0 4px 0 var(--color-text);
           transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
           cursor: pointer;
+          font: var(--type-role-ui-font);
+          letter-spacing: var(--type-role-ui-track);
         }
 
         .landing-hero__enter-btn:hover {
@@ -754,12 +671,12 @@ export default function LandingInteractiveHero({
           background: color-mix(in srgb, var(--color-primary-text) 12%, transparent);
           backdrop-filter: blur(8px);
           color: var(--site-palette-ink, var(--color-background, var(--color-primary-text))) !important;
-          font: 650 0.88rem/1 var(--font-mono, monospace);
-          letter-spacing: 0.04em;
           text-transform: uppercase;
           text-decoration: none;
           transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
           cursor: pointer;
+          font: var(--type-role-ui-font);
+          letter-spacing: var(--type-role-ui-track);
         }
 
         .landing-hero__secondary-btn:hover {
@@ -832,30 +749,21 @@ export default function LandingInteractiveHero({
 
         @media (max-width: 768px) {
           .landing-interactive-hero {
-            min-height: 100svh;
-            min-height: 100vh;
-            padding: 5rem 1.25rem 3rem;
+            padding: 3rem 1.25rem;
           }
 
           .landing-hero__content {
-            transform: translateY(-1.5vh);
             gap: 1.15rem;
           }
 
-          .landing-hero__vault-pill {
-            bottom: 0.9rem;
-            right: 0.9rem;
-            min-height: 46px;
-            padding: 0.35rem 0.4rem 0.35rem 0.72rem;
-          }
-
           .landing-hero__heading {
-            font-size: clamp(2.4rem, 10vw, 3.6rem);
+                    font: var(--type-role-display-font);
+                    letter-spacing: var(--type-role-display-track);
           }
 
           .landing-hero__keyline {
-            font-size: clamp(1.1rem, 4.4vw, 1.35rem);
-            line-height: 1.4;
+                    font: var(--type-role-lead-font);
+                    letter-spacing: var(--type-role-lead-track);
           }
 
           .landing-hero__actions {
@@ -870,19 +778,6 @@ export default function LandingInteractiveHero({
           }
         }
 
-        @media (prefers-reduced-motion: reduce) {
-          .landing-hero__vault-pill,
-          .landing-hero__vault-arrow {
-            transition-duration: 0.01ms;
-          }
-
-          .landing-hero__vault-pill:hover,
-          .landing-hero__vault-pill:focus-visible,
-          .landing-hero__vault-pill:hover .landing-hero__vault-arrow,
-          .landing-hero__vault-pill:focus-visible .landing-hero__vault-arrow {
-            transform: none;
-          }
-        }
       `}</style>
     </section>
   );

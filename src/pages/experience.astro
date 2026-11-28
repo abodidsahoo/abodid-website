@@ -284,10 +284,10 @@ const description = "Selected experience across cultural photography, exhibition
   .story-nav a,
   .story-nav summary {
     color: inherit;
-    font: 700 .72rem/1 var(--font-mono, monospace);
-    letter-spacing: .08em;
     text-decoration: none;
     text-transform: uppercase;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .story-nav__brand {
@@ -356,11 +356,9 @@ const description = "Selected experience across cultural photography, exhibition
   .experience-eyebrow {
     margin: 0;
     font-family: var(--experience-font-eyebrow-family);
-    font-size: var(--experience-font-eyebrow-size);
-    font-weight: var(--experience-font-eyebrow-weight);
-    line-height: var(--experience-font-eyebrow-line-height);
-    letter-spacing: var(--experience-font-eyebrow-spacing);
     text-transform: uppercase;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
   .experience-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
   .experience-actions a {
@@ -375,9 +373,8 @@ const description = "Selected experience across cultural photography, exhibition
     color: inherit;
     text-decoration: none;
     font-family: var(--experience-font-action-family);
-    font-size: var(--experience-font-action-size);
-    font-weight: var(--experience-font-action-weight);
-    line-height: var(--experience-font-action-line-height);
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
   .experience-actions a:first-child { background: var(--experience-cream); }
 
@@ -388,29 +385,27 @@ const description = "Selected experience across cultural photography, exhibition
     max-width: var(--experience-hero-h1-max-width);
     margin: auto 0 1.5rem;
     font-family: var(--experience-hero-h1-family);
-    font-size: var(--experience-hero-h1-size);
-    font-weight: var(--experience-hero-h1-weight);
-    line-height: var(--experience-hero-h1-line-height);
-    letter-spacing: var(--experience-hero-h1-spacing);
     overflow-wrap: break-word;
     word-break: normal;
     text-wrap: balance;
+    font: var(--type-role-page-title-font);
+    letter-spacing: var(--type-role-page-title-track);
   }
   .experience-next__hero-copy > p:not(:first-child) {
     max-width: 64ch;
     margin-bottom: 1.5rem;
     font-family: var(--experience-font-body-family);
-    font-size: clamp(1.05rem, 1.3vw, 1.3rem);
-    line-height: 1.5;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
   .experience-next__hero-mosaic { position: relative; background: var(--experience-blue); }
   .experience-next__hero-photo { position: absolute; margin: 0; overflow: hidden; border: 1px solid var(--experience-ink); border-radius: 18px; background: var(--experience-cream); box-shadow: 0 14px 36px color-mix(in srgb, var(--color-text) 27%, transparent); }
   .experience-next__hero-photo img { width: 100%; height: 100%; display: block; object-fit: cover; }
-  .experience-next__hero-photo figcaption { position: absolute; left: 10px; bottom: 10px; padding: .45rem .6rem; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 78%, transparent); color: var(--experience-cream); font: 700 .65rem/1 var(--font-ui, sans-serif); }
+  .experience-next__hero-photo figcaption { position: absolute; left: 10px; bottom: 10px; padding: .45rem .6rem; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 78%, transparent); color: var(--experience-cream); font: var(--type-role-label-font); letter-spacing: var(--type-role-label-track); }
   .experience-next__hero-photo--1 { inset: 5% 8% 45% 6%; transform: rotate(1.5deg); }
   .experience-next__hero-photo--2 { inset: 41% 38% 8% 4%; transform: rotate(-2deg); }
   .experience-next__hero-photo--3 { inset: 48% 4% 5% 51%; transform: rotate(2.5deg); }
-  .experience-next__hero-note { position: absolute; z-index: 5; top: 28px; right: 28px; padding: .7rem .8rem; display: flex; gap: .55rem; border: 1px solid var(--experience-ink); border-radius: 999px; background: var(--experience-lime); font: 700 .65rem/1 var(--font-ui, sans-serif); }
+  .experience-next__hero-note { position: absolute; z-index: 5; top: 28px; right: 28px; padding: .7rem .8rem; display: flex; gap: .55rem; border: 1px solid var(--experience-ink); border-radius: 999px; background: var(--experience-lime); font: var(--type-role-label-font); letter-spacing: var(--type-role-label-track); }
 
   .experience-next__position { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-panel-radius); background: var(--experience-lime); }
   .experience-next__position-header { margin-bottom: clamp(2rem, 3.5vw, 3.5rem); }
@@ -418,11 +413,9 @@ const description = "Selected experience across cultural photography, exhibition
     max-width: 16ch;
     margin: 1.5rem 0 0;
     font-family: var(--experience-section-h2-family);
-    font-size: var(--experience-section-h2-size);
-    font-weight: var(--experience-section-h2-weight);
-    line-height: var(--experience-section-h2-line-height);
-    letter-spacing: var(--experience-section-h2-spacing);
     overflow-wrap: break-word;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
   
   .experience-next__position-track-wrapper { width: 100%; }
@@ -430,10 +423,10 @@ const description = "Selected experience across cultural photography, exhibition
   .experience-next__position-card { height: 100%; min-height: 0; padding: clamp(1.35rem, 1.7vw, 1.8rem); display: flex; flex-direction: column; justify-content: flex-start; gap: 1.25rem; border: 1px solid color-mix(in srgb, var(--color-text) 28%, transparent); border-radius: 20px; background: var(--experience-cream); box-shadow: 0 4px 18px color-mix(in srgb, var(--color-text) 4%, transparent); transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease; }
   .experience-next__position-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px color-mix(in srgb, var(--color-text) 10%, transparent); border-color: color-mix(in srgb, var(--color-text) 55%, transparent); }
   .experience-next__position-card-top { display: flex; align-items: center; justify-content: space-between; }
-  .experience-next__card-index { display: inline-flex; align-items: center; justify-content: center; padding: .35rem .65rem; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 6%, transparent); border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent); font: 700 .75rem/1 var(--font-ui, sans-serif); letter-spacing: .04em; }
+  .experience-next__card-index { display: inline-flex; align-items: center; justify-content: center; padding: .35rem .65rem; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 6%, transparent); border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent); font: var(--type-role-label-font); letter-spacing: var(--type-role-label-track); }
   .experience-next__position-card-body { display: flex; flex-direction: column; gap: 0.75rem; flex: 1; }
-  .experience-next__position-card-body h3 { margin: 0; min-height: 2.3em; display: flex; align-items: flex-end; font: 700 clamp(1.25rem, 1.55vw, 1.65rem)/1.12 var(--font-display, sans-serif); letter-spacing: -.04em; }
-  .experience-next__position-card-body p { margin: 0; font-size: clamp(.9rem, 1vw, 1rem); line-height: 1.5; color: color-mix(in srgb, var(--color-text) 84%, transparent); }
+  .experience-next__position-card-body h3 { margin: 0; min-height: 2.3em; display: flex; align-items: flex-end; font: var(--type-role-card-title-font); letter-spacing: var(--type-role-card-title-track); }
+  .experience-next__position-card-body p { margin: 0; color: color-mix(in srgb, var(--color-text) 84%, transparent); font: var(--type-role-body-font); letter-spacing: var(--type-role-body-track); }
 
   @media (max-width: 1120px) {
     .experience-next__position-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -445,11 +438,9 @@ const description = "Selected experience across cultural photography, exhibition
   .experience-next__contexts > header h2, .experience-next__timeline > header h2, .experience-next__learning > header h2 {
     max-width: 12ch;
     font-family: var(--experience-section-h2-family);
-    font-size: var(--experience-section-h2-size);
-    font-weight: var(--experience-section-h2-weight);
-    line-height: var(--experience-section-h2-line-height);
-    letter-spacing: var(--experience-section-h2-spacing);
     overflow-wrap: break-word;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
   .experience-next__context-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--experience-gap); }
   .experience-next__context { min-height: 650px; display: grid; grid-template-rows: clamp(320px, 34vw, 480px) 1fr; overflow: hidden; border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-card-radius); background: var(--experience-cream); color: var(--experience-ink); text-decoration: none; }
@@ -460,21 +451,23 @@ const description = "Selected experience across cultural photography, exhibition
   .experience-next__context h3 {
     margin: 2.5rem 0 .7rem;
     font-family: var(--experience-card-h3-family);
-    font-size: var(--experience-card-h3-size);
-    font-weight: var(--experience-card-h3-weight);
-    line-height: var(--experience-card-h3-line-height);
-    letter-spacing: var(--experience-card-h3-spacing);
     overflow-wrap: break-word;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
   .experience-next__context p { line-height: 1.5; }
-  .experience-next__context strong { display: block; margin-top: auto; padding-top: 1.5rem; font: 700 .72rem/1 var(--font-ui, sans-serif); }
+  .experience-next__context strong { display: block; margin-top: auto; padding-top: 1.5rem; font: var(--type-role-ui-font); letter-spacing: var(--type-role-ui-track); }
 
   .experience-next__timeline { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-panel-radius); background: var(--experience-cyan); }
   .experience-next__timeline-list { display: grid; }
   .experience-next__timeline-list article { padding: 1.5rem 0; display: grid; grid-template-columns: 55px minmax(220px,.65fr) 1.35fr; gap: 1.5rem; border-top: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); }
-  .experience-next__timeline-index { font: 700 .72rem/1 var(--font-ui, sans-serif); }
-  .experience-next__timeline-list h3 { margin: .5rem 0 0; font: 700 clamp(1.5rem, 2.1vw, 2.7rem)/1 var(--font-display, sans-serif); letter-spacing: -.04em; }
-  .experience-next__timeline-list strong { font-size: 1.05rem; }
+  .experience-next__timeline-index {
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track); }
+  .experience-next__timeline-list h3 { margin: .5rem 0 0; font: var(--type-role-card-title-font); letter-spacing: var(--type-role-card-title-track); }
+  .experience-next__timeline-list strong {
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track); }
   .experience-next__timeline-list article > div:last-child p { max-width: 68ch; margin: .65rem 0 0; line-height: 1.5; }
 
   .experience-next__learning { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent); border-radius: var(--experience-panel-radius); background: var(--experience-cream); }
@@ -484,11 +477,9 @@ const description = "Selected experience across cultural photography, exhibition
   .experience-next__learning-grid h3 {
     margin: auto 0 .75rem;
     font-family: var(--experience-card-h3-family);
-    font-size: var(--experience-card-h3-size);
-    font-weight: var(--experience-card-h3-weight);
-    line-height: var(--experience-card-h3-line-height);
-    letter-spacing: var(--experience-card-h3-spacing);
     overflow-wrap: break-word;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
   .experience-next__learning-grid p { line-height: 1.5; }
 
@@ -499,11 +490,9 @@ const description = "Selected experience across cultural photography, exhibition
     max-width: 22ch;
     margin: auto 0 1rem;
     font-family: var(--experience-future-h2-family);
-    font-size: var(--experience-future-h2-size);
-    font-weight: var(--experience-future-h2-weight);
-    line-height: var(--experience-future-h2-line-height);
-    letter-spacing: var(--experience-future-h2-spacing);
     overflow-wrap: break-word;
+    font: var(--type-role-section-title-font);
+    letter-spacing: var(--type-role-section-title-track);
   }
   .experience-next__future > div > p:not(:first-child) { max-width: 62ch; line-height: 1.5; }
 
@@ -548,8 +537,9 @@ const description = "Selected experience across cultural photography, exhibition
     .story-nav__mobile nav a {
       padding: 1rem 0;
       border-bottom: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
-      font-size: .85rem;
       color: var(--color-text);
+      font: var(--type-role-ui-font);
+      letter-spacing: var(--type-role-ui-track);
     }
   }
 

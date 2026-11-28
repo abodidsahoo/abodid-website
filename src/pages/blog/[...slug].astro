@@ -293,21 +293,19 @@ const structuredData = [
     background: var(--color-button);
     color: var(--color-button-text);
     font-family: var(--font-sans);
-    font-size: 0.72rem;
-    font-weight: 750;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
     box-shadow: 0 2px 0 var(--color-text);
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .blog-post-date {
     font-family: var(--font-sans);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-text);
     opacity: 0.75;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .blog-post-title {
@@ -315,23 +313,19 @@ const structuredData = [
     margin: 0 0 clamp(1rem, 2.5vw, 1.5rem);
     color: var(--color-text);
     font-family: var(--font-display);
-    font-size: clamp(2.2rem, 4.5vw, 3.8rem);
-    font-weight: 720;
-    line-height: 0.94;
-    letter-spacing: -0.05em;
     text-wrap: balance;
     overflow-wrap: anywhere;
+    font: var(--type-role-page-title-font);
+    letter-spacing: var(--type-role-page-title-track);
   }
 
   .blog-post-excerpt {
     margin: 0;
     color: color-mix(in srgb, var(--color-text) 82%, transparent);
     font-family: var(--font-sans);
-    font-size: clamp(1.15rem, 2vw, 1.4rem);
-    font-weight: 450;
-    line-height: 1.4;
-    letter-spacing: -0.02em;
     font-style: italic;
+    font: var(--type-role-lead-font);
+    letter-spacing: var(--type-role-lead-track);
   }
 
   /* Cover Image Container */
@@ -366,11 +360,9 @@ const structuredData = [
     width: 100%;
     color: var(--color-text);
     font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-    font-size: clamp(1rem, 1.2vw, 1.08rem);
-    font-weight: 420;
-    line-height: 1.7;
-    letter-spacing: -0.006em;
     overflow-wrap: anywhere;
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
 
   .prose > :first-child,
@@ -386,23 +378,23 @@ const structuredData = [
   .block-based-prose h3 {
     color: var(--color-text);
     font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-    font-weight: 620;
-    letter-spacing: -0.03em;
     text-wrap: balance;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
 
   .prose h2,
   .block-based-prose h2 {
     margin: 2.75rem 0 1rem;
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
-    line-height: 1.08;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
 
   .prose h3,
   .block-based-prose h3 {
     margin: 2.25rem 0 0.85rem;
-    font-size: clamp(1.3rem, 2.2vw, 1.65rem);
-    line-height: 1.15;
+    font: var(--type-role-subheading-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
 
   .prose p,
@@ -428,14 +420,14 @@ const structuredData = [
 
   .prose strong,
   .block-based-prose strong {
-    font-weight: 750 !important;
+    font-weight: var(--type-weight-bold) !important;
     color: var(--color-text) !important;
   }
 
   .prose a,
   .block-based-prose a {
     color: var(--color-primary) !important;
-    font-weight: 600 !important;
+    font-weight: var(--type-weight-medium) !important;
     text-decoration-line: underline !important;
     text-decoration-color: var(--color-primary) !important;
     text-decoration-thickness: 0.12em !important;
@@ -463,9 +455,10 @@ const structuredData = [
   .prose blockquote p,
   .block-based-prose blockquote p {
     color: var(--color-text) !important;
-    font-weight: 520 !important;
     opacity: 1 !important;
     margin: 0;
+    font: var(--type-role-lead-font) !important;
+    letter-spacing: var(--type-role-lead-track) !important;
   }
 
   .prose blockquote cite {
@@ -473,10 +466,10 @@ const structuredData = [
     margin-top: 0.5rem;
     font-style: normal;
     font-family: var(--font-sans);
-    font-size: 0.82rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--color-text);
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .prose code {
@@ -486,7 +479,7 @@ const structuredData = [
     background: var(--color-button);
     color: var(--color-button-text);
     font-family: var(--font-mono);
-    font-size: 0.88em;
+    font-size: 1em;
     letter-spacing: -0.025em;
   }
 
@@ -534,12 +527,12 @@ const structuredData = [
   .prose figcaption,
   .block-based-prose figcaption {
     font-family: var(--font-sans);
-    font-size: 0.8rem;
     text-align: center;
     color: color-mix(in srgb, var(--color-text) 72%, transparent);
     margin-top: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .block-columns {
@@ -581,10 +574,10 @@ const structuredData = [
     color: var(--color-button-text);
     text-decoration: none;
     font-family: var(--font-sans);
-    font-size: 0.92rem;
-    font-weight: 700;
     box-shadow: 0 3px 0 var(--color-text);
     transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .blog-back-pill:hover {
@@ -628,12 +621,11 @@ const structuredData = [
   .blog-related-label {
     display: block;
     font-family: var(--font-sans);
-    font-size: 0.76rem;
-    font-weight: 750;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
     color: var(--color-text);
     margin-bottom: 1.25rem;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .blog-related-card {
@@ -718,44 +710,39 @@ const structuredData = [
     background: var(--color-button);
     color: var(--color-button-text);
     font-family: var(--font-sans);
-    font-size: 0.68rem;
-    font-weight: 750;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
     box-shadow: 0 2px 0 var(--color-text);
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .blog-related-date {
     font-family: var(--font-sans);
-    font-size: 0.72rem;
-    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
     color: var(--color-text);
     opacity: 0.75;
+    font: var(--type-role-label-font);
+    letter-spacing: var(--type-role-label-track);
   }
 
   .blog-related-title {
     margin: 0;
     color: var(--color-text);
     font-family: var(--font-display);
-    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
-    font-weight: 720;
-    line-height: 1.12;
-    letter-spacing: -0.035em;
+    font: var(--type-role-card-title-font);
+    letter-spacing: var(--type-role-card-title-track);
   }
 
   .blog-related-excerpt {
     margin: 0;
     color: color-mix(in srgb, var(--color-text) 82%, transparent);
     font-family: var(--font-body);
-    font-size: clamp(0.95rem, 1.1vw, 1.05rem);
-    font-weight: 420;
-    line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    font: var(--type-role-body-font);
+    letter-spacing: var(--type-role-body-track);
   }
 
   .blog-related-action {
@@ -770,12 +757,11 @@ const structuredData = [
     background: var(--color-button);
     color: var(--color-button-text);
     font-family: var(--font-sans);
-    font-size: 0.75rem;
-    font-weight: 750;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
     box-shadow: 0 2px 0 var(--color-text);
     transition: transform 180ms ease, background 180ms ease;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .blog-related-card:hover .blog-related-action {
@@ -809,10 +795,10 @@ const structuredData = [
     color: var(--color-text);
     text-decoration: none;
     font-family: var(--font-sans);
-    font-size: clamp(0.95rem, 1.5vw, 1.05rem);
-    font-weight: 720;
     box-shadow: 0 3px 0 var(--color-text);
     transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    font: var(--type-role-ui-font);
+    letter-spacing: var(--type-role-ui-track);
   }
 
   .blog-nav-link:hover {
@@ -864,7 +850,8 @@ const structuredData = [
     }
 
     .blog-post-title {
-      font-size: clamp(1.85rem, 8vw, 2.5rem);
+        font: var(--type-role-page-title-font);
+        letter-spacing: var(--type-role-page-title-track);
     }
   }
 

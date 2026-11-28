@@ -6,5 +6,33 @@
 }
 
 :where(em, i, cite, dfn, var) {
-  font-weight: 650;
+  font-weight: var(--type-weight-bold);
+}
+
+/* Reusable roles for standard pages; local art direction can opt into them. */
+.t-title { font: var(--type-role-page-title-font); letter-spacing: var(--type-role-page-title-track); }
+.t-card-title { font: var(--type-role-card-title-font); letter-spacing: var(--type-role-card-title-track); }
+.t-lead { font: var(--type-role-lead-font); letter-spacing: var(--type-role-lead-track); max-inline-size: var(--type-measure-lead); }
+.t-ui { font: var(--type-role-ui-font); letter-spacing: var(--type-role-ui-track); }
+.t-editorial-light, .inline-enquiry__heading-light { font-weight: var(--type-weight-light); }
+:where(.t-editorial-light, .inline-enquiry h2) strong { font-weight: var(--type-weight-bold); }
+
+html[data-site-theme-enabled] body {
+  font-size: var(--type-role-body-size);
+  font-weight: var(--type-role-body-weight);
+  line-height: var(--type-role-body-line);
+}
+
+:where(strong, b, em, i, cite, dfn, var) { font-weight: var(--type-weight-bold); }
+
+:where(.prose, .blog-content, .post-content, .vault-note-content) :where(p, ul, ol, blockquote) {
+  max-inline-size: var(--type-measure-body);
+  overflow-wrap: break-word;
+}
+
+/* Reflow large type when readers increase letter spacing or text size. */
+:where(.t-display, .t-title, .t-heading, .t-card-title, .studio-postcard__title,
+  .story-display-heading, .story-intro__greeting, .landing-hero__heading) {
+  overflow-wrap: break-word;
+  min-inline-size: 0;
 }

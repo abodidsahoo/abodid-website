@@ -85,7 +85,7 @@ export default function BlogBlockRenderer({ blocks }) {
                         return (
                             <figure key={key} className="block-image" style={{ margin: '2rem 0', padding: 0, width: '100%' }}>
                                 <img src={url} alt={media.alt || media.caption || ''} loading="lazy" style={{ width: '100%', height: 'auto', borderRadius: '4px', margin: 0, display: 'block' }} />
-                                <figcaption style={{ textAlign: 'center', fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '0.75rem' }}>{media.caption}</figcaption>
+                                <figcaption style={{ textAlign: 'center', font: 'var(--type-role-label-font)', color: 'var(--text-tertiary)', marginTop: '0.75rem' }}>{media.caption}</figcaption>
                             </figure>
                         );
                     }
@@ -115,7 +115,7 @@ export default function BlogBlockRenderer({ blocks }) {
                                         title={content.caption || 'Embedded Video'}
                                     />
                                 </div>
-                                {content.caption && <figcaption style={{ textAlign: 'center', fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '0.75rem' }}>{content.caption}</figcaption>}
+                                {content.caption && <figcaption style={{ textAlign: 'center', font: 'var(--type-role-label-font)', color: 'var(--text-tertiary)', marginTop: '0.75rem' }}>{content.caption}</figcaption>}
                             </figure>
                         );
                     }
