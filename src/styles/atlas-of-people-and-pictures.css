@@ -1,0 +1,86 @@
+body.atlas-initiative-page { background: var(--color-background); }
+
+.atlas-page {
+  --atlas-line: 1px solid var(--ui-border);
+  --atlas-gap: clamp(1.5rem, 4vw, 4rem);
+  inline-size: min(100%, 82rem);
+  margin-inline: auto;
+  padding: clamp(2rem, 5vw, 5rem) var(--design-page-gutter) 2rem;
+  /* Full role fallbacks keep this page compatible with the published v1 tokens
+     while the shared v2 typography work is still in progress in the checkout. */
+  font: var(--type-role-body-font, var(--type-role-body-weight) var(--type-role-body-size)/var(--type-role-body-line) var(--font-body));
+  letter-spacing: var(--type-role-body-track);
+}
+
+.atlas-page :is(h1, h2, h3, p, figure, ol) { margin: 0; color: inherit; }
+.atlas-page :is(h1, h2, h3) { text-wrap: balance; }
+.atlas-page :is(p, li) { text-wrap: pretty; }
+.atlas-page a { color: inherit; }
+.atlas-page a:focus-visible { outline: 3px solid var(--ui-focus-ring); outline-offset: 5px; }
+.atlas-page img { display: block; inline-size: 100%; block-size: auto; }
+.atlas-page h1 { font: var(--type-role-page-title-font, var(--type-role-page-title-weight) var(--type-role-page-title-size)/var(--type-role-page-title-line) var(--font-display)); letter-spacing: var(--type-role-page-title-track); }
+.atlas-page h1 span { display: block; }
+.atlas-page h2 { font: var(--type-role-section-title-font, var(--type-role-section-title-weight) var(--type-role-section-title-size)/var(--type-role-section-title-line) var(--font-display)); letter-spacing: var(--type-role-section-title-track); }
+.atlas-page h3 { font: var(--type-role-card-title-font, var(--type-role-card-title-weight) var(--type-role-card-title-size)/var(--type-role-card-title-line) var(--font-display)); letter-spacing: var(--type-role-card-title-track); }
+.atlas-page .atlas-label, .atlas-page figcaption { font: var(--type-role-label-font, var(--type-role-label-weight) var(--type-role-label-size)/var(--type-role-label-line) var(--font-ui)); letter-spacing: var(--type-role-label-track); }
+.atlas-page .atlas-lead { max-inline-size: var(--type-measure-lead, 32ch); font: var(--type-role-lead-font, var(--type-role-body-weight) var(--type-role-card-title-size)/var(--type-role-body-line) var(--font-body)); letter-spacing: var(--type-role-lead-track, var(--type-role-body-track)); }
+.atlas-hero, .atlas-intro, .atlas-invitation { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--atlas-gap); }
+.atlas-hero { align-items: center; }
+.atlas-hero__copy { display: grid; gap: 1.5rem; }
+.atlas-identity { display: flex; align-items: center; gap: 0.8rem; }
+.atlas-identity svg { flex: 0 0 auto; }
+.atlas-hero__image img { aspect-ratio: 800 / 533; border-radius: var(--design-radius-card); }
+.atlas-page figcaption { padding-block-start: 0.8rem; }
+.atlas-actions { display: flex; flex-wrap: wrap; flex-wrap: balance; align-items: center; gap: 0.75rem 1.5rem; }
+.atlas-page .atlas-button, .atlas-page .atlas-text-link { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.65rem; min-block-size: 44px; inline-size: fit-content; font: var(--type-role-ui-font, var(--type-role-label-weight) var(--type-role-body-size)/var(--type-role-body-line) var(--font-ui)); letter-spacing: var(--type-role-ui-track, var(--type-role-body-track)); }
+.atlas-page .atlas-button { padding: 0.75rem 1.15rem; border: 1px solid var(--ui-border-strong); border-radius: var(--design-radius-control); background: var(--ui-button-bg); color: var(--ui-button-text); text-decoration: none; }
+.atlas-page .atlas-button:hover { background: var(--ui-button-hover-bg); }
+.atlas-page .atlas-button:active { background: var(--ui-button-active-bg); }
+.atlas-text-link { text-decoration: underline; text-underline-offset: 0.25em; }
+.atlas-text-link:hover { text-decoration-thickness: 2px; }
+.atlas-section { margin-block-start: clamp(3.5rem, 7vw, 6rem); scroll-margin-block-start: 6rem; }
+.atlas-section__header, .atlas-intro > div:first-child, .atlas-invitation > div:first-child { display: grid; align-content: start; gap: 1rem; }
+.atlas-page > .atlas-intro { border-block-start: var(--atlas-line); padding-block-start: 2.5rem; }
+.atlas-reading { max-inline-size: var(--type-measure-body, 62ch); }
+.atlas-page .atlas-reading > * + * { margin-block-start: 1.25rem; }
+.atlas-page .atlas-methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-block-start: 2rem; padding: 0; list-style: none; border-block: var(--atlas-line); }
+.atlas-methods li { display: grid; align-content: start; gap: 1rem; padding: 1.5rem; border-inline-end: var(--atlas-line); }
+.atlas-methods li:first-child { padding-inline-start: 0; }
+.atlas-methods li:last-child { border-inline-end: 0; padding-inline-end: 0; }
+.atlas-page .atlas-image-text { margin-block-start: 2.5rem; }
+.atlas-image-text img { aspect-ratio: 800 / 166; }
+.atlas-care { display: grid; grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr); gap: 1.5rem; padding: clamp(1.25rem, 3vw, 2rem); margin-block-start: 2rem; border: var(--atlas-line); border-radius: var(--design-radius-panel); }
+.atlas-founders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-block-start: 2rem; }
+.atlas-person { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-content: start; gap: 1.25rem; padding: 1.5rem; border: var(--atlas-line); border-radius: var(--design-radius-card); }
+.atlas-page .atlas-person__portrait, .atlas-person__initials { aspect-ratio: 1; inline-size: 7rem; block-size: 7rem; border-radius: var(--design-radius-media); object-fit: cover; }
+.atlas-person__initials { display: grid; place-items: center; font: var(--type-role-card-title-font, var(--type-role-card-title-weight) var(--type-role-card-title-size)/var(--type-role-card-title-line) var(--font-display)); letter-spacing: var(--type-role-card-title-track); }
+.atlas-person__copy { display: grid; align-content: start; gap: 0.75rem; min-inline-size: 0; }
+.atlas-invitation { padding: clamp(1.25rem, 3vw, 2.5rem); border-radius: var(--design-radius-panel); }
+.atlas-invitation h2 { max-inline-size: 14ch; }
+.atlas-page .atlas-colophon { margin-block-start: 2rem; }
+
+@media (max-width: 65rem) {
+  .atlas-person { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 56rem) {
+  .atlas-hero, .atlas-intro, .atlas-invitation { grid-template-columns: minmax(0, 1fr); }
+  .atlas-hero__image { max-inline-size: 44rem; }
+  .atlas-invitation h2 { max-inline-size: 20ch; }
+}
+
+@media (max-width: 38rem) {
+  .atlas-page .atlas-methods, .atlas-care, .atlas-founders { grid-template-columns: minmax(0, 1fr); }
+  .atlas-methods li:nth-child(n) { padding: 1.5rem 0; border-inline-end: 0; border-block-end: var(--atlas-line); }
+  .atlas-methods li:last-child { border-block-end: 0; }
+}
+
+@media (max-width: 25rem) {
+  /* Keep every shared header action readable at the smallest viewport. */
+  body.atlas-initiative-page .journal-bar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "brand" "actions" "navigation";
+    gap: 0.4rem;
+  }
+  body.atlas-initiative-page .journal-actions { justify-self: start; flex-wrap: wrap; }
+}

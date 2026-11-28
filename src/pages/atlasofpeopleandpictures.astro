@@ -1,0 +1,167 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { breadcrumbJsonLd } from "../lib/seoData";
+import "../styles/atlas-of-people-and-pictures.css";
+
+const path = "/atlasofpeopleandpictures";
+const title = "Atlas of People & Pictures";
+const description = "An emerging archival initiative rooted in Odisha, India, bringing photographs, personal histories and shared cultural memory into conversation. Founded by Abodid Sahoo and Yashaswinee Sahoo.";
+const root = "https://assets.abodid.com/photos/variants/my-life";
+const desk = "kent-project-responses-abodid-33%20copy-92e4e4db9b.webp";
+const writing = "abodid-project-photo-writing-fukun-01-e296f2206e.webp";
+const portrait = "abodid-solo-photographer-portrait-5ebc67ae30.webp";
+const contact = "mailto:hello@abodid.com?subject=Atlas%20of%20People%20%26%20Pictures";
+const methods = [
+  { title: "Document", text: "Photograph personal histories, local cultures, festivals, rituals and everyday life, beginning with lived experience in Odisha." },
+  { title: "Gather", text: "Bring photographic prints into shared spaces where people can look closely, exchange stories and respond in their own words." },
+  { title: "Build together", text: "Explore how images, handwritten memories and digital records can form an archive shaped by the people whose lives it holds." },
+];
+---
+
+<BaseLayout
+  title={`${title} — Abodid Sahoo`}
+  description={description}
+  canonicalUrl={path}
+  image={`${root}/1600/${desk}`}
+  imageAlt="A table covered with photographic prints, books and handwritten research material"
+  structuredData={[
+    breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: title, path }]),
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: title,
+      url: `https://abodid.com${path}`,
+      description,
+      founder: [
+        { "@type": "Person", name: "Abodid Sahoo", url: "https://abodid.com/about" },
+        { "@type": "Person", name: "Yashaswinee Sahoo" },
+      ],
+    },
+  ]}
+  fullWidth={true}
+  showNewsletterPopup={false}
+  showFooterNavigation={false}
+  bodyClass="atlas-initiative-page"
+>
+  <article class="atlas-page" data-pop-surface="cream">
+    <header class="atlas-hero">
+      <div class="atlas-hero__copy">
+        <p class="atlas-label atlas-identity">
+          <svg viewBox="0 0 32 32" width="32" height="32" fill="none" aria-hidden="true"><path d="M2 2h12v12H2zM18 2h12v12H18zM2 18h12v12H2zM18 18h12v12H18z" stroke="currentColor" stroke-width="1.5"/><circle cx="24" cy="24" r="3" fill="currentColor"/></svg>
+          Rooted in Odisha · India
+        </p>
+        <h1>Atlas of People <span>&amp; Pictures</span></h1>
+        <p class="atlas-lead">Photographs bring us together. The stories around them become a shared archive.</p>
+        <p>An emerging archival initiative exploring personal histories, local cultures, rituals and everyday life through images and conversation.</p>
+        <div class="atlas-actions">
+          <a class="atlas-button" href={contact}>Start a conversation <span aria-hidden="true">↗</span></a>
+          <a class="atlas-text-link" href="#people">Meet the founders <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+      <figure class="atlas-hero__image">
+        <img
+          src={`${root}/1600/${desk}`}
+          srcset={`${root}/800/${desk} 800w, ${root}/1600/${desk} 1600w`}
+          sizes="(max-width: 56rem) calc(100vw - 2rem), 46vw"
+          width="800" height="533" fetchpriority="high"
+          alt="Photographic prints, handwritten notes and books spread across a working table, with more photographs in the drawers below."
+        />
+        <figcaption>01 / Prints, notes and the beginnings of a conversation.<br />From Abodid Sahoo’s artistic practice.</figcaption>
+      </figure>
+    </header>
+
+    <section class="atlas-section atlas-intro" aria-labelledby="about-heading">
+      <div>
+        <p class="atlas-label">The idea</p>
+        <h2 id="about-heading">An archive made with people.</h2>
+      </div>
+      <div class="atlas-reading">
+        <p>What seems ordinary within a family or community can carry histories that are rarely recorded. Atlas of People &amp; Pictures begins with those moments, and with the people who know them best.</p>
+        <p>The initiative grows from Abodid’s photographic work, including cultural festivals and the rituals following his grandmother’s passing in Odisha. It asks how a deeply personal photograph can open a conversation across generations, cultures and places.</p>
+      </div>
+    </section>
+
+    <section class="atlas-section" aria-labelledby="practice-heading">
+      <div class="atlas-section__header">
+        <p class="atlas-label">How we approach the work</p>
+        <h2 id="practice-heading">Look. Listen. Add a memory.</h2>
+      </div>
+      <ol class="atlas-methods">
+        {methods.map((method, index) => (
+          <li>
+            <span class="atlas-label" aria-hidden="true">0{index + 1}</span>
+            <h3>{method.title}</h3>
+            <p>{method.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="atlas-section" aria-labelledby="images-heading">
+      <div class="atlas-intro">
+        <div>
+          <p class="atlas-label">A starting point from our practice</p>
+          <h2 id="images-heading">The photograph is only the beginning.</h2>
+        </div>
+        <div class="atlas-reading">
+          <p>A print can hold more than an image. Writing on and around photographs makes room for recollection, interpretation and things that were never said.</p>
+          <p>Our next step is to develop small, informal gatherings in Odisha where people can bring family photographs, exchange stories and collectively reflect on cultural memory.</p>
+        </div>
+      </div>
+      <figure class="atlas-image-text">
+        <img
+          src={`${root}/1600/${writing}`}
+          srcset={`${root}/800/${writing} 800w, ${root}/1600/${writing} 1600w`}
+          sizes="(max-width: 82rem) calc(100vw - 2rem), 1248px"
+          width="800" height="166" loading="lazy" decoding="async"
+          alt="Five printed family photographs with handwritten reflections layered over and around the images."
+        />
+        <figcaption>02 / Photographs and handwritten image-text from Abodid’s archive-based practice.</figcaption>
+      </figure>
+      <div class="atlas-care" data-pop-surface="pink">
+        <h3>Care is part of the method.</h3>
+        <p>We want to build ways of working that respect consent, preserve context and let people decide what they wish to share. A photograph’s story belongs with the people connected to it.</p>
+      </div>
+    </section>
+
+    <section class="atlas-section" id="people" aria-labelledby="people-heading">
+      <div class="atlas-section__header">
+        <p class="atlas-label">The people behind the initiative</p>
+        <h2 id="people-heading">Our founders.</h2>
+      </div>
+      <div class="atlas-founders">
+        <article class="atlas-person">
+          <img class="atlas-person__portrait" src={`${root}/800/${portrait}`} width="800" height="533" loading="lazy" decoding="async" alt="Abodid Sahoo holding a camera, reflected in a pink-framed mirror." />
+          <div class="atlas-person__copy">
+            <p class="atlas-label">Founder</p>
+            <h3>Abodid Sahoo</h3>
+            <p>Artist, photographer and researcher working across personal archives, writing and participatory installation. His practice connects lived experience with questions of memory, grief and belonging.</p>
+            <a class="atlas-text-link" href="/about">About Abodid <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+        <article class="atlas-person">
+          <div class="atlas-person__initials" data-pop-surface="blue" aria-hidden="true">YS</div>
+          <div class="atlas-person__copy">
+            <p class="atlas-label">Co-founder</p>
+            <h3>Yashaswinee Sahoo</h3>
+            <p>Co-founder of Atlas of People &amp; Pictures and Abodid’s research collaborator. They co-authored research on cloud photographic archives, memory and ownership presented at BSA 2026.</p>
+            <a class="atlas-text-link" href="https://www.britsoc.co.uk/media/27151/ac2026_poster_presentations.pdf#page=20" target="_blank" rel="noopener noreferrer">Their research abstract <span>(PDF, p. 20)</span> <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="atlas-section atlas-invitation" aria-labelledby="join-heading" data-pop-surface="blue">
+      <div>
+        <p class="atlas-label">A growing circle</p>
+        <h2 id="join-heading">Bring a picture. Bring your perspective.</h2>
+      </div>
+      <div class="atlas-reading">
+        <p>We welcome photographers, researchers, artists and people who care for family or community memories. You might have a collection to discuss, an idea for a gathering, or a story a photograph brings back.</p>
+        <p>We’re interested in how physical and digital archives can grow together and become accessible, collectively authored exhibitions within communities.</p>
+        <a class="atlas-button" href={contact}>Get in touch <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+    <p class="atlas-colophon atlas-label">Atlas of People &amp; Pictures · An initiative in development<br />Photographs and image-text: Abodid Sahoo</p>
+  </article>
+</BaseLayout>
